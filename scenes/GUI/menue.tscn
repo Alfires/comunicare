@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://ddvba2e5x1lxd"]
+
+[ext_resource type="PackedScene" uid="uid://2lq4diyhql5i" path="res://scenes/GUI/home_menue.tscn" id="1_sjkj6"]
+[ext_resource type="PackedScene" uid="uid://bj01f1oxo6lkv" path="res://scenes/GUI/world_explorer.tscn" id="2_8hq4l"]
+[ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="3_dpg68"]
+[ext_resource type="PackedScene" uid="uid://cw1ia8xw77ut3" path="res://scenes/GUI/settings_menue.tscn" id="4_urf01"]
+
+[node name="menue" type="TabContainer" unique_id=1733054730]
+anchors_preset = -1
+anchor_left = 0.07
+anchor_top = 0.07
+anchor_right = 0.93
+anchor_bottom = 0.93
+grow_horizontal = 2
+grow_vertical = 2
+tab_alignment = 1
+current_tab = 0
+tabs_position = 1
+tab_0/title = "Home"
+tab_1/title = "World Explorer"
+
+[node name="home_menue" parent="." unique_id=2133954344 instance=ExtResource("1_sjkj6")]
+layout_mode = 2
+metadata/_tab_index = 0
+metadata/_tab_name = "Home"
+
+[node name="world_explorer" parent="." unique_id=538100789 instance=ExtResource("2_8hq4l")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+metadata/_tab_name = "World Explorer"
+
+[node name="share_session_menue" parent="." unique_id=927537756 instance=ExtResource("3_dpg68")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="settings_menue" parent="." unique_id=1920010780 instance=ExtResource("4_urf01")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 3

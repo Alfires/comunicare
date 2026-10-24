@@ -1,0 +1,85 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="comunicare"
+run/main_scene="uid://1dno0ug1oqc2"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+DataLoader="*uid://uykjnt0gunvj"
+SaveData="*uid://btb22napioflu"
+NetworkHandler="*uid://bfsn4a7iwp5jp"
+
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/Godot-MToon-Shader/plugin.cfg", "res://addons/nodetunnel/plugin.cfg", "res://addons/vrm/plugin.cfg")
+
+[input]
+
+forward={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":87,"key_label":0,"unicode":119,"location":0,"echo":false,"script":null)
+]
+}
+back={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":83,"key_label":0,"unicode":115,"location":0,"echo":false,"script":null)
+]
+}
+left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":65,"key_label":0,"unicode":97,"location":0,"echo":false,"script":null)
+]
+}
+right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":68,"key_label":0,"unicode":100,"location":0,"echo":false,"script":null)
+]
+}
+
+[internationalization]
+
+locale/translation_remaps={
+"res://scenes/GUI/home_menue.tscn": PackedStringArray(),
+"res://scenes/GUI/join_session_menue.tscn": PackedStringArray(),
+"res://scenes/GUI/menue.tscn": PackedStringArray(),
+"res://scenes/GUI/server_handler.tscn": PackedStringArray(),
+"res://scenes/GUI/settings_menue.tscn": PackedStringArray(),
+"res://scenes/GUI/share_session_menue.tscn": PackedStringArray(),
+"res://scenes/GUI/vr_gui.tscn": PackedStringArray(),
+"res://scenes/GUI/world_explorer.tscn": PackedStringArray(),
+"res://scenes/player/player_desktop.tscn": PackedStringArray(),
+"res://scenes/player/player_vr.tscn": PackedStringArray(),
+"res://scenes/startup.tscn": PackedStringArray(),
+"res://scenes/world.tscn": PackedStringArray()
+}
+locale/translations_pot_files=PackedStringArray("res://scenes/startup.tscn", "res://scenes/world.tscn", "res://scenes/player/player_desktop.tscn", "res://scenes/player/player_vr.tscn", "res://scenes/GUI/home_menue.tscn", "res://scenes/GUI/join_session_menue.tscn", "res://scenes/GUI/menue.tscn", "res://scenes/GUI/server_handler.tscn", "res://scenes/GUI/settings_menue.tscn", "res://scenes/GUI/share_session_menue.tscn", "res://scenes/GUI/vr_gui.tscn", "res://scenes/GUI/world_explorer.tscn")
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"
+
+[xr]
+
+openxr/enabled=true
+shaders/enabled=true

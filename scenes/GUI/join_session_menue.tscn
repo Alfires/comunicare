@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://csst37gpce460"]
+
+[ext_resource type="Script" uid="uid://daj2a6l0orob3" path="res://scripts/GUI/join_session_menue.gd" id="1_h2uf8"]
+
+[node name="join_session_menue" type="Control" unique_id=901930207]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_h2uf8")
+
+[node name="Button" type="Button" parent="." unique_id=487367111]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "join"
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

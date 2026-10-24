@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://c7sqcc0dridxr"]
+
+[ext_resource type="Script" uid="uid://dtqa6pf1mg4rg" path="res://scripts/GUI/share_session_menue.gd" id="1_5o5rr"]
+
+[node name="share_session_menue" type="Control" unique_id=927537756]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_5o5rr")
+
+[node name="Button" type="Button" parent="." unique_id=1117535437]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Start"
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

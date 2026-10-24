@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://c84iaxk0m0ws"]
+
+[ext_resource type="PackedScene" uid="uid://crq71nk2bv1ws" path="res://scenes/GUI/vr_gui.tscn" id="1_nnsk1"]
+[ext_resource type="PackedScene" uid="uid://csst37gpce460" path="res://scenes/GUI/join_session_menue.tscn" id="2_4wyf3"]
+[ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="3_k0juu"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_e5uuo"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_nnsk1"]
+sky_material = SubResource("ProceduralSkyMaterial_e5uuo")
+
+[sub_resource type="Environment" id="Environment_rwgxs"]
+background_mode = 2
+sky = SubResource("Sky_nnsk1")
+glow_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_3niwx"]
+size = Vector3(9, 1, 9)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_e5uuo"]
+data = PackedVector3Array(-4.5, 0.5, 4.5, 4.5, 0.5, 4.5, -4.5, -0.5, 4.5, 4.5, 0.5, 4.5, 4.5, -0.5, 4.5, -4.5, -0.5, 4.5, 4.5, 0.5, -4.5, -4.5, 0.5, -4.5, 4.5, -0.5, -4.5, -4.5, 0.5, -4.5, -4.5, -0.5, -4.5, 4.5, -0.5, -4.5, 4.5, 0.5, 4.5, 4.5, 0.5, -4.5, 4.5, -0.5, 4.5, 4.5, 0.5, -4.5, 4.5, -0.5, -4.5, 4.5, -0.5, 4.5, -4.5, 0.5, -4.5, -4.5, 0.5, 4.5, -4.5, -0.5, -4.5, -4.5, 0.5, 4.5, -4.5, -0.5, 4.5, -4.5, -0.5, -4.5, 4.5, 0.5, 4.5, -4.5, 0.5, 4.5, 4.5, 0.5, -4.5, -4.5, 0.5, 4.5, -4.5, 0.5, -4.5, 4.5, 0.5, -4.5, -4.5, -0.5, 4.5, 4.5, -0.5, 4.5, -4.5, -0.5, -4.5, 4.5, -0.5, 4.5, 4.5, -0.5, -4.5, -4.5, -0.5, -4.5)
+
+[node name="wold" type="Node3D" unique_id=165391507]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1870834547]
+environment = SubResource("Environment_rwgxs")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1713185325]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1481482592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.8380084, 0)
+mesh = SubResource("BoxMesh_3niwx")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D" unique_id=1831705560]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D" unique_id=1784589007]
+shape = SubResource("ConcavePolygonShape3D_e5uuo")
+
+[node name="VR_GUI" parent="." unique_id=1113032290 instance=ExtResource("1_nnsk1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65773225, 1.1875982)
+
+[node name="SubViewport" type="SubViewport" parent="VR_GUI" unique_id=2064718633]
+
+[node name="TabContainer" type="TabContainer" parent="VR_GUI/SubViewport" unique_id=847339087]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+current_tab = 0
+
+[node name="join_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=901930207 instance=ExtResource("2_4wyf3")]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="share_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=927537756 instance=ExtResource("3_k0juu")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1

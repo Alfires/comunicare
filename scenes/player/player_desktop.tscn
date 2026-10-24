@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://dvhg6rp2bva02"]
+
+[ext_resource type="Script" uid="uid://voarqxpmv4ts" path="res://scripts/player/player_desktop_movment.gd" id="1_6qfsu"]
+[ext_resource type="PackedScene" uid="uid://ddvba2e5x1lxd" path="res://scenes/GUI/menue.tscn" id="2_i0aqy"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3niwx"]
+
+[node name="player_desktop" type="CharacterBody3D" unique_id=1383262330]
+script = ExtResource("1_6qfsu")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=519991745]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0389762, 0)
+shape = SubResource("CapsuleShape3D_3niwx")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1307825708]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.51095146, 0)
+
+[node name="Camera3D2" type="Camera3D" parent="." unique_id=1014570555]
+transform = Transform3D(1, 0, 0, 0, 0.95451933, 0.29814902, 0, -0.29814902, 0.95451933, 0, 2.1398742, 1.9286802)
+
+[node name="menue" parent="." unique_id=1733054730 instance=ExtResource("2_i0aqy")]
+visible = false

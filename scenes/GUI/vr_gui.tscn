@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://crq71nk2bv1ws"]
+
+[ext_resource type="Script" uid="uid://cgus6tseonp4u" path="res://scripts/GUI/vr_gui.gd" id="1_x3dt6"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x3dt6"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_3niwx"]
+material = SubResource("StandardMaterial3D_x3dt6")
+size = Vector2(1, 0.75)
+
+[node name="VRViewport2D" type="Node3D" unique_id=1230675045]
+script = ExtResource("1_x3dt6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=975459482]
+mesh = SubResource("QuadMesh_3niwx")

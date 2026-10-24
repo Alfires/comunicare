@@ -10,6 +10,7 @@ extends CharacterBody3D
 @export var max_tilt: float = PI / 3.7  # Limit vertical rotation
 # References
 @onready var camera = $Camera3D
+var old_player_pos: Vector3
 
 var head_idx = null
 var skeleton = null
@@ -24,8 +25,14 @@ func _process(delta):
 	position += velocity * delta  # Move immediately
 	var packet = PackedByteArray()
 	packet.append_array(var_to_bytes(position))
-	NetworkHandler.sync_position.rpc(multiplayer.get_unique_id(), position)
+	if old_player_pos != position: 
+		update_player_pos() 
 	
+	
+func update_player_pos():
+	print("new pos: ",multiplayer.get_unique_id())
+	old_player_pos = position
+	NetworkHandler.sent_position_to_server.rpc(multiplayer.get_unique_id(), position)
 
 func set_player_pos(pos: Vector3):
 	position = pos

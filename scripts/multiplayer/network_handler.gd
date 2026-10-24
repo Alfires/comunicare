@@ -11,14 +11,18 @@ func _ready() -> void:
 @rpc("any_peer", "call_local", "unreliable")
 func sync_position(peer_id: int, pos: Vector3):
 	# Server relays to all others
+	var player_node = find_child(str(peer_id), false, false)
+	if player_node:
+		player_node.position = pos
+
+
+@rpc("any_peer", "call_local", "unreliable")
+func sent_position_to_server(peer_id: int, pos: Vector3):
 	if multiplayer.is_server():
-		for peer in multiplayer.get_peers():
-			if peer != peer_id:
-				sync_position.rpc_id(peer, peer_id, pos)
-	else:
-		var player_node = find_child(str(peer_id), false, false)
-		if player_node:
-			player_node.position = pos
+		for player_peer in multiplayer.get_peers():
+			sync_position.rpc_id(player_peer, peer_id, pos)
+		sync_position(peer_id,pos)
+
 
 func create_session():
 	await create_relay_connection()
@@ -29,6 +33,11 @@ func create_session():
 	print("Hosting room...")
 	await peer.room_connected
 	print("Connected to room: ", peer.room_id)
+	peer.join_validation = func(join_metadata) -> bool:
+	# 1. very if user is alowed to join (not setuped jet) #nosetup
+	# 2. get players metadata an save it in players
+		print(join_metadata)
+		return true
 	
 func _on_peer_connected(peer_id):
 	print("Client connected: %d" % peer_id)
@@ -38,6 +47,7 @@ func _on_peer_connected(peer_id):
 	add_child(player)
 	players[peer_id] = player
 	#authenticate_user.rpc_id(2, SaveData.keypair.save_to_string(true), peer_id)
+
 
 func _on_peer_disconnected(peer_id):
 	print("Client disconnected: %d" % peer_id)

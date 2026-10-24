@@ -14,7 +14,6 @@ extends CharacterBody3D
 var head_idx = null
 var skeleton = null
 
-
 func _ready() -> void:
 	$menue.hide()
 	add_to_group("player")
@@ -22,8 +21,11 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
 func _process(delta):
-	# This is MY player
 	position += velocity * delta  # Move immediately
+	var packet = PackedByteArray()
+	packet.append_array(var_to_bytes(position))
+	NetworkHandler.sync_position.rpc(multiplayer.get_unique_id(), position)
+	
 
 func set_player_pos(pos: Vector3):
 	position = pos

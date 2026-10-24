@@ -10,9 +10,11 @@ func _ready() -> void:
 		if typeof(i[1]) == 3: # TYPE_REAL
 			setting = SpinBox.new()
 			setting.value_changed.connect(Callable(self, "update_setting").bind(i))
+			setting.value = i[1]
 		else: # TYPE_STRING
 			setting = LineEdit.new()
 			setting.text_changed.connect(Callable(self, "update_setting").bind(i))
+			setting.text = i[1]
 		var setting_name = Label.new()
 		var hb = HBoxContainer.new()
 		setting_name.text = i

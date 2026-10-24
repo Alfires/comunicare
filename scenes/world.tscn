@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://c84iaxk0m0ws"]
 
 [ext_resource type="PackedScene" uid="uid://crq71nk2bv1ws" path="res://scenes/GUI/vr_gui.tscn" id="1_nnsk1"]
-[ext_resource type="PackedScene" uid="uid://csst37gpce460" path="res://scenes/GUI/join_session_menue.tscn" id="2_4wyf3"]
 [ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="3_k0juu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_e5uuo"]
@@ -53,11 +52,6 @@ grow_horizontal = 2
 grow_vertical = 2
 current_tab = 0
 
-[node name="join_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=901930207 instance=ExtResource("2_4wyf3")]
+[node name="share_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=927537756 instance=ExtResource("3_k0juu")]
 layout_mode = 2
 metadata/_tab_index = 0
-
-[node name="share_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=927537756 instance=ExtResource("3_k0juu")]
-visible = false
-layout_mode = 2
-metadata/_tab_index = 1

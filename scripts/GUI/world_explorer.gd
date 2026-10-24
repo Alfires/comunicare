@@ -8,6 +8,8 @@ var worlds_list = [{
 	"name": "My Awesome World"
 }]
 
+signal reset
+
 func _ready() -> void:
 	load_rooms()
 
@@ -34,6 +36,7 @@ func create_world_info_menue(world_data):
 	join.pressed.connect(Callable(self, "_on_join_pressed").bind(world_data,vb))
 	back.text = "<-"
 	back.pressed.connect(Callable(self, "close_info_menu").bind(vb))
+	reset.connect(Callable(self, "close_info_menu").bind(vb))
 	world_name.text = world_data["name"]
 	hb.add_child(world_name)
 	hb.add_child(join)

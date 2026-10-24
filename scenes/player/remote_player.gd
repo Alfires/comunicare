@@ -11,7 +11,7 @@ func load_player_model():
 	var vrm_model = await DataLoader.load_vrm_from_url(player_model)
 	add_child(vrm_model)
 	await get_tree().process_frame
-	# usrname shoud be there 
+	# username shoud be there 
 	user_name_label.text = user_name
 	user_name_label.position = vrm_model.position + Vector3(0,1,0)
 	print("remote player model loaded")

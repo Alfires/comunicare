@@ -62,6 +62,7 @@ func _on_peer_disconnected(peer_id):
 # Join Session part
 	
 func join_session(room_id: String):
+	if room_id == peer.room_id: return
 	await create_relay_connection()
 	var error = peer.join_room(room_id,"SaveData.keypair.save_to_string(true)")
 	if error:

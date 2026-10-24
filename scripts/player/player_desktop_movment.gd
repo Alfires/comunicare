@@ -1,21 +1,25 @@
 extends CharacterBody3D
 
 # Movement variables
-@export var speed = 5.0
+@export var speed = 3.0
 @export var acceleration = 20.0
 @export var friction = 15.0
-@export var jump_force = 10.0
+@export var jump_force = 7.0
 @export var gravity = 20.0
 @export var mouse_sensitivity: float = 0.003
 @export var max_tilt: float = PI / 3.7  # Limit vertical rotation
 # References
 @onready var camera = $Camera3D
-var old_player_pos: Vector3
+
+var update_interval = 0.5
+var elapsed_time = 0.0
+var last_state = {"position": position, "rotation": rotation}
 
 var head_idx = null
 var skeleton = null
 
 func _ready() -> void:
+	
 	add_to_group("player")
 	$menue.hide()
 	load_player_model()
@@ -25,13 +29,15 @@ func _process(delta):
 	position += velocity * delta  # Move immediately
 	var packet = PackedByteArray()
 	packet.append_array(var_to_bytes(position))
-	if old_player_pos != position: 
+	# when to update data
+	elapsed_time += delta
+	if elapsed_time >= update_interval or last_state != {"position": position, "rotation": rotation}:  
 		update_player_data() 
+		elapsed_time = 0.0
 	
 func update_player_data():
-	old_player_pos = position
-	
-	NetworkHandler.sent_position_to_server.rpc(multiplayer.get_unique_id(), position,rotation)
+	if NetworkHandler.peer.room_id == null: return
+	NetworkHandler.sent_player_data_to_server.rpc(multiplayer.get_unique_id(), position,rotation)
 
 func set_player_pos(pos: Vector3):
 	position = pos
@@ -48,14 +54,8 @@ func _input(event: InputEvent) -> void:
 		if head_idx != null:
 			skeleton.set_bone_pose_rotation(head_idx, Quaternion.from_euler(camera.rotation))
 
-	
-	# Toggle mouse capture with Escape
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
-		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
-			$menue.show()
-		else: $menue.hide()
-	elif event is InputEventKey and event.pressed and event.keycode == KEY_F5:
+	#camara switch
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F5:
 		if camera.current:
 			$Camera3D2.current = true
 			

@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://ddvba2e5x1lxd"]
 
+[ext_resource type="Script" uid="uid://66yrw0ybyadj" path="res://scripts/GUI/menue.gd" id="1_8hq4l"]
 [ext_resource type="PackedScene" uid="uid://2lq4diyhql5i" path="res://scenes/GUI/home_menue.tscn" id="1_sjkj6"]
 [ext_resource type="PackedScene" uid="uid://bj01f1oxo6lkv" path="res://scenes/GUI/world_explorer.tscn" id="2_8hq4l"]
 [ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="3_dpg68"]
@@ -18,6 +19,7 @@ current_tab = 0
 tabs_position = 1
 tab_0/title = "Home"
 tab_1/title = "World Explorer"
+script = ExtResource("1_8hq4l")
 
 [node name="home_menue" parent="." unique_id=2133954344 instance=ExtResource("1_sjkj6")]
 layout_mode = 2

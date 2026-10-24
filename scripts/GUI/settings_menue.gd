@@ -4,7 +4,7 @@ extends Control
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	var vb = VBoxContainer.new()
-	var setting_name = Label.new()
+	
 	for i in SaveData.data:
 		var setting
 		if typeof(i[1]) == 3: # TYPE_REAL
@@ -13,7 +13,7 @@ func _ready() -> void:
 		else: # TYPE_STRING
 			setting = LineEdit.new()
 			setting.text_changed.connect(Callable(self, "update_setting").bind(i))
-		
+		var setting_name = Label.new()
 		var hb = HBoxContainer.new()
 		setting_name.text = i
 		vb.set_anchors_preset(Control.PRESET_FULL_RECT)

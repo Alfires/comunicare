@@ -77,7 +77,7 @@ func _setup_controllers():
 
 func load_vrm_model():
 	print("Loading VRM model...")
-	var model = await VrmModelLoader.load_vrm_from_url(SaveData.data["plyer_model_url"])
+	var model = await DataLoader.load_vrm_from_url(SaveData.data["plyer_model_url"])
 
 	if model == null:
 		print("ERROR: Failed to load VRM model")

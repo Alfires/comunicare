@@ -69,7 +69,7 @@ locale/translation_remaps={
 "res://scenes/startup.tscn": PackedStringArray(),
 "res://scenes/world.tscn": PackedStringArray()
 }
-locale/translations_pot_files=PackedStringArray("res://scenes/startup.tscn", "res://scenes/world.tscn", "res://scenes/player/player_desktop.tscn", "res://scenes/player/player_vr.tscn", "res://scenes/GUI/home_menue.tscn", "res://scenes/GUI/join_session_menue.tscn", "res://scenes/GUI/menue.tscn", "res://scenes/GUI/server_handler.tscn", "res://scenes/GUI/settings_menue.tscn", "res://scenes/GUI/share_session_menue.tscn", "res://scenes/GUI/vr_gui.tscn", "res://scenes/GUI/world_explorer.tscn")
+locale/translations_pot_files=PackedStringArray("res://scenes/startup.tscn", "res://scenes/world.tscn", "res://scenes/player/player_desktop.tscn", "res://scenes/player/player_vr.tscn", "res://scenes/GUI/home_menue.tscn", "res://scenes/GUI/menue.tscn", "res://scenes/GUI/server_handler.tscn", "res://scenes/GUI/settings_menue.tscn", "res://scenes/GUI/share_session_menue.tscn", "res://scenes/GUI/vr_gui.tscn", "res://scenes/GUI/world_explorer.tscn")
 
 [physics]
 

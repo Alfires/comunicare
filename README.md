@@ -16,5 +16,6 @@ Development:
 - [ ] multiplayer
   - [x] movent/rotation sync
   - [ ] model sync
-  - [ ] public session/world list (node tunnel seems to have a bug cant implement it )    
+  - [ ] public session/world list (node tunnel seems to have a bug cant implement it )
+  - [ ] voice chat
 

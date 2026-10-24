@@ -9,19 +9,20 @@ func _ready() -> void:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 
 @rpc("any_peer", "call_local", "unreliable")
-func sync_position(peer_id: int, pos: Vector3):
+func sync_player_data(peer_id: int, pos: Vector3,rotation):
 	# Server relays to all others
 	var player_node = find_child(str(peer_id), false, false)
 	if player_node:
 		player_node.position = pos
+		player_node.rotation = rotation
 
 
 @rpc("any_peer", "call_local", "unreliable")
-func sent_position_to_server(peer_id: int, pos: Vector3):
+func sent_player_data_to_server(peer_id: int, pos: Vector3,rotation: Vector3):
 	if multiplayer.is_server():
 		for player_peer in multiplayer.get_peers():
-			sync_position.rpc_id(player_peer, peer_id, pos)
-		sync_position(peer_id,pos)
+			sync_player_data.rpc_id(player_peer, peer_id, pos,rotation)
+		sync_player_data(peer_id,pos,rotation)
 
 
 func create_session():
@@ -41,11 +42,14 @@ func create_session():
 	
 func _on_peer_connected(peer_id):
 	print("Client connected: %d" % peer_id)
+	# create Player :)
 	var player = player_scene.instantiate()
 	player.name = str(peer_id)
+	player.user_name = str(peer_id)
 	player.set_multiplayer_authority(peer_id)
 	add_child(player)
 	players[peer_id] = player
+	player.set_multiplayer_authority(peer_id)
 	#authenticate_user.rpc_id(2, SaveData.keypair.save_to_string(true), peer_id)
 
 
@@ -63,11 +67,6 @@ func join_session(room_id: String):
 	if error:
 		return error
 	multiplayer.multiplayer_peer = peer
-	
-
-@rpc("call_remote")
-func authenticate_user(public_key_pem: String, username: String):
-	print("name:",username,public_key_pem)
 
 # usefull functions
 func create_relay_connection():
@@ -79,10 +78,4 @@ func create_relay_connection():
 	await peer.authenticated
 	print("Authenticated!")
 	
-func spawn_player(peer_id: int,player_scene):
-	var player = player_scene.instantiate()
-	player.name = str(peer_id)
-	add_child(player)
-	
 	# IMPORTANT: Set the owner so peer_id controls it
-	player.set_multiplayer_authority(peer_id)

@@ -33,4 +33,5 @@ func load_player():
 		print("OpenXR not initialized, please check if your headset is connected. error: ")
 		print("loading Desktop: ", os)
 		instantiate_player("res://scenes/player/player_desktop.tscn")
+		
 	get_tree().root.add_child.call_deferred(player_scene)

@@ -31,9 +31,6 @@ func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D:
 	
 	var generated_scene = gltf.generate_scene(state)
 	
-	if _model != null:
-		_model.free()
-	
 	_model = generated_scene
 	
 	return _model
@@ -62,8 +59,6 @@ func _load_model_from_file(path: String) -> Node3D:
 	add_child(_model)
 	
 	return generated_scene
-
-
 
 
 func load_world_from_url(cne_word_url: String) -> bool:

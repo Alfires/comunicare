@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://kxqf882b5278"]
 
+[ext_resource type="Script" uid="uid://cvva05031ko7i" path="res://scenes/player/remote_player.gd" id="1_e2ekk"]
+
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_u2ggw"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_3niwx"]
-
 [node name="remote_player" type="CharacterBody3D" unique_id=644792561]
+script = ExtResource("1_e2ekk")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1725061678]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0389762, 0)
 shape = SubResource("CapsuleShape3D_u2ggw")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=215102365]
-mesh = SubResource("CapsuleMesh_3niwx")
+[node name="user_name" type="Label3D" parent="." unique_id=1162819189]

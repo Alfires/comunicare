@@ -16,8 +16,8 @@ var head_idx = null
 var skeleton = null
 
 func _ready() -> void:
-	$menue.hide()
 	add_to_group("player")
+	$menue.hide()
 	load_player_model()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
@@ -26,13 +26,12 @@ func _process(delta):
 	var packet = PackedByteArray()
 	packet.append_array(var_to_bytes(position))
 	if old_player_pos != position: 
-		update_player_pos() 
+		update_player_data() 
 	
-	
-func update_player_pos():
-	print("new pos: ",multiplayer.get_unique_id())
+func update_player_data():
 	old_player_pos = position
-	NetworkHandler.sent_position_to_server.rpc(multiplayer.get_unique_id(), position)
+	
+	NetworkHandler.sent_position_to_server.rpc(multiplayer.get_unique_id(), position,rotation)
 
 func set_player_pos(pos: Vector3):
 	position = pos
@@ -43,6 +42,7 @@ func _input(event: InputEvent) -> void:
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		
 		# Vertical rotation (camera rotates around X-axis)
+		if not is_instance_valid(camera): return
 		var tilt = camera.rotation.x - (event.relative.y * mouse_sensitivity)
 		camera.rotation.x = clamp(tilt, -max_tilt, max_tilt)
 		if head_idx != null:

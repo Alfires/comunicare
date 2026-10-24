@@ -3,6 +3,8 @@ Comunicare is a VR and desktop chatting game designed to let you explore worlds 
 Programmed in Godot.
 Its in a very early release.
 
+Join the office comunicare server on [Matrix](https://matrix.to/#/#comunicare:matrix.org) or Discord(coming soon) 
+
 Development: 
 
 - [x] Add a VR player that works

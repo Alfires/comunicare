@@ -1,5 +1,32 @@
 extends Control
 
+var settings_data = [
+	{
+		"id": "master_volume",
+		"name": "Master Volume",
+		"type": "slider",
+		"default": 80,
+		"apply_function": "apply_master_volume"
+	},
+	{
+		"id": "player_name",
+		"name": "Player Name",
+		"type": "text",
+		"default": "Player",
+		"apply_type": "config",
+		"apply_target": "player/name"
+	},
+	{
+		"id": "enable_particles",
+		"name": "Enable Particles",
+		"type": "toggle",
+		"default": true,
+		"apply_type": "config",
+		"apply_target": "graphics/particles"
+	}
+]
+
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:

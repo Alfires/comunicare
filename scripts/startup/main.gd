@@ -21,9 +21,11 @@ func instantiate_player(player):
 	player_scene = s.instantiate() 
 
 func load_player():
-	var VR = XRServer.find_interface("OpenVR")
-	VR = XRServer.find_interface("OpenXR")
+	var VR
 	var os = OS.get_name()
+	if "--non_vr" not in OS.get_cmdline_args(): 
+		VR = XRServer.find_interface("OpenVR")
+		VR = XRServer.find_interface("OpenXR")
 	if VR and VR.initialize():
 		print("OpenXR initialized successfully")
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)

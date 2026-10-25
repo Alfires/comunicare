@@ -16,10 +16,17 @@ func load_vrm_from_url(url: String):
 		printerr("Download failed with response code: ", response[1])
 		return
 	
-	return _load_model_from_buffer(response[3])
+	var task_rid = WorkerThreadPool.add_task(_load_model_from_buffer.bindv([response[3]]))
+	while not WorkerThreadPool.is_task_completed(task_rid):
+		await get_tree().process_frame
+	var error = WorkerThreadPool.wait_for_task_completion(task_rid)
+	if error != OK:
+		print("Error loading model: ", error)
+	print("Model loaded on background thread")
+	return _model
 
 func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D:
-	"""Load VRM from byte data directly (no disk write needed)"""
+	# Load VRM from byte data directly in background
 	var gltf: GLTFDocument = GLTFDocument.new()	
 	var state: GLTFState = GLTFState.new()
 	
@@ -61,6 +68,7 @@ func _load_model_from_file(path: String) -> Node3D:
 	return generated_scene
 
 
+
 func load_world_from_url(cne_word_url: String) -> bool:
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
@@ -97,6 +105,7 @@ func load_world(cne_word_path: String) -> bool:
 	# Load the main scene
 	var main_scene_path = extract_path + manifest["main_scene"]
 	
+	NetworkHandler.create_session()
 	get_tree().change_scene_to_file(main_scene_path)
 	
 	

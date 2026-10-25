@@ -27,6 +27,10 @@ var movement_speed: float = 2.0
 var turn_speed: float = 2.0
 var movement_deadzone: float = 0.1
 
+var update_interval = 0.5
+var elapsed_time = 0.0
+var last_state = {"position": position, "rotation": rotation}
+
 # How far in front of the eyes the avatar head sits.
 # Increase if the head “dives” into the body when looking down.
 var head_forward_offset: float = 0.08
@@ -57,6 +61,27 @@ func _ready():
 	_setup_controllers()
 	load_vrm_model()
 
+func _process(delta: float):
+	if skeleton != null:
+		_update_head_bone()
+		_update_ik_targets()
+		_handle_movement(delta)
+
+	debug_timer += delta
+	if debug_timer >= 2.0:
+		debug_timer = 0.0
+		_print_debug()
+	# when to update data
+	elapsed_time += delta
+	if elapsed_time >= update_interval or last_state != {"position": position, "rotation": rotation}:  
+		update_player_data() 
+		elapsed_time = 0.0
+	
+func update_player_data():
+	if NetworkHandler.peer.room_id == null: return
+	NetworkHandler.sync_player_data.rpc(position,rotation)
+
+
 func _setup_controllers():
 	left_controller = find_child("LeftHand", true, false) as XRController3D
 	right_controller = find_child("RightHand", true, false) as XRController3D
@@ -77,7 +102,7 @@ func _setup_controllers():
 
 func load_vrm_model():
 	print("Loading VRM model...")
-	var model = await DataLoader.load_vrm_from_url(SaveData.data["plyer_model_url"])
+	var model = await DataLoader.load_vrm_from_url(SaveData.data["avatar_url"])
 
 	if model == null:
 		print("ERROR: Failed to load VRM model")
@@ -208,20 +233,7 @@ func _setup_leg_ik():
 
 	print("Leg IK setup complete")
 
-# -------------------- process loop --------------------
 
-func _process(delta: float):
-	if skeleton == null:
-		return
-
-	_update_head_bone()
-	_update_ik_targets()
-	_handle_movement(delta)
-
-	debug_timer += delta
-	if debug_timer >= 2.0:
-		debug_timer = 0.0
-		_print_debug()
 
 func _update_head_bone():
 	if head_bone_idx == -1 or xr_camera == null or skeleton == null:

@@ -36,7 +36,7 @@ func _process(delta):
 	
 func update_player_data():
 	if NetworkHandler.peer.room_id == null: return
-	NetworkHandler.sent_player_data_to_server.rpc(position,rotation)
+	NetworkHandler.sync_player_data.rpc(position,rotation)
 
 func set_player_pos(pos: Vector3):
 	position = pos
@@ -50,7 +50,7 @@ func _input(event: InputEvent) -> void:
 		if not is_instance_valid(camera): return
 		var tilt = camera.rotation.x - (event.relative.y * mouse_sensitivity)
 		camera.rotation.x = clamp(tilt, -max_tilt, max_tilt)
-		if head_idx != null:
+		if head_idx != null and head_idx > -1:
 			skeleton.set_bone_pose_rotation(head_idx, Quaternion.from_euler(camera.rotation))
 
 	#camara switch
@@ -93,7 +93,7 @@ func _physics_process(delta):
 
 
 func load_player_model():
-	var vrm_model = await DataLoader.load_vrm_from_url(SaveData.data["plyer_model_url"])
+	var vrm_model = await DataLoader.load_vrm_from_url(SaveData.data["avatar_url"])
 	add_child(vrm_model)
 	await get_tree().process_frame
 	

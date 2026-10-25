@@ -14,9 +14,8 @@ func _ready() -> void:
 	load_rooms()
 
 func load_rooms():
-	NetworkHandler.peer.get_rooms()
-	#var rooms = await NetworkHandler.peer.rooms_received
-	#print("rooms:",rooms)
+	var rooms = NetworkHandler.peer.get_rooms()
+	print("rooms: ",rooms)
 	for room in NetworkHandler.peer.get_rooms():
 		print(room)
 	for world in worlds_list:

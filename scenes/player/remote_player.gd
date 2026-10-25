@@ -1,45 +1,68 @@
 extends CharacterBody3D
 
-@export var player_model: String = SaveData.data["plyer_model_url"]
 @export var user_name: String = "0"
 @onready var user_name_label: Label3D = $user_name
 @onready var audio_player: AudioStreamPlayer3D = $AudioStreamPlayer3D
 var audio_stream = AudioStreamGenerator.new()
+var avatar: Node = null
+var buffer_threshold = 3
+var audio_buffers = []
+
+const SAMPLE_RATE := 48000
 
 func _ready() -> void:
-	load_player_model()
-	audio_stream.mix_rate = 48000
-	audio_stream.buffer_length = 10.0 
-	audio_player.stream = audio_stream
-	audio_player.volume_db = 0
-	audio_player.play()
+	load_player_model(SaveData.data["default_avatar"])
 	
+	var gen = AudioStreamGenerator.new()
+	gen.mix_rate = SAMPLE_RATE
+	gen.buffer_length = 0.2 
+	audio_player.stream = gen
+	audio_player.play()
 
-func load_player_model():
-	var vrm_model = await DataLoader.load_vrm_from_url(player_model)
-	add_child(vrm_model)
+
+func load_player_model(model_url: String):
+	if avatar != null:
+		remove_child(avatar)
+		avatar.queue_free()
+	avatar = await DataLoader.load_vrm_from_url(model_url)
+	avatar.name = "avatar"
+	add_child(avatar)
 	await get_tree().process_frame
 	# username shoud be there 
 	user_name_label.text = user_name
-	user_name_label.position = vrm_model.position + Vector3(0,1,0)
+	user_name_label.position = avatar.position + Vector3(0,5,0)
 	print("remote player model loaded")
 
+func _buffer_audio(peer_id: int, data: PackedFloat32Array):
+	if not audio_buffers.has(peer_id):
+		audio_buffers = PackedFloat32Array()
+	
+	# Append incoming chunk
+	audio_buffers.append_array(data)
+	
+	# Prevent buffer overflow (max 200ms)
+	if audio_buffers.size() > SAMPLE_RATE * 0.2:
+		var excess = audio_buffers.size() - (SAMPLE_RATE * 0.15)
+		audio_buffers = audio_buffers.slice(excess)
 
-func play_audio(audio: PackedFloat32Array):
+func _push_to_playback():
 	var playback = audio_player.get_stream_playback()
-	if playback == null:
-		print("Error: Playback is null")
+	if not playback:
 		return
-	var frames_available = playback.get_frames_available()
-	if frames_available < 4096:
-		print("Warning: Buffer underrun detected, only %d frames available" % frames_available)
-
-	var stereo_audio = PackedVector2Array()
-	for i in range(0, audio.size(), 2):
-		if i + 1 < audio.size():
-			stereo_audio.append(Vector2(audio[i], audio[i + 1]))
-		else:
-			stereo_audio.append(Vector2(audio[i], 0.0))
-	playback.push_buffer(stereo_audio)
-	if not audio_player.playing:
-		audio_player.play()
+	
+	var my_id = multiplayer.get_unique_id()
+	if not audio_buffers.has(my_id):
+		return
+	
+	var buffer = audio_buffers[my_id]
+	
+	# Push frames as much as playback can accept
+	while playback.can_push_buffer(1):  # Push one frame at a time
+		if buffer.size() < 1:
+			break
+		
+		var sample = buffer[0]
+		buffer = buffer.slice(1)  # Remove front
+		playback.push_frame(Vector2(sample, sample))
+	
+	audio_buffers = buffer

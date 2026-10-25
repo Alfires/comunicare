@@ -7,24 +7,7 @@ var players = {}
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-
-
-@rpc("any_peer", "call_local", "unreliable")
-func sent_player_data_to_server( pos: Vector3,rotation: Vector3):
-	if multiplayer.is_server():
-		var peer_id = multiplayer.get_remote_sender_id()
-		for player_peer in multiplayer.get_peers():
-			sync_player_data.rpc_id(player_peer, peer_id, pos,rotation)
-		sync_player_data(peer_id,pos,rotation)
-		
-
-@rpc("any_peer", "reliable")
-func sent_audio_to_server(data: PackedByteArray):
-	if multiplayer.is_server():
-		var sender = multiplayer.get_remote_sender_id()
-		for player_peer in multiplayer.get_peers():
-			if sender != player_peer:
-				sync_player_voice.rpc_id(player_peer, sender, data)
+	multiplayer.connected_to_server.connect(_on_connected_to_server)
 
 func create_session():
 	await create_relay_connection()
@@ -41,18 +24,6 @@ func create_session():
 		print(join_metadata)
 		return true
 	
-func _on_peer_connected(peer_id):
-	print("Client connected: %d" % peer_id)
-	# create Player :)
-	var player = player_scene.instantiate()
-	player.name = str(peer_id)
-	player.user_name = str(peer_id)
-	player.set_multiplayer_authority(peer_id)
-	add_child(player)
-	players[peer_id] = player
-	player.set_multiplayer_authority(peer_id)
-	#authenticate_user.rpc_id(2, SaveData.keypair.save_to_string(true), peer_id)
-
 
 func _on_peer_disconnected(peer_id):
 	print("Client disconnected: %d" % peer_id)
@@ -60,11 +31,31 @@ func _on_peer_disconnected(peer_id):
 		players[peer_id].queue_free()
 		players.erase(peer_id)
 	
-# Join Session part / Client
+# Join Session part / Client 
+
+# model requester
+@rpc("any_peer","call_local","unreliable")
+func request_player_model():
+	var peer_id = multiplayer.get_remote_sender_id()
+	rpc_id(peer_id, "sync_player_avatar", SaveData.data["avatar_url"])
+
+
+# model loader sync
+@rpc("any_peer", "call_remote", "unreliable")
+func sync_player_avatar(avatar_url: String):
+	var peer_id = multiplayer.get_remote_sender_id()
+	print("client received avatar...")
+	var player_node = find_child(str(peer_id), false, false)
+	if player_node:
+		print("loding model...")
+		player_node.load_player_model(avatar_url)
+	else:
+		print("peer was not found in local players")
 
 # player movement
-@rpc("any_peer", "call_local", "reliable")
-func sync_player_data(peer_id: int, pos: Vector3,rotation: Vector3):
+@rpc("any_peer", "call_remote", "unreliable")
+func sync_player_data(pos: Vector3,rotation: Vector3):
+	var peer_id = multiplayer.get_remote_sender_id()
 	# Server relays to all others
 	var player_node = find_child(str(peer_id), false, false)
 	if player_node:
@@ -72,13 +63,16 @@ func sync_player_data(peer_id: int, pos: Vector3,rotation: Vector3):
 		player_node.rotation = rotation
 
 # player voice
-@rpc("any_peer", "unreliable")
-func sync_player_voice(peer_id: int, data: PackedByteArray):
+@rpc("any_peer", "call_remote", "unreliable")
+func sync_player_voice(data: PackedByteArray):
 	# Server relays to all others
+	var peer_id = multiplayer.get_remote_sender_id()
+	print("peer: ",peer_id)
+	if peer_id == peer.get_unique_id(): return
 	var player_node = find_child(str(peer_id), false, false)
+	print(player_node)
 	if player_node:
-		var audio = data.to_float32_array()
-		player_node.play_audio(audio)
+		player_node.play_audio(data)
 
 
 func join_session(room_id: String):
@@ -89,11 +83,27 @@ func join_session(room_id: String):
 		return error
 	multiplayer.multiplayer_peer = peer
 
+
+func _on_connected_to_server():
+	print("Connected to server!")
+	print("sending user avatar")
+	
+func _on_peer_connected(peer_id):
+	print("Client connected: %d" % peer_id)
+	# create Player :)
+	var player = player_scene.instantiate()
+	player.name = str(peer_id)
+	player.user_name = str(peer_id)
+	add_child(player)
+	rpc_id(peer_id, "request_player_model")
+	
+	#authenticate_user.rpc_id(2, SaveData.keypair.save_to_string(true), peer_id)
+
 # usefull functions
 func create_relay_connection():
 	multiplayer.multiplayer_peer = null
 	peer = NodeTunnelPeer.new()
-	peer.connect_to_relay("127.0.0.1:7374","comunicare")
+	peer.connect_to_relay("147.185.221.216:32649","comunicare")
 	multiplayer.multiplayer_peer = peer
 	print("Authenticating")
 	await peer.authenticated

@@ -14,3 +14,4 @@ func _process(delta):
 			click_event.button_index = MOUSE_BUTTON_LEFT
 			click_event.pressed = true
 			collider.inject_input(click_event, screen_pos)
+			print("interacted")

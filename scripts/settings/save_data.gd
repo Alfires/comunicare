@@ -1,8 +1,9 @@
 extends Node
 
 var data = {
-	"plyer_model_url": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
+	"avatar_url": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
 	"temp_world_file_save_path": "user://wolds/temp.cne",
+	"default_avatar": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
 }
 var keypair = CryptoKey.new()
 var save_path = "user://user.data"

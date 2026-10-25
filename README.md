@@ -20,4 +20,28 @@ Development:
   - [ ] model sync 
   - [ ] public session/world list (node tunnel seems to have a bug cant implement it )
   - [ ] voice chat
-- [x] make world load from url
+- [x] make world load from URL
+
+# Development 
+How to develop your own world
+(A plugin to make this process easier is planed)
+
+If not done jet download [Godot](https://godotengine.org).
+Now after the install look at the [link](https://docs.godotengine.org/en/stable/getting_started/first_3d_game/01.game_setup.html) to the Godot docs the linked doc shows the setup for a basic 3d scene.
+
+Now that you have created a symbol project test it:
+1. Open the Project folder in your explorer.
+2. Create a new file that is named **manifest.json**
+3. In the file put following:
+```json
+   {
+  "name": "A name you choose",
+  "version": 1,
+  "main_scene": "world.tscn",
+  "spawn_point": [0, 1, 0]
+    }
+```
+4. Now create a zip file with the world scene and the **manifest.json**.
+5. To make the zip file valid cage the your_zip.zip to your_zip.cne
+6. upload the file to your choose file Hosting Service (Github or a drive)
+7. final test open up comunicare and go in to the World Explorer than paste the URL of file there finally hit join. 

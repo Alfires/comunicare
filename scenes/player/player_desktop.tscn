@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://voarqxpmv4ts" path="res://scripts/player/player_desktop_movment.gd" id="1_6qfsu"]
 [ext_resource type="PackedScene" uid="uid://ddvba2e5x1lxd" path="res://scenes/GUI/menue.tscn" id="2_i0aqy"]
+[ext_resource type="PackedScene" uid="uid://dfi8j6nc4p5r0" path="res://scenes/player/audio_microphone.tscn" id="3_e60a0"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3niwx"]
 
@@ -22,3 +23,5 @@ transform = Transform3D(1, 0, 0, 0, 0.95451933, 0.29814902, 0, -0.29814902, 0.95
 visible = false
 tab_2/title = "Share Session"
 tab_3/title = "Settings"
+
+[node name="audio_microphone" parent="." unique_id=793446526 instance=ExtResource("3_e60a0")]

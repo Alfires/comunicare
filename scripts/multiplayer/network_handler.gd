@@ -8,22 +8,23 @@ func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 
-@rpc("any_peer", "call_local", "unreliable")
-func sync_player_data(peer_id: int, pos: Vector3,rotation):
-	# Server relays to all others
-	var player_node = find_child(str(peer_id), false, false)
-	if player_node:
-		player_node.position = pos
-		player_node.rotation = rotation
-
 
 @rpc("any_peer", "call_local", "unreliable")
-func sent_player_data_to_server(peer_id: int, pos: Vector3,rotation: Vector3):
+func sent_player_data_to_server( pos: Vector3,rotation: Vector3):
 	if multiplayer.is_server():
+		var peer_id = multiplayer.get_remote_sender_id()
 		for player_peer in multiplayer.get_peers():
 			sync_player_data.rpc_id(player_peer, peer_id, pos,rotation)
 		sync_player_data(peer_id,pos,rotation)
+		
 
+@rpc("any_peer", "reliable")
+func sent_audio_to_server(data: PackedByteArray):
+	if multiplayer.is_server():
+		var sender = multiplayer.get_remote_sender_id()
+		for player_peer in multiplayer.get_peers():
+			if sender != player_peer:
+				sync_player_voice.rpc_id(player_peer, sender, data)
 
 func create_session():
 	await create_relay_connection()
@@ -59,8 +60,27 @@ func _on_peer_disconnected(peer_id):
 		players[peer_id].queue_free()
 		players.erase(peer_id)
 	
-# Join Session part
-	
+# Join Session part / Client
+
+# player movement
+@rpc("any_peer", "call_local", "reliable")
+func sync_player_data(peer_id: int, pos: Vector3,rotation: Vector3):
+	# Server relays to all others
+	var player_node = find_child(str(peer_id), false, false)
+	if player_node:
+		player_node.position = pos
+		player_node.rotation = rotation
+
+# player voice
+@rpc("any_peer", "unreliable")
+func sync_player_voice(peer_id: int, data: PackedByteArray):
+	# Server relays to all others
+	var player_node = find_child(str(peer_id), false, false)
+	if player_node:
+		var audio = data.to_float32_array()
+		player_node.play_audio(audio)
+
+
 func join_session(room_id: String):
 	if room_id == peer.room_id: return
 	await create_relay_connection()
@@ -79,4 +99,3 @@ func create_relay_connection():
 	await peer.authenticated
 	print("Authenticated!")
 	
-	# IMPORTANT: Set the owner so peer_id controls it

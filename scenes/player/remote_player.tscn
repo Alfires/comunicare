@@ -6,3 +6,5 @@
 script = ExtResource("1_e2ekk")
 
 [node name="user_name" type="Label3D" parent="." unique_id=1162819189]
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=1754936004]

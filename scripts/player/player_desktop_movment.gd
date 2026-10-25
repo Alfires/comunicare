@@ -19,7 +19,6 @@ var head_idx = null
 var skeleton = null
 
 func _ready() -> void:
-	
 	add_to_group("player")
 	$menue.hide()
 	load_player_model()
@@ -37,7 +36,7 @@ func _process(delta):
 	
 func update_player_data():
 	if NetworkHandler.peer.room_id == null: return
-	NetworkHandler.sent_player_data_to_server.rpc(multiplayer.get_unique_id(), position,rotation)
+	NetworkHandler.sent_player_data_to_server.rpc(position,rotation)
 
 func set_player_pos(pos: Vector3):
 	position = pos

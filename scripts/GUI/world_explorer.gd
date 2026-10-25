@@ -2,28 +2,48 @@ extends Control
 
 @onready var searchbar: LineEdit = $VBoxContainer/HBoxContainer/searchbar
 @onready var world_listing: GridContainer = $VBoxContainer/ScrollContainer/CenterContainer/world_listing
+@onready var http_request = $HTTPRequest
 
-var worlds_list = [{
-	"url": "http://127.0.0.1:8000/test.cne",
-	"name": "My Awesome World"
-}]
+var worlds_list: = []
 
 signal reset
 
 func _ready() -> void:
-	load_rooms()
+	http_request.request_completed.connect(_on_request_completed)
+	var url = "https://github.com/Alfires/comunicare-Officel-World-List/raw/refs/heads/main/worlds.json"
+	http_request.request(url)
 
 func load_rooms():
+	$VBoxContainer/ScrollContainer/CenterContainer/world_listing/loading.queue_free()
+	# seems to be broken 
 	var rooms = NetworkHandler.peer.get_rooms()
 	print("rooms: ",rooms)
 	for room in NetworkHandler.peer.get_rooms():
 		print(room)
+
 	for world in worlds_list:
 		var world_previewe = Button.new()
 		world_previewe.text = world["name"]
 		world_previewe.pressed.connect(Callable(self, "create_world_info_menue").bind(world))
 		world_listing.add_child(world_previewe)
 
+@warning_ignore("unused_parameter")
+func _on_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
+	if response_code != 200:
+		print("Error: HTTP %d" % response_code)
+		return
+	
+	var json_string = body.get_string_from_utf8()
+	print(json_string)
+	var error = JSON.parse_string(json_string)
+	if !error: 
+		print("coud not load json file")
+		return
+	worlds_list = error
+	load_rooms()
+
+
+# needs to be changed to load one time on load an not be deleated( add menue in scene)
 func create_world_info_menue(world_data):
 	var vb = VBoxContainer.new()
 	var hb = HBoxContainer.new()

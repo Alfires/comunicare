@@ -5,7 +5,7 @@ var data = {
 	"temp_world_file_save_path": "user://wolds/temp.cne",
 	"default_avatar": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
 }
-var keypair = CryptoKey.new()
+var key = CryptoKey.new()
 var save_path = "user://user.data"
 var key_path = "user://user.key"
 
@@ -13,14 +13,14 @@ var key_path = "user://user.key"
 
 func create_acount():
 	var crypto = Crypto.new()
-	keypair = crypto.generate_rsa(4096)
-	keypair.save(key_path)
+	key = crypto.generate_rsa(4096)
+	key.save(key_path)
 	print("Acount created")
 	
 func load_acount():
 	print("Loading Acount...")
 	if FileAccess.file_exists(key_path):
-		keypair.load(key_path)
+		key.load(key_path)
 		print("Acount Loaded")
 	else:
 		print("Acount not found creating new...")

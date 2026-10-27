@@ -33,8 +33,8 @@ func load_player_model(model_url: String):
 	user_name_label.position = avatar.position + Vector3(0,5,0)
 	print("remote player model loaded")
 
-func _buffer_audio(peer_id: int, data: PackedFloat32Array):
-	if not audio_buffers.has(peer_id):
+func _buffer_audio(data: PackedFloat32Array):
+	if not audio_buffers:
 		audio_buffers = PackedFloat32Array()
 	
 	# Append incoming chunk

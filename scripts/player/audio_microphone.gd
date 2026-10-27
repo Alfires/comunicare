@@ -13,9 +13,10 @@ const BUFFER_SIZE := 4800
 const TIMER_INTERVAL := 0.02
 
 
-
 func _ready():
+	var capture_effect = AudioEffectCapture.new()
 	var idx = AudioServer.get_bus_index("Microphone")
+	AudioServer.add_bus_effect(idx, capture_effect, 0)
 	effect = AudioServer.get_bus_effect(idx, 0)
 	if effect:
 		effect.buffer_length = 0.05
@@ -25,8 +26,6 @@ func _ready():
 	send_timer.timeout.connect(_on_send_timer)
 	send_timer.wait_time = TIMER_INTERVAL
 	send_timer.start()
-	
-	#AudioServer.set_bus_mute(AudioServer.get_bus_index("Microphone"), true)
 
 
 func _on_send_timer():
@@ -38,7 +37,8 @@ func _on_send_timer():
 			audio_data.append(clamp(frame.x * 2.0, -1.0, 1.0))
 		
 		#_buffer_audio(multiplayer.get_unique_id(), audio_data)
-		NetworkHandler.sync_player_voice.rpc(audio_data)
+		
+		NetworkHandler.sync_player_voice.rpc("audio_data")
 
 
 func _process(_delta):

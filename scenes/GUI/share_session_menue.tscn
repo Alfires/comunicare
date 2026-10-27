@@ -43,4 +43,11 @@ editable = false
 layout_mode = 2
 text = "copy"
 
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer" unique_id=446970392]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="player_list" type="VBoxContainer" parent="VBoxContainer/ScrollContainer" unique_id=1262809046]
+layout_mode = 2
+
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/copy" to="." method="_on_copy_pressed"]

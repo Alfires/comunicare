@@ -68,7 +68,6 @@ func _load_model_from_file(path: String) -> Node3D:
 	return generated_scene
 
 
-
 func load_world_from_url(cne_word_url: String) -> bool:
 	var http_request = HTTPRequest.new()
 	add_child(http_request)

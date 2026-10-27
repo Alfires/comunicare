@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dcem8p2m202p5"]
+
+[ext_resource type="Script" uid="uid://b1tmyu8km3wgu" path="res://scripts/multiplayer/relay.gd" id="1_t0lba"]
+
+[node name="relay" type="Node" unique_id=1969267596]
+script = ExtResource("1_t0lba")

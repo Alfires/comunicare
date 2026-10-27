@@ -6,14 +6,18 @@ var player_scene
 var config
 
 func _ready():
-	print("Game starting up...")
-	await SaveData.load_acount()
-	await SaveData.laod_data()
-	call_deferred("load_initial_scene")
+	if "--relay" in OS.get_cmdline_args(): 
+		get_tree().change_scene_to_file("res://scenes/relay.tscn")
+	else:
+		print("Game starting up...")
+		await SaveData.load_acount()
+		await SaveData.laod_data()
+		NetworkHandler.create_peer()
+		NetworkHandler.create_session()
+		call_deferred("load_initial_scene")
 
 func load_initial_scene():
 	load_player()
-	NetworkHandler.create_session()
 	get_tree().change_scene_to_file("res://scenes/world.tscn")
 	
 func instantiate_player(player):

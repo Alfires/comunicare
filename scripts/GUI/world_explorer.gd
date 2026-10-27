@@ -15,12 +15,6 @@ func _ready() -> void:
 
 func load_rooms():
 	$VBoxContainer/ScrollContainer/CenterContainer/world_listing/loading.queue_free()
-	# seems to be broken 
-	var rooms = NetworkHandler.peer.get_rooms()
-	print("rooms: ",rooms)
-	for room in NetworkHandler.peer.get_rooms():
-		print(room)
-
 	for world in worlds_list:
 		var world_previewe = Button.new()
 		world_previewe.text = world["name"]
@@ -34,7 +28,6 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 		return
 	
 	var json_string = body.get_string_from_utf8()
-	print(json_string)
 	var error = JSON.parse_string(json_string)
 	if !error: 
 		print("coud not load json file")

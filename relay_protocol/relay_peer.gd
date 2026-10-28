@@ -1,66 +1,62 @@
 class_name RelayPeer
-extends MultiplayerPeerExtension
 
-var udp := PacketPeerUDP.new()
-var uid := 0
-var target := 0
-var queue := []
-var last := 0
-var world := ""
-var is_connected = false
+var relay := ENetMultiplayerPeer.new()
 
-var relay_ip = "127.0.0.1"
-var relay_port = 7374
+var peer: ENetPacketPeer
+
+var connection: ENetConnection
 
 
-func connect_to_relay():
+signal on_connected_to_relay()
+signal on_disconnected_from_relay()
+signal on_packed(data: PackedByteArray)
+
+func connect_to_relay(relay_ip: String,relay_port: int):
 	var public_key = SaveData.key.save_to_string(true)
-	udp.bind(0)
-	udp.connect_to_host(relay_ip, relay_port)
-	if ! udp.is_socket_connected():
-		printerr("coud not connect to relay")
-		return
-	print("connected to relay")
-	var p := PackedByteArray([])
-	#udp.put_packet(p)
-	p.append_array(public_key.to_utf8_buffer())
-	_send(NetProtocol.CONNECT, p)
+	connection = ENetConnection.new()
+	var error: Error = connection.create_host(1)
+	if error:
+		print("Failed to connect")
+	peer = connection.connect_to_host(relay_ip,relay_port)
+	print("connected to server")
+
 
 func create_session(join_mode) -> void:
-	var p := PackedByteArray([])
-	p.append(join_mode)
-	_send(NetProtocol.CREATE, p)
+	pass
+	#var p := PackedByteArray([])
+	#p.append(join_mode)
 
 func join_session(code: String) -> void:
-	var p := PackedByteArray([NetProtocol.JOIN,code])
-	_send(NetProtocol.JOIN, p)
-
+	pass
+	#var p := PackedByteArray([PacketInfo.PACKET_TYPE,code])
 	
-func _send(kind: int, body: PackedByteArray) -> void:
-	var p := PackedByteArray()
-	p.append(kind)
-	p.append_array(body)
-	udp.put_packet(p)
+func handle_events() -> void:
+	var packed_event: Array = connection.service()
+	var event_type: ENetConnection.EventType = packed_event[0]
+	
+	while event_type != ENetConnection.EVENT_NONE:
+		var _peer: ENetPacketPeer = packed_event[1]
+		
+		match event_type:
+			ENetConnection.EVENT_ERROR:
+				push_warning("Package resulted in an unknown error")
+				return
+				
+			ENetConnection.EVENT_CONNECT:
+				connected_to_relay()
+				
+			ENetConnection.EVENT_DISCONNECT:
+				disconnected_from_relay()
+				
+			ENetConnection.EVENT_RECEIVE:
+				on_packed.emit(_peer.get_packet())
+				
+				
+		packed_event = connection.service()
+		event_type = packed_event[0]
 
-func _send_to_peer(to: int, kind: int, body: PackedByteArray) -> void:
-	var p := PackedByteArray()
-	p.encode_u16(7, to)
-	p.append(kind)
-	p.append_array(body)
-	udp.put_packet(p)
+func connected_to_relay():
+	on_connected_to_relay.emit()
 
-func _poll() -> void:
-	while udp.get_available_packet_count() > 0:
-		var p := udp.get_packet()
-		print(p)
-		print(p.decode_u16(0))
-		if p.size() < NetProtocol.HEADER:
-			continue
-		var body := p.slice(NetProtocol.HEADER)
-		if body.is_empty():
-			continue
-		if p[9] == NetProtocol.CONTROL:
-			if body[0] == NetProtocol.CONNECTED:
-				uid = body.decode_u16(1)
-		else:
-			queue.append([p.decode_u16(5), body])
+func disconnected_from_relay():
+	on_disconnected_from_relay.emit()

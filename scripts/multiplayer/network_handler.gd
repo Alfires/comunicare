@@ -3,33 +3,48 @@ extends Node
 var peer: RelayPeer
 var player_scene = preload("res://scenes/player/remote_player.tscn")
 var players = {}
-var relay= "localhost"
+var relay_ip := "127.0.0.1"
+var relay_port := 7374
+
+var id: int = -1
+var remote_ids: Array[int]
+
+signal handel_local_id_assingnment(local_id: int)
+signal handel_remote_id_assingnment(remote_id: int)
+signal handel_player_position(player_position: PlayerPosition)
 
 func _ready() -> void:
 	if "--relay" in OS.get_cmdline_args(): 
 		return
-	multiplayer.peer_connected.connect(_on_peer_connected)
-	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	multiplayer.connected_to_server.connect(_on_connected_to_server)
+	RelayPeer.new().on_connected_to_relay.connect(on_client_packet)
+
+
+func on_client_packet(data: PackedByteArray):
+	var packet_type: int = data.decode_u8(0)
 	
-func _process(_delta):
-	if "--relay" in OS.get_cmdline_args(): return
-	print(peer.get_available_packet_count())
-	if peer.get_available_packet_count() > 0:
-		var array_bytes = peer.get_packet()
-		print(array_bytes)
+	match packet_type:
+		PacketInfo.PACKET_TYPE.ID_ASSINGMENT:
+			manage_ids(IDAssingnment.create_from_data(data)) 
 	
+		PacketInfo.PACKET_TYPE.PLAYER_POSITTION:
+			handel_player_position.emit(PlayerPosition.create_from_data(data))
+		
+		_:
+			push_error("Packed type with index ",data[0]," unhandled!")
+			
+		
+
+func _process(_delta: float) -> void:
+	pass
 	
 func create_peer():
 	peer = RelayPeer.new()
-	peer.connect_to_relay()
+	peer.connect_to_relay(relay_ip,relay_port)
 	
-
 func create_session():
 	print("Hosting room...")
 	peer.create_session(Modes.PRIVAT)
-	multiplayer.multiplayer_peer = peer
-	print("Connected to room: ", peer.get_unique_id())
+	#print("Connected to room: ", peer.get_unique_id())
 
 func _on_peer_disconnected(peer_id):
 	print("Client disconnected: %d" % peer_id) 
@@ -37,6 +52,21 @@ func _on_peer_disconnected(peer_id):
 		players[peer_id].queue_free()
 		players.erase(peer_id)
 	
+	
+func manage_ids(id_assingnment: IDAssingnment):
+	if id == -1:
+		id = id_assingnment.id 
+		handel_local_id_assingnment.emit(id_assingnment)
+		
+		remote_ids = id_assingnment.remoted_ids
+		for remote_id in remote_ids:
+			if remote_id == id: continue
+			handel_remote_id_assingnment.emit(remote_id)
+			
+	else:
+		remote_ids.append(id_assingnment.id)
+		handel_remote_id_assingnment.emit(id_assingnment.id)
+
 # Join Session part / Client 
 
 # model requester
@@ -79,7 +109,6 @@ func sync_player_voice(data: PackedFloat32Array): #PackedFloat32Array
 	if player_node:
 		player_node._buffer_audio(data)
 
-
 func join_session(session_id: String):
 	
 	#if session_id == peer: return
@@ -92,7 +121,6 @@ func join_session(session_id: String):
 	await peer.connected_to_server
 	print("session joined")
 	
-
 func _on_join_error(code, message) -> void:
 	push_error("Join error %s: %s" % [code, message])
 

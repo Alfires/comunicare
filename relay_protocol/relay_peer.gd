@@ -4,12 +4,16 @@ var relay := ENetMultiplayerPeer.new()
 
 var peer: ENetPacketPeer
 
+## The connection of the connected relay. Of type ENetConnection.
 var connection: ENetConnection
-
+var session_peers: Array
 
 signal on_connected_to_relay()
 signal on_disconnected_from_relay()
 signal on_packed(data: PackedByteArray)
+signal connected()
+signal player_data()
+signal on_session_peers_update()
 
 func connect_to_relay(relay_ip: String,relay_port: int):
 	var public_key = SaveData.key.save_to_string(true)
@@ -18,17 +22,14 @@ func connect_to_relay(relay_ip: String,relay_port: int):
 	if error:
 		print("Failed to connect")
 	peer = connection.connect_to_host(relay_ip,relay_port)
-	print("connected to server")
 
 
 func create_session(join_mode) -> void:
-	pass
-	#var p := PackedByteArray([])
-	#p.append(join_mode)
+	print("data sent")
+	CreateSession.create(join_mode).sent(peer)
 
-func join_session(code: String) -> void:
-	pass
-	#var p := PackedByteArray([PacketInfo.PACKET_TYPE,code])
+func join_session(session_id: String) -> void:
+	JoinSession.create(session_id).sent(peer)
 	
 func handle_events() -> void:
 	var packed_event: Array = connection.service()
@@ -49,14 +50,34 @@ func handle_events() -> void:
 				disconnected_from_relay()
 				
 			ENetConnection.EVENT_RECEIVE:
-				on_packed.emit(_peer.get_packet())
+				on_packet(_peer.get_packet())
 				
 				
 		packed_event = connection.service()
 		event_type = packed_event[0]
 
 func connected_to_relay():
-	on_connected_to_relay.emit()
-
+	print("connected to relay")
+	connected.emit()
+	
+	
 func disconnected_from_relay():
 	on_disconnected_from_relay.emit()
+	
+func on_packet(data: PackedByteArray):
+	var packet_type: int = data.decode_u8(0)
+	
+	match packet_type:
+		PacketInfo.PACKET_TYPE.ID_ASSINGMENT:
+			pass
+		#	manage_ids(IDAssingnment.create_from_data(data)) 
+	
+		PacketInfo.PACKET_TYPE.PLAYER_DATA:
+			player_data.emit(PlayerData.create_from_data(data))
+			
+		PacketInfo.PACKET_TYPE.GET_SESSION_PEERS:
+			session_peers = GetSessionPeers.create_from_data(data).peers
+			print("Session list updated new list is:",session_peers)
+			on_session_peers_update.emit()
+		_:
+			push_error("Packed type with index ",data[0]," unhandled!")

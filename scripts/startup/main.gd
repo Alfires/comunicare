@@ -12,7 +12,7 @@ func _ready():
 		print("Game starting up...")
 		await SaveData.load_acount()
 		await SaveData.laod_data()
-		NetworkHandler.create_peer()
+		await NetworkHandler.create_peer()
 		NetworkHandler.create_session()
 		call_deferred("load_initial_scene")
 

@@ -35,8 +35,8 @@ func _process(delta):
 		elapsed_time = 0.0
 	
 func update_player_data():
-	if NetworkHandler.peer.get_unique_id() == null: return
-	NetworkHandler.sync_player_data.rpc(position,rotation)
+	PlayerData.create(1,position).sent(NetworkHandler.peer.peer)
+	
 
 func set_player_pos(pos: Vector3):
 	position = pos

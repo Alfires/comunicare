@@ -81,7 +81,6 @@ func update_player_data():
 	if NetworkHandler.peer.room_id == null: return
 	NetworkHandler.sync_player_data.rpc(position,rotation)
 
-
 func _setup_controllers():
 	left_controller = find_child("LeftHand", true, false) as XRController3D
 	right_controller = find_child("RightHand", true, false) as XRController3D

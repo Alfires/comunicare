@@ -1,19 +1,19 @@
-class_name PlayerPosition 
+class_name PlayerData
 extends PacketInfo
 
 var id: int
 var possition: Vector3
 
-static func create(id: int, position: Vector3) -> PlayerPosition:
-	var info: PlayerPosition = PlayerPosition.new()
-	info.packet_type = PACKET_TYPE.PLAYER_POSITTION
+static func create(_id: int, position: Vector3) -> PlayerData:
+	var info: PlayerData = PlayerData.new()
+	info.packet_type = PACKET_TYPE.PLAYER_DATA
 	info.flag = ENetPacketPeer.FLAG_UNSEQUENCED
-	info.id = id
+	info.id = _id
 	info.possition = position
 	return info
 
-static func create_from_data(data: PackedByteArray) -> PlayerPosition:
-	var info: PlayerPosition = PlayerPosition.new()
+static func create_from_data(data: PackedByteArray) -> PlayerData:
+	var info: PlayerData = PlayerData.new()
 	info.decode(data)
 	return info
 	

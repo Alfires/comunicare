@@ -4,12 +4,11 @@ extends PacketInfo
 var id: int 
 var remoted_ids: Array[int]
 
-static func create(id: int, remote_id: Array[int]) -> IDAssingnment:
+static func create(id: int) -> IDAssingnment:
 	var info: IDAssingnment = IDAssingnment.new()
 	info.packet_type = PACKET_TYPE.ID_ASSINGMENT
 	info.flag = ENetPacketPeer.FLAG_RELIABLE
 	info.id = id
-	info.remoted_ids = remote_id
 	return info
 
 static func create_from_data(data: PackedByteArray) -> IDAssingnment:

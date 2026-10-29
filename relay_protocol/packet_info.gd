@@ -2,7 +2,18 @@ class_name PacketInfo
 
 enum PACKET_TYPE {
 	ID_ASSINGMENT = 0,
-	PLAYER_POSITTION = 10
+	CREATE_SESSION = 1,
+	JOIN_SESSOIN = 2,
+	GET_SESSION_PEERS = 3,
+	PLAYER_DATA = 10
+}
+
+enum MODE {
+	PUBLIC = 0,
+	PRIVAT = 1,
+	FRIENDS = 2,
+	FRIENDSP = 3,
+	REQUEST = 4,
 }
 
 var packet_type: PACKET_TYPE

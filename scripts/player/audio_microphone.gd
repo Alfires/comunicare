@@ -1,58 +1,48 @@
 extends Node
 
-var audio_player: AudioStreamPlayer
-var send_timer: Timer
-var peer_audio_buffers = {} 
-var effect: AudioEffectCapture
-var mic_stream = AudioStreamMicrophone.new()
+var audio_capture: AudioEffectCapture
+var recording_buffer: PackedVector2Array = PackedVector2Array()
+const BUFFER_SIZE = 960  # 20ms at 48kHz
 
-var recording := true
-const SAMPLE_RATE := 48000
-const CHUNK_SIZE := 960 
-const BUFFER_SIZE := 4800
-const TIMER_INTERVAL := 0.02
-
-
-func _ready():
+func _ready() -> void:
 	var capture_effect = AudioEffectCapture.new()
-	var idx = AudioServer.get_bus_index("Microphone")
-	AudioServer.add_bus_effect(idx, capture_effect, 0)
-	effect = AudioServer.get_bus_effect(idx, 0)
-	if effect:
-		effect.buffer_length = 0.05
-		
-	send_timer = Timer.new()
-	add_child(send_timer)
-	send_timer.timeout.connect(_on_send_timer)
-	send_timer.wait_time = TIMER_INTERVAL
-	send_timer.start()
+	var bus_idx = AudioServer.get_bus_index("Microphone")
+	if bus_idx == -1:
+		push_error("Audio bus 'Microphone' not found!")
+		return
+	AudioServer.set_bus_mute(bus_idx, true)
+	
+	AudioServer.add_bus_effect(bus_idx, capture_effect, 0)
+	audio_capture = AudioServer.get_bus_effect(bus_idx, 0) as AudioEffectCapture
+	
+	var mic_stream = AudioStreamMicrophone.new()
+	var audio_player = AudioStreamPlayer.new()
+	audio_player.bus = "Microphone"
+	audio_player.stream = mic_stream
+	add_child(audio_player)
+	audio_player.play()
 
 
-func _on_send_timer():
-	if effect and effect.can_get_buffer(CHUNK_SIZE):
-		var mono = effect.get_buffer(CHUNK_SIZE)
-		
-		var audio_data = PackedFloat32Array()
-		for frame in mono:
-			audio_data.append(clamp(frame.x * 2.0, -1.0, 1.0))
-		
-		#_buffer_audio(multiplayer.get_unique_id(), audio_data)
-		
-		NetworkHandler.sync_player_voice.rpc("audio_data")
+func _process(_delta: float) -> void:
+	_capture_audio()
 
-
-func _process(_delta):
-	if !recording: return
-	#var effect = AudioServer.get_bus_effect(AudioServer.get_bus_index("Microphone"), 0)
-	if effect is not AudioEffectCapture: return
-	if effect.can_get_buffer(4096):
-		var buffer = effect.get_buffer(4096)
+func _capture_audio() -> void:
+	if not audio_capture:
+		return
+	
+	var frames_available = audio_capture.get_frames_available()
+	if frames_available <= 0:
+		return
+	
+	# Get raw audio data as PackedVector2Array (x=left, y=right)
+	var frame_data = audio_capture.get_buffer(frames_available)
+	recording_buffer.append_array(frame_data)
+	
+	# Once we have enough samples (960 = one packet)
+	if recording_buffer.size() >= BUFFER_SIZE:
+		var packet_audio = recording_buffer.slice(0, BUFFER_SIZE)
+		recording_buffer = recording_buffer.slice(BUFFER_SIZE)
 		
-		var max_val = 0.0
-		for sample in buffer:
-			max_val = max(max_val, abs(sample.x))
-			max_val = max(max_val, abs(sample.y))
-		var byte_data = buffer.to_byte_array()
-		var compressed_buffer = byte_data.compress(FileAccess.COMPRESSION_DEFLATE)
+		VoiceData.create(0,packet_audio).sent(NetworkHandler.peer.peer)
 		
-		NetworkHandler.sync_player_voice.rpc(compressed_buffer)
+		

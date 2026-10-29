@@ -35,7 +35,7 @@ func _process(delta):
 		elapsed_time = 0.0
 	
 func update_player_data():
-	PlayerData.create(1,position).sent(NetworkHandler.peer.peer)
+	PlayerData.create(1,position,rotation).sent(NetworkHandler.peer.peer)
 	
 
 func set_player_pos(pos: Vector3):

@@ -7,8 +7,11 @@ var config
 
 func _ready():
 	if "--relay" in OS.get_cmdline_args(): 
+		XRServer.find_interface("OpenXR").uninitialize()
+		get_viewport().use_xr = false
 		get_tree().change_scene_to_file("res://scenes/relay.tscn")
 	else:
+
 		print("Game starting up...")
 		await SaveData.load_acount()
 		await SaveData.laod_data()

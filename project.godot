@@ -92,4 +92,5 @@ rendering_device/driver.windows="d3d12"
 [xr]
 
 openxr/enabled=true
+openxr/extensions/spatial_entity/enabled=true
 shaders/enabled=true

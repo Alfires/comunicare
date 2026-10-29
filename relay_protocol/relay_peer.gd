@@ -14,6 +14,7 @@ signal on_packed(data: PackedByteArray)
 signal connected()
 signal player_data()
 signal on_session_peers_update()
+signal voice_data()
 
 func connect_to_relay(relay_ip: String,relay_port: int):
 	var public_key = SaveData.key.save_to_string(true)
@@ -74,6 +75,9 @@ func on_packet(data: PackedByteArray):
 	
 		PacketInfo.PACKET_TYPE.PLAYER_DATA:
 			player_data.emit(PlayerData.create_from_data(data))
+			
+		PacketInfo.PACKET_TYPE.VOICE_DATA:
+			voice_data.emit(VoiceData.create_from_data(data))
 			
 		PacketInfo.PACKET_TYPE.GET_SESSION_PEERS:
 			session_peers = GetSessionPeers.create_from_data(data).peers

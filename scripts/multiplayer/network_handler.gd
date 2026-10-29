@@ -25,6 +25,7 @@ func create_peer():
 	await peer.connected
 	peer.player_data.connect(sync_player_data)
 	peer.on_session_peers_update.connect(update_connected_peers)
+	peer.voice_data.connect(sync_player_voice)
 	
 func create_session():
 	print("Hosting room...")
@@ -63,30 +64,20 @@ func sync_player_data(data: PlayerData):#,rotation: Vector3):
 	# Server relays to all others
 	var player_node = find_child(str(data.id), false, false)
 	if player_node:
-		player_node.position = data.possition
-		#player_node.rotation = rotation
+		player_node.position = data.position
+		player_node.rotation = data.rotation
 
 # player voice
-@rpc("any_peer", "call_remote", "unreliable")
-func sync_player_voice(data: PackedFloat32Array): #PackedFloat32Array
+func sync_player_voice(data: VoiceData): #PackedFloat32Array
 	# Server relays to all others
-	var peer_id = multiplayer.get_remote_sender_id()
-	print("peer: ",peer_id)
-	if peer_id == peer.get_unique_id(): return
-	var player_node = find_child(str(peer_id), false, false)
-	print(player_node)
+	var player_node = find_child(str(data.id), false, false)
+	
 	if player_node:
-		player_node._buffer_audio(data)
+		player_node._play_audio(data.audio)
 
 func join_session(session_id: String):
-	
-	#if session_id == peer: return
 	print("connection...")
-	
 	peer.join_session(session_id)
-	
-	# Use yield with the node, not the signal directly
-	#await peer.connected_to_session
 	print("session joined")
 	
 func _on_join_error(code, message) -> void:
@@ -97,7 +88,7 @@ func _on_connected_to_server():
 	print("sending user avatar")
 	
 func update_connected_peers():
-	print("updating peers")
+	print("updating peers list")
 	for child in get_children():
 		var peer_id = int(child.name) 
 		if peer_id not in peer.session_peers:

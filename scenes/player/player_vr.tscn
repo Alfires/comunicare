@@ -13,6 +13,9 @@ script = ExtResource("1_4nhnp")
 [node name="XRCamera3D" type="XRCamera3D" parent="." unique_id=1251729719]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
+[node name="OpenXRVisibilityMask" type="OpenXRVisibilityMask" parent="XRCamera3D" unique_id=1953124167]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 0)
+
 [node name="RightHand" type="XRController3D" parent="." unique_id=104647650]
 tracker = &"right_hand"
 

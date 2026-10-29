@@ -2,14 +2,16 @@ class_name PlayerData
 extends PacketInfo
 
 var id: int
-var possition: Vector3
+var position: Vector3
+var rotation: Vector3 
 
-static func create(_id: int, position: Vector3) -> PlayerData:
+static func create(_id: int, position: Vector3, rotation: Vector3) -> PlayerData:
 	var info: PlayerData = PlayerData.new()
 	info.packet_type = PACKET_TYPE.PLAYER_DATA
 	info.flag = ENetPacketPeer.FLAG_UNSEQUENCED
 	info.id = _id
-	info.possition = position
+	info.position = position
+	info.rotation = rotation
 	return info
 
 static func create_from_data(data: PackedByteArray) -> PlayerData:
@@ -19,16 +21,20 @@ static func create_from_data(data: PackedByteArray) -> PlayerData:
 	
 func encode() -> PackedByteArray:
 	var data: PackedByteArray = super.encode()
-	data.resize(14)
+	data.resize(26)
 	data.encode_u8(1,id)
-	data.encode_float(2,possition.x)
-	data.encode_float(6,possition.y)
-	data.encode_float(10,possition.z)
+	data.encode_float(2,position.x)
+	data.encode_float(6,position.y)
+	data.encode_float(10,position.z)
+	
+	data.encode_float(14,rotation.x)
+	data.encode_float(18,rotation.y)
+	data.encode_float(22,rotation.z)
 	return data
 	
 	
 func decode(data: PackedByteArray) -> void:
 	super.decode(data)
 	id = data.decode_u8(1)
-	possition = Vector3(data.decode_float(2),data.decode_float(6),data.decode_float(10))
-	
+	position = Vector3(data.decode_float(2),data.decode_float(6),data.decode_float(10))
+	rotation = Vector3(data.decode_float(14),data.decode_float(18),data.decode_float(22))

@@ -25,6 +25,7 @@ driver/enable_input=true
 DataLoader="*uid://uykjnt0gunvj"
 SaveData="*uid://btb22napioflu"
 NetworkHandler="*uid://bfsn4a7iwp5jp"
+XRToolsRumbleManager="*uid://by853dk86g1qw"
 
 [display]
 
@@ -33,7 +34,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/Godot-MToon-Shader/plugin.cfg", "res://addons/vrm/plugin.cfg")
+enabled=PackedStringArray("res://addons/Godot-MToon-Shader/plugin.cfg", "res://addons/godot-xr-tools/plugin.cfg", "res://addons/vrm/plugin.cfg")
 
 [input]
 
@@ -93,5 +94,7 @@ textures/vram_compression/import_etc2_astc=true
 [xr]
 
 openxr/enabled=true
+openxr/foveation_level=3
+openxr/foveation_dynamic=true
 openxr/extensions/spatial_entity/enabled=true
 shaders/enabled=true

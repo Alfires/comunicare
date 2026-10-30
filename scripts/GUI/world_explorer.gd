@@ -12,6 +12,8 @@ func _ready() -> void:
 	http_request.request_completed.connect(_on_request_completed)
 	var url = "https://github.com/Alfires/comunicare-Officel-World-List/raw/refs/heads/main/worlds.json"
 	http_request.request(url)
+	NetworkHandler.peer.on_public_session.connect(load_rooms)
+
 
 func load_rooms():
 	$VBoxContainer/ScrollContainer/CenterContainer/world_listing/loading.queue_free()

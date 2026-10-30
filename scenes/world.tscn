@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://c84iaxk0m0ws"]
 
+[ext_resource type="Script" uid="uid://domnaaggm4frl" path="res://scenes/world.gd" id="1_4wyf3"]
 [ext_resource type="PackedScene" uid="uid://crq71nk2bv1ws" path="res://scenes/GUI/vr_gui.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="3_k0juu"]
 
@@ -15,16 +16,24 @@ background_mode = 2
 sky = SubResource("Sky_nnsk1")
 glow_enabled = true
 
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_3niwx"]
+custom_solver_bias = 1.0
+margin = 10.0
+
 [sub_resource type="BoxMesh" id="BoxMesh_3niwx"]
 size = Vector3(9, 1, 9)
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_e5uuo"]
 data = PackedVector3Array(-4.5, 0.5, 4.5, 4.5, 0.5, 4.5, -4.5, -0.5, 4.5, 4.5, 0.5, 4.5, 4.5, -0.5, 4.5, -4.5, -0.5, 4.5, 4.5, 0.5, -4.5, -4.5, 0.5, -4.5, 4.5, -0.5, -4.5, -4.5, 0.5, -4.5, -4.5, -0.5, -4.5, 4.5, -0.5, -4.5, 4.5, 0.5, 4.5, 4.5, 0.5, -4.5, 4.5, -0.5, 4.5, 4.5, 0.5, -4.5, 4.5, -0.5, -4.5, 4.5, -0.5, 4.5, -4.5, 0.5, -4.5, -4.5, 0.5, 4.5, -4.5, -0.5, -4.5, -4.5, 0.5, 4.5, -4.5, -0.5, 4.5, -4.5, -0.5, -4.5, 4.5, 0.5, 4.5, -4.5, 0.5, 4.5, 4.5, 0.5, -4.5, -4.5, 0.5, 4.5, -4.5, 0.5, -4.5, 4.5, 0.5, -4.5, -4.5, -0.5, 4.5, 4.5, -0.5, 4.5, -4.5, -0.5, -4.5, 4.5, -0.5, 4.5, 4.5, -0.5, -4.5, -4.5, -0.5, -4.5)
 
-[sub_resource type="BoxMesh" id="BoxMesh_rwgxs"]
-size = Vector3(1, 2, 1)
+[sub_resource type="BoxMesh" id="BoxMesh_4wyf3"]
+size = Vector3(9, 1, 7)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_4wyf3"]
+data = PackedVector3Array(-4.5, 0.5, 3.5, 4.5, 0.5, 3.5, -4.5, -0.5, 3.5, 4.5, 0.5, 3.5, 4.5, -0.5, 3.5, -4.5, -0.5, 3.5, 4.5, 0.5, -3.5, -4.5, 0.5, -3.5, 4.5, -0.5, -3.5, -4.5, 0.5, -3.5, -4.5, -0.5, -3.5, 4.5, -0.5, -3.5, 4.5, 0.5, 3.5, 4.5, 0.5, -3.5, 4.5, -0.5, 3.5, 4.5, 0.5, -3.5, 4.5, -0.5, -3.5, 4.5, -0.5, 3.5, -4.5, 0.5, -3.5, -4.5, 0.5, 3.5, -4.5, -0.5, -3.5, -4.5, 0.5, 3.5, -4.5, -0.5, 3.5, -4.5, -0.5, -3.5, 4.5, 0.5, 3.5, -4.5, 0.5, 3.5, 4.5, 0.5, -3.5, -4.5, 0.5, 3.5, -4.5, 0.5, -3.5, 4.5, 0.5, -3.5, -4.5, -0.5, 3.5, 4.5, -0.5, 3.5, -4.5, -0.5, -3.5, 4.5, -0.5, 3.5, 4.5, -0.5, -3.5, -4.5, -0.5, -3.5)
 
 [node name="wold" type="Node3D" unique_id=165391507]
+script = ExtResource("1_4wyf3")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1870834547]
 environment = SubResource("Environment_rwgxs")
@@ -32,19 +41,6 @@ environment = SubResource("Environment_rwgxs")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1713185325]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
 shadow_enabled = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1481482592]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.8380084, 0)
-mesh = SubResource("BoxMesh_3niwx")
-
-[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D" unique_id=1831705560]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D" unique_id=1784589007]
-shape = SubResource("ConcavePolygonShape3D_e5uuo")
-
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=555542480]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.30252385, 0)
-mesh = SubResource("BoxMesh_rwgxs")
 
 [node name="VR_GUI" parent="." unique_id=1113032290 instance=ExtResource("1_nnsk1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65773225, 1.1875982)
@@ -62,3 +58,70 @@ current_tab = 0
 [node name="share_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=927537756 instance=ExtResource("3_k0juu")]
 layout_mode = 2
 metadata/_tab_index = 0
+
+[node name="Area3D" type="Area3D" parent="." unique_id=824447322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -11.080086, 0)
+priority = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=750273321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.8712597, 0)
+shape = SubResource("WorldBoundaryShape3D_3niwx")
+
+[node name="world" type="Node3D" parent="." unique_id=1271165640]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="world" unique_id=1481482592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.8380084, 0)
+mesh = SubResource("BoxMesh_3niwx")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="world/MeshInstance3D" unique_id=1831705560]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="world/MeshInstance3D/StaticBody3D" unique_id=1784589007]
+shape = SubResource("ConcavePolygonShape3D_e5uuo")
+
+[node name="MeshInstance3D7" type="MeshInstance3D" parent="world" unique_id=194889917]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 4, 0, 0)
+mesh = SubResource("BoxMesh_4wyf3")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="world/MeshInstance3D7" unique_id=1254260103]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="world/MeshInstance3D7/StaticBody3D" unique_id=1315471510]
+shape = SubResource("ConcavePolygonShape3D_4wyf3")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="world" unique_id=433793695]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 9)
+mesh = SubResource("BoxMesh_3niwx")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="world/MeshInstance3D3" unique_id=1857574079]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="world/MeshInstance3D3/StaticBody3D" unique_id=146369508]
+shape = SubResource("ConcavePolygonShape3D_e5uuo")
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="world" unique_id=1019306143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -9)
+mesh = SubResource("BoxMesh_3niwx")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="world/MeshInstance3D4" unique_id=1580547927]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="world/MeshInstance3D4/StaticBody3D" unique_id=2002039839]
+shape = SubResource("ConcavePolygonShape3D_e5uuo")
+
+[node name="MeshInstance3D5" type="MeshInstance3D" parent="world" unique_id=627169324]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, -1, 0)
+mesh = SubResource("BoxMesh_3niwx")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="world/MeshInstance3D5" unique_id=1956612632]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="world/MeshInstance3D5/StaticBody3D" unique_id=1633385993]
+shape = SubResource("ConcavePolygonShape3D_e5uuo")
+
+[node name="MeshInstance3D6" type="MeshInstance3D" parent="world" unique_id=302397487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -1, 0)
+mesh = SubResource("BoxMesh_3niwx")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="world/MeshInstance3D6" unique_id=76708192]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="world/MeshInstance3D6/StaticBody3D" unique_id=1746820195]
+shape = SubResource("ConcavePolygonShape3D_e5uuo")
+
+[connection signal="area_entered" from="Area3D" to="." method="_on_area_3d_area_entered"]
+[connection signal="body_entered" from="Area3D" to="." method="_on_area_3d_body_entered"]

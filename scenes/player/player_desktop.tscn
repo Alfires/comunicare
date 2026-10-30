@@ -22,6 +22,5 @@ transform = Transform3D(1, 0, 0, 0, 0.95451933, 0.29814902, 0, -0.29814902, 0.95
 [node name="menue" parent="." unique_id=1733054730 instance=ExtResource("2_i0aqy")]
 visible = false
 tab_2/title = "Share Session"
-tab_3/title = "Settings"
 
 [node name="audio_microphone" parent="." unique_id=793446526 instance=ExtResource("3_e60a0")]

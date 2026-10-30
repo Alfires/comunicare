@@ -8,8 +8,10 @@
 material = SubResource("StandardMaterial3D_x3dt6")
 size = Vector2(1, 0.75)
 
-[node name="VRViewport2D" type="Node3D" unique_id=1230675045]
+[node name="VRPanel" type="Node3D" unique_id=1230675045]
 script = ExtResource("1_x3dt6")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=975459482]
 mesh = SubResource("QuadMesh_3niwx")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=893525782]

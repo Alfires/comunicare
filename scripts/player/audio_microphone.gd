@@ -1,11 +1,14 @@
 extends Node
 
 var audio_capture: AudioEffectCapture
-var recording_buffer: PackedVector2Array = PackedVector2Array()
+var recording_buffer: = PackedFloat32Array()
 const BUFFER_SIZE = 960  # 20ms at 48kHz
+const MAX_BACKLOG := BUFFER_SIZE * 10
+const SILENCE_PEAK := 0.004
 
 func _ready() -> void:
 	var capture_effect = AudioEffectCapture.new()
+	capture_effect.buffer_length = 0.2
 	var bus_idx = AudioServer.get_bus_index("Microphone")
 	if bus_idx == -1:
 		push_error("Audio bus 'Microphone' not found!")
@@ -14,6 +17,7 @@ func _ready() -> void:
 	
 	AudioServer.add_bus_effect(bus_idx, capture_effect, 0)
 	audio_capture = AudioServer.get_bus_effect(bus_idx, 0) as AudioEffectCapture
+	audio_capture.clear_buffer()
 	
 	var mic_stream = AudioStreamMicrophone.new()
 	var audio_player = AudioStreamPlayer.new()
@@ -34,15 +38,27 @@ func _capture_audio() -> void:
 	if frames_available <= 0:
 		return
 	
-	# Get raw audio data as PackedVector2Array (x=left, y=right)
 	var frame_data = audio_capture.get_buffer(frames_available)
-	recording_buffer.append_array(frame_data)
+	for frame in frame_data:
+		recording_buffer.append(frame.x)
 	
-	# Once we have enough samples (960 = one packet)
-	if recording_buffer.size() >= BUFFER_SIZE:
-		var packet_audio = recording_buffer.slice(0, BUFFER_SIZE)
+	if recording_buffer.size() > MAX_BACKLOG:
+		recording_buffer = recording_buffer.slice(recording_buffer.size() - MAX_BACKLOG)
+
+	while recording_buffer.size() >= BUFFER_SIZE:
+		var packet_audio := recording_buffer.slice(0, BUFFER_SIZE)
 		recording_buffer = recording_buffer.slice(BUFFER_SIZE)
-		
-		VoiceData.create(0,packet_audio).sent(NetworkHandler.peer.peer)
-		
-		
+		_send_voice(packet_audio)
+
+func _send_voice(packet_audio: PackedFloat32Array) -> void:
+	var peer := NetworkHandler.peer
+	if peer == null or peer.peer == null:
+		return
+
+	var peak := 0.0
+	for s in packet_audio:
+		peak = maxf(peak, absf(s))
+	if peak < SILENCE_PEAK:
+		return
+
+	VoiceData.create(0, packet_audio).sent(peer.peer)

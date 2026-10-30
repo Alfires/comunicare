@@ -116,10 +116,10 @@ func on_packed(peer_id: int, data: PackedByteArray):
 				return
 			
 			sessions[session_index][0]["peers"].append(peer_id)
-			
-			var session_peers = sessions[session_index][0]["peers"]
-			#session_peers.erase(peer)
+		
 			for peer in sessions[session_index][0]["peers"]:
+				var session_peers = sessions[session_index][0]["peers"].duplicate()
+				session_peers.erase(peer)
 				GetSessionPeers.create(session_peers).sent(peers[peer])
 					
 		
@@ -142,17 +142,20 @@ func on_packed(peer_id: int, data: PackedByteArray):
 		PacketInfo.PACKET_TYPE.VOICE_DATA:
 			var user_session = get_user_in_session(peer_id)
 			if user_session == -1: return
+			var out := data.duplicate()
+			out.encode_u8(1, peer_id)
 			for peer in sessions[user_session][0]["peers"]:
-				if peer != peer_id:
-					var user_data = VoiceData.create_from_data(data)
-					VoiceData.create(peer_id,user_data.audio).sent(peers[peer])
+				if peer != peer_id and peers.has(peer):
+					peers[peer].send(0, out, ENetPacketPeer.FLAG_UNSEQUENCED)
 			
+		PacketInfo.PACKET_TYPE.GET_PUBLIC_SESSIONS:
+			GetPublicSessions.create((get_public_session())).sent(peers[peer_id])
 			 
 		_:
 			push_error("Packed type was unknown: ",packed_type)
 
-# tools 
 
+# tools 
 func remove_user_from_session(peer_id: int, session_index: int):
 	sessions[session_index][0]["peers"].erase(peer_id)
 	if sessions[session_index][0]["peers"].size() == 0:
@@ -183,3 +186,11 @@ func get_user_in_session(peer_id: int) -> int:
 		if peer_id in sessions[i][0]["peers"]:
 			return i
 	return -1
+
+func get_public_session() -> Array:
+	var _sessions = []
+	for i in range(sessions.size()):
+		if sessions[i][0]["mode"] == PacketInfo.MODE.PUBLIC:
+			_sessions.append(sessions[i][0]["session_id"])
+			
+	return _sessions

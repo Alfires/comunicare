@@ -4,17 +4,18 @@ var relay := ENetMultiplayerPeer.new()
 
 var peer: ENetPacketPeer
 
+var public_session := []
+
 ## The connection of the connected relay. Of type ENetConnection.
 var connection: ENetConnection
 var session_peers: Array
 
-signal on_connected_to_relay()
 signal on_disconnected_from_relay()
-signal on_packed(data: PackedByteArray)
 signal connected()
 signal player_data()
 signal on_session_peers_update()
 signal voice_data()
+signal on_public_session()
 
 func connect_to_relay(relay_ip: String,relay_port: int):
 	var public_key = SaveData.key.save_to_string(true)
@@ -83,5 +84,8 @@ func on_packet(data: PackedByteArray):
 			session_peers = GetSessionPeers.create_from_data(data).peers
 			print("Session list updated new list is:",session_peers)
 			on_session_peers_update.emit()
+			
+		PacketInfo.PACKET_TYPE.GET_PUBLIC_SESSIONS:
+			on_public_session.emit()
 		_:
 			push_error("Packed type with index ",data[0]," unhandled!")

@@ -1,55 +1,35 @@
 [gd_scene format=3 uid="uid://dvckej53sb70v"]
 
 [ext_resource type="Script" uid="uid://cvmqny6or32pf" path="res://scripts/player/player_vr.gd" id="1_4nhnp"]
-[ext_resource type="Script" uid="uid://d2p21lh7ja5ak" path="res://scripts/player/player_vr_ui_raycast.gd" id="2_y66sn"]
 [ext_resource type="PackedScene" uid="uid://dfi8j6nc4p5r0" path="res://scenes/player/audio_microphone.tscn" id="3_5qniy"]
-[ext_resource type="PackedScene" uid="uid://crq71nk2bv1ws" path="res://scenes/GUI/vr_gui.tscn" id="4_36op2"]
-[ext_resource type="PackedScene" uid="uid://bj01f1oxo6lkv" path="res://scenes/GUI/world_explorer.tscn" id="5_jf1wd"]
-[ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="6_yctvx"]
 
-[node name="player_vr" type="XROrigin3D" unique_id=750591020]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3niwx"]
+radius = 0.4
+height = 2.6
+
+[node name="player_vr" type="CharacterBody3D" unique_id=840357442]
 script = ExtResource("1_4nhnp")
-
-[node name="XRCamera3D" type="XRCamera3D" parent="." unique_id=1251729719]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
-
-[node name="OpenXRVisibilityMask" type="OpenXRVisibilityMask" parent="XRCamera3D" unique_id=1953124167]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 0)
-
-[node name="RightHand" type="XRController3D" parent="." unique_id=104647650]
-tracker = &"right_hand"
-
-[node name="RayCast3D" type="RayCast3D" parent="RightHand" unique_id=1184047774]
-script = ExtResource("2_y66sn")
-
-[node name="LeftHand" type="XRController3D" parent="." unique_id=1541608435]
-tracker = &"left_hand"
-
-[node name="RayCast3D" type="RayCast3D" parent="LeftHand" unique_id=420776595]
-debug_shape_custom_color = Color(0, 0, 0.81960785, 1)
-debug_shape_thickness = 4
-script = ExtResource("2_y66sn")
 
 [node name="audio_microphone" parent="." unique_id=793446526 instance=ExtResource("3_5qniy")]
 
-[node name="VR_GUI" parent="." unique_id=1230675045 instance=ExtResource("4_36op2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0616179, -0.8950127)
+[node name="XROrigin3D" type="XROrigin3D" parent="." unique_id=1639502256]
 
-[node name="SubViewport" type="SubViewport" parent="VR_GUI" unique_id=357712194]
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D" unique_id=1251729719]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+current = true
 
-[node name="TabContainer" type="TabContainer" parent="VR_GUI/SubViewport" unique_id=910187621]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-current_tab = 1
+[node name="OpenXRVisibilityMask" type="OpenXRVisibilityMask" parent="XROrigin3D/XRCamera3D" unique_id=1953124167]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 0)
 
-[node name="world_explorer" parent="VR_GUI/SubViewport/TabContainer" unique_id=538100789 instance=ExtResource("5_jf1wd")]
-visible = false
-layout_mode = 2
-metadata/_tab_index = 0
+[node name="RightHand" type="XRController3D" parent="XROrigin3D" unique_id=104647650]
+tracker = &"right_hand"
 
-[node name="share_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=927537756 instance=ExtResource("6_yctvx")]
-layout_mode = 2
-metadata/_tab_index = 1
+[node name="MenuAnchor" type="Node3D" parent="XROrigin3D/RightHand" unique_id=1318218107]
+
+[node name="LeftHand" type="XRController3D" parent="XROrigin3D" unique_id=1541608435]
+tracker = &"left_hand"
+
+[node name="MenuAnchor" type="Node3D" parent="XROrigin3D/LeftHand" unique_id=1254465236]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=672380330]
+shape = SubResource("CapsuleShape3D_3niwx")

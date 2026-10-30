@@ -6,7 +6,7 @@ var player_scene
 var config
 
 func _ready():
-	if "--relay" in OS.get_cmdline_args() && OS.has_feature("dedicated_server"): 
+	if "--relay" in OS.get_cmdline_args() or OS.has_feature("dedicated_server"): 
 		XRServer.find_interface("OpenXR").uninitialize()
 		get_viewport().use_xr = false
 		get_tree().change_scene_to_file("res://scenes/relay.tscn")
@@ -43,3 +43,5 @@ func load_player():
 		instantiate_player("res://scenes/player/player_desktop.tscn")
 		
 	get_tree().root.add_child.call_deferred(player_scene)
+	
+	

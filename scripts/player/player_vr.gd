@@ -1,17 +1,20 @@
-extends XROrigin3D
+extends CharacterBody3D
 
-@onready var xr_camera: XRCamera3D = $XRCamera3D
+@onready var xr_camera: XRCamera3D = $XROrigin3D/XRCamera3D
+@onready var origin_node = $XROrigin3D
+@onready var right_controller: XRController3D = $XROrigin3D/RightHand
+@onready var left_controller: XRController3D = $XROrigin3D/LeftHand
 
-var left_controller: XRController3D
-var right_controller: XRController3D
 var vrm_model: Node3D
 var skeleton: Skeleton3D
 
-var head_bone_idx: int = -1
+
+var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var movement_speed: float = 2.0
 var turn_speed: float = 2.0
-var movement_deadzone: float = 0.1
+var acceleration = 20.0
+var jump_force: float = 7.0
 
 var update_interval = 0.5
 var elapsed_time = 0.0
@@ -30,41 +33,46 @@ var debug_timer: float = 0.0
 
 
 func _ready():
-	_setup_controllers()
 	load_vrm_model()
 
 func _process(delta: float):
-	pass
-
 	debug_timer += delta
 	if debug_timer >= 2.0:
 		debug_timer = 0.0
-	# when to update data
+	
 	elapsed_time += delta
 	if elapsed_time >= update_interval or last_state != {"position": position, "rotation": rotation}:  
 		update_player_data() 
 		elapsed_time = 0.0
+		
+func _get_movement_input() -> Vector2:
+	var input = left_controller.get_vector2("primary")
+	if input.length() < 0.1:
+		input = Vector2.ZERO
+	return input * movement_speed
+
+func _physics_process(delta):
+	var movement_input = _get_movement_input()
+	var direction = xr_camera.global_transform.basis * Vector3(movement_input.x, 0, movement_input.y)
 	
+	velocity.y -= gravity * delta
+	
+	if right_controller.is_button_pressed("ax_button") and is_on_floor():
+		velocity.y = jump_force
+
+	
+	if direction:
+		velocity.x = lerp(velocity.x, direction.x * movement_speed, acceleration * delta)
+		velocity.z = lerp(velocity.z, -direction.z * movement_speed, acceleration * delta)
+	else:
+		velocity.x = move_toward(velocity.x/4, 0, delta)
+		velocity.z = move_toward(velocity.z/4, 0, delta)
+	
+	move_and_slide()
+
+
 func update_player_data():
 	PlayerData.create(1,position,rotation).sent(NetworkHandler.peer.peer)
-
-func _setup_controllers():
-	left_controller = find_child("LeftHand", true, false) as XRController3D
-	right_controller = find_child("RightHand", true, false) as XRController3D
-
-	if left_controller == null:
-		left_controller = XRController3D.new()
-		left_controller.name = "LeftHand"
-		left_controller.tracker_name = "left_hand"
-		add_child(left_controller)
-
-	if right_controller == null:
-		right_controller = XRController3D.new()
-		right_controller.name = "RightHand"
-		right_controller.tracker_name = "right_hand"
-		add_child(right_controller)
-
-	print("Controllers setup complete")
 
 func load_vrm_model():
 	print("Loading VRM model...")

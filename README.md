@@ -8,20 +8,35 @@ Join the office comunicare server on [Matrix](https://matrix.to/#/#comunicare:ma
 Development: 
 
 - [x] Add a VR player that works
-  - [ ] remake the VR player script to replace AI slop code
+  - [ ] make movement work
   - [ ] animations
+  - [ ] vr menue
+  - [ ] vr movement IK and FBT and movement sync
 - [x] add a desktop player
   - [x] movement
   - [ ] animations
 - [x] add game menus
   - [ ] make the menus look good
+  - [ ] make vr menu work
+- [ ] in game avatar searcher 
 - [ ] multiplayer
+- [ ] multi relay support (user can use more than on relays at the same time and talk to players on a different relay) 
   - [x] movent/rotation sync
-  - [ ] model sync 
-  - [ ] public session/world list (node tunnel seems to have a bug cant implement it )
-  - [ ] voice chat
+  - [ ] model sync
+  - [ ] public key and message setup
+  - [ ] friend system
+  - [ ] public session/world list
+  - [x] voice chat
 - [x] make world load from URL
-
+  - [ ] make world system good
+  - [ ] add a proper world discovery
+  - [ ] proper script execution
+  - [ ] nodes/scenes good support
+  - [ ] switch to .pck much better
+  - [ ] godot editor plugin for the export and more
+- [ ] mod system with .pck
+  - [ ] mod menu and folder
+    
 # Development 
 How to develop your own world
 (A plugin to make this process easier is planed)

@@ -26,9 +26,16 @@ func connect_to_relay(relay_ip: String,relay_port: int):
 	peer = connection.connect_to_host(relay_ip,relay_port)
 
 
-func create_session(join_mode) -> void:
+func create_session(join_mode: int,name: String,description: String , world_url: String) -> void:
 	print("data sent")
-	CreateSession.create(join_mode).sent(peer)
+	print(join_mode,name,description,world_url)
+	
+	CreateSession.create({
+		"mode": join_mode,
+		"name":name,
+		"description": description, 
+		"world_url": world_url,
+	}).sent(peer)
 
 func join_session(session_id: String) -> void:
 	JoinSession.create(session_id).sent(peer)
@@ -86,6 +93,6 @@ func on_packet(data: PackedByteArray):
 			on_session_peers_update.emit()
 			
 		PacketInfo.PACKET_TYPE.GET_PUBLIC_SESSIONS:
-			on_public_session.emit()
+			on_public_session.emit(GetPublicSessions.create_from_data(data).sessions)
 		_:
 			push_error("Packed type with index ",data[0]," unhandled!")

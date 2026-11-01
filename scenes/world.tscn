@@ -2,18 +2,17 @@
 
 [ext_resource type="Script" uid="uid://domnaaggm4frl" path="res://scenes/world.gd" id="1_4wyf3"]
 [ext_resource type="PackedScene" uid="uid://crq71nk2bv1ws" path="res://scenes/GUI/vr_gui.tscn" id="1_nnsk1"]
-[ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="3_k0juu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_e5uuo"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
 ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
 
-[sub_resource type="Sky" id="Sky_nnsk1"]
+[sub_resource type="Sky" id="Sky_rwgxs"]
 sky_material = SubResource("ProceduralSkyMaterial_e5uuo")
 
 [sub_resource type="Environment" id="Environment_rwgxs"]
 background_mode = 2
-sky = SubResource("Sky_nnsk1")
+sky = SubResource("Sky_rwgxs")
 glow_enabled = true
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_3niwx"]
@@ -41,23 +40,6 @@ environment = SubResource("Environment_rwgxs")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1713185325]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
 shadow_enabled = true
-
-[node name="VR_GUI" parent="." unique_id=1113032290 instance=ExtResource("1_nnsk1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65773225, 1.1875982)
-
-[node name="SubViewport" type="SubViewport" parent="VR_GUI" unique_id=2064718633]
-
-[node name="TabContainer" type="TabContainer" parent="VR_GUI/SubViewport" unique_id=847339087]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-current_tab = 0
-
-[node name="share_session_menue" parent="VR_GUI/SubViewport/TabContainer" unique_id=927537756 instance=ExtResource("3_k0juu")]
-layout_mode = 2
-metadata/_tab_index = 0
 
 [node name="Area3D" type="Area3D" parent="." unique_id=824447322]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -11.080086, 0)
@@ -122,6 +104,19 @@ mesh = SubResource("BoxMesh_3niwx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="world/MeshInstance3D6/StaticBody3D" unique_id=1746820195]
 shape = SubResource("ConcavePolygonShape3D_e5uuo")
+
+[node name="VRPanel" parent="." unique_id=1230675045 instance=ExtResource("1_nnsk1")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.4, 0, 0)
+size = Vector2(4, 3)
+
+[node name="SubViewport" type="SubViewport" parent="VRPanel" unique_id=678606427]
+size = Vector2i(800, 600)
+
+[node name="Camera3D" type="Camera3D" parent="VRPanel/SubViewport" unique_id=1088905052]
+transform = Transform3D(-4.371139e-08, -3.821371e-15, 1, -8.742278e-08, 1, 0, 1, 8.742278e-08, 4.371139e-08, 3.9, 0, 0)
+environment = SubResource("Environment_rwgxs")
+current = true
+far = 40.0
 
 [connection signal="area_entered" from="Area3D" to="." method="_on_area_3d_area_entered"]
 [connection signal="body_entered" from="Area3D" to="." method="_on_area_3d_body_entered"]

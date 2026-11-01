@@ -96,12 +96,15 @@ func on_packed(peer_id: int, data: PackedByteArray):
 	var packed_type: int = data.decode_u8(0)
 	match packed_type:
 		PacketInfo.PACKET_TYPE.CREATE_SESSION:
-			var session = CreateSession.create_from_data(data)
+			var session = CreateSession.create_from_data(data).session_info
 			sessions.append([{
 				"session_id":generate_code(),
 				"owners":[peer_id],
 				"peers": [peer_id],
-				"mode":session.mode
+				"mode":session.mode,
+				"name": session.name,
+				"description": session.description,
+				"world_url": session.world_url,
 				}])
 			print("session created: ",peer_id)
 			print(sessions)
@@ -191,6 +194,6 @@ func get_public_session() -> Array:
 	var _sessions = []
 	for i in range(sessions.size()):
 		if sessions[i][0]["mode"] == PacketInfo.MODE.PUBLIC:
-			_sessions.append(sessions[i][0]["session_id"])
+			_sessions.append(sessions[i][0])
 			
 	return _sessions

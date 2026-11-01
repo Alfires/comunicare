@@ -22,7 +22,7 @@ grow_vertical = 2
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1181312314]
 layout_mode = 2
 
-[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=2099924461]
+[node name="reload" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=2099924461]
 layout_mode = 2
 text = "reload"
 
@@ -56,4 +56,5 @@ text = "Loading rooms..."
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=94418319]
 
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/reload" to="." method="_on_reload_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/search" to="." method="_on_search_pressed"]

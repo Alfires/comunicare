@@ -4,9 +4,10 @@ var data = {
 	"avatar_url": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
 	"temp_world_file_save_path": "user://wolds/temp.cne",
 	"default_avatar": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
+	"default_wold": "LocalWold"
 }
 var key = CryptoKey.new()
-var save_path = "user://user.data"
+var settings_path = "user://user.cfg"
 var key_path = "user://user.key"
 
 # laod public key: keypair.save_to_string(true)
@@ -28,21 +29,30 @@ func load_acount():
 	return true
 		
 func save_data():
-	var file = FileAccess.open(save_path, FileAccess.WRITE)
-	file.store_string(JSON.stringify(data))
+	print("Saving Data...")
+	var config := ConfigFile.new()
+	config.load(settings_path)
+	
+	config.set_value("UserSettings", "username", data["username"])
+	config.set_value("UserSettings", "avatar_url", data["avatar_url"])
+	config.set_value("UserSettings", "temp_world_file_save_path", data["temp_world_file_save_path"])
+	config.set_value("UserSettings","default_wold","LocalWold" )
 	print("Data created")
+	var error := config.save(settings_path)
+	if error != OK:
+		push_error("Could not save data: %s" % error_string(error))
+	else:
+		print("Data Saved")
+	
 	
 func laod_data():
 	print("Loading Data...")
-	var file = FileAccess.open(save_path, FileAccess.READ)
-	if file:
-		var json = JSON.new()
-		var error = json.parse(file.get_as_text())
-		if error == OK:
-			data = json.data
-			print("Data Loaded")
-		else:
-			printerr("Data coud not be loaded")
-	else:
+	var config := ConfigFile.new()
+	if config.load(settings_path) != OK:
 		print("Data not found creating new..")
-		save_data()
+	data["username"] = config.get_value("UserSettings","username","User")
+	data["avatar_url"] = config.get_value("UserSettings","avatar_url","https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm")
+	data["temp_world_file_save_path"] =  config.get_value("UserSettings","avatar_url","user://wolds/temp.cne")
+	config.set_value("UserSettings","default_wold","LocalWold" )
+	print("Data Loaded")
+	save_data()

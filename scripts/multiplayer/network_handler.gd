@@ -26,11 +26,11 @@ func create_peer():
 	peer.player_data.connect(sync_player_data)
 	peer.on_session_peers_update.connect(update_connected_peers)
 	peer.voice_data.connect(sync_player_voice)
-	
+
 func create_session():
 	print("Hosting room...")
-	peer.create_session(PacketInfo.MODE.PRIVAT)
-	#print("Connected to room: ", peer.get_unique_id())
+	peer.create_session(PacketInfo.MODE.PUBLIC,SaveData.data["username"],"The world from "+SaveData.data["username"],"default_wold")
+	
 
 func _on_peer_disconnected(peer_id):
 	print("Client disconnected: %d" % peer_id) 

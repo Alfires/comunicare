@@ -20,17 +20,23 @@ def main():
             shutil.copytree(ROOT / folder, project / folder)
         (project / "scripts/multiplayer").mkdir(parents=True)
         shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
+        shutil.copy2(ROOT / "scripts/multiplayer/network_handler.gd", project / "scripts/multiplayer/network_handler.gd")
+        remote = project / "scenes/player/remote_player.tscn"
+        remote.parent.mkdir(parents=True, exist_ok=True)
+        remote.write_text('[gd_scene format=3]\n[node name="Remote" type="Node3D"]\n')
+        shutil.copy2(ROOT / "tests/public_discovery/fixtures/save_data.gd", project / "save_data.gd")
         for source in ("scripts/startup/data_loader.gd", "scripts/GUI/animation_menue.gd", "scripts/GUI/emote_wheel.gd", "scripts/GUI/xr_emote_wheel.gd", "scripts/GUI/emote_layout_editor.gd", "scenes/GUI/animation_menue.tscn"):
             target = project / source
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / source, target)
         shutil.copy2(HERE / "network.gd", project / "network.gd")
         shutil.copy2(HERE / "suite.gd", project / "suite.gd")
+        shutil.copy2(HERE / "lifecycle_suite.gd", project / "lifecycle_suite.gd")
         (project / "project.godot").write_text(
             'config_version=5\n[application]\nconfig/name="Animation tests"\n'
-            '[autoload]\nDataLoader="*res://scripts/startup/data_loader.gd"\nNetworkHandler="*res://network.gd"\n'
+            '[autoload]\nDataLoader="*res://scripts/startup/data_loader.gd"\nSaveData="*res://save_data.gd"\nNetworkHandler="*res://network.gd"\n'
             '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-        for args in (["--editor", "--import"], ["--script", "res://suite.gd"]):
+        for args in (["--editor", "--import"], ["--script", "res://lifecycle_suite.gd"], ["--script", "res://suite.gd"]):
             try:
                 result = subprocess.run([godot, "--headless", "--path", directory, *args],
                                         capture_output=True, text=True, timeout=30)

@@ -29,10 +29,15 @@ var snapshot_deadline := 0
 var animation_controller: Node
 
 func get_animation_controller() -> Node:
-	if animation_controller == null:
+	if not is_instance_valid(animation_controller):
 		animation_controller = preload("res://scripts/assets/animation_controller.gd").new()
-		# Do not make this a child: remote-player cleanup iterates every child.
-		get_tree().root.add_child(animation_controller)
+	if is_inside_tree() and not animation_controller.is_inside_tree():
+		# Owned outside the remote-player list, but not attached to the busy root.
+		# NetworkHandler children are cleared as remote players on transitions.
+		# DataLoader is a stable autoload and already ready when clients start.
+		var host = get_node_or_null("/root/DataLoader")
+		if host != null and animation_controller.get_parent() == null:
+			host.add_child(animation_controller)
 		animation_controller.configure(self, DataLoader)
 	return animation_controller
 

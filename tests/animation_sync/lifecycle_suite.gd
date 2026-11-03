@@ -1,0 +1,57 @@
+extends SceneTree
+
+var failed := 0
+
+class StartupPlayer extends Node:
+	var network: Node
+	var controller: Node
+	func _enter_tree():
+		# Production startup adds the player directly under root. Root is locked
+		# while this callback runs; the controller factory must handle that.
+		controller = network.get_animation_controller()
+
+func _initialize():
+	call_deferred("run")
+
+func check(value: bool, title: String):
+	print(("PASS: " if value else "FAIL: ") + title)
+	if not value: failed += 1
+
+func run():
+	var network = load("res://scripts/multiplayer/network_handler.gd").new()
+	root.add_child(network)
+	var player = StartupPlayer.new()
+	player.network = network
+	# Startup also requests the factory during root child-entry notifications,
+	# while root is still changing its children.
+	var on_enter = func(child):
+		if child == player: player.controller = network.get_animation_controller()
+	root.child_entered_tree.connect(on_enter)
+	root.add_child(player)
+	root.child_entered_tree.disconnect(on_enter)
+	await process_frame
+	var controller = network.get_animation_controller()
+	check(controller == player.controller and controller.is_inside_tree(), "production startup factory returns one attached controller after root-ready lock")
+	# The reported Home callback must work after startup, without a relay.
+	if controller.is_inside_tree():
+		controller.toggle_emote_menu()
+		check(is_instance_valid(controller.wheel) and controller.wheel.visible, "production controller opens Home emote wheel offline")
+		controller.toggle_emote_menu()
+		check(not controller.wheel.visible, "Home callback toggles wheel closed")
+	# Reproduce the reported state directly: the cached controller exists but
+	# has no SceneTree (for example after failed/deferred startup attachment).
+	controller.get_parent().remove_child(controller)
+	controller.toggle_emote_menu()
+	check(not controller.is_inside_tree(), "detached controller menu request is safely ignored")
+	var recovered = network.get_animation_controller()
+	await process_frame
+	check(recovered.is_inside_tree(), "production factory repairs a detached cached controller")
+	if recovered.is_inside_tree():
+		recovered.toggle_emote_menu()
+		check(recovered.wheel.visible, "Home menu opens after controller attachment recovery")
+	player.queue_free()
+	controller.queue_free()
+	network.queue_free()
+	await process_frame
+	print("Lifecycle failures: ", failed)
+	quit(1 if failed else 0)

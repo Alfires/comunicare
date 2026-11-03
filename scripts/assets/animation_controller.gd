@@ -212,6 +212,9 @@ func _send(value: Dictionary):
 		if value.get("op") == "state": published_sequence = int(value.sequence)
 
 func toggle_emote_menu():
+	if not is_inside_tree():
+		last_error = "Animation controller is not attached yet; retry after startup."
+		return
 	if is_instance_valid(wheel) and wheel.visible:
 		wheel.dismiss()
 		return
@@ -241,6 +244,8 @@ func _choose_emote(id: String):
 	if is_instance_valid(wheel): wheel.dismiss()
 
 func open_xr_menu(hand: XRController3D, camera: XRCamera3D, hold: bool):
+	if not is_inside_tree() or not is_instance_valid(hand) or not is_instance_valid(camera):
+		return
 	if is_instance_valid(xr_wheel): xr_wheel.queue_free()
 	xr_wheel = preload("res://scripts/GUI/xr_emote_wheel.gd").new()
 	get_tree().root.add_child(xr_wheel)

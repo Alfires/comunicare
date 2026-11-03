@@ -1,5 +1,10 @@
 # Documentation conventions
 
+Offline local file/heading checks: `python3 tools/docs/check.py`.
+Checker fixtures: `python3 tools/docs/test_check.py`. Only tracked Markdown is
+scanned, excluding vendored add-on manuals. External URLs are not fetched. This
+does not yet validate a complete function inventory or reference-page coverage.
+
 Current guides explain supported behavior, prerequisites, errors/recovery,
 security and limitations. Architecture pages explain ownership/data flow and
 teardown. Reference pages name exact source functions, signatures, outputs,

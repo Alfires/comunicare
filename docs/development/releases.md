@@ -35,3 +35,17 @@ remote tags automatically. Preparation currently writes three files sequentially
 an interrupted write requires reviewing/recovering the local diff before retry.
 Prerelease numbering, release-plan attestation and full mutation/failure tests
 remain follow-up work; do not claim a complete hardened release pipeline yet.
+
+## Opt-in Git hooks
+
+Run `python3 tools/versioning/install_hooks.py` explicitly to set repository-local
+`core.hooksPath`. It refuses to overwrite another configured path or active
+default hooks. It has **not** been run automatically.
+
+`commit-msg` validates Conventional Commit syntax. `pre-push` checks constituent
+commits for existing remote branches and documentation links. It refuses a new
+remote branch rather than guessing a historical baseline; review/setup that
+baseline explicitly before enabling hooks for such publication. Missing remote
+objects require an explicit fetch. Version tags must match metadata at HEAD.
+Hooks are bypassable local checks, not server policy, and do not run Godot suites:
+contributors must still run applicable suites before each completed part.

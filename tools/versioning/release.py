@@ -71,12 +71,14 @@ def release_notes(result, previous):
     return f"## {result['version']}\n\n<!-- release-plan {record} -->\n\n{result['notes']}\n\n" + previous
 
 
-def verify_release_commit(root, version):
+def verify_release_commit(root, version, expected_base=None):
     text = (root / "CHANGELOG.md").read_text()
     match = re.search(r"^<!-- release-plan (.+) -->$", text, re.M)
     if not match: raise ValueError("Missing release-plan record; prepare metadata before tagging")
     record = json.loads(match[1])
     if set(record) != {"base", "head", "current", "version"}: raise ValueError("Invalid release plan")
+    if expected_base is not None and git("rev-parse", expected_base + "^{commit}") != record["base"]:
+        raise ValueError("Requested baseline differs from the prepared release plan")
     if git("rev-list", "--parents", "-n", "1", "HEAD").split()[1:] != [record["head"]]:
         raise ValueError("Release commit must directly follow the prepared source revision")
     result = plan(record["base"], record["current"], head=record["head"])
@@ -146,7 +148,7 @@ def main():
             if not args.base: raise ValueError("Explicit --base required for tag reachability check")
             git("merge-base", "--is-ancestor", args.base, "HEAD")
             if "-" in version: raise ValueError("Preview tags are intentionally unsupported; stable tag command only")
-            verify_release_commit(root, version)
+            verify_release_commit(root, version, args.base)
             subprocess.run(["git", "tag", "-a", f"v{version}", "-m", f"Release {version}"], check=True)
         return 0
     except (ValueError, OSError, subprocess.CalledProcessError, IndexError) as error:

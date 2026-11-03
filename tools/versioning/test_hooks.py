@@ -58,6 +58,14 @@ class Tests(unittest.TestCase):
             self.assertNotEqual(check("0" * 40).returncode, 0)
             git("config", "--local", "comunicare.validationBase", base)
             self.assertEqual(check("0" * 40).returncode, 0)
+            self.assertNotEqual(check("f" * 40).returncode, 0)
+            # Non-release tag-only input and deletions do not invent branch ranges.
+            deletion = subprocess.run(["python3", "tools/versioning/pre_push.py"], cwd=root,
+                input=f"(delete) {'0' * 40} refs/heads/old {base}\n", text=True, capture_output=True)
+            self.assertEqual(deletion.returncode, 0)
+            tag_only = subprocess.run(["python3", "tools/versioning/pre_push.py"], cwd=root,
+                input=f"refs/tags/fixture {head} refs/tags/fixture {'0' * 40}\n", text=True, capture_output=True)
+            self.assertEqual(tag_only.returncode, 0)
             git("commit", "--allow-empty", "-qm", "not conventional")
             head = git("rev-parse", "HEAD")
             self.assertNotEqual(check(base).returncode, 0)

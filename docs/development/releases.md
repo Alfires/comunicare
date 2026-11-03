@@ -39,7 +39,9 @@ multi-file publication, not a filesystem-wide atomic transaction. Do not commit
 the journal. Preserve any manual metadata edits before recovery: recovery restores
 the recorded original files. `plan/prepare --preview` calculates deterministic
 `-dev.N` metadata from the explicit stable baseline; stable tagging refuses previews.
-Release-plan attestation and exhaustive OS/power-loss testing remain limitations.
+No software test can guarantee hardware/power-loss durability on every filesystem;
+the recovery journal and simulated interruption/error tests bound the supported
+recovery behavior. It is not a filesystem-wide atomic transaction.
 
 Preparation records base/source revisions, prior version and calculated version in
 a changelog `release-plan` comment. Tagging and release-tag pre-push validation
@@ -66,3 +68,10 @@ Integration tests actually install/run hooks only inside disposable repositories
 `python3 tools/versioning/test_hooks.py`. They cover existing-path/default-hook
 protection, real commit rejection/acceptance, existing/new branch push inputs,
 explicit baseline configuration and malformed constituent messages.
+
+Run the failure histories with `python3 tools/versioning/test_failures.py`: they
+cover docs-only history, merge deduplication, conservative reverts, missing and
+unreachable baselines, shallow clones, absent upstream, journal recovery/invalid
+data, rejecting remote hooks and competing remote branch updates. All remotes are
+local temporary bare repositories. Atomic push rejection leaves both branch/tag
+unchanged; operators still need to inspect real remote failures rather than force.

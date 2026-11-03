@@ -2,6 +2,8 @@
 
 ## Status and goals
 
+**Follow-up direction:** [automatic-avatar-animation-roadmap.md](automatic-avatar-animation-roadmap.md) supersedes the manual animation-player UI and parallel/manual animation synchronization design below. It plans automatic application, one resolved animation state, and source-only configuration under User → Avatar. That follow-up is planning only; current runtime behavior is still described in the implementation section below.
+
 **Implementation in progress — 2026-11-03.** The original design below remains the target, not a claim that every milestone is complete.
 
 ### Current implementation slice

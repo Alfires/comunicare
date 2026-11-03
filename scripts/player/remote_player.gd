@@ -5,22 +5,43 @@ extends CharacterBody3D
 @onready var player: AudioStreamPlayer3D = $AudioStreamPlayer3D
 var audio_stream = AudioStreamGenerator.new()
 var avatar: Node = null
+var avatar_generation := 0
 var buffer_threshold = 3
 var audio_buffers = []
 
 var audio_playback: AudioStreamGeneratorPlayback
 
 func _ready() -> void:
+	if SaveData.get("store") != null:
+		SaveData.store.setting_changed.connect(_setting_changed)
+		_setting_changed("interface.show_nameplates", SaveData.store.get_value("interface.show_nameplates"))
 	load_player_model(SaveData.data["default_avatar"])
 	
 	_setup_playback()
 
+func _setting_changed(id: String, value: Variant):
+	if id == "interface.show_nameplates":
+		user_name_label.visible = value != false
+
+func _exit_tree():
+	avatar_generation += 1
+	if SaveData.get("store") != null and SaveData.store.setting_changed.is_connected(_setting_changed):
+		SaveData.store.setting_changed.disconnect(_setting_changed)
+
 
 func load_player_model(model_url: String):
-	if avatar != null:
+	avatar_generation += 1
+	var ticket = avatar_generation
+	var result = await DataLoader.load_vrm_from_url(model_url)
+	if result == null:
+		return
+	if ticket != avatar_generation or not is_inside_tree():
+		result.queue_free()
+		return
+	if is_instance_valid(avatar):
 		remove_child(avatar)
 		avatar.queue_free()
-	avatar = await DataLoader.load_vrm_from_url(model_url)
+	avatar = result
 	avatar.name = "avatar"
 	add_child(avatar)
 	await get_tree().process_frame

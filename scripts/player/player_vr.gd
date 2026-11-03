@@ -6,6 +6,8 @@ extends CharacterBody3D
 @onready var left_controller: XRController3D = $XROrigin3D/LeftHand
 
 var vrm_model: Node3D
+var avatar_generation := 0
+var avatar_url := ""
 var skeleton: Skeleton3D
 
 
@@ -33,7 +35,13 @@ var debug_timer: float = 0.0
 
 
 func _ready():
+	SaveData.profile.profile_changed.connect(_profile_changed)
+	add_to_group("player")
 	load_vrm_model()
+
+func set_player_pos(pos: Vector3):
+	position = pos
+	velocity = Vector3.ZERO
 
 func _process(delta: float):
 	debug_timer += delta
@@ -72,15 +80,37 @@ func _physics_process(delta):
 
 
 func update_player_data():
+	if NetworkHandler.peer == null or not NetworkHandler.peer.is_connected_to_relay \
+		or NetworkHandler.current_session_id.is_empty() or NetworkHandler.session_busy:
+		return
 	PlayerData.create(1,position,rotation).sent(NetworkHandler.peer.peer)
 
 func load_vrm_model():
+	var url: String = SaveData.data["avatar_url"]
+	if url == avatar_url:
+		return
+	avatar_url = url
+	avatar_generation += 1
+	var generation = avatar_generation
 	print("Loading VRM model...")
-	var model = await DataLoader.load_vrm_from_url(SaveData.data["avatar_url"])
+	var model = await DataLoader.load_vrm_from_url(url)
 
 	if model == null:
+		if generation == avatar_generation:
+			avatar_url = ""
 		print("ERROR: Failed to load VRM model")
 		return
+	if generation != avatar_generation:
+		model.queue_free()
+		return
+	var new_skeleton = _find_skeleton(model)
+	if new_skeleton == null:
+		model.queue_free()
+		return
+	if xr_camera.get_parent() != origin_node:
+		xr_camera.reparent(origin_node)
+	if is_instance_valid(vrm_model):
+		vrm_model.queue_free()
 
 	vrm_model = model
 	add_child(vrm_model)
@@ -115,6 +145,14 @@ func _find_skeleton(node: Node) -> Skeleton3D:
 		if result != null:
 			return result
 	return null
+
+func _profile_changed(owner: String):
+	if owner == SaveData.profile.get_local_fingerprint():
+		load_vrm_model()
+
+func _exit_tree():
+	avatar_generation += 1
+	SaveData.profile.profile_changed.disconnect(_profile_changed)
 
 func _create_TwoBoneIK3D() -> TwoBoneIK3D:
 	var TBID = TwoBoneIK3D.new()

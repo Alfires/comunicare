@@ -1,25 +1,90 @@
 extends Node3D
 
-func load_vrm_from_url(url: String):
-	var http = HTTPRequest.new()
-	http.timeout = 30
-	http.body_size_limit = 64 * 1024 * 1024
-	add_child(http)
-	if http.request(url) != OK:
-		http.queue_free()
-		return null
-	var response = await http.request_completed
-	http.queue_free()
-	if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
-		return null
-	return _load_model_from_buffer(response[3])
+var avatar_import_busy := false
+var avatar_import_waiters := 0
+var avatar_thread: Thread
+const MAX_AVATAR_BYTES = 64 * 1024 * 1024
+const MAX_AVATAR_WAITERS = 8
 
-func _load_model_from_buffer(bytes: PackedByteArray) -> Node3D:
-	var document = GLTFDocument.new()
-	var state = GLTFState.new()
-	if document.append_from_buffer(bytes, "", state, 8) != OK:
+func load_vrm_from_url(url: String):
+	"""Load a VRM model from a URL"""
+	var http_request = HTTPRequest.new()
+	http_request.use_threads = true
+	http_request.timeout = 30
+	http_request.body_size_limit = 64 * 1024 * 1024
+	add_child(http_request)
+	if http_request.request(url) != OK:
+		http_request.queue_free()
 		return null
-	return document.generate_scene(state) as Node3D
+	print("Downloading modell")
+	var response = await http_request.request_completed
+	http_request.queue_free()
+	print("responded")
+
+	if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
+		printerr("Download failed with response code: ", response[1])
+		return
+
+	# Each request returns its own model; no shared _model race between local and
+	# remote avatars. Scene generation stays on the main thread.
+	return await _load_model_from_buffer(response[3])
+
+func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D:
+	if buffer.is_empty() or buffer.size() > MAX_AVATAR_BYTES:
+		return null
+	return await _import_avatar(buffer, "")
+
+func _load_model_from_file(path: String) -> Node3D:
+	return await _import_avatar(PackedByteArray(), path)
+
+func _import_avatar(buffer: PackedByteArray, path: String) -> Node3D:
+	if not is_inside_tree() or avatar_import_waiters >= MAX_AVATAR_WAITERS:
+		return null
+	avatar_import_waiters += 1
+	while avatar_import_busy:
+		await get_tree().process_frame
+	avatar_import_waiters -= 1
+	avatar_import_busy = true
+	avatar_thread = Thread.new()
+	var error = avatar_thread.start(_build_avatar.bind(buffer, path))
+	if error != OK:
+		avatar_import_busy = false
+		avatar_thread = null
+		return null
+	# Never join a running importer on the frame thread. Each job owns all of its
+	# resources and creates a detached tree; only callers attach it on this thread.
+	while avatar_thread.is_alive():
+		await get_tree().process_frame
+	var result = avatar_thread.wait_to_finish()
+	avatar_thread = null
+	avatar_import_busy = false
+	return result as Node3D
+
+func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D:
+	# Worker only: no SceneTree access, shared import state, global extension
+	# registration, or reparenting. Do not install per-job extensions globally.
+	if not path.is_empty():
+		var file = FileAccess.open(path, FileAccess.READ)
+		if file == null or file.get_length() == 0 or file.get_length() > MAX_AVATAR_BYTES:
+			return null
+		buffer = file.get_buffer(file.get_length())
+		file.close()
+	var gltf = GLTFDocument.new()
+	var state = GLTFState.new()
+	var error = gltf.append_from_buffer(buffer, "", state, 8)
+	if error != OK:
+		return null
+	return gltf.generate_scene(state) as Node3D
+
+func _exit_tree():
+	# Shutdown is the only blocking join. A detached result must not leak if the
+	# owning loader is removed before its awaiting caller can receive the model.
+	if avatar_thread != null and avatar_thread.is_started():
+		var result = avatar_thread.wait_to_finish()
+		if is_instance_valid(result):
+			result.free()
+		avatar_thread = null
+
 
 func load_world_from_url(cne_word_url: String) -> bool:
 	var staged = await prepare_world_from_url(cne_word_url)
@@ -102,7 +167,7 @@ func extract_zip(zip_path: String, extract_to: String) -> bool:
 	if reader.open(zip_path) != OK:
 		print("Failed to open ZIP: ", zip_path)
 		return false
-	
+
 	var files = reader.get_files()
 	if files.size() > 4096:
 		reader.close()
@@ -114,7 +179,7 @@ func extract_zip(zip_path: String, extract_to: String) -> bool:
 			return false
 		if file.ends_with("/"):
 			continue
-		
+
 		# Extract file
 		var content = reader.read_file(file)
 		total_bytes += content.size()
@@ -122,9 +187,9 @@ func extract_zip(zip_path: String, extract_to: String) -> bool:
 			reader.close()
 			return false
 		var full_path = extract_to + file
-		
+
 		create_directories_recursive(full_path.get_base_dir())
-		
+
 		var f = FileAccess.open(full_path, FileAccess.WRITE)
 		if f == null:
 			print("Failed to write: ", full_path)
@@ -132,7 +197,7 @@ func extract_zip(zip_path: String, extract_to: String) -> bool:
 			return false
 		f.store_buffer(content)
 		f = null
-	
+
 	reader.close()
 	return true
 
@@ -141,21 +206,21 @@ func load_manifest(manifest_path: String) -> Dictionary:
 	if file == null:
 		print("Manifest not found: ", manifest_path)
 		return {}
-	
+
 	var json_string = file.get_as_text()
 	var json = JSON.new()
 	if json.parse(json_string) != OK:
 		print("Failed to parse manifest JSON")
 		return {}
-	
+
 	return json.data if json.data is Dictionary else {}
 
 func create_directories_recursive(path: String) -> void:
 	if DirAccess.dir_exists_absolute(path):
 		return
-	
+
 	var parent = path.get_base_dir()
 	if parent != path and parent != "":
 		create_directories_recursive(parent)
-	
+
 	DirAccess.make_dir_absolute(path)

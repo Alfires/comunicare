@@ -17,8 +17,12 @@ var last_state = {"position": position, "rotation": rotation}
 
 var head_idx = null
 var skeleton = null
+var avatar_model: Node3D
+var avatar_generation := 0
+var avatar_url := ""
 
 func _ready() -> void:
+	SaveData.profile.profile_changed.connect(_profile_changed)
 	add_to_group("player")
 	$menue.hide()
 	load_player_model()
@@ -35,6 +39,9 @@ func _process(delta):
 		elapsed_time = 0.0
 	
 func update_player_data():
+	if NetworkHandler.peer == null or not NetworkHandler.peer.is_connected_to_relay \
+		or NetworkHandler.current_session_id.is_empty() or NetworkHandler.session_busy:
+		return
 	PlayerData.create(1,position,rotation).sent(NetworkHandler.peer.peer)
 	
 
@@ -44,11 +51,13 @@ func set_player_pos(pos: Vector3):
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
 		# Horizontal rotation (body rotates around Y-axis)
-		rotate_y(-event.relative.x * mouse_sensitivity)
+		rotate_y(-event.relative.x * float(SaveData.store.get_value("controls.mouse_sensitivity")))
 		
 		# Vertical rotation (camera rotates around X-axis)
 		if not is_instance_valid(camera): return
-		var tilt = camera.rotation.x - (event.relative.y * mouse_sensitivity)
+		var sensitivity = SaveData.store.get_value("controls.mouse_sensitivity")
+		var invert = -1.0 if SaveData.store.get_value("controls.invert_mouse_y") else 1.0
+		var tilt = camera.rotation.x - (event.relative.y * float(sensitivity) * invert)
 		camera.rotation.x = clamp(tilt, -max_tilt, max_tilt)
 		if head_idx != null and head_idx > -1:
 			skeleton.set_bone_pose_rotation(head_idx, Quaternion.from_euler(camera.rotation))
@@ -93,7 +102,27 @@ func _physics_process(delta):
 
 
 func load_player_model():
-	var vrm_model = await DataLoader.load_vrm_from_url(SaveData.data["avatar_url"])
+	var url: String = SaveData.data["avatar_url"]
+	if url == avatar_url:
+		return
+	avatar_url = url
+	avatar_generation += 1
+	var generation = avatar_generation
+	var vrm_model = await DataLoader.load_vrm_from_url(url)
+	if vrm_model == null:
+		if generation == avatar_generation:
+			avatar_url = ""
+		return
+	if generation != avatar_generation:
+		vrm_model.queue_free()
+		return
+	if camera.get_parent() != self:
+		camera.reparent(self)
+	if is_instance_valid(avatar_model):
+		avatar_model.queue_free()
+	avatar_model = vrm_model
+	skeleton = null
+	head_idx = -1
 	add_child(vrm_model)
 	await get_tree().process_frame
 	
@@ -143,11 +172,21 @@ func _calculate_head_offset() -> Vector3:
 	# If no direct mesh found, search the skeleton tree
 	if head_size == Vector3.ONE * -0.1:
 		if meshes.size() > 0:
-			var aabb = meshes[0].get_aabb()
-			head_size = aabb.size
+			for mesh in meshes:
+				if mesh is MeshInstance3D:
+					head_size = mesh.get_aabb().size
+					break
 	
 	# Offset forward by half the head width (Z-axis)
 	var offset = Vector3(0, 0.1, head_size.z * -0.5)
 	print("Head size: %s, Camera offset: %s" % [head_size, offset])
 	
 	return offset
+
+func _profile_changed(owner: String):
+	if owner == SaveData.profile.get_local_fingerprint():
+		load_player_model()
+
+func _exit_tree():
+	avatar_generation += 1
+	SaveData.profile.profile_changed.disconnect(_profile_changed)

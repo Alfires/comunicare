@@ -7,9 +7,12 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from transaction import publish, recover, JOURNAL
+
 TYPES = {"feat", "fix", "docs", "test", "refactor", "build", "ci", "chore", "perf", "style", "revert"}
 TITLE = re.compile(r"^(\w+)(?:\(([^()\n]+)\))?(!)?: (\S.*)$")
-VERSION = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+VERSION = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-dev\.(0|[1-9]\d*))?$")
 
 
 def git(*args):
@@ -26,8 +29,8 @@ def parse(message):
     return {"type": match[1], "scope": match[2], "summary": match[4], "level": level}
 
 
-def plan(base, current):
-    if not VERSION.fullmatch(current):
+def plan(base, current, preview=False):
+    if not VERSION.fullmatch(current) or "-" in current:
         raise ValueError("Supply an explicit stable SemVer baseline, e.g. --current 0.1.0")
     if git("rev-parse", "--is-shallow-repository") == "true":
         raise ValueError("Full history required; deepen the repository explicitly")
@@ -45,6 +48,7 @@ def plan(base, current):
     elif level == 2: minor, patch = minor + 1, 0
     elif level == 1: patch += 1
     version = f"{major}.{minor}.{patch}"
+    if preview and level: version += f"-dev.{len(commits)}"
     notes = "\n".join(f"- {c['type']}: {c['summary']} ({c['sha'][:8]})" for c in commits if c["level"])
     return {"base": baseline, "head": git("rev-parse", "HEAD"), "current": current,
             "version": version, "release": bool(level), "commits": commits, "notes": notes}
@@ -64,12 +68,13 @@ def check_metadata(root):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["message", "plan", "prepare", "check", "tag"])
+    parser.add_argument("command", choices=["message", "plan", "prepare", "check", "tag", "recover"])
     parser.add_argument("--base")
     parser.add_argument("--current")
     parser.add_argument("--message-file")
     parser.add_argument("--version")
     parser.add_argument("--branch", help="Explicit branch allowed to prepare/tag a release")
+    parser.add_argument("--preview", action="store_true", help="Calculate a dev preview; never tag it as stable")
     args = parser.parse_args()
     try:
         if args.command == "message":
@@ -77,12 +82,17 @@ def main():
             parse(Path(args.message_file).read_text())
             return 0
         root = Path(git("rev-parse", "--show-toplevel"))
+        if args.command == "recover":
+            recover(root)
+            print("Restored original metadata from recovery journal; review git diff.")
+            return 0
+        if (root / JOURNAL).exists(): raise ValueError("Interrupted preparation; inspect journal and run recover")
         if args.command == "check":
             print(check_metadata(root))
             return 0
         if args.command in ["plan", "prepare"]:
             if not args.base or not args.current: raise ValueError("--base and --current are required; no implicit initial release")
-            result = plan(args.base, args.current)
+            result = plan(args.base, args.current, args.preview)
             if args.command == "plan":
                 print(json.dumps(result, indent=2))
                 return 0
@@ -101,9 +111,8 @@ def main():
             changelog = root / "CHANGELOG.md"
             previous = changelog.read_text() if changelog.exists() else ""
             # No commits/tags/pushes here. Review the complete diff before committing.
-            (root / "VERSION").write_text(result["version"] + "\n")
-            project_path.write_text(project)
-            changelog.write_text(f"## {result['version']}\n\n{result['notes']}\n\n" + previous)
+            publish(root, {"VERSION": result["version"] + "\n", "project.godot": project,
+                           "CHANGELOG.md": f"## {result['version']}\n\n{result['notes']}\n\n" + previous})
             print("Prepared metadata only. Review/test, then commit explicitly with chore(release).")
         elif args.command == "tag":
             version = check_metadata(root)
@@ -112,6 +121,7 @@ def main():
                 raise ValueError("HEAD must be the reviewed chore(release) commit")
             if not args.base: raise ValueError("Explicit --base required for tag reachability check")
             git("merge-base", "--is-ancestor", args.base, "HEAD")
+            if "-" in version: raise ValueError("Preview tags are intentionally unsupported; stable tag command only")
             subprocess.run(["git", "tag", "-a", f"v{version}", "-m", f"Release {version}"], check=True)
         return 0
     except (ValueError, OSError, subprocess.CalledProcessError, IndexError) as error:

@@ -31,10 +31,15 @@ Prepare changes VERSION, the application `config/version` and CHANGELOG only;
 it does not commit/tag/push. It leaves the Godot engine feature version untouched.
 Review all changes before committing. Tags are annotated and never overwritten.
 If atomic push fails, stop and inspect remote state; never force-push or delete
-remote tags automatically. Preparation currently writes three files sequentially:
-an interrupted write requires reviewing/recovering the local diff before retry.
-Prerelease numbering, release-plan attestation and full mutation/failure tests
-remain follow-up work; do not claim a complete hardened release pipeline yet.
+remote tags automatically. Preparation uses temporary files plus a recovery
+journal, rolling back handled write errors. A process/power interruption leaves
+`.release-transaction.json`; inspect it and run
+`python3 tools/versioning/release.py recover` before retrying. This is recoverable
+multi-file publication, not a filesystem-wide atomic transaction. Do not commit
+the journal. Preserve any manual metadata edits before recovery: recovery restores
+the recorded original files. `plan/prepare --preview` calculates deterministic
+`-dev.N` metadata from the explicit stable baseline; stable tagging refuses previews.
+Release-plan attestation and exhaustive OS/power-loss testing remain limitations.
 
 ## Opt-in Git hooks
 

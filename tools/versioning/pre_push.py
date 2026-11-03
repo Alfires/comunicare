@@ -21,8 +21,12 @@ def main():
                         raise ValueError("Tag/version mismatch")
                 continue
             if set(remote_sha) == {"0"}:
-                # Do not lint all legacy history or guess a new branch baseline.
-                raise ValueError("New remote branch: validate an explicit baseline range before publishing; this hook requires an existing remote branch")
+                configured = subprocess.run(["git", "config", "--get", "comunicare.validationBase"], capture_output=True, text=True)
+                if configured.returncode or not configured.stdout.strip():
+                    raise ValueError("New branch needs explicit git config --local comunicare.validationBase <reviewed-base>")
+                remote_sha = git("rev-parse", configured.stdout.strip() + "^{commit}")
+                if subprocess.run(["git", "merge-base", "--is-ancestor", remote_sha, local_sha]).returncode:
+                    raise ValueError("Configured validation base is not an ancestor of pushed branch")
             if subprocess.run(["git", "cat-file", "-e", remote_sha + "^{commit}"], capture_output=True).returncode:
                 raise ValueError("Remote baseline absent locally; fetch with ordinary Git before pushing")
             for sha in git("rev-list", "--no-merges", remote_sha + ".." + local_sha).splitlines():

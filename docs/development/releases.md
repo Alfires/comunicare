@@ -48,9 +48,14 @@ Run `python3 tools/versioning/install_hooks.py` explicitly to set repository-loc
 default hooks. It has **not** been run automatically.
 
 `commit-msg` validates Conventional Commit syntax. `pre-push` checks constituent
-commits for existing remote branches and documentation links. It refuses a new
-remote branch rather than guessing a historical baseline; review/setup that
-baseline explicitly before enabling hooks for such publication. Missing remote
+commits and documentation/inventory drift. New remote branches require an explicit
+reviewed baseline: `git config --local comunicare.validationBase <base>`; the hook
+checks ancestry instead of scanning unrelated legacy history. Missing remote
 objects require an explicit fetch. Version tags must match metadata at HEAD.
 Hooks are bypassable local checks, not server policy, and do not run Godot suites:
 contributors must still run applicable suites before each completed part.
+
+Integration tests actually install/run hooks only inside disposable repositories:
+`python3 tools/versioning/test_hooks.py`. They cover existing-path/default-hook
+protection, real commit rejection/acceptance, existing/new branch push inputs,
+explicit baseline configuration and malformed constituent messages.

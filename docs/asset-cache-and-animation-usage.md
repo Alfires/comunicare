@@ -47,6 +47,11 @@ movement/jumping/falling, or replacing the avatar interrupts an emote. Basic
 movement animations remain automatic. Opening/browsing groups never starts an
 animation or sends a playback command.
 
+Clip changes blend from the currently visible pose over 0.22 seconds, including
+changes that interrupt another transition. Desktop cameras stay attached to the
+player (height calibrated once from avatar rest geometry); XR cameras remain
+under the tracked XROrigin. Animated head/eye bones no longer drive either camera.
+
 Use **Avatar setup → Customize emote groups and wheel** to create nested groups,
 rename/delete groups, add action shortcuts, reorder/move entries and reset the
 layout. Fresh imported actions get an Imported actions group; additional actions

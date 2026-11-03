@@ -1,5 +1,23 @@
 # Animation and revision checks
 
+## Authored default animation regressions
+
+Defaults now use the free CC0 Quaternius Standard pack, not generated motion.
+The suite checks sampled/changing chest, elbows, arms and hands. To additionally
+check real-avatar retargeting without bundling a third-party avatar, run:
+
+```sh
+AVATAR_FIXTURE=/path/to/permitted/avatar.vrm python3 tests/animation_sync/run.py
+```
+
+That optional group uses the production loader and asserts that the authored walk
+binds and both hands drop below the shoulders. It caught the legacy VRM 0.x
+forward-convention bug that synthetic identity-rest rigs missed. The built-in
+AliciaSolid URL was downloaded only to `/tmp/opencode` for this verification;
+its model is not redistributed in this repository. Without AVATAR_FIXTURE the
+runner explicitly reports that group as skipped. This is a pose assertion, not
+a substitute for visual inspection of walking on every possible humanoid rig.
+
 ## Startup/menu regressions
 
 The runner also executes `lifecycle_suite.gd` against the **production

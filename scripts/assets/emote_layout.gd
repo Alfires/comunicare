@@ -11,8 +11,8 @@ var writable := true
 
 static func defaults() -> Dictionary:
 	return {"root": {"name": "Emotes", "entries": [
-		{"type": "emote", "id": "builtin:wave", "name": "Wave"},
-		{"type": "emote", "id": "builtin:cheer", "name": "Cheer"},
+		{"type": "emote", "id": "builtin:dance", "name": "Dance"},
+		{"type": "emote", "id": "builtin:interact", "name": "Interact"},
 		{"type": "emote", "id": "__cancel_emote__", "name": "Return to\nmovement"},
 		{"type": "group", "id": "dances", "name": "Dances"}]},
 		"dances": {"name": "Dances", "entries": []}}

@@ -101,7 +101,7 @@ func _reset_catalog():
 	emotes.clear()
 	for id in Defaults.IDS:
 		var item = {"id": "builtin:" + id, "name": id.capitalize(), "clip": Defaults.clip(id),
-			"builtin": id, "handle": {}, "index": 0, "share": true, "loop": id in ["idle", "walk", "run", "fall"]}
+			"builtin": id, "handle": {}, "index": 0, "share": true, "loop": id in ["idle", "walk", "run", "fall", "dance"]}
 		if id in ROLES: roles[id] = item
 		else: emotes[item.id] = item
 

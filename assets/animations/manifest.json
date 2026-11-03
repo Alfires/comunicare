@@ -1,10 +1,25 @@
 {
-  "schema": 1,
-  "library": "comunicare.procedural.v1",
-  "author": "Comunicare contributors (original procedural recipes)",
-  "created": "2026-11-03",
+  "schema": 2,
+  "library": "quaternius.standard.v1",
+  "author": "Quaternius",
   "license": "CC0-1.0",
-  "source": "res://scripts/assets/default_animations.gd",
-  "conversion": "None; generated directly as humanoid quaternion keyframes. No third-party motion data.",
-  "clips": ["idle", "walk", "run", "jump", "fall", "land", "wave", "cheer"]
+  "source_url": "https://store.godotengine.org/asset/quaternius/universal-animation-library/",
+  "download_url": "https://store.godotengine.org/asset/quaternius/universal-animation-library/download/44/",
+  "download_version": "Standard-1.0",
+  "retrieved": "2026-11-03",
+  "archive_sha256": "18ff1a7215f4852b320203e8aaf02a1578b5c8eef9027fbaedfcedc7b85a3ac2",
+  "original_file": "Animation Library[Standard]/Godot/AnimationLibrary_Godot_Standard.glb",
+  "original_sha256": "1b7bf67866360665426bb99e4c71bd619f19b408453c24e30f0c3071601eee5c",
+  "converted_sha256": "320a041c9e389eb801e4d50277b1a98ca554c45829a4837eefa2db5b0d8beeba",
+  "clips": {
+    "idle": "Idle_Loop",
+    "walk": "Walk_Loop",
+    "run": "Jog_Fwd_Loop",
+    "jump": "Jump_Start",
+    "fall": "Jump_Loop",
+    "land": "Jump_Land",
+    "dance": "Dance_Loop",
+    "interact": "Interact"
+  },
+  "conversion": "Authored rotation keys extracted without synthesis; A_TPose reference deltas and global bone bases preserved; translations/scales omitted for in-place playback. Fingers retained; optional bones may be skipped on target rigs."
 }

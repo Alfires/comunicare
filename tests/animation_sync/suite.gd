@@ -61,6 +61,14 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	var walk = Defaults.clip("walk")
+	var upper_tracks: Dictionary = {}
+	for track in walk.tracks:
+		upper_tracks[track.bone] = track
+	check(upper_tracks.has("leftLowerArm") and upper_tracks.has("rightLowerArm") and upper_tracks.has("chest"),
+		"bundled walk includes elbows and chest, not only straight T-pose shoulder swings")
+	check(walk.get("provenance", {}).get("author") == "Quaternius", "default walk uses licensed third-party animation data, not procedural recipes")
+	await test_authored_upper_body()
 	var reader = Reader.new()
 	var bytes = fixture()
 	var parsed = reader.read_bytes(bytes)
@@ -110,6 +118,7 @@ func run():
 	for id in Defaults.IDS:
 		var clip = Defaults.clip(id)
 		check(not clip.is_empty() and clip.duration > 0 and not clip.tracks.is_empty(), "offline CC0 default: " + id)
+		check(absf(clip.duration - AnimationState.DURATIONS[id]) < 0.00001, "wire duration matches authored clip: " + id)
 	avatar.free()
 	await test_ui(bytes)
 	await test_wheel()
@@ -119,6 +128,45 @@ func run():
 	print("\nAnimation contracts: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
+func test_authored_upper_body():
+	var walk = Defaults.clip("walk")
+	for bone in ["leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm", "leftHand", "rightHand", "chest"]:
+		var tracks = walk.tracks.filter(func(track): return track.bone == bone)
+		check(tracks.size() == 1 and tracks[0].keys.size() > 20, "authored full-body walk has sampled " + bone + " motion")
+		if tracks.is_empty(): continue
+		var first: Quaternion = tracks[0].keys[0].rotation
+		var maximum := 0.0
+		for key in tracks[0].keys:
+			maximum = maxf(maximum, first.angle_to(key.rotation))
+		check(maximum > 0.01, "walk changes " + bone + " rather than holding the rest pose")
+	if not FileAccess.file_exists("res://real-avatar.vrm"):
+		print("SKIP: optional real VRM fixture; set AVATAR_FIXTURE to a permitted local avatar")
+		return
+	var avatar = await root.get_node("DataLoader")._load_model_from_file("res://real-avatar.vrm")
+	check(avatar != null, "production loader imports real VRM regression fixture")
+	if avatar == null: return
+	root.add_child(avatar)
+	var animator = Animator.new()
+	avatar.add_child(animator)
+	animator.attach(avatar)
+	check(animator.play_clip(walk, true, 1.0, 0.25), "third-party full-body walk binds to real VRM metadata")
+	var skeleton = Reader.new()._skeleton(avatar)
+	var mapping: Dictionary = avatar.get_meta("humanoid_bones")
+	for side in ["left", "right"]:
+		var arm = skeleton.find_bone(mapping[side + "UpperArm"])
+		var hand = skeleton.find_bone(mapping[side + "Hand"])
+		animator.player.advance(0)
+		var offset = skeleton.get_bone_global_pose(hand).origin - skeleton.get_bone_global_pose(arm).origin
+		check(offset.y < -0.15, "real VRM " + side + " hand drops below shoulder instead of T-posing")
+		var initial_hand = skeleton.get_bone_global_pose(hand).origin
+		animator.player.seek(0.7, true)
+		animator.player.advance(0)
+		check(initial_hand.distance_to(skeleton.get_bone_global_pose(hand).origin) > 0.02,
+			"real VRM " + side + " hand moves through the walking cycle")
+		animator.player.seek(0.25, true)
+	avatar.queue_free()
+	await process_frame
+
 func test_automatic_playback():
 	var network = Coordinator.new()
 	root.add_child(network)
@@ -127,7 +175,7 @@ func test_automatic_playback():
 	var skeleton = Skeleton3D.new()
 	skeleton.name = "Skeleton"
 	var mapping: Dictionary = {}
-	for bone in ["spine", "leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm", "leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg"]:
+	for bone in ["hips", "head", "spine", "leftHand", "rightHand", "leftFoot", "rightFoot", "leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm", "leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg"]:
 		skeleton.add_bone(bone)
 		mapping[bone] = bone
 	avatar.add_child(skeleton)
@@ -141,7 +189,7 @@ func test_automatic_playback():
 	controller.configure(network, null)
 	controller._update_locomotion()
 	check(controller.local_state.get("kind") == "locomotion" and controller.local_state.get("action") == "resolved", "actual equipped synthetic avatar receives automatic resolved playback without menu")
-	check(controller.request_emote("builtin:wave") and controller.local_state.kind == "emote", "emote request uses same actual avatar animation layer")
+	check(controller.request_emote("builtin:dance") and controller.local_state.kind == "emote", "emote request uses same actual avatar animation layer")
 	var layer = controller.local_animator
 	body.velocity = Vector3(1, 0, 0)
 	controller._update_locomotion()
@@ -319,9 +367,9 @@ func test_network():
 	await pump(server, clients)
 	clients[1].join_session(clients[0].current_session_id, "default_wold")
 	await pump(server, clients)
-	var state = {"op": "state", "version": 2, "sequence": 1, "action": "resolved", "kind": "emote", "role": "wave", "mask": "full", "avatar_revision": "", "configuration_revision": 0, "offset": 0.25,
-		"speed": 1.0, "loop": true, "duration": 2.0, "builtin": "wave", "hash": "",
-		"library": "comunicare.procedural.v1", "session_id": clients[0].current_session_id, "peer_id": 254}
+	var state = {"op": "state", "version": 2, "sequence": 1, "action": "resolved", "kind": "emote", "role": "dance", "mask": "full", "avatar_revision": "", "configuration_revision": 0, "offset": 0.25,
+		"speed": 1.0, "loop": true, "duration": 1.0, "builtin": "dance", "hash": "",
+		"library": Defaults.LIBRARY, "session_id": clients[0].current_session_id, "peer_id": 254}
 	clients[0].send_animation(state)
 	await pump(server, clients)
 	var received = messages[1].filter(func(value): return value.get("op") == "state")

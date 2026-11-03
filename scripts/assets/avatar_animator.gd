@@ -32,6 +32,7 @@ func play_clip(clip: Dictionary, looping: bool = true, speed: float = 1.0, offse
 	var skeleton = reader._skeleton(avatar)
 	var mapping: Dictionary = avatar.get_meta("humanoid_bones", {})
 	for source in clip.tracks:
+		if not mapping.has(source.bone): continue
 		var index = skeleton.find_bone(mapping[source.bone])
 		var track = reset.add_track(Animation.TYPE_ROTATION_3D)
 		reset.track_set_path(track, NodePath(str(avatar.get_path_to(skeleton)) + ":" + skeleton.get_bone_name(index)))

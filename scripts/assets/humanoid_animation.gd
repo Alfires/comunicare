@@ -239,6 +239,7 @@ func bind_clip(clip: Dictionary, avatar: Node3D) -> Animation:
 	animation.length = clip.duration
 	for source in clip.tracks:
 		if not mapping.has(source.bone):
+			if source.get("optional", false): continue
 			last_error = "Avatar is missing humanoid bone: " + source.bone
 			return null
 		var index = skeleton.find_bone(mapping[source.bone])
@@ -250,7 +251,12 @@ func bind_clip(clip: Dictionary, avatar: Node3D) -> Animation:
 			animation.track_set_interpolation_type(track, Animation.INTERPOLATION_NEAREST)
 		var rest = skeleton.get_bone_rest(index).basis.get_rotation_quaternion()
 		var target_global = skeleton.get_bone_global_rest(index).basis.get_rotation_quaternion()
-		var conversion = target_global.inverse() * source.source_rest if source.has("source_rest") else Quaternion.IDENTITY
+		var source_global: Quaternion = source.get("source_rest", Quaternion.IDENTITY)
+		# Legacy VRM 0.x uses the opposite humanoid forward convention. Bone
+		# labels alone do not reveal that its left arm extends along -X.
+		if source.get("reference_space") == "gltf_humanoid" and avatar.get_meta("vrm_legacy_orientation", false):
+			source_global = Quaternion(Vector3.UP, PI) * source_global
+		var conversion = target_global.inverse() * source_global if source.has("source_rest") else Quaternion.IDENTITY
 		for key in source.keys:
 			animation.rotation_track_insert_key(track, key.time, rest * conversion * key.rotation * conversion.inverse())
 	return animation

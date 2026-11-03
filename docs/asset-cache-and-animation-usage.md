@@ -18,6 +18,11 @@ source editor, not a playback console:
 Idle, walk, run, jump, fall and land are selected automatically. Recognized clip
 names replace these roles; external sources override embedded clips and bundled
 CC0 defaults. Later external sources win. Other compatible clips are emotes.
+Bundled defaults are now **Quaternius Universal Animation Library Standard-1.0**
+authored full-body motions, not procedural recipes. Dance and Interact are the
+included non-basic actions. See `THIRD_PARTY_ASSETS.md` for exact source/license
+and reproducible conversion. Saved Wave/Cheer placeholder shortcuts can be
+reassigned or reset using the group editor.
 The importer currently supports rotation-only, self-contained humanoid GLB/VRMA
 with LINEAR/STEP channels, not arbitrary models or full VRMA conformance.
 

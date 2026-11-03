@@ -18,6 +18,10 @@ def main():
         project = Path(directory)
         for folder in ("scripts/assets", "scripts/profile", "relay_protocol"):
             shutil.copytree(ROOT / folder, project / folder)
+        shutil.copytree(ROOT / "assets/animations", project / "assets/animations")
+        avatar_fixture = os.environ.get("AVATAR_FIXTURE")
+        if avatar_fixture:
+            shutil.copy2(avatar_fixture, project / "real-avatar.vrm")
         (project / "scripts/multiplayer").mkdir(parents=True)
         shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
         shutil.copy2(ROOT / "scripts/multiplayer/network_handler.gd", project / "scripts/multiplayer/network_handler.gd")

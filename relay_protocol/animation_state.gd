@@ -4,7 +4,9 @@ extends RefCounted
 const VERSION = 2
 const MAX_BYTES = 16 * 1024 * 1024
 const CHUNK_BYTES = 8192
-const BUILTINS = ["idle", "walk", "run", "jump", "fall", "land", "wave", "cheer"]
+const BUILTINS = ["idle", "walk", "run", "jump", "fall", "land", "dance", "interact"]
+const LIBRARY = "quaternius.standard.v1"
+const DURATIONS = {"idle": 2.5, "walk": 1.3333333730697632, "run": 0.9333333373069763, "jump": 1.3333333730697632, "fall": 2.5, "land": 1.2666666507720947, "dance": 1.0, "interact": 2.0}
 
 static func integer(value: Variant, minimum: int, maximum: int) -> bool:
 	return (value is int or value is float) and is_finite(float(value)) \
@@ -29,7 +31,7 @@ static func valid(value: Dictionary) -> bool:
 		or not integer(value.get("model_size"), 20, 64 * 1024 * 1024)):
 		return false
 	if value.get("builtin") in BUILTINS:
-		return value.get("library") == "comunicare.procedural.v1" and value.get("hash", "") == ""
+		return value.get("library") == LIBRARY and value.get("hash", "") == ""
 	return value.get("builtin", "") == "" and InstanceState.valid_fingerprint(value.get("hash")) \
 		and integer(value.get("size"), 20, MAX_BYTES) and integer(value.get("clip"), 0, 63)
 

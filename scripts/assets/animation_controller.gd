@@ -149,9 +149,9 @@ func emote_catalog() -> Dictionary:
 		actions["__cancel_emote__"] = {"name": "Return to movement"}
 		return actions
 	var catalog: Dictionary = {}
-	for id in ["wave", "cheer"]:
+	for id in ["dance", "interact"]:
 		catalog["builtin:" + id] = {"name": id.capitalize(), "clip": Defaults.clip(id), "builtin": id,
-			"handle": {}, "index": 0, "share": true, "loop": false}
+			"handle": {}, "index": 0, "share": true, "loop": id == "dance"}
 	return catalog
 
 func request_emote(id: String) -> bool:
@@ -311,7 +311,7 @@ func _play_resolved(clip: Dictionary, builtin: String, handle: Dictionary, clip_
 	sequence += 1
 	local_state = {"op": "state", "version": 2, "sequence": sequence, "action": "resolved",
 		"loop": looping, "speed": speed, "offset": 0.0, "duration": clip.duration,
-		"builtin": builtin, "library": "comunicare.procedural.v1", "hash": "", "started": now()}
+		"builtin": builtin, "library": Defaults.LIBRARY, "hash": "", "started": now()}
 	if builtin.is_empty() and share and not handle.is_empty():
 		local_state.hash = handle.hash
 		local_state.size = FileAccess.open(handle.path, FileAccess.READ).get_length()

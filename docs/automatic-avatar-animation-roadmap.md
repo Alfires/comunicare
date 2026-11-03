@@ -2,6 +2,13 @@
 
 ## Status and interpretation
 
+**Default asset correction:** the original procedural defaults have been removed
+in favor of Quaternius's free CC0 Standard-1.0 authored motion data. Full-body
+walking includes shoulders/arms, elbows, hands, chest and fingers; the real VRM
+regression also checks legacy orientation and hand height. Dance/Interact replace
+the old Wave/Cheer placeholders. See `THIRD_PARTY_ASSETS.md`; historical default
+asset descriptions below are superseded by that manifest.
+
 **Implementation in progress — 2026-11-03.** The source-only User/Avatar editor, account-scoped applied sources, default/custom role resolution, automatic locomotion/landing, emote requests and interruption, eight-sector desktop wheel, nested group editor, in-wheel paging, Home Emotes tile and registry-backed B binding are now implemented. Animation wire ID 28 negotiates **version 2**, accepting one resolved locomotion/emote state rather than the previous manual play/pause/stop schema. Requested avatar-model and animation transfers remain supporting transport for that state.
 
 A hand-local world-space XR wheel is implemented with original sector visuals, controller-relative selection, hold/release or pointer/trigger confirmation, center Back/Cancel, optional haptics and configurable action/diameter/dead zone. Its headset rendering, practical pointing/selection comfort and tracking/IK behavior have **not** been manually verified. This is not a claim that every proposed release gate below is complete.

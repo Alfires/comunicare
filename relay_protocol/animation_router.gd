@@ -49,7 +49,7 @@ func handle(server: Node, sender: int, value: Dictionary):
 			if not AnimationState.valid(value) or value.sequence <= states.get(sender, {}).get("sequence", 0):
 				return
 			if value.get("builtin") in AnimationState.BUILTINS:
-				var durations = {"idle": 3.0, "walk": 0.8, "run": 0.5, "jump": 0.6, "fall": 1.0, "land": 0.35, "wave": 2.0, "cheer": 2.0}
+				var durations = AnimationState.DURATIONS
 				if absf(value.duration - durations[value.builtin]) > 0.001:
 					return
 			for key in requests.keys():

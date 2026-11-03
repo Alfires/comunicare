@@ -29,7 +29,7 @@ var snapshot_deadline := 0
 var animation_controller: Node
 
 func get_animation_controller() -> Node:
-	if not is_instance_valid(animation_controller):
+	if not is_instance_valid(animation_controller) or animation_controller.is_queued_for_deletion():
 		animation_controller = preload("res://scripts/assets/animation_controller.gd").new()
 	if is_inside_tree() and not animation_controller.is_inside_tree():
 		# Owned outside the remote-player list, but not attached to the busy root.

@@ -18,6 +18,8 @@ func check(value: bool, title: String):
 	if not value: failed += 1
 
 func run():
+	check(load("res://scripts/player/player_desktop_movment.gd") != null, "production desktop player script compiles against startup services")
+	check(load("res://scripts/player/player_vr.gd") != null, "production VR player script compiles against startup services")
 	var network = load("res://scripts/multiplayer/network_handler.gd").new()
 	root.add_child(network)
 	var player = StartupPlayer.new()
@@ -49,8 +51,17 @@ func run():
 	if recovered.is_inside_tree():
 		recovered.toggle_emote_menu()
 		check(recovered.wheel.visible, "Home menu opens after controller attachment recovery")
+	# Home/player callbacks may occur in the frame an old controller is retiring.
+	recovered.queue_free()
+	var replacement = network.get_animation_controller()
+	check(replacement != recovered and not replacement.is_queued_for_deletion(), "factory never returns a controller already queued for deletion")
+	await process_frame
+	check(is_instance_valid(network.animation_controller) and network.animation_controller.is_inside_tree(), "replacement survives old controller deferred cleanup")
+	if is_instance_valid(replacement) and not replacement.is_queued_for_deletion():
+		replacement.toggle_emote_menu()
+		check(is_instance_valid(replacement.wheel) and replacement.wheel.visible, "Home callback works after retiring controller replacement")
 	player.queue_free()
-	controller.queue_free()
+	if is_instance_valid(replacement): replacement.queue_free()
 	network.queue_free()
 	await process_frame
 	print("Lifecycle failures: ", failed)

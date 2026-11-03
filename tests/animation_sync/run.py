@@ -21,6 +21,9 @@ def main():
         (project / "scripts/multiplayer").mkdir(parents=True)
         shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
         shutil.copy2(ROOT / "scripts/multiplayer/network_handler.gd", project / "scripts/multiplayer/network_handler.gd")
+        (project / "scripts/player").mkdir(parents=True, exist_ok=True)
+        for name in ("player_desktop_movment.gd", "player_vr.gd"):
+            shutil.copy2(ROOT / "scripts/player" / name, project / "scripts/player" / name)
         remote = project / "scenes/player/remote_player.tscn"
         remote.parent.mkdir(parents=True, exist_ok=True)
         remote.write_text('[gd_scene format=3]\n[node name="Remote" type="Node3D"]\n')

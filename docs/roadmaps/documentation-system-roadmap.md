@@ -4,6 +4,14 @@
 
 **Implementation in progress.** Documentation navigation, contribution/architecture/testing guides and link-safe relocation of the nine existing roadmaps are implemented. A local Conventional Commit parser and deterministic explicit-baseline release planner, metadata preparation/checking and annotated-tag commands are available with temporary-Git tests. No real application baseline/version, release tag or hooks have been installed. Exhaustive function references, symbol/link tooling, opt-in hooks, prereleases and release fault/recovery coverage remain incomplete; the requirements below remain the target, not a completion claim. See [release usage](../development/releases.md).
 
+Additional implemented slice: offline tracked-Markdown file/anchor checking with
+fixtures, a service-contract reference, and opt-in commit-msg/pre-push scripts plus
+an existing-policy-preserving installer. Hooks remain uninstalled. Pre-push
+currently refuses new remote branches without a baseline instead of handling all
+new-branch histories automatically. Full symbol inventory and hook integration/
+mutation-failure tests remain pending. Preparation is sequential multi-file writing,
+not transactional; this limitation is explicit in the release guide.
+
 Requirements:
 
 - Explain how the application works, how features behave, and how its important classes/functions cooperate—not merely list files or future ideas.

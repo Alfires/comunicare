@@ -9,6 +9,7 @@ func _ready():
 	add_theme_stylebox_override("panel", panel)
 
 func _input(event):
+	if get_viewport().get_meta("vr_menu", false): return
 	if event.is_action_pressed("open_menue"):
 		if get_viewport().gui_get_focus_owner() != null and get_viewport().gui_get_focus_owner().get_meta("blocks_global_shortcuts", false):
 			return

@@ -13,11 +13,14 @@ func _ready():
 		mesh.material_override = material
 	
 	mesh.material_override.albedo_texture = viewport.get_texture()
+	mesh.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh.mesh = mesh.mesh.duplicate()
 	mesh.mesh.size = size
 	viewport.size = size * pixel_per_unit
 
 func raycast_to_viewport_point(raycast_origin: Vector3, raycast_direction: Vector3) -> Vector2:
+	if not raycast_origin.is_finite() or not raycast_direction.is_finite() or raycast_direction.dot(global_basis.z) >= -0.00001:
+		return Vector2(-1, -1)
 	var plane = Plane(global_transform.basis.z, global_position)
 	var intersection = plane.intersects_ray(raycast_origin, raycast_direction)
 	
@@ -25,9 +28,9 @@ func raycast_to_viewport_point(raycast_origin: Vector3, raycast_direction: Vecto
 		return Vector2(-1, -1)
 	
 	var local_point = global_transform.affine_inverse() * intersection
-	var uv = local_point * 0.5 + Vector3(0.5, 0.5, 0)
-	
-	return uv * viewport.get_texture().get_size()
+	var uv = Vector2(local_point.x / size.x + 0.5, 0.5 - local_point.y / size.y)
+	if uv.x < 0 or uv.x > 1 or uv.y < 0 or uv.y > 1: return Vector2(-1, -1)
+	return uv * Vector2(viewport.size)
 
 func inject_input(event: InputEvent, screen_pos: Vector2):
 	var adjusted_event = event.duplicate()

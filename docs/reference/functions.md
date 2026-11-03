@@ -80,6 +80,47 @@ saves when allowed; predelete disconnects registry. See [format](storage-formats
 
 ## Voice and player nodes
 
+<!-- module: scripts/player/vr_locomotion.gd -->
+### [VRLocomotion](../../scripts/player/vr_locomotion.gd)
+
+RefCounted planar movement policy, no scene/network/storage writes. `desired_velocity`
+accepts unitless stick/head basis/speed/dead zone and returns bounded horizontal
+velocity. Retains last valid projected yaw for near-vertical gaze; rejects nonfinite
+input and applies speed once. Caller owns gravity, collision and focus suppression.
+
+<!-- module: scripts/player/vr_turn_controller.gd -->
+### [VRTurnController](../../scripts/player/vr_turn_controller.gd)
+
+RefCounted turn state. `step` returns delta yaw for snap/smooth mode; snap requires
+neutral rearm and smooth integrates delta once. `reset` clears snap latch;
+`pivot_transform` rotates rig about world floor pivot without moving that pivot.
+Caller blocks input/menu/focus and preserves headset-local tracking.
+
+<!-- module: scripts/player/vr_input_router.gd -->
+### [VRInputRouter](../../scripts/player/vr_input_router.gd)
+
+RefCounted edge ownership. `menu_toggle` coalesces either/both lower face buttons
+and suppression into one rising intent; suppressed held presses remain latched
+until release. `reset` clears history on explicit lifecycle reset. No hardware,
+UI construction, persistence or networking; caller maps current OpenXR actions.
+
+<!-- module: scripts/player/vr_comfort.gd -->
+### [VRComfort](../../scripts/player/vr_comfort.gd)
+
+RefCounted bounded vignette policy. `update_vignette` fades strength from movement/
+turn rate and delta when enabled; disabled returns clear immediately. `reset`
+clears overlay state on lifecycle transitions. The VR player renders its shader;
+this policy never alters camera pose or guarantees motion-sickness prevention.
+
+<!-- module: scripts/GUI/vr_pointer_router.gd -->
+### [VRPointerRouter](../../scripts/GUI/vr_pointer_router.gd)
+
+RefCounted capture queue. `hover` updates per-hand valid pixel hit. `press` emits
+one owned down only for valid unowned target; `release` emits up even after drag-off.
+`cancel` emits outstanding release once and clears hits; `drain_events` transfers
+pending event dictionaries to caller. Player injects them into the shared viewport;
+this helper does not synthesize gameplay or touch global capture/settings.
+
 <!-- module: scripts/player/voice_controller.gd -->
 ### [VoiceController](../../scripts/player/voice_controller.gd)
 

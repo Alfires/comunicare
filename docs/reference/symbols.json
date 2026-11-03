@@ -577,7 +577,7 @@
     {
       "kind": "func",
       "name": "_reset_menu",
-      "line": 21,
+      "line": 22,
       "signature": "func _reset_menu()",
       "visibility": "private"
     }
@@ -1084,15 +1084,52 @@
     {
       "kind": "func",
       "name": "raycast_to_viewport_point",
-      "line": 20,
+      "line": 21,
       "signature": "func raycast_to_viewport_point(raycast_origin: Vector3, raycast_direction: Vector3) -> Vector2",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "inject_input",
-      "line": 32,
+      "line": 35,
       "signature": "func inject_input(event: InputEvent, screen_pos: Vector2)",
+      "visibility": "public"
+    }
+  ],
+  "scripts/GUI/vr_pointer_router.gd": [
+    {
+      "kind": "func",
+      "name": "hover",
+      "line": 7,
+      "signature": "func hover(hand: String, pixels: Vector2, hit_valid: bool)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "press",
+      "line": 11,
+      "signature": "func press(hand: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "release",
+      "line": 17,
+      "signature": "func release(hand: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "cancel",
+      "line": 23,
+      "signature": "func cancel()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "drain_events",
+      "line": 29,
+      "signature": "func drain_events() -> Array",
       "visibility": "public"
     }
   ],
@@ -2845,91 +2882,140 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 39,
+      "line": 51,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "set_player_pos",
-      "line": 49,
+      "line": 62,
       "signature": "func set_player_pos(pos: Vector3)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 53,
+      "line": 66,
       "signature": "func _process(delta: float)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_get_movement_input",
-      "line": 70,
+      "line": 88,
       "signature": "func _get_movement_input() -> Vector2",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_physics_process",
-      "line": 76,
+      "line": 91,
       "signature": "func _physics_process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_menu_open",
+      "line": 130,
+      "signature": "func _menu_open() -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_toggle_main_menu",
+      "line": 133,
+      "signature": "func _toggle_main_menu()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_close_main_menu",
+      "line": 153,
+      "signature": "func _close_main_menu()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_flush_pointer_events",
+      "line": 161,
+      "signature": "func _flush_pointer_events()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_update_menu_pointer",
+      "line": 170,
+      "signature": "func _update_menu_pointer()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_create_comfort_overlay",
+      "line": 185,
+      "signature": "func _create_comfort_overlay()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_notification",
+      "line": 199,
+      "signature": "func _notification(what)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "update_player_data",
-      "line": 98,
+      "line": 209,
       "signature": "func update_player_data()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "load_vrm_model",
-      "line": 104,
+      "line": 215,
       "signature": "func load_vrm_model()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_find_skeleton",
-      "line": 152,
+      "line": 263,
       "signature": "func _find_skeleton(node: Node) -> Skeleton3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_profile_changed",
-      "line": 161,
+      "line": 272,
       "signature": "func _profile_changed(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 165,
+      "line": 276,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_avatar_configuration_changed",
-      "line": 170,
+      "line": 281,
       "signature": "func _avatar_configuration_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 173,
+      "line": 284,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "get_bone_by_array",
-      "line": 180,
+      "line": 293,
       "signature": "func get_bone_by_array(bone_array: Array,_skeleton: Skeleton3D) -> String",
       "visibility": "public"
     }
@@ -3097,6 +3183,70 @@
       "line": 102,
       "signature": "func _notification(what)",
       "visibility": "private"
+    }
+  ],
+  "scripts/player/vr_comfort.gd": [
+    {
+      "kind": "func",
+      "name": "reset",
+      "line": 4,
+      "signature": "func reset()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "update_vignette",
+      "line": 7,
+      "signature": "func update_vignette(speed_mps: float, turn_dps: float, delta: float, enabled: bool) -> float",
+      "visibility": "public"
+    }
+  ],
+  "scripts/player/vr_input_router.gd": [
+    {
+      "kind": "func",
+      "name": "reset",
+      "line": 4,
+      "signature": "func reset()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "menu_toggle",
+      "line": 7,
+      "signature": "func menu_toggle(left_pressed: bool, right_pressed: bool, suppressed: bool) -> bool",
+      "visibility": "public"
+    }
+  ],
+  "scripts/player/vr_locomotion.gd": [
+    {
+      "kind": "func",
+      "name": "desired_velocity",
+      "line": 4,
+      "signature": "func desired_velocity(stick: Vector2, head_basis: Basis, speed: float, dead_zone: float) -> Vector3",
+      "visibility": "public"
+    }
+  ],
+  "scripts/player/vr_turn_controller.gd": [
+    {
+      "kind": "func",
+      "name": "reset",
+      "line": 5,
+      "signature": "func reset()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "step",
+      "line": 8,
+      "signature": "func step(axis: float, delta: float, mode: String, snap_degrees: float, smooth_degrees_per_second: float) -> float",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "pivot_transform",
+      "line": 21,
+      "signature": "func pivot_transform(rig_transform: Transform3D, floor_pivot: Vector3, yaw: float) -> Transform3D",
+      "visibility": "public"
     }
   ],
   "scripts/profile/friend_service.gd": [

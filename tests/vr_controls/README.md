@@ -1,5 +1,10 @@
 # RED VR controls acceptance tests
 
+**Implementation update:** this suite now passes **81 assertions**, exit 0, after
+movement/turn/input/settings/pointer/comfort implementation. The red-baseline notes
+below are historical. Physical XR visuals, virtual keyboard, scroll, full room-scale
+collision and comfort quality remain outside these headless acceptance assertions.
+
 **Intentionally failing, opt-in roadmap tests. No runtime implementation is added.**
 Run `python3 tests/vr_controls/run.py`. Expected current result: exit **1** with
 assertion failures for missing features; exit **2** means a broken test project,

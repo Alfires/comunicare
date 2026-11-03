@@ -59,6 +59,17 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "vr.turn_mode", "category": "VR Movement", "label": "Turning", "type": "enum", "options": {"snap": "Snap", "smooth": "Smooth"}, "default": "snap", "order": 0},
+		{"id": "vr.snap_angle", "category": "VR Movement", "label": "Snap angle", "type": "number", "default": 30.0, "min": 15.0, "max": 90.0, "step": 15.0, "unit": "degrees", "order": 1},
+		{"id": "vr.smooth_turn_rate", "category": "VR Movement", "label": "Smooth turn speed", "type": "number", "default": 60.0, "min": 15.0, "max": 180.0, "step": 5.0, "unit": "degrees/s", "order": 2},
+		{"id": "vr.move_speed", "category": "VR Movement", "label": "Movement speed", "type": "number", "default": 2.0, "min": 0.1, "max": 5.0, "step": 0.1, "unit": "m/s", "order": 3},
+		{"id": "vr.move_dead_zone", "category": "VR Movement", "label": "Movement dead zone", "type": "number", "default": 0.1, "min": 0.05, "max": 0.5, "step": 0.05, "order": 4},
+		{"id": "vr.turn_dead_zone", "category": "VR Movement", "label": "Turn release dead zone", "type": "number", "default": 0.3, "min": 0.1, "max": 0.6, "step": 0.05, "order": 5},
+		{"id": "vr.comfort_vignette", "category": "VR Comfort", "label": "Movement vignette", "type": "boolean", "default": false, "order": 0},
+		{"id": "vr.snap_blink", "category": "VR Comfort", "label": "Brief snap-turn blink", "type": "boolean", "default": false, "order": 1},
+		{"id": "vr.seated_mode", "category": "VR Comfort", "label": "Seated mode (short collision capsule)", "type": "boolean", "default": false, "order": 2},
+		{"id": "vr.jump_enabled", "category": "VR Movement", "label": "Allow right stick-click jump", "type": "boolean", "default": false, "order": 6},
+		{"id": "input.xr_main_menu_action", "category": "Controls", "label": "VR main menu button", "type": "enum", "options": {"ax_button": "A/X (lower face button)", "menu_button": "Menu"}, "default": "ax_button", "order": 5},
 		{"id": "cache.quota_mib", "category": "Assets", "label": "Cache storage budget", "description": "Active assets and imported originals are protected. A full cache rejects new downloads.", "type": "number", "default": 4096.0, "min": 256.0, "max": 65536.0, "step": 256.0, "unit": "MiB", "order": 0},
 		{"id": "cache.automatic_refresh", "category": "Assets", "label": "Check cached assets for updates", "description": "Revalidate on use and periodically check loaded avatars. World updates never replace the active scene automatically.", "type": "boolean", "default": true, "order": 1},
 		{"id": "cache.allow_http", "category": "Assets", "label": "Allow insecure HTTP asset URLs (development)", "description": "Off by default. HTTP traffic can be read or changed in transit.", "type": "boolean", "default": false, "order": 2},

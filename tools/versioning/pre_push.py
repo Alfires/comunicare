@@ -14,11 +14,12 @@ def main():
             if set(local_sha) == {"0"}: continue  # Deletion, not a new commit.
             if local_ref.startswith("refs/tags/"):
                 if local_ref.startswith("refs/tags/v"):
-                    from release import check_metadata
+                    from release import check_metadata, verify_release_commit
                     if git("rev-parse", local_sha + "^{commit}") != git("rev-parse", "HEAD"):
                         raise ValueError("Release tag must point to reviewed HEAD for metadata checking")
                     if local_ref != "refs/tags/v" + check_metadata(Path(git("rev-parse", "--show-toplevel"))):
                         raise ValueError("Tag/version mismatch")
+                    verify_release_commit(Path(git("rev-parse", "--show-toplevel")), local_ref.removeprefix("refs/tags/v"))
                 continue
             if set(remote_sha) == {"0"}:
                 configured = subprocess.run(["git", "config", "--get", "comunicare.validationBase"], capture_output=True, text=True)

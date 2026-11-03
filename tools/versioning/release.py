@@ -29,16 +29,16 @@ def parse(message):
     return {"type": match[1], "scope": match[2], "summary": match[4], "level": level}
 
 
-def plan(base, current, preview=False):
+def plan(base, current, preview=False, head="HEAD"):
     if not VERSION.fullmatch(current) or "-" in current:
         raise ValueError("Supply an explicit stable SemVer baseline, e.g. --current 0.1.0")
     if git("rev-parse", "--is-shallow-repository") == "true":
         raise ValueError("Full history required; deepen the repository explicitly")
     baseline = git("rev-parse", "--verify", base + "^{commit}")
-    if subprocess.run(["git", "merge-base", "--is-ancestor", baseline, "HEAD"]).returncode:
+    if subprocess.run(["git", "merge-base", "--is-ancestor", baseline, head]).returncode:
         raise ValueError("Baseline must be reachable from HEAD")
     commits = []
-    for sha in git("rev-list", "--reverse", "--topo-order", "--no-merges", baseline + "..HEAD").splitlines():
+    for sha in git("rev-list", "--reverse", "--topo-order", "--no-merges", baseline + ".." + head).splitlines():
         entry = parse(git("show", "-s", "--format=%B", sha))
         entry["sha"] = sha
         commits.append(entry)
@@ -50,7 +50,7 @@ def plan(base, current, preview=False):
     version = f"{major}.{minor}.{patch}"
     if preview and level: version += f"-dev.{len(commits)}"
     notes = "\n".join(f"- {c['type']}: {c['summary']} ({c['sha'][:8]})" for c in commits if c["level"])
-    return {"base": baseline, "head": git("rev-parse", "HEAD"), "current": current,
+    return {"base": baseline, "head": git("rev-parse", head), "current": current,
             "version": version, "release": bool(level), "commits": commits, "notes": notes}
 
 
@@ -64,6 +64,30 @@ def check_metadata(root):
     if f"## {version}\n" not in (root / "CHANGELOG.md").read_text():
         raise ValueError("CHANGELOG has no matching version heading")
     return version
+
+
+def release_notes(result, previous):
+    record = json.dumps({k: result[k] for k in ["base", "head", "current", "version"]}, sort_keys=True)
+    return f"## {result['version']}\n\n<!-- release-plan {record} -->\n\n{result['notes']}\n\n" + previous
+
+
+def verify_release_commit(root, version):
+    text = (root / "CHANGELOG.md").read_text()
+    match = re.search(r"^<!-- release-plan (.+) -->$", text, re.M)
+    if not match: raise ValueError("Missing release-plan record; prepare metadata before tagging")
+    record = json.loads(match[1])
+    if set(record) != {"base", "head", "current", "version"}: raise ValueError("Invalid release plan")
+    if git("rev-list", "--parents", "-n", "1", "HEAD").split()[1:] != [record["head"]]:
+        raise ValueError("Release commit must directly follow the prepared source revision")
+    result = plan(record["base"], record["current"], head=record["head"])
+    if result["version"] != version or record["version"] != version or not result["release"]:
+        raise ValueError("Release version does not match source history")
+    previous = subprocess.run(["git", "show", record["head"] + ":CHANGELOG.md"], capture_output=True, text=True)
+    if text != release_notes(result, previous.stdout if previous.returncode == 0 else ""):
+        raise ValueError("Release notes differ from the calculated plan")
+    changed = set(git("diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD").splitlines())
+    if not changed <= {"VERSION", "CHANGELOG.md", "project.godot"}:
+        raise ValueError("Release commit includes non-metadata changes")
 
 
 def main():
@@ -112,7 +136,7 @@ def main():
             previous = changelog.read_text() if changelog.exists() else ""
             # No commits/tags/pushes here. Review the complete diff before committing.
             publish(root, {"VERSION": result["version"] + "\n", "project.godot": project,
-                           "CHANGELOG.md": f"## {result['version']}\n\n{result['notes']}\n\n" + previous})
+                           "CHANGELOG.md": release_notes(result, previous)})
             print("Prepared metadata only. Review/test, then commit explicitly with chore(release).")
         elif args.command == "tag":
             version = check_metadata(root)
@@ -122,6 +146,7 @@ def main():
             if not args.base: raise ValueError("Explicit --base required for tag reachability check")
             git("merge-base", "--is-ancestor", args.base, "HEAD")
             if "-" in version: raise ValueError("Preview tags are intentionally unsupported; stable tag command only")
+            verify_release_commit(root, version)
             subprocess.run(["git", "tag", "-a", f"v{version}", "-m", f"Release {version}"], check=True)
         return 0
     except (ValueError, OSError, subprocess.CalledProcessError, IndexError) as error:

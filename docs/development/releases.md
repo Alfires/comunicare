@@ -41,6 +41,13 @@ the recorded original files. `plan/prepare --preview` calculates deterministic
 `-dev.N` metadata from the explicit stable baseline; stable tagging refuses previews.
 Release-plan attestation and exhaustive OS/power-loss testing remain limitations.
 
+Preparation records base/source revisions, prior version and calculated version in
+a changelog `release-plan` comment. Tagging and release-tag pre-push validation
+recompute the exact notes from that history, require a direct source parent and
+reject release commits containing non-metadata files. This detects altered notes
+or mislabeled release commits; it is not cryptographic provenance/signing.
+The record is reproducible local evidence, not a promise that tests were run.
+
 ## Opt-in Git hooks
 
 Run `python3 tools/versioning/install_hooks.py` explicitly to set repository-local

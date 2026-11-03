@@ -75,6 +75,17 @@ class Tests(unittest.TestCase):
             git("add", "VERSION", "project.godot", "CHANGELOG.md")
             git("commit", "-qm", "chore(release): 1.0.0")
             tag = ["python3", str(SCRIPT), "tag", "--base", base, "--version", "1.0.0", "--branch", branch]
+            # Matching version/title alone must not certify altered release notes.
+            notes = Path(directory) / "CHANGELOG.md"
+            expected_notes = notes.read_text()
+            notes.write_text("## 1.0.0\n\nInvented release notes\n")
+            git("add", "CHANGELOG.md")
+            git("commit", "--amend", "-qm", "chore(release): 1.0.0")
+            rejected = subprocess.run(tag, cwd=directory, capture_output=True)
+            self.assertNotEqual(rejected.returncode, 0, "tag accepted unattested release notes")
+            notes.write_text(expected_notes)
+            git("add", "CHANGELOG.md")
+            git("commit", "--amend", "-qm", "chore(release): 1.0.0")
             subprocess.check_call(tag, cwd=directory)
             self.assertEqual(git("cat-file", "-t", "v1.0.0"), "tag")
             self.assertNotEqual(subprocess.run(tag, cwd=directory, capture_output=True).returncode, 0)

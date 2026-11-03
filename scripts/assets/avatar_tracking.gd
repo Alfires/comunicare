@@ -5,15 +5,43 @@ var head_target: Node3D
 var left_target: Node3D
 var right_target: Node3D
 var calibration: Dictionary = {}
+var offsets: Dictionary = {}
+var validity: Dictionary = {}
+var weights: Dictionary = {"head": 0.0, "leftHand": 0.0, "rightHand": 0.0}
+var body_solver
+var body_targets: Dictionary = {}
+
+func set_body_targets(targets: Dictionary):
+	body_targets = targets.duplicate()
+
+func set_calibration(data: Dictionary):
+	offsets.clear()
+	for pair in [["head", "head_offset"], ["leftHand", "left_grip_offset"], ["rightHand", "right_grip_offset"]]:
+		var values = data.get(pair[1], [0, 0, 0])
+		if values is Array and values.size() == 3:
+			var offset = Vector3(values[0], values[1], values[2])
+			if offset.is_finite() and offset.length() <= 1: offsets[pair[0]] = offset
+
+func set_tracking_validity(values: Dictionary):
+	validity = values.duplicate(true)
+
+func tracking_weights() -> Dictionary:
+	return weights.duplicate()
+
+func _notification(what):
+	if what == NOTIFICATION_PREDELETE:
+		body_solver = null
 
 func configure(mapping: Dictionary, head: Node3D, left: Node3D, right: Node3D):
 	humanoid = mapping.duplicate()
+	if body_solver == null: body_solver = preload("res://scripts/assets/full_body_solver.gd").new()
 	head_target = head
 	left_target = left
 	right_target = right
 	calibration.clear()
 	var rig = get_skeleton()
 	if rig == null: return
+	body_solver.configure(rig, mapping)
 	for role in ["head", "leftHand", "rightHand"]:
 		var index = rig.find_bone(humanoid.get(role, ""))
 		if index >= 0:
@@ -22,20 +50,30 @@ func configure(mapping: Dictionary, head: Node3D, left: Node3D, right: Node3D):
 func _process_modification():
 	var rig = get_skeleton()
 	if rig == null: return
-	if _tracked(head_target): _set_target(rig, "head", head_target, true)
+	if body_solver != null: body_solver.solve(body_targets, 1.0 / 60.0)
+	weights.head = 1.0 if _role_tracked("head", head_target) else 0.0
+	if weights.head > 0: _set_target(rig, "head", head_target, true)
 	for side in ["left", "right"]:
 		var target = left_target if side == "left" else right_target
-		if not _tracked(target): continue
+		weights[side + "Hand"] = 1.0 if _role_tracked(side + "Hand", target) else 0.0
+		if weights[side + "Hand"] == 0: continue
 		_solve_arm(rig, side, target)
 		_set_target(rig, side + "Hand", target, false)
 
 func _tracked(target: Node3D) -> bool:
 	return is_instance_valid(target) and (not target is XRNode3D or target.get_is_active())
 
+func _role_tracked(role: String, target: Node3D) -> bool:
+	if not _tracked(target): return false
+	var state = validity.get(role, true)
+	if state is bool: return state
+	return state is Dictionary and state.get("valid", false) and Time.get_ticks_msec() - int(state.get("at", 0)) <= 1000
+
 func _set_target(rig: Skeleton3D, role: String, target: Node3D, position: bool):
 	var index = rig.find_bone(humanoid.get(role, ""))
 	if index < 0: return
 	var desired = rig.global_transform.affine_inverse() * target.global_transform
+	desired.origin += desired.basis * offsets.get(role, Vector3.ZERO)
 	var parent = rig.get_bone_parent(index)
 	var parent_pose = rig.get_bone_global_pose(parent) if parent >= 0 else Transform3D.IDENTITY
 	var current = rig.get_bone_global_pose(index)
@@ -64,7 +102,7 @@ func _solve_arm(rig: Skeleton3D, side: String, target: Node3D):
 	var start = rig.get_bone_global_pose(upper).origin
 	var elbow = rig.get_bone_global_pose(lower).origin
 	var wrist = rig.get_bone_global_pose(hand).origin
-	var destination = rig.to_local(target.global_position)
+	var destination = rig.to_local(target.global_transform * offsets.get(side + "Hand", Vector3.ZERO))
 	var a = start.distance_to(elbow)
 	var b = elbow.distance_to(wrist)
 	if a < 0.001 or b < 0.001: return

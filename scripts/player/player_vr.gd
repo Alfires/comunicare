@@ -46,6 +46,10 @@ var motion_rearm := false
 var focused := true
 var blink_remaining := 0.0
 var comfort_material: ShaderMaterial
+var tracking_modifier: SkeletonModifier3D
+var tracker_roles = preload("res://scripts/assets/tracker_role_provider.gd").new()
+var tracking_calibration = preload("res://scripts/assets/tracking_calibration.gd").new()
+var rig_report: Dictionary = {}
 
 
 func _ready():
@@ -64,6 +68,12 @@ func set_player_pos(pos: Vector3):
 	velocity = Vector3.ZERO
 
 func _process(delta: float):
+	if is_instance_valid(tracking_modifier) and is_instance_valid(skeleton):
+		var targets = tracker_roles.targets(Time.get_ticks_msec())
+		var body_targets: Dictionary = {}
+		for role in ["hips", "leftFoot", "rightFoot"]:
+			if targets.has(role): body_targets[role] = skeleton.global_transform.affine_inverse() * targets[role]
+		tracking_modifier.set_body_targets(body_targets)
 	var menu_action = str(SaveData.store.get_value("input.xr_main_menu_action"))
 	var suppressed = not focused or SaveData.voice.input_blocked
 	if input_router.menu_toggle(left_controller.is_button_pressed(menu_action), right_controller.is_button_pressed(menu_action), suppressed):
@@ -256,6 +266,13 @@ func load_vrm_model():
 	var tracking = preload("res://scripts/assets/avatar_tracking.gd").new()
 	skeleton.add_child(tracking)
 	tracking.configure(vrm_model.get_meta("humanoid_bones", {}), xr_camera, left_controller, right_controller)
+	tracking_modifier = tracking
+	rig_report = preload("res://scripts/assets/humanoid_rig_adapter.gd").new().validate_mapping(skeleton, vrm_model.get_meta("humanoid_bones", {}))
+	var owner: String = SaveData.profile.get_local_fingerprint()
+	var revision: String = vrm_model.get_meta("asset_revision", "")
+	if not owner.is_empty() and not revision.is_empty():
+		tracking_calibration.configure("user://tracking/" + owner + "-" + revision + ".json", owner, revision)
+		tracking.set_calibration(tracking_calibration.load_calibration())
 	# The tracked camera stays under XROrigin3D. Avatar animation/IK must
 	# follow the headset, never make the headset follow an animated bone.
 
@@ -282,6 +299,7 @@ func _avatar_configuration_changed():
 	load_vrm_model()
 
 func _exit_tree():
+	tracker_roles.clear()
 	_close_main_menu()
 	if is_instance_valid(main_panel): main_panel.queue_free()
 	if DataLoader.has_signal("asset_revision_available") and DataLoader.asset_revision_available.is_connected(_asset_updated):

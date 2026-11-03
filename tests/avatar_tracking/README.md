@@ -1,5 +1,12 @@
 # RED bone mapping, calibration and optional FBT acceptance
 
+**Implementation update:** current suite passes **39 assertions**, exit 0. The
+red baseline below is historical. Validation/calibration/sample-provider/optional
+leg-solving primitives exist; player loads owner/avatar calibration and modifier
+accepts optional target subsets. Runtime tracker discovery/assignment UI, full-body
+calibration workflow, foot planting and smooth per-chain loss fades remain outside
+this green suite and are not certified hardware FBT support.
+
 **Intentionally failing roadmap suite.** Run
 `python3 tests/avatar_tracking/run.py`; assertion failure exits 1, Godot errors exit
 2. No implementation, headset, account, network, real calibration store or tracker

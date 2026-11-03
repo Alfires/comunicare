@@ -378,6 +378,10 @@ from original to derivative; original remains expression target and shadow caste
 | Functions | Contract |
 | --- | --- |
 | `configure` | Main-thread binds humanoid map and independent head/hand target nodes, caching rest calibration. Must be child of skeleton before use. No camera transform mutation. |
+| `set_calibration` | Validates bounded finite local head/grip translation offsets; invalid entries ignored. Does not move headset/controllers. |
+| `set_tracking_validity` | Sets role validity booleans or timestamped validity records; aged/invalid targets stop overriding base pose. |
+| `tracking_weights` | Returns current per-chain active weights as a copy; current activation is binary, not a certified smooth loss fade. |
+| `set_body_targets` | Supplies optional pelvis/feet Transform3D targets in skeleton space; final modifier solves valid subset before head/arms. |
 
 SkeletonModifier `_process_modification` runs final head alignment and two-bone arm
 reach solve for active targets only. Private rotations convert target world poses
@@ -386,6 +390,41 @@ channels retain animation. Physical controller orientation and proportions still
 need calibration; not a full-body or remote tracker solution.
 
 ## Accounts and social services
+
+<!-- module: scripts/assets/humanoid_rig_adapter.gd -->
+### [HumanoidRigAdapter](../../scripts/assets/humanoid_rig_adapter.gd)
+
+RefCounted validation helper. `validate_mapping` returns valid/errors for required
+roles, duplicate assignments, ancestry, zero-length chains and nonfinite rest poses.
+No skeleton mutation, storage or tracking discovery; report can contain partial
+unsupported chains and does not prove anatomical/joint-limit quality.
+
+<!-- module: scripts/assets/tracking_calibration.gd -->
+### [TrackingCalibration](../../scripts/assets/tracking_calibration.gd)
+
+RefCounted account/avatar-scoped persistence. `configure` binds path/owner/revision;
+`load_calibration` returns validated schema/finite bounded height/scale/head/grip
+offsets or empty and blocks corrupt/incompatible replacement. `save_calibration`
+temp-renames valid candidate only when owner/store usable. No raw hardware IDs or
+pose history. Scope checks are integrity isolation, not cryptographic signatures.
+
+<!-- module: scripts/assets/tracker_role_provider.gd -->
+### [TrackerRoleProvider](../../scripts/assets/tracker_role_provider.gd)
+
+RefCounted transient sample adapter. `update_sample` accepts finite timestamped
+validity/pose per ephemeral ID, ignores older samples. `assign` validates supported
+role/existing valid device and prevents one device on two roles. `targets` returns
+fresh assigned transforms within one second; `clear` drops samples/assignments.
+This adapter does not discover hardware or claim every runtime exposes FBT.
+
+<!-- module: scripts/assets/full_body_solver.gd -->
+### [FullBodySolver](../../scripts/assets/full_body_solver.gd)
+
+RefCounted optional pelvis/feet target solver. `configure` binds skeleton/map;
+`solve` accepts finite skeleton-space role transforms and positive delta, sets
+bounded pelvis pose and solves reachable two-bone legs/foot orientation. Missing
+roles leave base animation intact; no camera writes or tracker discovery.
+No foot-planting/ground collision or complete joint-limit calibration is implied.
 
 <!-- module: scripts/profile/profile_identity.gd -->
 ### [ProfileIdentity](../../scripts/profile/profile_identity.gd)

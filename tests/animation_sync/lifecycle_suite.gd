@@ -18,6 +18,10 @@ func check(value: bool, title: String):
 	if not value: failed += 1
 
 func run():
+	for name in ["player_desktop_movment", "player_vr"]:
+		var source = FileAccess.get_file_as_string("res://scripts/player/" + name + ".gd")
+		check(not "camera.reparent(bone_attachment)" in source and not "xr_camera.reparent(ba" in source,
+			"production " + name + " never parents the camera to animated bones")
 	check(load("res://scripts/player/player_desktop_movment.gd") != null, "production desktop player script compiles against startup services")
 	check(load("res://scripts/player/player_vr.gd") != null, "production VR player script compiles against startup services")
 	var network = load("res://scripts/multiplayer/network_handler.gd").new()

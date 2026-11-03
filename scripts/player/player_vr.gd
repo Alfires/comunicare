@@ -140,16 +140,8 @@ func load_vrm_model():
 	
 	var xrbm := XRBodyModifier3D.new()
 	skeleton.add_child(xrbm)
-	var head_bone_name = get_bone_by_array(head_bone_names,skeleton)
-	if head_bone_name != "":
-		print("head bone found: ", head_bone_name)
-		var ba := BoneAttachment3D.new()
-		#ba.override_pose = true
-		ba.bone_name = head_bone_name
-		xr_camera.reparent(ba,false)
-		xr_camera.position = Vector3(0, 0.15, 0.08)
-		skeleton.add_child(ba)
-	else: print("head bone not found")
+	# The tracked camera stays under XROrigin3D. Avatar animation/IK must
+	# follow the headset, never make the headset follow an animated bone.
 	var TBID := _create_TwoBoneIK3D()
 	skeleton.add_child(TBID)
 

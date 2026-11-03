@@ -137,16 +137,10 @@ func load_player_model():
 	skeleton = vrm_model.find_child("Skeleton3D")
 	if skeleton:
 		head_idx = skeleton.find_bone("Head")
+		# Calibrate once from REST geometry, never follow animated head poses.
 		var eye_bone_idx = _find_eye_bone()
-		if eye_bone_idx != -1:
-			# Create a BoneAttachment3D to attach camera to the bone
-			var bone_attachment = BoneAttachment3D.new()
-			bone_attachment.bone_idx = eye_bone_idx
-			skeleton.add_child(bone_attachment)
-			# Move camera as child of the bone attachment
-			var head_offset = _calculate_head_offset()
-			camera.reparent(bone_attachment)
-			camera.position = head_offset
+		if eye_bone_idx >= 0:
+			camera.position = vrm_model.transform * skeleton.transform * skeleton.get_bone_global_rest(eye_bone_idx).origin
 
 
 func _find_eye_bone() -> int:

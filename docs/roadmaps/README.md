@@ -1,31 +1,23 @@
-# Roadmaps
+# Roadmaps and design history
 
-Roadmaps describe planned work and design history, not a complete reference for
-current runtime behavior. Check production code, current guides and executable
-tests before treating an older proposal as implemented.
+Current behavior starts at the [documentation home](../README.md). Plans below
+mix implemented milestones, superseded proposals and manual release gates.
 
-## New plans
+| Roadmap | Status / authority |
+| --- | --- |
+| [Documentation system](documentation-system-roadmap.md) | In progress: navigation and relocation implemented; reference/checking/versioning work continues |
+| [Conventional Commits](conventional-commit-roadmap.md) | Historical assembly plan; current [contribution rules](../../CONTRIBUTING.md) supersede old no-push/two-type assumptions |
+| [Settings and microphone](microphone-and-settings-roadmap.md) | Implemented with hardware limitations; see tests/microphone_settings |
+| [Profiles and settings](profile-and-expanded-settings-roadmap.md) | Implemented with limitations; ownership is profile-service controlled |
+| [Profile layout](profile-layout-roadmap.md) | Implemented layout history; see tests/profile |
+| [Discovery](public-world-discovery-roadmap.md) | Implemented with limitations; staged acknowledged transitions remain authoritative |
+| [Active Instance](active-instance-roadmap.md) | Implemented; old retained-ban policy superseded by [relay lifecycle](../relay-data-lifecycle.md) |
+| [Friends](friend-system-roadmap.md) | Implemented with limitations; client-local consent and active relay edges |
+| [Cache/original animation plan](avatar-cache-and-animation-roadmap.md) | Partly superseded by automatic animation plan and current usage |
+| [Automatic avatar/emote plan](automatic-avatar-animation-roadmap.md) | Implemented incrementally with unverified XR/visual gates; [current usage](../asset-cache-and-animation-usage.md) supersedes historical poses/masks |
 
-- [Documentation system and Git-only versioning](documentation-system-roadmap.md)
-  — **planned**: documentation structure, function contracts, link-safe roadmap
-  migration, local checks and automatic Conventional Commit version calculation.
-  No GitHub tools/workflows. No hooks or release tooling installed yet.
-
-## Existing plans awaiting relocation
-
-These still live in the parent folder. Their move and link repair are planned,
-not performed by adding this index:
-
-- [Small Conventional Commits](../conventional-commit-roadmap.md)
-- [Settings and microphone](../microphone-and-settings-roadmap.md)
-- [Profiles and settings](../profile-and-expanded-settings-roadmap.md)
-- [Profile layout](../profile-layout-roadmap.md)
-- [Public discovery](../public-world-discovery-roadmap.md)
-- [Active Instance](../active-instance-roadmap.md)
-- [Friends and presence](../friend-system-roadmap.md)
-- [Asset cache and original animation plan](../avatar-cache-and-animation-roadmap.md)
-- [Automatic avatar animation and emote wheel](../automatic-avatar-animation-roadmap.md)
-
-The [relay lifecycle contract](../relay-data-lifecycle.md),
-[current avatar usage guide](../asset-cache-and-animation-usage.md) and
-[asset provenance](../../THIRD_PARTY_ASSETS.md) are reference material, not plans.
+Dependency order: settings/account ownership → authenticated relay/acknowledged
+instances → profiles/social/access → cache/import → avatar animation/rendering.
+The [relay privacy contract](../relay-data-lifecycle.md) governs every subsystem.
+Asset provenance remains in [THIRD_PARTY_ASSETS](../../THIRD_PARTY_ASSETS.md), not
+in a roadmap's old licensing proposal.

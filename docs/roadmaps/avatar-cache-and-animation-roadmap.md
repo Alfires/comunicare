@@ -2,7 +2,7 @@
 
 ## Status and goals
 
-**Superseding implementation:** [automatic-avatar-animation-roadmap.md](automatic-avatar-animation-roadmap.md) replaces the manual animation-player UI and parallel/manual synchronization design below. Its current implementation includes automatic motion, one resolved version-2 animation state, source-only User/Avatar configuration and the B/Home radial emote wheel. The older implementation notes below describe historical version-1 behavior where they conflict; consult the follow-up status and [usage guide](asset-cache-and-animation-usage.md) for current behavior and remaining release gates.
+**Superseding implementation:** [automatic-avatar-animation-roadmap.md](automatic-avatar-animation-roadmap.md) replaces the manual animation-player UI and parallel/manual synchronization design below. Its current implementation includes automatic motion, one resolved version-2 animation state, source-only User/Avatar configuration and the B/Home radial emote wheel. The older implementation notes below describe historical version-1 behavior where they conflict; consult the follow-up status and [usage guide](../asset-cache-and-animation-usage.md) for current behavior and remaining release gates.
 
 **Implementation in progress — 2026-11-03.** The original design below remains the target, not a claim that every milestone is complete.
 
@@ -35,7 +35,7 @@ Terminology: **`.vrm` is an avatar/model; `.vrma` is VRM Animation**, applied to
 - Desktop, VR and remote player scripts already guard asynchronous avatar replacement with generations; desktop/VR additionally skip an unchanged URL. Same-URL content updates therefore need an explicit revision signal, not just another profile notification.
 - `relay_protocol/player_data.gd` carries position/rotation only. There is no synchronized animation state in this packet.
 - `addons/vrm/1.0/VRMC_vrm_animation.gd` is a three-line stub; its global registration is commented out in `addons/vrm/plugin.gd`. The add-on README explicitly marks VRM Animation as unimplemented. Existing expression/look-at animation support is not a VRMA importer.
-- Settings use the registry/store and shared UI; signed profile ownership belongs to `SaveData.profile`. The relay is not a persistent asset host: [relay-data-lifecycle.md](relay-data-lifecycle.md) remains authoritative.
+- Settings use the registry/store and shared UI; signed profile ownership belongs to `SaveData.profile`. The relay is not a persistent asset host: [relay-data-lifecycle.md](../relay-data-lifecycle.md) remains authoritative.
 
 ## 1. Shared persistent asset cache
 

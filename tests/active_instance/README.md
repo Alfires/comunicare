@@ -1,6 +1,6 @@
 # Active Instance acceptance tests
 
-These tests specify the behavior in [`docs/active-instance-roadmap.md`](../../docs/active-instance-roadmap.md). The suite was written red before implementation and now checks the production implementation. Production files are copied unchanged into a disposable Godot project.
+These tests specify the behavior in [`docs/roadmaps/active-instance-roadmap.md`](../../docs/roadmaps/active-instance-roadmap.md). The suite was written red before implementation and now checks the production implementation. Production files are copied unchanged into a disposable Godot project.
 
 ## Run
 

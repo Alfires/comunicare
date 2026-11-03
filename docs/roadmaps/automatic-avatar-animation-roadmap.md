@@ -174,7 +174,7 @@ The local state machine publishes one descriptor representing its **currently re
 - Retain requested content delivery as a dependency of this one state. Bound requests/chunks/rates and verify hashes/permissions before use. Remove orphaned descriptors/queues when their automatic state or owner is gone. Do not remove the only means for receivers to obtain local imported models/motions and still claim matching results.
 - Extend delivery for **equipped local model files/model-with-animations**, not just animation-only files. Keep avatar and animation format/size validators distinct, preserve cache leases, and never blindly raise animation limits to avatar limits.
 - Negotiate a new automatic-state version explicitly. Preserve numeric wire IDs; reject unsupported/old manual-state messages after the switch instead of routing them into the new controller. Old clients retain movement/voice and safe visual fallback, not hidden manual-sync compatibility code.
-- Keep the relay ephemeral: only current connection/instance state, no durable avatar library, local paths, source secrets, playback history or disconnected-user references. Follow [relay-data-lifecycle.md](relay-data-lifecycle.md).
+- Keep the relay ephemeral: only current connection/instance state, no durable avatar library, local paths, source secrets, playback history or disconnected-user references. Follow [relay-data-lifecycle.md](../relay-data-lifecycle.md).
 
 **Acceptance:** two clients show matching automatic idle/walk/jump/fall/land choices or the selected emote/dance with compatible phase; a late joiner recovers that same state. Manual legacy packets and picker browsing cannot alter remote animation. Selecting/canceling an emote updates only the sole resolved-state stream. Movement, voice, admission and profiles still work.
 
@@ -184,7 +184,7 @@ The local state machine publishes one descriptor representing its **currently re
 - Preserve cached original imports. Convert pinned imports into available source candidates; do not silently attach every historic received/cached motion to the current avatar. Persist explicit applied configuration only.
 - Do not migrate transient manual playhead/speed/loop/full-body state into automatic configuration. Existing imported permissions must not be inferred from pinning or download history.
 - Missing configuration starts with the existing avatar plus defaults. Corrupt configuration is preserved and reported, not overwritten. Account switching clears live/draft references without exposing another account's local choices.
-- Update [asset-cache-and-animation-usage.md](asset-cache-and-animation-usage.md) and the parent roadmap when runtime migration lands. Until then, their current UI description remains the actual shipped behavior.
+- Update [asset-cache-and-animation-usage.md](../asset-cache-and-animation-usage.md) and the parent roadmap when runtime migration lands. Until then, their current UI description remains the actual shipped behavior.
 
 ## 6. Proposed semantic implementation sequence
 

@@ -66,4 +66,4 @@ Not covered: full VRMA conformance, arbitrary rig-space retargeting, expression 
 translation tracks, production-size parsing/frame timing, real Internet latency,
 measured 100 ms synchronization, multi-megabyte transfer fairness, exports,
 Forward Plus, real-avatar visual quality, XR tracking/IK and physical listening.
-Those remain release gates in `docs/avatar-cache-and-animation-roadmap.md`.
+Those remain release gates in `docs/roadmaps/avatar-cache-and-animation-roadmap.md`.

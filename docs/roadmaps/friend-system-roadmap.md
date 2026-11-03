@@ -10,7 +10,7 @@ Implemented: dedicated Friends tab before Settings; save/add-by-public-key with 
 
 Incoming requests are inbox-only (no unsolicited popup/sound, including in DND). Initial bounds are 128 contacts, 2,048 relationship/outbox entries and bounded rotating event retry batches. Local history compaction, multi-device/key migration, cross-relay presence, invitations and friends-only instance access remain out of scope. Display-backed and loopback acceptance coverage and exact limits are documented in `tests/friends/README.md`; manual headset/controller and full XR startup checks remain pending.
 
-**Project-wide constraint:** [`relay-data-lifecycle.md`](relay-data-lifecycle.md) governs every feature. The relay never stores user data durably and removes all data/references for a user on disconnect. Persistence, offline queues, friendship history and block/revocation records stay on clients.
+**Project-wide constraint:** [`relay-data-lifecycle.md`](../relay-data-lifecycle.md) governs every feature. The relay never stores user data durably and removes all data/references for a user on disconnect. Persistence, offline queues, friendship history and block/revocation records stay on clients.
 
 Goal: let users save another account's **public key in a local, persistent list**, become friends **only when both accounts explicitly consent**, and see friends' **Online / Offline / Do Not Disturb** status.
 

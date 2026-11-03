@@ -9,9 +9,10 @@ This plan supersedes the manual playback/control UI and parallel animation synch
 Requested experience:
 
 1. Animations automatically apply to the user's equipped avatar, without clicking Play or selecting a separate synchronization mode.
-2. Other players see the **same automatically resolved avatar animation**. There is one authoritative animation state, not separate manual-player and automatic-locomotion streams.
+2. Other players see the **same resolved avatar animation**, including intentionally selected emotes. There is one authoritative animation state, not separate manual-player, dance and automatic-locomotion streams.
 3. Remove the standalone Home animation/avatar shortcut and put avatar/animation configuration inside the existing **User → Avatar** menu.
 4. Animation configuration only selects a model file/URL, a model with embedded animations, and/or **multiple external animation files/URLs**. It is not a playback console.
+5. A separate **rebindable shortcut opens an animation/emote picker** for non-basic actions such as dances, wave and cheer. Selecting an action applies it to the equipped avatar through the same state machine and synchronization stream as automatic locomotion.
 
 **Scope of “remove other syncs”:** remove redundant/manual **animation** synchronization paths. Do not remove movement, voice, authenticated profiles, world transitions/revision checks, friendship or moderation networking. Clock samples, same-instance snapshots and requested asset delivery are supporting transport for the single animation state, not additional independently controlled animations.
 
@@ -68,7 +69,7 @@ Local absolute paths remain local and must not appear in public profiles, instan
 
 ### Automatic role mapping
 
-Define canonical movement roles: **idle, walk, run, jump, fall, land**. Wave/cheer are not automatically triggered without a separate gameplay event and are not exposed as manual playback choices in this change.
+Define canonical movement roles: **idle, walk, run, jump, fall, land**. These stay automatic and are not selectable in the emote picker. Non-basic actions such as wave, cheer and dances belong in that picker; they are intentional gameplay actions, not a second general-purpose playback console.
 
 Resolution order:
 
@@ -76,7 +77,7 @@ Resolution order:
 2. Compatible embedded clips using the same role discovery rules.
 3. Bundled CC0 defaults for roles not supplied by either source.
 
-For conflicts, later external source rows override earlier ones; stable clip index/name ordering resolves duplicates within a source. Show the outcome read-only. Unknown/ambiguous names are reported and left unused, not assigned randomly. Supporting an optional data manifest for explicit role names keeps the menu source-only; defer manual clip-mapping controls unless separately requested.
+For conflicts, later external source rows override earlier ones; stable clip index/name ordering resolves duplicates within a source. Show the outcome read-only. Unknown/ambiguous names are never assigned randomly to basic movement roles. Valid compatible clips not assigned to a basic role become selectable non-basic actions, using explicit emote metadata when available and otherwise a readable source-qualified clip name. Supporting an optional data manifest for explicit role names keeps the configuration menu source-only; defer manual clip-mapping controls unless separately requested.
 
 - Multiple files may supply different roles, and one file may supply many roles. Never treat “multiple external animations” as a selector that discards the previous import.
 - Validate humanoid metadata, rest transforms, clip duration and safe tracks before activation. Preserve generation guards, bounded worker imports, detached model construction and main-thread attachment.
@@ -88,32 +89,46 @@ For conflicts, later external source rows override earlier ones; stable clip ind
 
 ## 3. One runtime animation authority
 
+### Shortcut-opened animation/emote picker
+
+- Add an InputMap action `toggle_animation_menu` and registry-backed `input.toggle_animation_menu` key binding using the existing Controls rebinding/conflict rules. Proposed desktop default: physical **G**, subject to checking the production input map for conflicts before implementation. Show the active binding in the UI; do not hardcode key detection.
+- Pressing the binding toggles a compact list/grid or radial picker of available **non-basic** actions, including dances. Provide keyboard, mouse and controller navigation; expose an equivalent configurable XR action without assuming a particular headset/controller button.
+- Do not open while typing in LineEdit/TextEdit, rebinding controls, or inside an incompatible modal/file dialog. Ignore held-key repeats. Escape/Back cancels and restores prior focus and desktop mouse-capture state without accidentally triggering movement or the microphone shortcut.
+- Populate the picker from the applied avatar's compatible embedded/external clips plus any bundled non-basic defaults. Do not include idle/walk/run/jump/fall/land or unapplied draft imports. Unavailable or unshareable actions must show their limitation rather than claiming other players can see them. No dance asset is promised until a compatible clip with redistribution permission is supplied or bundled with an audited free license.
+- Selecting an entry requests an emote from the **existing avatar state machine**, closes the picker and blends into that action. Merely opening, browsing or canceling emits no animation state change. No file/URL importing, model selection, speed slider, pause/resume console or separate sync toggle belongs in the picker.
+- Include **Cancel emote / Return to movement** as a gameplay action, not a raw network Stop command. One-shots return to automatic locomotion when complete. Only clips explicitly classified as looping emotes (for example a looping dance) repeat; unknown clips default to one-shot. Loop policy comes from validated metadata/runtime rules, not a playback widget.
+- Walking input, jumping, falling, avatar replacement and instance transitions interrupt full-body dances and return control safely to locomotion/tracking. A new emote replaces the previous one; selecting another entry must not create overlapping independent controllers. Preserve XR head/hand tracking and camera/body authority; unsafe full-body actions are unavailable or safely masked in VR.
+- Keep locomotion state evaluation running underneath the emote so return-to-movement selects the correct current role, not a stale idle pose. Emote selection never permanently disables automatic animation.
+
+**Picker acceptance:** the configured shortcut opens/cancels without playback side effects; selecting a dance plays it on the user's avatar and reaches compatible same-instance observers through the sole resolved-state stream; completion/interruption restores automatic movement animation.
+
 Separate responsibilities:
 
 - **Configuration service:** owns sources, revisions, permissions and the resolved role set.
-- **Avatar animation state machine:** selects roles and blends from real gameplay/tracking state; owns local playback.
+- **Avatar animation state machine:** selects roles and blends from real gameplay/tracking state, arbitrates picker-requested emotes and their interruption/completion, and owns local playback.
 - **Network adapter:** publishes that resolved state and applies remote state. It never decides independently which local clip should play.
 - **Avatar renderer:** binds the validated role set to one AnimationPlayer/AnimationTree layer per avatar.
 
 Desktop and VR use the same lifecycle/configuration service. In VR, tracked head/hands and IK retain priority; automatic animation fills safe untracked bones/lower-body locomotion only. Do not automatically replay a full-body desktop clip over headset tracking, move the camera or introduce root-motion collision movement. If safe masks cannot be built, fall back to tracking/neutral pose and report compatibility rather than requiring a manual Play toggle.
 
-Remove the old `automatic_motion` mode switch and UI-owned manual playback API once all callers migrate. Internal AnimationPlayer operations can still exist as rendering primitives; there must be no second public manual controller or separately networked clip stream.
+Remove the old `automatic_motion` mode switch and UI-owned manual playback API once all callers migrate. Expose only validated gameplay intents such as `request_emote(action_id)` and `cancel_emote()` to the picker. Internal AnimationPlayer operations can still exist as rendering primitives; there must be no second public manual controller or separately networked clip stream.
 
 **Acceptance:** one local state machine drives animation regardless of menu visibility or network connectivity. Reopening configuration cannot create duplicate players, controllers, animation tracks or subscriptions.
 
-## 4. Synchronize only the automatic result
+## 4. Synchronize only the resolved avatar result
 
-The local state machine publishes one descriptor representing its **currently resolved automatic animation**, with enough information to reproduce the result:
+The local state machine publishes one descriptor representing its **currently resolved avatar animation**, whether automatic locomotion or a picker-requested emote, with enough information to reproduce the result:
 
 - acknowledged `session_id` and connection generation;
 - actor identity derived by the relay, never trusted from client claims;
 - avatar/configuration/animation-set revisions;
-- canonical role and exact resolved clip/blob/built-in library revision;
+- animation kind (`locomotion` or `emote`), canonical role/action ID and exact resolved clip/blob/built-in library revision;
 - sequence, transition/blend parameters, effective monotonic start/playhead and bounded derived speed;
 - any declared layer/mask version required for safe compatible rendering.
 
 - Publish role/configuration transitions and bounded correction keyframes, not every bone every frame and not a second movement packet. Keep existing movement/voice packets unchanged.
 - Remove remotely callable manual Play/Pause/Resume/Stop semantics. A private preview or changing a highlighted source must emit **zero** animation packets. Avatar disappearance, transition and disconnect use lifecycle cleanup/fallback rather than a competing manual Stop action.
+- An accepted local emote selection, completion or cancellation changes the same resolved state used for locomotion. Do not add an emote RPC, parallel dance stream or a remote command that can force another user's avatar to dance. Late joiners and delayed downloads recover the selected action and current phase; completed one-shots must not replay from the beginning.
 - Remote clients render the sender's resolved role/clip and phase, not an independently guessed locomotion state that competes with it. Until the exact data is ready, use a clearly defined default/neutral fallback; when it arrives, seek to the current phase without restarting the sender's animation.
 - Retain capability negotiation, authenticated same-instance authorization, monotonic clock estimation, latest-state late-join snapshots, replay rejection and reused-peer-ID/session-generation guards.
 - Retain requested content delivery as a dependency of this one state. Bound requests/chunks/rates and verify hashes/permissions before use. Remove orphaned descriptors/queues when their automatic state or owner is gone. Do not remove the only means for receivers to obtain local imported models/motions and still claim matching results.
@@ -121,7 +136,7 @@ The local state machine publishes one descriptor representing its **currently re
 - Negotiate a new automatic-state version explicitly. Preserve numeric wire IDs; reject unsupported/old manual-state messages after the switch instead of routing them into the new controller. Old clients retain movement/voice and safe visual fallback, not hidden manual-sync compatibility code.
 - Keep the relay ephemeral: only current connection/instance state, no durable avatar library, local paths, source secrets, playback history or disconnected-user references. Follow [relay-data-lifecycle.md](relay-data-lifecycle.md).
 
-**Acceptance:** two clients show matching automatic idle/walk/jump/fall/land choices and compatible phase; a late joiner recovers that same state. Manual legacy packets and menu-only operations cannot alter remote animation. Movement, voice, admission and profiles still work.
+**Acceptance:** two clients show matching automatic idle/walk/jump/fall/land choices or the selected emote/dance with compatible phase; a late joiner recovers that same state. Manual legacy packets and picker browsing cannot alter remote animation. Selecting/canceling an emote updates only the sole resolved-state stream. Movement, voice, admission and profiles still work.
 
 ## 5. Migration and cleanup boundaries
 
@@ -139,6 +154,7 @@ The local state machine publishes one descriptor representing its **currently re
 | `feat(animation): apply resolved motions automatically to avatars` | One desktop/VR-safe state machine, defaults/custom roles, landing/blending, generation-safe rebinds and no UI dependency. |
 | `refactor(network): synchronize only resolved automatic avatar motion` | Coordinated client/relay schema negotiation, exact revisions, sole automatic state stream, required model/motion transfer and lifecycle tests; reject old manual state. |
 | `refactor(ui): move source-only avatar setup into the user menu` | Owner-only User → Avatar source editor, multiple file/URL inputs, Apply/Cancel, removal of Home shortcut/manual widgets and navigation tests. |
+| `feat(animation): add rebindable emote picker for dances and actions` | InputMap/Controls binding, focus-safe desktop/XR picker, non-basic clip catalog and state-machine requests with completion/interruption; reuse the sole resolved-state protocol. |
 | `test(avatar): cover automatic animation lifecycle and compatibility` | End-to-end default/custom/embedded/multiple-source cases, stale work/reconnect/late join, release documentation and measured limitations. |
 
 Keep intermediate revisions runnable; combine mutually dependent changes when needed. This roadmap itself does not authorize removing unrelated networking or claim these implementation commits exist.
@@ -147,11 +163,12 @@ Keep intermediate revisions runnable; combine mutually dependent changes when ne
 
 Extend isolated `tests/animation_sync/`, `tests/asset_cache/` and profile/navigation fixtures rather than launching normal startup against real user data.
 
-- **UI:** standalone Home entry absent, User/profile entry preserved, self-only Avatar editor, file/URL model and multi-animation input, no manual playback controls, Apply/Cancel and Back/focus behavior at desktop/small/VR menu sizes.
+- **UI:** standalone Home entry absent, User/profile entry preserved, self-only Avatar editor, file/URL model and multi-animation input, no playback console in configuration, Apply/Cancel and Back/focus behavior at desktop/small/VR menu sizes. Separate shortcut picker shows non-basic clips only; selection triggers a gameplay intent.
+- **Input/emotes:** binding persists/rebinds without conflicts, typing/modal/rebind/held-key suppression, Escape/capture restoration, controller/XR navigation, multiple imported dances, empty/incompatible catalogs, one-shot completion, looping dance cancellation, replacement and movement/jump/fall interruption. Opening/browsing/canceling the picker without selecting produces zero network animation changes.
 - **Import/configuration:** model-only, model with embedded clips, multiple external files/URLs, duplicate/ambiguous roles, deterministic precedence, malformed metadata, incompatible rigs, source removal, offline restart and account isolation.
 - **Automatic runtime:** spawn starts idle without UI; movement/ground transitions select expected roles, land plays once, transitions do not restart continuously, missing custom roles use defaults, source/rig swaps preserve the latest valid generation and independent avatars own separate nodes.
-- **Networking:** one resolved-state stream, no manual control packets, previews/drafts produce no broadcasts, custom exact hashes, late-load phase recovery, clock correction, replay/spoof rejection, stale avatar/configuration revisions, chunk cancellation, owner departure and two instances at the same URL remain isolated.
+- **Networking:** one resolved-state stream for both locomotion and selected emotes, no parallel manual/emote control packets, previews/drafts produce no broadcasts, custom exact hashes, late-load phase recovery (including dances), one-shot expiry, return-to-locomotion transitions, clock correction, replay/spoof rejection, stale avatar/configuration revisions, chunk cancellation, owner departure and two instances at the same URL remain isolated.
 - **Non-regression:** run all existing microphone/settings, profile, public discovery/startup, active-instance, friends and avatar-loading suites, plus both asset/animation suites. Retain moderation fail-closed behavior and relay disconnected-user cleanup checks.
 - **Manual release:** real avatars with distinct rest rigs, desktop locomotion, headset tracking/IK masks, automatic-animation comfort, two/three-client visual comparison, latency/jitter drift measurement, transfer/voice fairness and exported builds. Record warnings and unmet gates rather than claiming complete support from synthetic headless checks.
 
-**Done:** the user chooses avatar/animation sources once in User → Avatar; compatible animations apply automatically, including custom/embedded replacements; only that automatic avatar state is synchronized; no standalone Home shortcut or manual playback/sync mode remains; unrelated networking and client/relay privacy guarantees are preserved.
+**Done:** the user chooses avatar/animation sources once in User → Avatar; compatible basic animations apply automatically, including custom/embedded replacements; a rebindable shortcut picker selects other actions such as dances; both feed one resolved avatar state and synchronization stream; no standalone Home shortcut or general manual playback/sync mode remains; unrelated networking and client/relay privacy guarantees are preserved.

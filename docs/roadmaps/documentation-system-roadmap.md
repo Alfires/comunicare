@@ -2,6 +2,16 @@
 
 ## Status and scope
 
+Latest delivered increments: recoverable release metadata publication with a
+recovery journal/rollback tests; deterministic dev previews; real disposable Git
+hook integration tests and explicit new-branch validation baselines; production
+declaration inventory/checking; current player/operator and social/world/voice
+guides. These supersede earlier pending descriptions below where applicable.
+The inventory is **not** a claim of exhaustive reviewed function-by-function
+contracts. Remaining work includes those detailed contracts, richer schema/packet
+examples and release-plan/tag attestation plus exhaustive crash/network-failure
+coverage. No real release baseline/tag or hook installation has been performed.
+
 **Implementation in progress.** Documentation navigation, contribution/architecture/testing guides and link-safe relocation of the nine existing roadmaps are implemented. A local Conventional Commit parser and deterministic explicit-baseline release planner, metadata preparation/checking and annotated-tag commands are available with temporary-Git tests. No real application baseline/version, release tag or hooks have been installed. Exhaustive function references, symbol/link tooling, opt-in hooks, prereleases and release fault/recovery coverage remain incomplete; the requirements below remain the target, not a completion claim. See [release usage](../development/releases.md).
 
 Additional implemented slice: offline tracked-Markdown file/anchor checking with

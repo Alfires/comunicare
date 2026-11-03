@@ -6,6 +6,9 @@ headset, renderer, microphone or production-network verification.
 
 ## Players and operators
 
+- [Run desktop/VR clients and relays](getting-started/runtime.md)
+- [Accounts, profiles and social access](guides/accounts-and-social.md)
+- [World transitions, settings and voice](guides/worlds-settings-and-voice.md)
 - [Avatar sources, animation and emotes](asset-cache-and-animation-usage.md)
 - [Relay privacy and lifecycle contract](relay-data-lifecycle.md)
 - [Third-party asset licenses](../THIRD_PARTY_ASSETS.md)

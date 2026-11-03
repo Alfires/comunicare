@@ -1,13 +1,13 @@
 # Verification
 
-## Intentionally red roadmap acceptance (opt-in)
+## VR and tracking acceptance
 
-`python3 tests/vr_controls/run.py` and
-`python3 tests/avatar_tracking/run.py` currently **must fail assertions (exit 1)**
-because the VR-controls/FBT roadmap is not implemented. They are explicitly
-requested test-first deliverables, not part of the normal green checks below.
-Exit 2/Godot errors are infrastructure failure, never an acceptable red baseline.
-Read their fixture/proposed-interface notes before implementing those phases.
+`python3 tests/vr_controls/run.py` now passes 81 assertions and
+`python3 tests/avatar_tracking/run.py` passes 39 after their test-first implementation.
+They were originally intentionally red; current pass status covers helper policies,
+production ray mapping/settings and synthetic rig contracts, not hardware FBT or
+complete headset UI/collision/comfort. Exit 1 is regression failure; exit 2/Godot
+errors are infrastructure failure. Read suite READMEs for hardware/conditional scope.
 
 Documentation/release automation has one offline entry point:
 `python3 tools/check_repository.py`. It runs parser/link/coverage tests, temporary

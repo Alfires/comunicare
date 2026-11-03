@@ -75,6 +75,7 @@ func _process(delta: float):
 			if targets.has(role): body_targets[role] = skeleton.global_transform.affine_inverse() * targets[role]
 		tracking_modifier.set_body_targets(body_targets)
 	var menu_action = str(SaveData.store.get_value("input.xr_main_menu_action"))
+	if _menu_open() and (not focused or not xr_camera.get_is_active()): _close_main_menu()
 	var suppressed = not focused or SaveData.voice.input_blocked
 	if input_router.menu_toggle(left_controller.is_button_pressed(menu_action), right_controller.is_button_pressed(menu_action), suppressed):
 		_toggle_main_menu()
@@ -101,7 +102,9 @@ func _get_movement_input() -> Vector2:
 func _physics_process(delta):
 	var movement_input = _get_movement_input()
 	var turn_axis = right_controller.get_vector2("primary").x
-	var blocked = not focused or _menu_open() or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty() or NetworkHandler.session_busy
+	var blocked = not focused or not xr_camera.get_is_active() or _menu_open() or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty() or NetworkHandler.session_busy
+	if not left_controller.get_is_active(): movement_input = Vector2.ZERO
+	if not right_controller.get_is_active(): turn_axis = 0
 	if blocked:
 		motion_rearm = true
 		turning.reset()
@@ -141,7 +144,7 @@ func _menu_open() -> bool:
 	return is_instance_valid(main_panel) and main_panel.visible
 
 func _toggle_main_menu():
-	if main_panel == null:
+	if not is_instance_valid(main_panel):
 		main_panel = load("res://scenes/GUI/vr_gui.tscn").instantiate()
 		main_panel.size = Vector2(1.2, 0.9)
 		main_panel.pixel_per_unit = 800

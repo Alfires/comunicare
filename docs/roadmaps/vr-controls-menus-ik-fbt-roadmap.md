@@ -2,6 +2,20 @@
 
 ## Status, scope and interpretation
 
+**Implementation update:** the previously red controls suite now passes **81**
+assertions; tracking passes **39**. Planar locomotion, snap/smooth pivot turning,
+either-hand A/X shared-menu toggle, typed comfort preferences, corrected viewport
+ray mapping, captured pointers and rendered vignette/blink are integrated. Rig
+validation, bounded local calibration storage, tracker-role sample adapter and
+optional pelvis/feet solver feed the final modifier. These supersede the historical
+red baselines below, not the remaining release gates.
+
+Still incomplete/unverified: full room-scale capsule/origin collision reconciliation,
+menu scroll/virtual keyboard/file-selection workflow, hardware discovery/assignment
+and full-body calibration UI, smooth tracked-chain reacquisition, foot planting,
+joint-limit/torso quality and networked live tracker poses. No real-headset comfort,
+controller-profile or FBT certification is claimed. Camera targets remain independent.
+
 **Planning only.** This roadmap builds on the existing OpenXR player, radial emote
 wheel and initial local head/arm solver. It does not claim finished controller
 movement, complete VR UI, hardware-tested IK or full-body tracking (FBT).

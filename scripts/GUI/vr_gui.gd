@@ -11,6 +11,8 @@ func _ready():
 	if mesh.material_override == null:
 		var material = StandardMaterial3D.new()
 		mesh.material_override = material
+	else:
+		mesh.material_override = mesh.material_override.duplicate()
 	
 	mesh.material_override.albedo_texture = viewport.get_texture()
 	mesh.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

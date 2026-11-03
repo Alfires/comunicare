@@ -149,9 +149,9 @@ static func strafe_pose(clip: Dictionary) -> Dictionary:
 	var result = clip.duplicate(true)
 	var legs = ["leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg", "leftFoot", "rightFoot", "leftToes", "rightToes"]
 	result.tracks = result.tracks.filter(func(track): return track.bone in legs)
-	# Restore the authored neutral upper body, not the sideways-rotated walk.
-	# Leaving these channels out would reset them to T-pose in the renderer.
-	for track in Defaults.clip("neutral").tracks:
+	# Upper body uses the exact forward-walk samples/bases. Only legs use
+	# sideways reorientation, so arms swing naturally without twisting sideways.
+	for track in Defaults.clip("walk").tracks:
 		if track.bone not in legs: result.tracks.append(track.duplicate(true))
 	return result
 

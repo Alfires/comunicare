@@ -40,10 +40,12 @@ walk variants are selected in player-local space. Idle and landing animation
 playback are disabled; stopping blends to a static authored standing pose.
 Directional variants adapt Quaternius Walk_Loop by reorienting its motion bases;
 the free Standard pack does not include separately authored strafe clips.
-Sideways locomotion now applies that adaptation to leg tracks only. Arms,
-shoulders, hips and torso use the unrotated static authored standing pose; VR
-head/hand tracking remains the final override. Remote avatars use the same
-composition, so strafe state no longer swings or twists the arms sideways.
+Sideways locomotion applies that adaptation to leg tracks only. Arms, shoulders,
+hips and torso use the exact forward-walk animation samples without sideways
+reorientation, giving the same arm swing as forward movement. VR head/hand
+tracking remains the final override. Standing idle is a fixed authored pose
+with one key per bone: no breathing, swaying or idle loop. Smooth transitions
+still blend into and out of standing. Remote avatars use the same composition.
 
 In VR, animation keeps torso, shoulders, arms, fingers and legs. Only head/eye/jaw
 and hand tracks are excluded for head/hand tracking; the old lower-body-only

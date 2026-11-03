@@ -73,13 +73,18 @@ func run():
 	if strafe_service.has_method("strafe_pose"):
 		for role in ["strafe_left", "strafe_right"]:
 			var composed = strafe_service.strafe_pose(Defaults.clip(role))
-			var neutral = Defaults.clip("neutral")
+			var forward = Defaults.clip("walk")
 			var stable := true
 			for track in composed.tracks:
 				if track.bone in ["leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm", "leftShoulder", "rightShoulder", "chest", "hips"]:
-					var reference = neutral.tracks.filter(func(item): return item.bone == track.bone)
-					stable = stable and track.keys.size() == 1 and not reference.is_empty() and track.keys[0].rotation.is_equal_approx(reference[0].keys[0].rotation) and track.source_rest.is_equal_approx(reference[0].source_rest)
-			check(stable, role + " keeps arms and torso at the authored neutral pose, without sideways reorientation")
+					var reference = forward.tracks.filter(func(item): return item.bone == track.bone)
+					stable = stable and not reference.is_empty() and track.keys.size() == reference[0].keys.size() and track.keys.size() > 1 and track.source_rest.is_equal_approx(reference[0].source_rest)
+					if not reference.is_empty() and track.keys.size() == reference[0].keys.size():
+						for index in track.keys.size():
+							stable = stable and track.keys[index].rotation.is_equal_approx(reference[0].keys[index].rotation)
+			check(stable, role + " uses identical forward-walk arm and torso motion without sideways twisting")
+	var standing = Defaults.clip("neutral")
+	check(standing.tracks.all(func(track): return track.keys.size() == 1), "standing idle is a fixed pose with no animated motion")
 	strafe_service.free()
 	await test_tracking_targets()
 	var first_person_service = load("res://scripts/assets/first_person_avatar.gd")

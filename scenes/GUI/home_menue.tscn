@@ -49,3 +49,59 @@ popup/item_1/text = "Do Not Disturb"
 popup/item_1/id = 1
 popup/item_2/text = "Offline (appear offline)"
 popup/item_2/id = 2
+
+[node name="MenuGrid" type="GridContainer" parent="VBoxContainer" unique_id=647726846]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="WorldExplorer" type="Button" parent="VBoxContainer/MenuGrid" unique_id=2049559980]
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+tooltip_text = "Browse worlds and join instances"
+text = "World Explorer"
+
+[node name="ActiveInstance" type="Button" parent="VBoxContainer/MenuGrid" unique_id=2056958066]
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+tooltip_text = "View participants and manage the active instance"
+text = "Active Instance"
+
+[node name="Empty3" type="PanelContainer" parent="VBoxContainer/MenuGrid" unique_id=821508840]
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Empty4" type="PanelContainer" parent="VBoxContainer/MenuGrid" unique_id=1469396557]
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Submenu" type="VBoxContainer" parent="." unique_id=1048288111]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Back" type="Button" parent="Submenu" unique_id=701726954]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "← Home"
+
+[node name="Content" type="Control" parent="Submenu" unique_id=755351699]
+layout_mode = 2
+size_flags_vertical = 3

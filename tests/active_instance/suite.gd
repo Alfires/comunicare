@@ -60,10 +60,24 @@ func run():
 	quit(1 if failed else 0)
 
 func test_labels():
-	var scene = load(MENU).instantiate()
-	root.add_child(scene)
-	check(scene.get_node("VBoxContainer/Label").text == "Active Instance", "instance page has Active Instance title")
-	scene.free()
+	var state = load("res://scenes/GUI/home_menue.tscn").get_state()
+	var title := ""
+	var metadata := ""
+	for i in state.get_node_count():
+		for j in state.get_node_property_count(i):
+			var property = str(state.get_node_property_name(i, j))
+			if str(state.get_node_name(i)) == "ActiveInstance" and property == "text":
+				title = str(state.get_node_property_value(i, j))
+			if str(state.get_node_name(i)) == "ActiveInstance" and property == "tooltip_text":
+				metadata = str(state.get_node_property_value(i, j))
+	check(title == "Active Instance", "shared desktop/VR Home option is titled Active Instance")
+	check(not metadata.is_empty(), "Active Instance Home option explains its action")
+	var desktop = FileAccess.get_file_as_string("res://scene_inputs/player_desktop.txt")
+	check(not 'tab_2/title = "Share Session"' in desktop and not 'tab_2/title = "Session Share"' in desktop,
+		"desktop inherited override cannot restore the old tab label")
+	var vr = FileAccess.get_file_as_string("res://scene_inputs/player_vr.txt")
+	check(not 'tab_2/title = "Share Session"' in vr and not 'tab_2/title = "Session Share"' in vr,
+		"VR player has no obsolete session-tab override")
 
 func all_nodes(node: Node) -> Array:
 	var found: Array = [node]

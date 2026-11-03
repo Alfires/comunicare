@@ -32,6 +32,11 @@ func _ready():
 		_status_changed()
 	else:
 		status_selector.disabled = true
+	$VBoxContainer/MenuGrid/WorldExplorer.pressed.connect(open_home_menu.bind("world_explorer"))
+	$VBoxContainer/MenuGrid/ActiveInstance.pressed.connect(open_home_menu.bind("share_session_menue"))
+	$Submenu/Back.pressed.connect(close_home_menu)
+	visibility_changed.connect(_visibility_changed)
+
 func _status_changed():
 	if is_instance_valid(status_selector) and not SaveData.friends.state.is_empty():
 		status_selector.select(["online", "do_not_disturb", "offline"].find(SaveData.friends.state.preferred_status))
@@ -81,3 +86,41 @@ func open_profile(owner: String):
 				$VBoxContainer.show())
 	$VBoxContainer.hide()
 	profile_panel.open_profile(SaveData.profile, owner)
+
+func open_home_menu(kind: String):
+	if kind not in ["world_explorer", "share_session_menue"]:
+		return
+	if kind == "world_explorer" and get_parent() is TabContainer:
+		var explorer = get_parent().get_node_or_null("world_explorer")
+		if explorer != null:
+			get_parent().current_tab = get_parent().get_tab_idx_from_control(explorer)
+			return
+	close_home_menu()
+	submenu_kind = kind
+	return_focus = $VBoxContainer/MenuGrid/WorldExplorer if kind == "world_explorer" else $VBoxContainer/MenuGrid/ActiveInstance
+	# Lazy construction avoids HTTP/discovery work until the option is opened.
+	submenu_page = load("res://scenes/GUI/" + kind + ".tscn").instantiate()
+	$VBoxContainer.hide()
+	$Submenu.show()
+	$Submenu/Content.add_child(submenu_page)
+	$Submenu/Back.grab_focus()
+
+func close_home_menu():
+	if is_instance_valid(submenu_page):
+		$Submenu/Content.remove_child(submenu_page)
+		submenu_page.queue_free()
+	submenu_page = null
+	submenu_kind = ""
+	$Submenu.hide()
+	$VBoxContainer.show()
+	if is_instance_valid(return_focus) and is_visible_in_tree():
+		return_focus.grab_focus()
+
+func reset_home():
+	if is_instance_valid(profile_panel) and profile_panel.visible:
+		profile_panel.cancel_edit()
+	close_home_menu()
+
+func _visibility_changed():
+	if is_node_ready() and not is_visible_in_tree():
+		reset_home()

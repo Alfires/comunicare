@@ -17,5 +17,5 @@ func _input(event):
 
 
 func _reset_menu():
-	$home_menue.show()
+	$home_menue.reset_home()
 	$world_explorer.reset.emit()

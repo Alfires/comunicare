@@ -35,6 +35,53 @@ func dispose(object):
 	if object is Node:
 		object.free()
 
+func run():
+	await test_header()
+	await test_home_navigation()
+	test_settings_separation()
+	test_profile_service()
+	test_profile_modes()
+	test_identity_authentication()
+	test_instance_exchange()
+	await test_profile_wire()
+	await test_profile_editor_drafts()
+	await test_layout_and_preview()
+	test_account_key_migration()
+	print("\nProfile contracts: %d passed, %d failed; %d dependent groups not run" % [passed, failed, deferred_groups.size()])
+	for group in deferred_groups:
+		print("NOT RUN (missing prerequisite): ", group)
+	quit(1 if failed else 0)
+
+func test_home_navigation():
+	var home = load("res://scenes/GUI/home_menue.tscn").instantiate()
+	root.add_child(home)
+	for dimensions in [Vector2i(1000, 700), Vector2i(640, 480)]:
+		root.size = dimensions
+		await process_frame
+		await process_frame
+		var grid = home.get_node("VBoxContainer/MenuGrid")
+		var status = home.get_node("VBoxContainer/Status")
+		var tiles = grid.get_children()
+		check(grid.columns == 2 and tiles.size() == 4, "Home has exactly four options in a two-column grid at " + str(dimensions))
+		check(grid.position.y >= status.position.y + status.size.y and grid.size.y > home.size.y * 0.5,
+			"Home grid fills remaining space below status at " + str(dimensions))
+		check(absf(tiles[0].size.x - tiles[1].size.x) <= 1 and absf(tiles[0].size.y - tiles[2].size.y) <= 1
+			and tiles[1].position.x > tiles[0].position.x and tiles[2].position.y > tiles[0].position.y,
+			"Home tiles form equal 2x2 cells at " + str(dimensions))
+		check(tiles[2].get_child_count() == 0 and tiles[3].get_child_count() == 0 and not tiles[2] is Button and not tiles[3] is Button,
+			"bottom Home tiles remain empty non-actionable placeholders")
+	home.get_node("VBoxContainer/MenuGrid/ActiveInstance").pressed.emit()
+	check(home.submenu_kind == "share_session_menue" and is_instance_valid(home.submenu_page)
+		and home.get_node("Submenu").visible and not home.get_node("VBoxContainer").visible,
+		"Home Active Instance button opens actual instance scene as a subpage")
+	home.get_node("Submenu/Back").pressed.emit()
+	check(home.submenu_page == null and home.get_node("VBoxContainer").visible,
+		"subpage Back restores Home grid and releases page")
+	home.get_node("VBoxContainer/MenuGrid/ActiveInstance").pressed.emit()
+	home.hide()
+	check(home.submenu_page == null and home.submenu_kind.is_empty(), "hiding Home closes subpage and avoids stale subscriptions")
+	home.free()
+
 func profile_buttons(home: Node) -> Array:
 	var matches: Array = []
 	for button in home.find_children("*", "Button", true, false):
@@ -262,6 +309,140 @@ func test_identity_authentication():
 	check(auth.get_identity(1).is_empty(), "disconnect removes authenticated identity")
 	dispose(auth)
 
+func test_instance_exchange():
+	var relay = load("res://scripts/multiplayer/relay.gd").new()
+	if not require_methods(relay, ["authenticate_peer", "publish_profile", "get_profiles_for_peer"], "relay authenticated same-instance profile API"):
+		deferred_groups.append("same-instance public keys, unauthorized publish, departure cleanup and discovery privacy")
+		relay.free()
+		return
+	# authenticate_peer consumes already-verified identity; tests of proof of
+	# possession live above. This adapter must never accept a client auth packet.
+	var alice = key_pair()
+	var bob = key_pair()
+	var carol = key_pair()
+	relay.authenticate_peer(1, alice.save_to_string(true))
+	relay.authenticate_peer(2, bob.save_to_string(true))
+	relay.authenticate_peer(3, carol.save_to_string(true))
+	for record in [
+		{"session_id": "one", "peers": [1, 2], "owners": [1]},
+		{"session_id": "two", "peers": [3], "owners": [3]},
+	]:
+		record.mode = 0
+		record.world_url = "https://example.test/same-world.cne"
+		record.name = "Same world"
+		record.description = ""
+		relay.sessions.append([record])
+	# The relay derives owner from its verified mapping; profile dictionary has
+	# no private material and cannot select the author using a peer ID/name.
+	check(relay.publish_profile(1, fields()) and relay.publish_profile(2, fields("Bob")), "authenticated owners publish profiles")
+	var visible: Array = relay.get_profiles_for_peer(1)
+	var bob_visible := false
+	var carol_visible := false
+	for profile in visible:
+		bob_visible = bob_visible or profile.get("public_key") == bob.save_to_string(true)
+		carol_visible = carol_visible or profile.get("public_key") == carol.save_to_string(true)
+	check(bob_visible and not carol_visible, "same-instance user sees Bob's full key, not another instance of same world")
+	check(relay.get_profiles_for_peer(99).is_empty() and not relay.publish_profile(99, fields()), "unauthenticated connections cannot fetch or publish profiles")
+	var spoof = fields("Fake Bob")
+	spoof["public_key"] = bob.save_to_string(true)
+	check(not relay.publish_profile(1, spoof), "payload cannot publish changes as another authenticated owner")
+	var discovery_text = JSON.stringify(relay.get_public_session())
+	check(not "public_key" in discovery_text and not "PRIVATE KEY" in JSON.stringify(visible), "discovery omits account keys and profile exchange never leaks private keys")
+	relay.remove_user_from_session(2, 0)
+	var departed_visible := false
+	for profile in relay.get_profiles_for_peer(1):
+		departed_visible = departed_visible or profile.get("public_key") == bob.save_to_string(true)
+	check(not departed_visible, "departed member's profile/key no longer queryable through instance")
+	relay.free()
+
+func pump(relay: Node, clients: Array, rounds: int = 30):
+	for index in rounds:
+		relay.handle_events()
+		for client in clients:
+			client.handle_events()
+		await create_timer(0.005).timeout
+
+func test_profile_wire():
+	var relay = load("res://scripts/multiplayer/relay.gd").new()
+	relay.connection = ENetConnection.new()
+	var error = relay.connection.create_host_bound("127.0.0.1", 0)
+	check(error == OK, "profile wire test starts loopback relay")
+	if error != OK:
+		relay.free()
+		return
+	var clients: Array = []
+	var services: Array = []
+	for index in 3:
+		var key = key_pair()
+		var service = load(SERVICE).new()
+		service.configure(key, "res://wire-%d.cfg" % index)
+		service.save_profile(service.get_local_fingerprint(), fields("User %d" % index))
+		services.append(service)
+		var client = RelayPeer.new()
+		client.account_key = key
+		client.connect_to_relay("127.0.0.1", relay.connection.get_local_port())
+		clients.append(client)
+	await pump(relay, clients)
+	check(clients.all(func(client): return client.is_authenticated), "real challenge/signature packets authenticate three different accounts")
+	for index in 3:
+		clients[index].publish_profile(services[index].local)
+	clients[0].create_session(0, "One", "", "https://example.test/world.cne")
+	clients[2].create_session(0, "Two", "", "https://example.test/world.cne")
+	await pump(relay, clients)
+	clients[1].join_session(clients[0].current_session_id)
+	await pump(relay, clients)
+	check(clients[0].profiles.size() == 2 and clients[1].profiles.size() == 2 and clients[2].profiles.size() == 1,
+		"real snapshots expose keys only to members of same instance")
+	var identity = load("res://scripts/profile/profile_identity.gd")
+	check(clients[0].profiles.all(func(profile): return identity.verify_profile(profile)),
+		"every published profile in wire snapshot verifies owner signature")
+	var tampered = services[0].local.duplicate(true)
+	tampered["profile.username"] = "Forged"
+	clients[0].publish_profile(tampered)
+	await pump(relay, clients)
+	check(clients[1].profiles.all(func(profile): return profile.get("profile.username") != "Forged"),
+		"relay rejects tampered profile signature on actual wire")
+	services[0].save_profile(services[0].get_local_fingerprint(), fields("Updated"))
+	clients[0].publish_profile(services[0].local)
+	await pump(relay, clients)
+	var found := false
+	for profile in clients[1].profiles:
+		found = found or profile.get("profile.username") == "Updated"
+	check(found, "signed profile update reaches another member without reconnect")
+	var duplicate = RelayPeer.new()
+	duplicate.account_key = clients[0].account_key
+	duplicate.connect_to_relay("127.0.0.1", relay.connection.get_local_port())
+	clients.append(duplicate)
+	await pump(relay, clients)
+	check(not duplicate.is_authenticated, "second simultaneous connection with same key is rejected")
+	clients[1].join_session(clients[2].current_session_id)
+	await pump(relay, clients)
+	check(clients[0].profiles.size() == 1 and clients[1].profiles.size() == 2,
+		"session switch replaces old profiles and notifies departed room")
+	var old_session = clients[0].current_session_id
+	clients[1].on_packet(AccountPacket.create(PacketInfo.PACKET_TYPE.PROFILES_SNAPSHOT,
+		{"session_id": old_session, "profiles": [services[0].local]}).encode())
+	check(clients[1].profiles.size() == 2, "late snapshot from previous instance is ignored")
+	var unauthenticated = RelayPeer.new()
+	unauthenticated.connect_to_relay("127.0.0.1", relay.connection.get_local_port())
+	clients.append(unauthenticated)
+	await pump(relay, clients)
+	var count = relay.sessions.size()
+	CreateSession.create({"mode": 0, "name": "Attack", "description": "", "world_url": "default_wold"}).sent(unauthenticated.peer)
+	await pump(relay, clients)
+	check(relay.sessions.size() == count and unauthenticated.current_session_id.is_empty(),
+		"unauthenticated raw create packet is denied at relay")
+	for client in clients:
+		client.peer.peer_disconnect()
+	await pump(relay, clients)
+	check(relay.key_mapping.is_empty() and relay.public_profiles.is_empty(), "disconnect removes relay account/profile mappings")
+	for client in clients:
+		client.connection.destroy()
+	for service in services:
+		dispose(service)
+	relay.connection.destroy()
+	relay.free()
+
 func test_profile_editor_drafts():
 	var service = load(SERVICE).new()
 	service.configure(key_pair(), "res://draft.cfg")
@@ -415,15 +596,3 @@ func test_layout_and_preview():
 	scene.free()
 	await process_frame
 	dispose(service)
-
-func run():
-	await test_header()
-	test_settings_separation()
-	test_profile_service()
-	test_profile_modes()
-	test_identity_authentication()
-	await test_profile_editor_drafts()
-	await test_layout_and_preview()
-	test_account_key_migration()
-	print("Profile UI: %d passed, %d failed" % [passed, failed])
-	quit(1 if failed else 0)

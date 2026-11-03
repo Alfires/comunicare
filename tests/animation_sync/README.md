@@ -1,5 +1,21 @@
 # Animation and revision checks
 
+## Startup/menu regressions
+
+The runner also executes `lifecycle_suite.gd` against the **production
+NetworkHandler factory**, not the simpler animation fixture. Its 15 assertions
+cover production desktop/VR script loading, offline Home wheel opening, detached
+controller calls/recovery, same-frame queued-deletion replacement, externally
+removed overlays and input ownership restoration on tree exit. The null-tree,
+retiring-controller and detached-input regressions were reproduced failing before
+their corresponding fixes. The existing 81 animation assertions run separately.
+
+Controllers are hosted by the stable DataLoader autoload, outside NetworkHandler's
+remote-player cleanup list. Calls on detached controllers fail safely; subsequent
+factory calls repair attachment. This suite uses no real account, headset or
+external relay. Headless capture-state checks respect the display backend's
+actual supported mouse mode and do not replace desktop/headset interaction tests.
+
 The suite now covers automatic/resolved animation **version 2**, source-only
 avatar configuration, actual layout editor, nested groups, eight-sector in-wheel
 paging boundaries, movement/landing resolution, emote interruption and rejection

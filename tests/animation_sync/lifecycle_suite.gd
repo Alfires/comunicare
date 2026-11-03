@@ -18,6 +18,12 @@ func check(value: bool, title: String):
 	if not value: failed += 1
 
 func run():
+	var desktop_source = FileAccess.get_file_as_string("res://scripts/player/player_desktop_movment.gd")
+	var vr_source = FileAccess.get_file_as_string("res://scripts/player/player_vr.gd")
+	check("first_person_forward_offset" in desktop_source and "Vector3.FORWARD * first_person_forward_offset" in desktop_source,
+		"desktop camera has explicit forward clearance beyond avatar rest eyes")
+	check("first_person_forward_offset" in vr_source and "vrm_model.position = Vector3.BACK * first_person_forward_offset" in vr_source,
+		"VR creates forward clearance by moving avatar back, not offsetting tracked camera")
 	for name in ["player_desktop_movment", "player_vr"]:
 		var source = FileAccess.get_file_as_string("res://scripts/player/" + name + ".gd")
 		check(not "camera.reparent(bone_attachment)" in source and not "xr_camera.reparent(ba" in source,

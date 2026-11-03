@@ -1,5 +1,10 @@
 # Avatar sources, automatic motion and emote wheel
 
+First-person clearance defaults to **15 cm forward** of the desktop avatar's
+rest-eye position (`first_person_forward_offset` on the player script). In VR,
+the avatar shell is offset 15 cm backward instead; headset tracking and camera
+pose are not artificially shifted. Both values are tunable per player scene.
+
 Falling playback is now removed: descending uses the static neutral pose, with
 no fall loop. First-person derivatives exclude the torso/pelvis/neck as well as
 the head so the camera does not look into the avatar shell. Arms and legs remain

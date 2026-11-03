@@ -8,6 +8,7 @@ extends CharacterBody3D
 @export var gravity = 20.0
 @export var mouse_sensitivity: float = 0.003
 @export var max_tilt: float = PI / 3.7  # Limit vertical rotation
+@export_range(0.0, 0.4, 0.01) var first_person_forward_offset := 0.15
 # References
 @onready var camera = $Camera3D
 
@@ -142,6 +143,7 @@ func load_player_model():
 		var eye_bone_idx = _find_eye_bone()
 		if eye_bone_idx >= 0:
 			camera.position = vrm_model.transform * skeleton.transform * skeleton.get_bone_global_rest(eye_bone_idx).origin
+			camera.position += Vector3.FORWARD * first_person_forward_offset
 
 
 func _find_eye_bone() -> int:

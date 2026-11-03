@@ -4,6 +4,7 @@ extends CharacterBody3D
 @onready var origin_node = $XROrigin3D
 @onready var right_controller: XRController3D = $XROrigin3D/RightHand
 @onready var left_controller: XRController3D = $XROrigin3D/LeftHand
+@export_range(0.0, 0.4, 0.01) var first_person_forward_offset := 0.15
 
 var vrm_model: Node3D
 var avatar_generation := 0
@@ -132,7 +133,9 @@ func load_vrm_model():
 	vrm_model = model
 	add_child(vrm_model)
 	preload("res://scripts/assets/first_person_avatar.gd").apply(vrm_model, xr_camera)
-	vrm_model.position = Vector3.ZERO
+	# Keep the headset's real tracked pose. Move the avatar shell behind it
+	# to provide the same forward clearance as desktop without camera motion.
+	vrm_model.position = Vector3.BACK * first_person_forward_offset
 
 	skeleton = _find_skeleton(vrm_model)
 	if skeleton == null:

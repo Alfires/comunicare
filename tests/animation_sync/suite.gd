@@ -63,6 +63,12 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 func run():
 	await test_walk_to_standing()
 	var standing_source = Defaults.clip("neutral")
+	check(standing_source.get("standing_legs") == "A_TPose", "standing uses aligned reference legs instead of wide staggered idle legs")
+	var aligned := true
+	for track in standing_source.tracks:
+		if track.bone in ["hips", "leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg", "leftFoot", "rightFoot"]:
+			aligned = aligned and track.keys.size() == 1 and track.keys[0].rotation.is_equal_approx(Quaternion.IDENTITY)
+	check(aligned, "standing hips and legs have no staggered walk or idle rotations")
 	check(standing_source.get("source_clip") == "Idle_Loop", "standing samples an authored standing pose, never a frozen forward-walk frame")
 	var airborne = load("res://scripts/assets/animation_controller.gd").new()
 	check(airborne.resolve_motion(false, Vector3(0, -3, 0), 0) == "neutral", "descending does not start a falling animation")

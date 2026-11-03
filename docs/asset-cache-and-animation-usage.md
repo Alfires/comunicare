@@ -1,5 +1,11 @@
 # Avatar sources, automatic motion and emote wheel
 
+Standing now combines the authored relaxed upper-body standing pose with aligned
+reference hips/legs/feet, removing the pack's wide staggered idle stance. Feet
+remain at the avatar's natural hip-width spacing rather than being forced to
+intersect. Desktop vertical look is widened to **85° up and 85° down**; headset
+rotation remains fully tracker-driven.
+
 Standing uses one frame from Quaternius **Idle_Loop**, not a frame of Walk_Loop.
 Only that standing pose is retained: no breathing/swaying or idle animation is
 played. Walk-to-standing regression tests cover multiple stopping phases and

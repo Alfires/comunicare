@@ -7,7 +7,7 @@ extends CharacterBody3D
 @export var jump_force = 7.0
 @export var gravity = 20.0
 @export var mouse_sensitivity: float = 0.003
-@export var max_tilt: float = PI / 3.7  # Limit vertical rotation
+@export var max_tilt: float = deg_to_rad(85.0)  # Wider look without flipping.
 @export_range(0.0, 0.4, 0.01) var first_person_forward_offset := 0.15
 # References
 @onready var camera = $Camera3D

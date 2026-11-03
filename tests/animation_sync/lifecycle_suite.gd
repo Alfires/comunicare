@@ -19,6 +19,7 @@ func check(value: bool, title: String):
 
 func run():
 	var desktop_source = FileAccess.get_file_as_string("res://scripts/player/player_desktop_movment.gd")
+	check("deg_to_rad(85.0)" in desktop_source, "desktop look permits 85 degrees up and down")
 	var vr_source = FileAccess.get_file_as_string("res://scripts/player/player_vr.gd")
 	check("first_person_forward_offset" in desktop_source and "Vector3.FORWARD * first_person_forward_offset" in desktop_source,
 		"desktop camera has explicit forward clearance beyond avatar rest eyes")

@@ -44,5 +44,9 @@ same static authored neutral pose used when standing still.
 first frame of **Idle_Loop**, rather than freezing a Walk_Loop frame. Idle motion
 is not included or played. The manifest/converter record the standing source.
 
+`quaternius.directional.v4` refines that static stance: hips/legs/feet use the
+pack's A_TPose reference rotations while the upper body keeps the relaxed
+Idle_Loop frame. No temporal idle motion or new hand-keyed motion is introduced.
+
 User-imported assets retain their own licenses. A cache hash or successful import
 does not grant permission to redistribute them.

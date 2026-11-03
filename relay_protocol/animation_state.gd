@@ -5,7 +5,7 @@ const VERSION = 2
 const MAX_BYTES = 16 * 1024 * 1024
 const CHUNK_BYTES = 8192
 const BUILTINS = ["neutral", "walk", "run", "strafe_left", "strafe_right", "jump", "dance", "interact"]
-const LIBRARY = "quaternius.directional.v3"
+const LIBRARY = "quaternius.directional.v4"
 const DURATIONS = {"neutral": 1.0, "strafe_left": 1.3333333730697632, "strafe_right": 1.3333333730697632, "walk": 1.3333333730697632, "run": 0.9333333373069763, "jump": 1.3333333730697632, "fall": 2.5, "dance": 1.0, "interact": 2.0}
 
 static func integer(value: Variant, minimum: int, maximum: int) -> bool:

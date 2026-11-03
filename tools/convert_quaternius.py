@@ -98,23 +98,27 @@ def main():
                 basis = mul([0, math.sin(angle/2), 0, math.cos(angle/2)], basis)
             keys = [[t[0], *norm(mul(inv(rest), norm(q)))] for t, q in zip(times, values)]
             if role == "neutral":
-                keys = [[0.0, *keys[0][1:]]]  # Static authored standing pose, never an idle loop.
+                leg = MAPPING[node_name] in ["hips", "leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg", "leftFoot", "rightFoot", "leftToes", "rightToes"]
+                # Reference legs stand aligned beneath the hips, unlike the
+                # pack's wide/staggered idle stance. Keep relaxed idle arms.
+                keys = [[0.0, 0.0, 0.0, 0.0, 1.0]] if leg else [[0.0, *keys[0][1:]]]
             tracks.append({"bone": MAPPING[node_name], "source_rest": basis, "reference_space": "gltf_humanoid", "keys": keys})
         if role == "neutral":
             duration = 1.0
         clips[role] = {"name": role, "source_clip": name, "duration": duration, "tracks": tracks,
                        "provenance": {"author": "Quaternius", "license": "CC0-1.0"}}
+        if role == "neutral": clips[role]["standing_legs"] = "A_TPose"
     out = ROOT / "assets/animations"
     payload = json.dumps({"schema": 1, "clips": clips}, separators=(",", ":")) + "\n"
     (out / "quaternius_standard.json").write_text(payload)
     (out / "Quaternius-License.txt").write_text("\n".join(line.rstrip() for line in license_text.decode().splitlines()) + "\n")
-    manifest = {"schema": 2, "library": "quaternius.directional.v3", "author": "Quaternius", "license": "CC0-1.0",
+    manifest = {"schema": 2, "library": "quaternius.directional.v4", "author": "Quaternius", "license": "CC0-1.0",
                 "source_url": "https://store.godotengine.org/asset/quaternius/universal-animation-library/",
                 "download_url": "https://store.godotengine.org/asset/quaternius/universal-animation-library/download/44/",
                 "download_version": "Standard-1.0", "retrieved": "2026-11-03", "archive_sha256": hashlib.sha256(archive).hexdigest(),
                 "original_file": MEMBER, "original_sha256": hashlib.sha256(data).hexdigest(),
                 "converted_sha256": hashlib.sha256(payload.encode()).hexdigest(), "clips": SELECTION,
-                "conversion": "Authored rotation keys extracted without synthesis; A_TPose deltas/global bases preserved; translation/scale omitted. Neutral is only the first Idle_Loop frame, no idle motion. Left/right strafe variants reorient Walk_Loop reference bases by +/-90 degrees; adapted walks, not dedicated authored strafes. Falling/landing clips excluded. Fingers retained; optional bones may be skipped."}
+                "conversion": "Authored rotation keys extracted; A_TPose deltas/global bases preserved; translation/scale omitted. Neutral combines first Idle_Loop upper-body frame with A_TPose hips/legs/feet for aligned standing, no idle motion. Left/right variants reorient Walk_Loop bases by +/-90 degrees. Falling/landing excluded; optional bones may be skipped."}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print({role: (clip["duration"], len(clip["tracks"])) for role, clip in clips.items()})
 

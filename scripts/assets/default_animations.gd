@@ -3,7 +3,7 @@ extends RefCounted
 ## Extracted authored data, not procedural motion. See asset manifest/license.
 
 const VERSION = 2
-const LIBRARY = "quaternius.directional.v3"
+const LIBRARY = "quaternius.directional.v4"
 const IDS = ["walk", "run", "strafe_left", "strafe_right", "jump", "dance", "interact"]
 static var library: Dictionary = {}
 
@@ -15,6 +15,7 @@ static func clip(id: String) -> Dictionary:
 		for role in parser.data.clips:
 			var source: Dictionary = parser.data.clips[role]
 			var result = {"name": role, "duration": source.duration, "tracks": [], "provenance": source.provenance, "source_clip": source.source_clip}
+			if source.has("standing_legs"): result.standing_legs = source.standing_legs
 			for track in source.tracks:
 				var q: Array = track.source_rest
 				var keys: Array = []

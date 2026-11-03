@@ -6,6 +6,14 @@
 wheel and initial local head/arm solver. It does not claim finished controller
 movement, complete VR UI, hardware-tested IK or full-body tracking (FBT).
 
+**Test-first update:** opt-in red acceptance suites now exist at
+[`tests/vr_controls`](../../tests/vr_controls/README.md) and
+[`tests/avatar_tracking`](../../tests/avatar_tracking/README.md). Initial verified
+baselines are 1 pass/17 failures for controls and 2 passes/6 failures for tracking,
+both exit 1 without Godot errors. Their READMEs specify proposed helper interfaces,
+conditional assertion groups and remaining gaps. No runtime implementation is
+added by these tests, and normal green test/tooling entry points do not run them.
+
 Required experience:
 
 - Left joystick moves relative to the headset's **horizontal facing direction**.

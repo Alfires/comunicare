@@ -27,6 +27,7 @@ class Nested:
         found = inventory.declarations(source)
         self.assertEqual([item["name"] for item in found], ["changed", "apply", "Nested", "_private"])
         self.assertIn("-> bool", found[1]["signature"])
+        self.assertIn('"key": "value"', found[1]["signature"])
         self.assertEqual(found[-1]["visibility"], "private")
 
 

@@ -8,6 +8,13 @@ indexed with `python3 tools/docs/inventory.py`; run with `--check` to reject dri
 The scanner's fixture test is `python3 tools/docs/test_inventory.py`. Inventory
 entries are exact source declarations, not automatically reviewed explanations.
 
+The reviewed [function contracts](../reference/functions.md) cover every named
+public function and every production module, with private algorithm/callback
+groups. Run `python3 tools/docs/contracts.py` and
+`python3 tools/docs/test_contracts.py` for missing/stale section/name checks.
+This checks coverage only, not semantic truth: reviewers must still compare
+behavior with code/tests. Add a contract entry with any new public function.
+
 Current guides explain supported behavior, prerequisites, errors/recovery,
 security and limitations. Architecture pages explain ownership/data flow and
 teardown. Reference pages name exact source functions, signatures, outputs,

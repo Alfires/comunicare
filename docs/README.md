@@ -19,6 +19,7 @@ headset, renderer, microphone or production-network verification.
 - [Runtime architecture](architecture/overview.md)
 - [Service contracts and data flows](reference/services.md)
 - [Production function/class/signal inventory](reference/scripts.md)
+- [Function behavior, ownership and side effects](reference/functions.md)
 - [Wire packets and capability schemas](reference/protocol.md)
 - [Storage formats and recovery](reference/storage-formats.md)
 - [Verification](development/testing.md)

@@ -17,6 +17,9 @@ change with source edits. Godot's isolated import remains the compilation check.
 Anonymous functions are not named API entries. Third-party add-on APIs remain
 upstream-owned and are excluded from inventory drift checks.
 
-Use [service contracts](services.md) to understand ownership, threads, errors and
-flows. Inventory presence alone does not mean a function has a reviewed behavioral
-explanation; exhaustive per-function contract review remains separate work.
+Use [function contracts](functions.md) for all named public production functions,
+ownership, threads, errors and side effects; private callbacks/algorithms are
+grouped by module lifecycle. `python3 tools/docs/contracts.py` checks module/public
+function entry coverage. Inventory presence alone is not an explanation, and a
+name-coverage check cannot prove prose correctness. Godot/runtime review remains
+required when behavior changes.

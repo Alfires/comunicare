@@ -40,6 +40,7 @@ class Tests(unittest.TestCase):
             (root / "scripts").mkdir()
             (root / "relay_protocol").mkdir()
             (root / "docs/reference/symbols.json").write_text("{}\n")
+            (root / "docs/reference/functions.md").write_text("# Empty fixture contracts\n")
             def git(*args):
                 return subprocess.check_output(["git", *args], cwd=root, text=True).strip()
             git("init", "-q")

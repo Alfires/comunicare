@@ -61,6 +61,19 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	var strafe_service = load("res://scripts/assets/animation_controller.gd").new()
+	check(strafe_service.has_method("strafe_pose"), "sideways animation has a leg-only composition policy")
+	if strafe_service.has_method("strafe_pose"):
+		for role in ["strafe_left", "strafe_right"]:
+			var composed = strafe_service.strafe_pose(Defaults.clip(role))
+			var neutral = Defaults.clip("neutral")
+			var stable := true
+			for track in composed.tracks:
+				if track.bone in ["leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm", "leftShoulder", "rightShoulder", "chest", "hips"]:
+					var reference = neutral.tracks.filter(func(item): return item.bone == track.bone)
+					stable = stable and track.keys.size() == 1 and not reference.is_empty() and track.keys[0].rotation.is_equal_approx(reference[0].keys[0].rotation) and track.source_rest.is_equal_approx(reference[0].source_rest)
+			check(stable, role + " keeps arms and torso at the authored neutral pose, without sideways reorientation")
+	strafe_service.free()
 	await test_tracking_targets()
 	var first_person_service = load("res://scripts/assets/first_person_avatar.gd")
 	check(first_person_service.has_method("prepare"), "first-person geometry is prepared during detached import, not cut on camera attachment")

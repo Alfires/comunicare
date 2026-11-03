@@ -145,6 +145,16 @@ static func tracking_mask(clip: Dictionary) -> Dictionary:
 	result.tracks = result.tracks.filter(func(track): return track.bone not in ["head", "leftEye", "rightEye", "jaw", "leftHand", "rightHand"])
 	return result
 
+static func strafe_pose(clip: Dictionary) -> Dictionary:
+	var result = clip.duplicate(true)
+	var legs = ["leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg", "leftFoot", "rightFoot", "leftToes", "rightToes"]
+	result.tracks = result.tracks.filter(func(track): return track.bone in legs)
+	# Restore the authored neutral upper body, not the sideways-rotated walk.
+	# Leaving these channels out would reset them to T-pose in the renderer.
+	for track in Defaults.clip("neutral").tracks:
+		if track.bone not in legs: result.tracks.append(track.duplicate(true))
+	return result
+
 func emote_catalog() -> Dictionary:
 	if configuration != null:
 		var actions: Dictionary = configuration.emotes.duplicate()
@@ -177,6 +187,8 @@ func cancel_emote():
 
 func _apply_resolved(item: Dictionary, kind: String, action_id: String) -> bool:
 	var clip: Dictionary = item.clip
+	if kind == "locomotion" and action_id in ["strafe_left", "strafe_right"]:
+		clip = strafe_pose(clip)
 	if _is_vr():
 		clip = tracking_mask(clip)
 		if clip.tracks.is_empty():
@@ -427,6 +439,8 @@ func _apply_remote(id: int):
 		clip = parsed.clips[int(value.clip)]
 	if absf(float(clip.duration) - float(value.duration)) > 0.01:
 		return
+	if value.get("kind") == "locomotion" and value.get("role") in ["strafe_left", "strafe_right"]:
+		clip = strafe_pose(clip)
 	if not value.loop and AnimationState.playhead(value, now()) >= value.duration:
 		if is_instance_valid(remote_animators.get(id)): remote_animators[id].stop()
 		return

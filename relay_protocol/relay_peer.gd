@@ -18,6 +18,14 @@ var moderation_error := ""
 var friend_service
 var social_hello_deadline := 0
 var join_requests: Dictionary = {}
+var animation_supported := false
+var world_revision_supported := false
+var expected_world_revision := ""
+signal animation_data(value: Dictionary)
+
+func send_animation(value: Dictionary):
+	if is_authenticated and peer != null and animation_supported:
+		AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, value).sent(peer)
 signal join_requests_changed
 
 func _send_social(value: Dictionary):
@@ -102,12 +110,13 @@ func create_session(join_mode: int,name: String,description: String , world_url:
 		"name":name,
 		"description": description, 
 		"world_url": world_url,
+		"world_revision": expected_world_revision,
 	}).sent(peer)
 
 func join_session(session_id: String, world_url: String = "") -> void:
 	if not is_authenticated:
 		return
-	JoinSession.create(session_id, world_url).sent(peer)
+	JoinSession.create(session_id, world_url, expected_world_revision).sent(peer)
 
 func resolve_instance(session_id: String):
 	if is_authenticated and peer != null:
@@ -158,6 +167,9 @@ func connected_to_relay():
 	
 	
 func disconnected_from_relay():
+	animation_supported = false
+	world_revision_supported = false
+	expected_world_revision = ""
 	join_requests.clear()
 	join_requests_changed.emit()
 	if friend_service != null:
@@ -177,6 +189,12 @@ func on_packet(data: PackedByteArray):
 	var packet_type: int = data.decode_u8(0)
 	
 	match packet_type:
+		PacketInfo.PACKET_TYPE.ANIMATION_DATA:
+			if is_authenticated and data.size() <= 16 * 1024:
+				var value = AccountPacket.parse(data)
+				if value.get("op") == "hello" and value.get("version") == 1:
+					animation_supported = true
+				animation_data.emit(value)
 		PacketInfo.PACKET_TYPE.JOIN_REQUEST:
 			var value = AccountPacket.parse(data)
 			if is_authenticated and value.get("session_id") == current_session_id \
@@ -279,6 +297,9 @@ func on_packet(data: PackedByteArray):
 		PacketInfo.PACKET_TYPE.AUTH_RESULT:
 			var values = AccountPacket.parse(data)
 			is_authenticated = values.get("success", false) == true
+			world_revision_supported = is_authenticated and values.get("world_revision_version") == 1
+			if is_authenticated and values.get("animation_version") == 1:
+				AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "hello", "version": 1}).sent(peer)
 			if is_authenticated and friend_service != null:
 				friend_service.attach(_send_social, false)
 				if values.get("social_version") == 1:

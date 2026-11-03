@@ -14,6 +14,7 @@ var quota_bytes: int = 4 * 1024 * 1024 * 1024
 var refresh_seconds := 900
 var automatic_refresh := true
 var allow_http := false
+var trust_remote_worlds := false
 var enabled := true
 var last_error := ""
 var records: Dictionary = {}
@@ -24,6 +25,7 @@ var waiters := 0
 var initialized := false
 var writable := true
 var serial := 0
+var running_jobs := 0
 
 class Lease extends RefCounted:
 	var owner: WeakRef
@@ -89,6 +91,31 @@ func blob_path(revision: String) -> String:
 func world_path(revision: String) -> String:
 	return directory.path_join("derived/worlds/" + revision + "-1/content/") if valid_hash(revision) else ""
 
+func revision_handle(revision: String) -> Dictionary:
+	if not initialize() or not valid_hash(revision) or _hash_file(blob_path(revision)) != revision:
+		return {}
+	return {"path": blob_path(revision), "hash": revision, "stale": false, "lease": retain(revision)}
+
+func pin_revision(revision: String) -> bool:
+	if not valid_hash(revision) or not writable:
+		return false
+	var found := false
+	for key in records:
+		if records[key].hash == revision:
+			records[key].pinned = true
+			found = true
+	return found and _save()
+
+func remove_revision(revision: String) -> bool:
+	if not valid_hash(revision) or not writable or pins.has(revision) or not jobs.is_empty():
+		return _error("Asset is in use; stop playback and close previews before removing it.")
+	for key in records.keys():
+		if records[key].hash == revision:
+			records.erase(key)
+	_delete_unreferenced(revision)
+	status_changed.emit()
+	return _save()
+
 func _key(source: String, kind: String) -> String:
 	return (kind + "\n" + source).sha256_text()
 
@@ -141,11 +168,13 @@ func fetch(source: String, kind: String, validator: Callable, force: bool = fals
 			await get_tree().process_frame
 		waiters -= 1
 		return job.result.duplicate()
-	while jobs.size() >= MAX_JOBS:
-		await get_tree().process_frame
 	var job = {"done": false, "result": {}}
 	jobs[key] = job
+	while running_jobs >= MAX_JOBS:
+		await get_tree().process_frame
+	running_jobs += 1
 	var result = await _fetch(source, kind, key, validator, force)
+	running_jobs -= 1
 	job.result = result
 	job.done = true
 	jobs.erase(key)
@@ -241,7 +270,7 @@ class TemporaryFile extends RefCounted:
 		if what == NOTIFICATION_PREDELETE and FileAccess.file_exists(path):
 			DirAccess.remove_absolute(path)
 
-func import_file(path: String, kind: String, validator: Callable) -> Dictionary:
+func import_file(path: String, kind: String, validator: Callable, pin_original: bool = true) -> Dictionary:
 	if not initialize() or not writable or not LIMITS.has(kind):
 		return {}
 	var file = FileAccess.open(path, FileAccess.READ)
@@ -272,7 +301,7 @@ func import_file(path: String, kind: String, validator: Callable) -> Dictionary:
 	var old = records.duplicate(true)
 	var now = Time.get_unix_time_from_system()
 	records[key] = {"kind": kind, "hash": revision, "size": size, "checked": now,
-		"accessed": now, "pinned": true, "etag": "", "modified": "", "no_cache": false}
+		"accessed": now, "pinned": pin_original or records.get(key, {}).get("pinned", false), "etag": "", "modified": "", "no_cache": false}
 	if not _save():
 		records = old
 		return {}
@@ -317,6 +346,7 @@ func usage_bytes() -> int:
 	return _directory_size(directory) if initialized else 0
 
 func _make_room(additional: int) -> bool:
+	_collect_orphans()
 	if usage_bytes() + additional <= quota_bytes:
 		return true
 	var candidates = records.keys()
@@ -340,8 +370,17 @@ func clear_unused() -> bool:
 		if not record.get("pinned", false) and not pins.has(record.hash):
 			records.erase(key)
 			_delete_unreferenced(record.hash)
+	_collect_orphans()
 	status_changed.emit()
 	return _save()
+
+func _collect_orphans():
+	var folder = DirAccess.open(directory.path_join("blobs/sha256"))
+	if folder == null:
+		return
+	for revision in folder.get_files():
+		if valid_hash(revision) and not folder.is_link(revision):
+			_delete_unreferenced(revision)
 
 func _delete_unreferenced(revision: String):
 	if pins.has(revision):

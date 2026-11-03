@@ -30,6 +30,7 @@ func run():
 	var base = "http://127.0.0.1:" + FileAccess.get_file_as_string("res://port.txt")
 	check(not cache._allowed_url("https://user:secret@example.org/a"), "credentials rejected")
 	check(not cache._allowed_url("file:///etc/passwd"), "non HTTP scheme rejected")
+	check(not cache.trust_remote_worlds, "remote executable world loading requires explicit trust opt-in")
 	check(cache._key(base + "/a?x=1", "avatar") != cache._key(base + "/a?x=2", "avatar"), "query parameters remain significant")
 	acquire(cache, base + "/asset")
 	acquire(cache, base + "/asset")
@@ -78,6 +79,8 @@ func run():
 	cache.clear_unused()
 	check(FileAccess.file_exists(first.path) and FileAccess.file_exists(imported.path), "clear unused preserves leases and imported originals")
 	check(FileAccess.file_exists("res://local.vrma"), "external source never deleted")
+	var imported_hash: String = imported.hash
+	check(not cache.remove_revision(imported_hash), "explicit removal refuses an active import lease")
 	cache.quota_bytes = 1
 	var full = await cache.fetch(base + "/another", "avatar", validate, true)
 	check(full.is_empty() and FileAccess.file_exists(imported.path), "quota exhaustion fails without deleting pinned content")
@@ -97,6 +100,8 @@ func run():
 	updated.clear()
 	restarted.clear()
 	imported.clear()
+	await process_frame
+	check(cache.remove_revision(imported_hash) and not FileAccess.file_exists(cache.blob_path(imported_hash)), "explicit removal deletes released managed import")
 	cache.queue_free()
 	await process_frame
 	print("\nAsset cache: %s passed, %s failed" % [passed, failed])

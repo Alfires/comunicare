@@ -2,7 +2,7 @@ extends Node
 
 var requests: Array = []
 
-func prepare_world_from_url(url: String) -> Dictionary:
+func prepare_world_from_url(url: String, _revision: String = "") -> Dictionary:
 	requests.append(url)
 	return {"url": url}
 

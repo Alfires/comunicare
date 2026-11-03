@@ -34,6 +34,12 @@ func _ready():
 		status_selector.disabled = true
 	$VBoxContainer/MenuGrid/WorldExplorer.pressed.connect(open_home_menu.bind("world_explorer"))
 	$VBoxContainer/MenuGrid/ActiveInstance.pressed.connect(open_home_menu.bind("share_session_menue"))
+	var animations = Button.new()
+	animations.text = "Animations"
+	animations.custom_minimum_size = Vector2(48, 48)
+	$VBoxContainer/HBoxContainer.add_child(animations)
+	$VBoxContainer/HBoxContainer.move_child(animations, 1)
+	animations.pressed.connect(open_home_menu.bind("animation_menue"))
 	$Submenu/Back.pressed.connect(close_home_menu)
 	visibility_changed.connect(_visibility_changed)
 
@@ -88,7 +94,7 @@ func open_profile(owner: String):
 	profile_panel.open_profile(SaveData.profile, owner)
 
 func open_home_menu(kind: String):
-	if kind not in ["world_explorer", "share_session_menue"]:
+	if kind not in ["world_explorer", "share_session_menue", "animation_menue"]:
 		return
 	if kind == "world_explorer" and get_parent() is TabContainer:
 		var explorer = get_parent().get_node_or_null("world_explorer")

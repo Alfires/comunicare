@@ -39,7 +39,7 @@ def main():
             shutil.copy2(ROOT / source, target)
             if (ROOT / (source + ".uid")).is_file():
                 shutil.copy2(ROOT / (source + ".uid"), project / (source + ".uid"))
-        for folder in ("scripts/profile", "scenes/GUI", "themes/icons"):
+        for folder in ("scripts/assets", "scripts/profile", "scenes/GUI", "themes/icons"):
             shutil.copytree(ROOT / folder, project / folder)
         # Read inherited desktop/VR wiring as scene text, without importing XR,
         # physical capture, avatar addons or the full player scenes.

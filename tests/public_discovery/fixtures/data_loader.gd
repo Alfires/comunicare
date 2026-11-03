@@ -9,7 +9,7 @@ func load_world_from_url(url: String) -> bool:
 	loaded_urls.append(url)
 	return true
 
-func prepare_world_from_url(url: String) -> Dictionary:
+func prepare_world_from_url(url: String, _revision: String = "") -> Dictionary:
 	loaded_urls.append(url)
 	return {} if fail_prepare else {"url": url}
 

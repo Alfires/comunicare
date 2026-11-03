@@ -11,6 +11,7 @@ var instance_results: Dictionary = {}
 var instance_rates: Dictionary = {}
 var admissions: Dictionary = {}
 var social = FriendRouter.new()
+var animations = AnimationRouter.new()
 var availabil_peer_ids: Array = range(255,-1,-1)
 
 var connection: ENetConnection
@@ -34,6 +35,7 @@ func _process(_delta):
 	
 
 func handle_events() -> void:
+	animations.tick()
 	social.tick(self)
 	_expire_admissions()
 	var packed_event: Array = connection.service()
@@ -79,6 +81,7 @@ func peer_disconnected(peer: ENetPacketPeer):
 		return
 	peer.remove_meta("id")
 	var fingerprint: String = key_mapping.get(peer_id, {}).get("fingerprint", "")
+	animations.disconnect_peer(self, peer_id)
 	social.disconnect_peer(self, peer_id)
 	availabil_peer_ids.push_back(peer_id)
 	peers.erase(peer_id)
@@ -113,6 +116,10 @@ func on_packed(peer_id: int, data: PackedByteArray):
 	if data.is_empty():
 		return
 	var packed_type: int = data.decode_u8(0)
+	if packed_type == PacketInfo.PACKET_TYPE.ANIMATION_DATA:
+		if data.size() <= 16 * 1024:
+			animations.handle(self, peer_id, AccountPacket.parse(data))
+		return
 	if packed_type == PacketInfo.PACKET_TYPE.INSTANCE_LOOKUP:
 		var lookup = AccountPacket.parse(data) if data.size() <= 1024 else {}
 		if key_mapping.has(peer_id) and lookup.get("session_id") is String:
@@ -172,6 +179,7 @@ func on_packed(peer_id: int, data: PackedByteArray):
 				"name": session.name,
 				"description": session.description,
 				"world_url": session.world_url,
+				"world_revision": session.get("world_revision", ""),
 				"revision": 1, "bans": {},
 				"name_author": peer_id, "description_author": peer_id,
 				"moderation_id": Crypto.new().generate_random_bytes(32).hex_encode(),
@@ -197,6 +205,9 @@ func on_packed(peer_id: int, data: PackedByteArray):
 				return
 			if not join_data.world_url.is_empty() and join_data.world_url != target.world_url:
 				send_result(peer_id, "join", join_data.session_id, false, "Instance world changed; refresh the list")
+				return
+			if target.get("world_revision", "") != join_data.world_revision:
+				send_result(peer_id, "join", join_data.session_id, false, "World revision mismatch; download the instance's pinned revision")
 				return
 			if (target.get("moderated", false) or target.mode == PacketInfo.MODE.REQUEST) and peer_id not in target.peers:
 				_begin_admission(peer_id, target)
@@ -248,6 +259,7 @@ func on_packed(peer_id: int, data: PackedByteArray):
 
 # tools 
 func remove_user_from_session(peer_id: int, session_index: int):
+	animations.leave(self, peer_id)
 	sessions[session_index][0].revision = int(sessions[session_index][0].get("revision", 0)) + 1
 	sessions[session_index][0]["peers"].erase(peer_id)
 	sessions[session_index][0]["owners"].erase(peer_id)
@@ -311,11 +323,14 @@ func notify_session(index: int):
 
 func send_result(peer_id: int, operation: String, session_id: String, success: bool, message: String, world_url: String = ""):
 	if peers.has(peer_id) and peers[peer_id].get_state() == ENetPacketPeer.STATE_CONNECTED:
+		var index = get_session_index(session_id)
+		var revision = sessions[index][0].get("world_revision", "") if success and index >= 0 else ""
 		SessionResult.create({"operation": operation, "session_id": session_id,
-			"success": success, "message": message, "world_url": world_url}).sent(peers[peer_id])
+			"success": success, "message": message, "world_url": world_url, "world_revision": revision}).sent(peers[peer_id])
 
 func valid_creation(value: Dictionary) -> bool:
-	return InstanceState.valid_metadata(value) and WorldAddress.is_valid(value.get("world_url"))
+	return InstanceState.valid_metadata(value) and WorldAddress.is_valid(value.get("world_url")) \
+		and (value.get("world_revision", "") == "" or InstanceState.valid_fingerprint(value.get("world_revision")))
 
 func _send_instance(peer_id: int, index: int):
 	var session: Dictionary = sessions[index][0]
@@ -468,7 +483,7 @@ func _handle_auth(peer_id: int, type: int, values: Dictionary):
 		if success:
 			authenticate_peer(peer_id, authenticator.get_identity(peer_id).public_key)
 		AccountPacket.create(PacketInfo.PACKET_TYPE.AUTH_RESULT,
-			{"success": success, "social_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
+			{"success": success, "social_version": 1, "animation_version": 1, "world_revision_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
 
 func authenticate_peer(peer_id: int, verified_public_key: String):
 	# Internal trust boundary; wire handlers call this only after proof verification.

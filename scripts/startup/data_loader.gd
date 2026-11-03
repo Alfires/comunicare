@@ -8,6 +8,10 @@ var asset_cache: Node
 var cache_poll_elapsed := 0.0
 var avatar_sources: Dictionary = {}
 var active_world: Dictionary = {}
+var animation_thread: Thread
+var animation_waiters := 0
+var animation_import_busy := false
+var animation_import_error := ""
 const MAX_AVATAR_BYTES = 64 * 1024 * 1024
 const MAX_AVATAR_WAITERS = 8
 
@@ -24,7 +28,7 @@ func get_asset_cache() -> Node:
 		var settings = get_node_or_null("/root/SaveData")
 		if settings != null and settings.get("store") != null:
 			settings.store.setting_changed.connect(_cache_setting_changed)
-			for id in ["cache.quota_mib", "cache.automatic_refresh", "cache.allow_http"]:
+			for id in ["cache.quota_mib", "cache.automatic_refresh", "cache.allow_http", "cache.trust_remote_worlds"]:
 				_cache_setting_changed(id, settings.store.get_value(id))
 	return asset_cache
 
@@ -35,6 +39,7 @@ func _cache_setting_changed(id: String, value: Variant):
 		"cache.quota_mib": asset_cache.quota_bytes = int(value) * 1024 * 1024
 		"cache.automatic_refresh": asset_cache.automatic_refresh = value == true
 		"cache.allow_http": asset_cache.allow_http = value == true
+		"cache.trust_remote_worlds": asset_cache.trust_remote_worlds = value == true
 
 func load_vrm_from_url(url: String, force: bool = false):
 	var cache = get_asset_cache()
@@ -46,10 +51,48 @@ func load_vrm_from_url(url: String, force: bool = false):
 		model.set_meta("asset_lease", handle.lease)
 		model.set_meta("asset_revision", handle.hash)
 		model.set_meta("asset_source", url)
-		avatar_sources[url] = weakref(model)
+		if not avatar_sources.has(url):
+			avatar_sources[url] = []
+		avatar_sources[url].append(weakref(model))
 	return model
 
+func read_animation(path: String, bytes: PackedByteArray = PackedByteArray()) -> Dictionary:
+	if not is_inside_tree() or animation_waiters >= 8:
+		return {}
+	animation_waiters += 1
+	while animation_import_busy:
+		await get_tree().process_frame
+	animation_waiters -= 1
+	animation_import_busy = true
+	animation_thread = Thread.new()
+	if animation_thread.start(_read_animation_worker.bind(path, bytes)) != OK:
+		animation_thread = null
+		animation_import_busy = false
+		return {}
+	while animation_thread.is_alive():
+		await get_tree().process_frame
+	var result: Dictionary = animation_thread.wait_to_finish()
+	animation_thread = null
+	animation_import_busy = false
+	animation_import_error = result.get("error", "")
+	return result.get("data", {})
+
+func _read_animation_worker(path: String, bytes: PackedByteArray) -> Dictionary:
+	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
+	var data = reader.read_file(path) if not path.is_empty() else reader.read_bytes(bytes)
+	return {"data": data, "error": reader.last_error}
+
 func _validate_avatar(path: String) -> bool:
+	# URL VRM assets must be self-contained binary glTF; a local preview's
+	# existing byte import remains independent from this network trust gate.
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null or file.get_length() > MAX_AVATAR_BYTES:
+		return false
+	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
+	var bytes = file.get_buffer(file.get_length())
+	file.close()
+	if reader.document(bytes, MAX_AVATAR_BYTES).is_empty():
+		return false
 	var model = await _load_model_from_file(path)
 	if model == null:
 		return false
@@ -62,10 +105,22 @@ func _process(delta: float):
 		return
 	cache_poll_elapsed = randf_range(-30, 30)
 	for source in avatar_sources.keys():
-		if avatar_sources[source].get_ref() == null:
+		avatar_sources[source] = avatar_sources[source].filter(func(reference): return reference.get_ref() != null)
+		if avatar_sources[source].is_empty():
 			avatar_sources.erase(source)
 		else:
 			await asset_cache.fetch(source, "avatar", _validate_avatar)
+	if not active_world.get("source_url", "").is_empty():
+		await asset_cache.fetch(active_world.source_url, "world", _validate_world_archive)
+
+func refresh_loaded_assets():
+	var cache = get_asset_cache()
+	for source in avatar_sources.keys():
+		avatar_sources[source] = avatar_sources[source].filter(func(reference): return reference.get_ref() != null)
+		if not avatar_sources[source].is_empty():
+			await cache.fetch(source, "avatar", _validate_avatar, true)
+	if not active_world.get("source_url", "").is_empty():
+		await cache.fetch(active_world.source_url, "world", _validate_world_archive, true)
 
 func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D:
 	if buffer.is_empty() or buffer.size() > MAX_AVATAR_BYTES:
@@ -112,9 +167,22 @@ func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D:
 	var error = gltf.append_from_buffer(buffer, "", state, 8)
 	if error != OK:
 		return null
-	return gltf.generate_scene(state) as Node3D
+	var model = gltf.generate_scene(state) as Node3D
+	if model != null:
+		var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
+		var mapping = reader.humanoid_nodes(state.json)
+		var bone_names: Dictionary = {}
+		var nodes = state.get_nodes()
+		for bone in mapping:
+			if mapping[bone] < nodes.size():
+				bone_names[bone] = nodes[mapping[bone]].resource_name
+		model.set_meta("humanoid_bones", bone_names)
+	return model
 
 func _exit_tree():
+	if animation_thread != null and animation_thread.is_started():
+		animation_thread.wait_to_finish()
+		animation_thread = null
 	# Shutdown is the only blocking join. A detached result must not leak if the
 	# owning loader is removed before its awaiting caller can receive the model.
 	if avatar_thread != null and avatar_thread.is_started():
@@ -128,15 +196,26 @@ func load_world_from_url(cne_word_url: String) -> bool:
 	var staged = await prepare_world_from_url(cne_word_url)
 	return await activate_world(staged) if not staged.is_empty() else false
 
-func prepare_world_from_url(url: String) -> Dictionary:
+func prepare_world_from_url(url: String, expected_revision: String = "") -> Dictionary:
 	if not WorldAddress.is_valid(url):
 		return {}
 	if url == "default_wold":
 		var home = load("res://scenes/world.tscn")
-		return {"scene": home, "spawn_point": [0, 1, 0]} if home is PackedScene else {}
+		var revision = built_in_world_revision()
+		if not expected_revision.is_empty() and expected_revision != revision:
+			return {}
+		return {"scene": home, "spawn_point": [0, 1, 0], "revision": revision} if home is PackedScene else {}
 	var cache = get_asset_cache()
-	var handle: Dictionary = await cache.fetch(url, "world", _validate_world_archive)
+	if not cache.trust_remote_worlds:
+		cache.last_error = "Remote worlds can execute code. Enable trusted world publishers in Assets settings only for URLs you trust."
+		return {}
+	var handle: Dictionary = cache.revision_handle(expected_revision) if not expected_revision.is_empty() else {}
 	if handle.is_empty():
+		handle = await cache.fetch(url, "world", _validate_world_archive)
+	if handle.is_empty():
+		return {}
+	if not expected_revision.is_empty() and handle.hash != expected_revision:
+		cache.last_error = "The instance's pinned world revision is no longer available at this URL."
 		return {}
 	var content = cache.world_path(handle.hash)
 	if handle.get("temporary", false):
@@ -144,19 +223,36 @@ func prepare_world_from_url(url: String) -> Dictionary:
 	# Derived files are immutable once referenced. Each changed archive hash
 	# gets its own folder; refresh never writes into the active scene's files.
 	var staged: Dictionary
-	if FileAccess.file_exists(content + "manifest.json"):
+	if FileAccess.file_exists(content + ".ready"):
 		staged = _prepare_extracted_world(content)
 	else:
+		cache._clear_directory(content.trim_suffix("/"))
 		staged = prepare_world(handle.path, content)
+		if not staged.is_empty():
+			if not cache._make_room(0):
+				staged.clear()
+				cache._clear_directory(content.trim_suffix("/"))
+				cache.last_error = "Extracted world exceeds the available cache budget."
+				return {}
+			var marker = FileAccess.open(content + ".ready", FileAccess.WRITE)
+			if marker == null:
+				return {}
+			marker.store_string(handle.hash)
+			marker.close()
 	if not staged.is_empty():
 		staged["asset_handle"] = handle
 		staged["revision"] = handle.hash
+		staged["source_url"] = url
 		if handle.get("temporary", false):
 			var cleanup = TemporaryWorld.new()
 			cleanup.cache = weakref(cache)
 			cleanup.path = content.get_base_dir().trim_suffix("/content")
 			staged["extraction_lease"] = cleanup
 	return staged
+
+func built_in_world_revision() -> String:
+	# The built-in scene is shipped with the application, not publisher content.
+	return FileAccess.get_sha256("res://scenes/world.tscn")
 
 class TemporaryWorld extends RefCounted:
 	var cache: WeakRef

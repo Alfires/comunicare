@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "library": "comunicare.procedural.v1",
+  "author": "Comunicare contributors (original procedural recipes)",
+  "created": "2026-11-03",
+  "license": "CC0-1.0",
+  "source": "res://scripts/assets/default_animations.gd",
+  "conversion": "None; generated directly as humanoid quaternion keyframes. No third-party motion data.",
+  "clips": ["idle", "walk", "run", "jump", "fall", "land", "wave", "cheer"]
+}

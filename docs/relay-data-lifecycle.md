@@ -57,3 +57,13 @@ Verification is in `tests/active_instance/run.py`: actual multi-client cleanup/r
 - Verify that no user data is written by the relay, and that a relay restart has no account/session/social/moderation history. Distinguish static server configuration from user data.
 - Revise ban tests to require client-local policy and fresh admission authorization rather than a relay-held disconnected-account ban list.
 - Confirm remaining users' unrelated active state still works after cleanup. Run profile, discovery, Active Instance and microphone regressions, plus future friends/presence tests.
+# Animation extension (wire ID 28)
+
+Capability-negotiated animation routing keeps only current connected-user state,
+per-connection random generations, rate counters and bounded requested-transfer
+metadata. The relay never downloads motion URLs or writes animation files. It
+forwards requested chunks directly and forgets completed/expired transfers.
+Leaving an instance removes its actor state and pairwise transfer references;
+disconnect also removes capabilities, generations and rate counters. No offline
+animation mailbox, durable playback history or disconnected-owner source list is
+permitted. Client-local cache/library retention is separate from relay policy.

@@ -108,6 +108,15 @@ func _add_cache_actions(page: VBoxContainer):
 	open.text = "Open cache folder"
 	open.pressed.connect(func(): OS.shell_open(ProjectSettings.globalize_path(cache.directory)))
 	page.add_child(open)
+	var refresh = Button.new()
+	refresh.text = "Check loaded avatars and world for updates now"
+	refresh.pressed.connect(func():
+		refresh.disabled = true
+		await DataLoader.call("refresh_loaded_assets")
+		if is_instance_valid(refresh):
+			refresh.disabled = false
+		update.call())
+	page.add_child(refresh)
 	var clear = Button.new()
 	clear.text = "Clear unused downloads (keep active assets and imports)"
 	page.add_child(clear)

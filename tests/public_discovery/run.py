@@ -30,6 +30,7 @@ def main():
             "scripts/multiplayer/network_handler.gd",
             "scripts/startup/data_loader.gd",
             "scripts/assets/asset_cache.gd",
+            "scripts/assets/humanoid_animation.gd",
             "scenes/GUI/world_explorer.tscn",
             *[str(p.relative_to(ROOT)) for p in (ROOT / "relay_protocol").glob("*.gd")],
         ]
@@ -42,6 +43,8 @@ def main():
                 shutil.copy2(uid, project / (source + ".uid"))
         shutil.copytree(HERE / "fixtures", project / "fixtures")
         shutil.copytree(ROOT / "scripts/profile", project / "scripts/profile")
+        for source in (ROOT / "scripts/assets").glob("*.gd"):
+            shutil.copy2(source, project / "scripts/assets" / source.name)
         shutil.copytree(ROOT / "themes/icons", project / "themes/icons")
         # Keep heavy avatar/world assets out of this isolated contract project.
         remote = project / "scenes/player/remote_player.tscn"

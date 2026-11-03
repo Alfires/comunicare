@@ -26,6 +26,15 @@ var management_pending: Dictionary = {}
 var management_sequence := 0
 var instance_status := ""
 var snapshot_deadline := 0
+var animation_controller: Node
+
+func get_animation_controller() -> Node:
+	if animation_controller == null:
+		animation_controller = preload("res://scripts/assets/animation_controller.gd").new()
+		# Do not make this a child: remote-player cleanup iterates every child.
+		get_tree().root.add_child(animation_controller)
+		animation_controller.configure(self, DataLoader)
+	return animation_controller
 
 func _ready() -> void:
 	if "--relay" in OS.get_cmdline_args() or OS.has_feature("dedicated_server"):
@@ -64,6 +73,7 @@ func _process(_delta):
 
 
 func create_peer():
+	get_animation_controller()
 	peer = RelayPeer.new()
 	peer.account_key = SaveData.key
 	if SaveData.get("friends") != null:
@@ -95,6 +105,8 @@ func create_session(world_url: String = "default_wold", mode: int = PacketInfo.M
 	if peer == null or not peer.is_connected_to_relay or not peer.is_authenticated:
 		return
 	var username = str(SaveData.data.get("username", "Player"))
+	if peer.world_revision_supported and world_url == "default_wold" and DataLoader.has_method("built_in_world_revision"):
+		peer.expected_world_revision = DataLoader.built_in_world_revision()
 	peer.create_session(mode, username.left(128), "The world from " + username, world_url)
 	
 
@@ -148,6 +160,15 @@ func sync_player_voice(data: VoiceData): #PackedFloat32Array
 func join_session(session_id: String, world_url: String = "") -> bool:
 	if not _begin_transition():
 		return false
+	var expected_revision := ""
+	if peer.world_revision_supported:
+		_start_request("resolve", session_id)
+		peer.resolve_instance(session_id)
+		var resolved: Dictionary = await session_response
+		if not resolved.get("success", false):
+			return _transition_failed(str(resolved.get("message", "Instance unavailable")))
+		world_url = str(resolved.get("world_url", ""))
+		expected_revision = str(resolved.get("world_revision", ""))
 	if world_url.is_empty():
 		# Manual room codes use the same public directory, never guess a world.
 		for session in peer.public_session:
@@ -164,12 +185,20 @@ func join_session(session_id: String, world_url: String = "") -> bool:
 			world_url = str(lookup.get("world_url", ""))
 	if not WorldAddress.is_valid(world_url):
 		return _transition_failed("Instance unavailable or world address could not be resolved")
-	var staged: Dictionary = await DataLoader.prepare_world_from_url(world_url)
+	var staged: Dictionary
+	if not expected_revision.is_empty():
+		staged = await DataLoader.prepare_world_from_url(world_url, expected_revision)
+	else:
+		staged = await DataLoader.prepare_world_from_url(world_url)
 	if staged.is_empty():
-		return _transition_failed("Could not download or validate the instance's world")
+		var message = "Could not download or validate the instance's world"
+		if DataLoader.has_method("get_asset_cache"):
+			message += ": " + DataLoader.get_asset_cache().last_error
+		return _transition_failed(message)
 	if not peer.is_connected_to_relay:
 		return _transition_failed("Relay disconnected while loading the world")
 	_start_request("join", session_id)
+	peer.expected_world_revision = expected_revision
 	peer.join_session(session_id, world_url)
 	var result: Dictionary = await session_response
 	return await _finish_transition(result, staged, world_url)
@@ -181,10 +210,14 @@ func host_world(world_url: String) -> bool:
 		return _transition_failed("Invalid world address")
 	var staged: Dictionary = await DataLoader.prepare_world_from_url(world_url)
 	if staged.is_empty():
-		return _transition_failed("Could not download or validate the world")
+		var message = "Could not download or validate the world"
+		if DataLoader.has_method("get_asset_cache"):
+			message += ": " + DataLoader.get_asset_cache().last_error
+		return _transition_failed(message)
 	if not peer.is_connected_to_relay:
 		return _transition_failed("Relay disconnected while loading the world")
 	_start_request("create", "")
+	peer.expected_world_revision = str(staged.get("revision", "")) if peer.world_revision_supported else ""
 	create_session(world_url)
 	var result: Dictionary = await session_response
 	return await _finish_transition(result, staged, world_url)
@@ -218,6 +251,8 @@ func _finish_transition(result: Dictionary, staged: Dictionary, world_url: Strin
 		return _transition_failed(str(result.get("message", "Instance request failed")))
 	if result.get("world_url") != world_url:
 		return _activation_failed("Relay returned a different world URL")
+	if not result.get("world_revision", "").is_empty() and result.world_revision != staged.get("revision", ""):
+		return _activation_failed("Relay acknowledged a different world revision")
 	if current_session_id != result.get("session_id"):
 		return _transition_failed("Instance membership ended before world activation")
 	if not await DataLoader.activate_world(staged):
@@ -311,6 +346,8 @@ func update_connected_peers():
 	participants_changed.emit()
 
 func _reset_instance_state():
+	if is_instance_valid(animation_controller):
+		animation_controller.clear()
 	active_instance.clear()
 	management_pending.clear()
 	snapshot_deadline = 0

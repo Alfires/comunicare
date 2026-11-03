@@ -61,6 +61,7 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	await test_transition_blending()
 	var walk = Defaults.clip("walk")
 	var upper_tracks: Dictionary = {}
 	for track in walk.tracks:
@@ -127,6 +128,51 @@ func run():
 	await test_network()
 	print("\nAnimation contracts: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
+
+func test_transition_blending():
+	var avatar = Node3D.new()
+	var rig = Skeleton3D.new()
+	rig.name = "Rig"
+	rig.add_bone("Arm")
+	avatar.add_child(rig)
+	avatar.set_meta("humanoid_bones", {"leftUpperArm": "Arm"})
+	root.add_child(avatar)
+	var animator = Animator.new()
+	avatar.add_child(animator)
+	animator.attach(avatar)
+	var first = {"duration": 1.0, "tracks": [{"bone": "leftUpperArm", "keys": [{"time": 0.0, "rotation": Quaternion(Vector3.FORWARD, 0.8)}, {"time": 1.0, "rotation": Quaternion(Vector3.FORWARD, 0.8)}]}]}
+	var second = first.duplicate(true)
+	for key in second.tracks[0].keys: key.rotation = Quaternion(Vector3.FORWARD, -0.8)
+	animator.play_clip(first)
+	animator.player.advance(0.5)
+	var before = rig.get_bone_pose_rotation(0)
+	animator.play_clip(second)
+	check(before.angle_to(rig.get_bone_pose_rotation(0)) < 0.02, "changing clips preserves current pose instead of snapping")
+	animator.player.advance(0.1)
+	var middle = rig.get_bone_pose_rotation(0)
+	check(before.angle_to(middle) > 0.1 and middle.angle_to(Quaternion(Vector3.FORWARD, -0.8)) > 0.1, "transition passes through an intermediate blended pose")
+	animator.play_clip(first)
+	check(middle.angle_to(rig.get_bone_pose_rotation(0)) < 0.02, "interrupting a blend starts from the currently visible pose")
+	animator.player.advance(0.4)
+	check(rig.get_bone_pose_rotation(0).angle_to(before) < 0.02, "blend converges to the requested animation")
+	var desktop_camera = Camera3D.new()
+	var xr_origin = XROrigin3D.new()
+	var xr_camera = XRCamera3D.new()
+	var body = Node3D.new()
+	root.add_child(body)
+	body.add_child(desktop_camera)
+	body.add_child(xr_origin)
+	xr_origin.add_child(xr_camera)
+	desktop_camera.position = Vector3(0, 1.6, 0)
+	xr_camera.position = Vector3(0.1, 1.7, 0.2)
+	var desktop_before = desktop_camera.global_transform
+	var xr_before = xr_camera.global_transform
+	animator.play_clip(second)
+	animator.player.advance(0.3)
+	check(desktop_camera.global_transform.is_equal_approx(desktop_before) and xr_camera.global_transform.is_equal_approx(xr_before),
+		"avatar transition leaves independent desktop and tracked XR camera transforms unchanged")
+	body.free()
+	avatar.free()
 
 func test_authored_upper_body():
 	var walk = Defaults.clip("walk")

@@ -34,6 +34,9 @@ func run():
 	test_menu_router()
 	test_settings()
 	test_main_menu_wiring()
+	test_viewport_coordinates()
+	test_pointer_capture()
+	test_comfort_state()
 	print("\nRED VR controls: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -71,6 +74,13 @@ func test_planar_locomotion():
 	check(motion.desired_velocity(Vector2(0.01, 0), Basis.IDENTITY, 2.0, 0.1) == Vector3.ZERO, "radial dead zone suppresses drift")
 	var vertical: Vector3 = motion.desired_velocity(Vector2(0, -1), Basis(Vector3.RIGHT, PI * 0.5), 2.0, 0.1)
 	check(vertical.is_finite() and absf(vertical.y) < 0.001 and absf(vertical.length() - 2.0) < 0.001, "near-vertical gaze retains last valid planar direction")
+	var backward: Vector3 = motion.desired_velocity(Vector2(0, 1), Basis.IDENTITY, 2.0, 0.1)
+	check(backward.is_equal_approx(Vector3(0, 0, 2)), "backward input does not reverse an unrelated axis")
+	var analog: Vector3 = motion.desired_velocity(Vector2(0, -0.55), Basis.IDENTITY, 2.0, 0.1)
+	check(absf(analog.length() - 1.0) < 0.001, "analog magnitude is remapped continuously outside radial dead zone")
+	var rolled: Vector3 = motion.desired_velocity(Vector2(1, 0), Basis(Vector3.FORWARD, 0.8), 2.0, 0.1)
+	check(rolled.is_equal_approx(Vector3(2, 0, 0)), "head roll does not tilt or slow rightward ground motion")
+	check(motion.desired_velocity(Vector2.ZERO, Basis.IDENTITY, 2.0, 0.1) == Vector3.ZERO, "released movement input requests zero velocity")
 	if motion is Node: motion.free()
 
 func test_turning():
@@ -87,6 +97,15 @@ func test_turning():
 	var pivot = Vector3(0.8, 0, -0.4)
 	var changed: Transform3D = turn.pivot_transform(Transform3D.IDENTITY, pivot, PI * 0.5)
 	check((changed * pivot).is_equal_approx(pivot), "turning keeps room-scale headset floor pivot stationary")
+	turn.reset()
+	check(is_zero_approx(turn.step(0.2, 0.016, "snap", 30.0, 60.0)), "subthreshold turn input cannot snap")
+	check(is_equal_approx(turn.step(-1.0, 0.016, "snap", 45.0, 60.0), deg_to_rad(45)), "left snap respects selected angle and sign")
+	check(is_zero_approx(turn.step(1.0, 0.016, "snap", 45.0, 60.0)), "crossing directly from left to right must rearm through neutral")
+	for rate in [30, 72, 90, 120]:
+		turn.reset()
+		var angle := 0.0
+		for i in rate: angle += turn.step(-1.0, 1.0 / rate, "smooth", 30.0, 60.0)
+		check(absf(angle - deg_to_rad(60)) < 0.001, "smooth turn is frame-rate independent at %s Hz" % rate)
 	if turn is Node: turn.free()
 
 func test_menu_router():
@@ -102,6 +121,8 @@ func test_menu_router():
 	input.reset()
 	check(not input.menu_toggle(true, false, true), "modal/text input suppresses controller menu intent")
 	check(not input.menu_toggle(true, false, false), "suppressed held press requires release before reactivation")
+	input.menu_toggle(false, false, false)
+	check(input.menu_toggle(true, false, false), "release after suppression restores next deliberate menu press")
 	if input is Node: input.free()
 
 func test_settings():
@@ -135,3 +156,68 @@ func test_main_menu_wiring():
 	check(wired, "VR player actually loads a shared main-menu viewport, not only the emote wheel")
 	var action_map = FileAccess.get_file_as_string("res://evidence/openxr_action_map.tres.txt")
 	check(action_map.contains('resource_name = "ax_button"') and action_map.contains("/user/hand/left/input/x/click") and action_map.contains("/user/hand/right/input/a/click"), "existing OpenXR map supplies both lower A/X defaults")
+
+func test_viewport_coordinates():
+	# Exercise the actual production non-square viewport mapping, not a stub.
+	var source = FileAccess.get_file_as_string("res://scripts/GUI/vr_gui.gd")
+	var type_safe = not source.contains("var uv = local_point * 0.5 + Vector3")
+	check(type_safe, "production viewport mapping converts its 3D hit to Vector2 before pixel multiplication")
+	if not type_safe:
+		print("BLOCKED: six viewport behavior assertions await removal of the known Vector3 × Vector2 runtime error")
+		return
+	var panel = load("res://scripts/GUI/vr_gui.gd").new()
+	panel.size = Vector2(2, 1)
+	panel.pixel_per_unit = 200
+	var viewport = SubViewport.new()
+	viewport.name = "SubViewport"
+	panel.add_child(viewport)
+	var mesh = MeshInstance3D.new()
+	mesh.name = "MeshInstance3D"
+	mesh.mesh = QuadMesh.new()
+	panel.add_child(mesh)
+	root.add_child(panel)
+	check(panel.raycast_to_viewport_point(Vector3(0, 0, 1), Vector3.FORWARD).is_equal_approx(Vector2(200, 100)), "production non-square UI ray maps center to viewport center")
+	check(panel.raycast_to_viewport_point(Vector3(0.5, 0.25, 1), Vector3.FORWARD).is_equal_approx(Vector2(300, 50)), "production ray uses actual panel width/height and inverted viewport Y")
+	check(panel.raycast_to_viewport_point(Vector3(1.2, 0, 1), Vector3.FORWARD) == Vector2(-1, -1), "ray outside quad is rejected rather than injected into controls")
+	check(panel.raycast_to_viewport_point(Vector3(0, 0, -1), Vector3.BACK) == Vector2(-1, -1), "back-side UI ray cannot click mirrored controls")
+	check(panel.raycast_to_viewport_point(Vector3(0, 0, 1), Vector3.RIGHT) == Vector2(-1, -1), "parallel ray produces no UI hit")
+	panel.position = Vector3(3, 2, -4)
+	panel.rotation.y = PI * 0.5
+	var origin = panel.to_global(Vector3(0, 0, 1))
+	check(panel.raycast_to_viewport_point(origin, -panel.global_basis.z).is_equal_approx(Vector2(200, 100)), "transformed world-space panel keeps correct center mapping")
+	panel.queue_free()
+
+func test_pointer_capture():
+	var pointer = component("res://scripts/GUI/vr_pointer_router.gd", ["hover", "press", "release", "cancel", "drain_events"])
+	if pointer == null: return
+	pointer.hover("right", Vector2(100, 80), true)
+	pointer.press("right")
+	var down: Array = pointer.drain_events()
+	check(down.size() == 1 and down[0].get("pressed") == true, "UI pointer emits one owned press")
+	pointer.hover("right", Vector2(-1, -1), false)
+	pointer.release("right")
+	var up: Array = pointer.drain_events()
+	check(up.size() == 1 and up[0].get("pressed") == false, "dragging off quad still releases captured UI press")
+	pointer.release("right")
+	check(pointer.drain_events().is_empty(), "duplicate release cannot fire a second action")
+	pointer.hover("left", Vector2(50, 40), true)
+	pointer.press("left")
+	pointer.drain_events()
+	pointer.cancel()
+	var canceled: Array = pointer.drain_events()
+	check(canceled.size() == 1 and canceled[0].get("pressed") == false, "menu close or tracker loss releases held pointer once")
+	pointer.press("right")
+	check(pointer.drain_events().is_empty(), "invalid hit never starts a new UI press")
+	if pointer is Node: pointer.free()
+
+func test_comfort_state():
+	var comfort = component("res://scripts/player/vr_comfort.gd", ["update_vignette", "reset"])
+	if comfort == null: return
+	comfort.reset()
+	check(is_zero_approx(comfort.update_vignette(0.0, 0.0, 0.1, true)), "stationary comfort vignette stays open")
+	var moving: float = comfort.update_vignette(2.0, 0.0, 0.1, true)
+	check(moving > 0 and moving < 1, "movement comfort effect fades in rather than instantly blacking out")
+	check(is_zero_approx(comfort.update_vignette(2.0, 90.0, 0.1, false)), "disabled comfort effect leaves view unobscured")
+	comfort.reset()
+	check(is_zero_approx(comfort.update_vignette(0.0, 0.0, 0.0, true)), "focus/session reset clears old comfort overlay state")
+	if comfort is Node: comfort.free()

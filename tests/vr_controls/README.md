@@ -12,7 +12,7 @@ starts capture, loads an account, contacts a relay or opens an XR session.
 The current input-scale check registers a synthetic XRControllerTracker input;
 it does not override native XRController methods or use physical tracking.
 
-Initial baseline: **1 passed, 17 failed**, exit 1, without Godot errors. The guarded
+Expanded baseline: **1 passed, 20 failed**, exit 1, without Godot errors. The guarded
 future-component groups will expand their behavioral assertions once components
 exist; the summary is therefore not the final implemented-system assertion count.
 
@@ -34,6 +34,25 @@ These contracts may be adapted with implementation evidence, not replaced with
 passing empty stubs. Missing components stop only their dependent assertions while
 independent settings/current-code tests still run. Proposed setting IDs/defaults
 are product contracts for this suite, not claims they already exist.
+
+Additional contracts:
+
+- `scripts/GUI/vr_pointer_router.gd`: `hover(hand, pixels, hit_valid)`,
+  `press(hand)`, `release(hand)`, `cancel()`, `drain_events()` → array of pending
+  press/release dictionaries (`pressed` boolean). Hover is state only; drag-off
+  release/cancel must release owned press exactly once.
+- `scripts/player/vr_comfort.gd`: `update_vignette(speed_mps, turn_dps, delta,
+  enabled)` → bounded obscuration strength, `reset()`. This tests state, not rendering.
+
+The production `VRViewport2D` helper has a known Vector3 × Vector2 runtime bug.
+A failing precondition assertion reports it without treating Godot errors as an
+acceptable red baseline. Six real ray-mapping checks (non-square dimensions,
+inverted Y, bounds, back face, parallel rays, transformed panel) are explicitly
+blocked until that precondition is fixed. They are not counted as passed or as
+executed assertions. No production fix is included here.
+
+Guarded movement/turn groups now additionally cover analog magnitude, backward
+motion, head roll, release, opposite snap rearm and multiple frame rates.
 
 Later phases still need executable capsule/room-scale collision, actual menu
 pointer/drag/scroll/keyboard interaction, vignette rendering, teleport validation,

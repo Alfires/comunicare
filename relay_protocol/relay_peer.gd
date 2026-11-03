@@ -5,6 +5,7 @@ var relay := ENetMultiplayerPeer.new()
 var peer: ENetPacketPeer
 
 var public_session := []
+var is_connected_to_relay := false
 
 ## The connection of the connected relay. Of type ENetConnection.
 var connection: ENetConnection
@@ -18,7 +19,6 @@ signal voice_data()
 signal on_public_session()
 
 func connect_to_relay(relay_ip: String,relay_port: int):
-	var public_key = SaveData.key.save_to_string(true)
 	connection = ENetConnection.new()
 	var error: Error = connection.create_host(1)
 	if error:

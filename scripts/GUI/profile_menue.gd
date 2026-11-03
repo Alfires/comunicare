@@ -37,6 +37,8 @@ func _ready():
 	friend_actions = HFlowContainer.new()
 	body.add_child(friend_actions)
 	body.move_child(friend_actions, 1)
+	if SaveData.get("friends") != null:
+		SaveData.friends.changed.connect(_friend_changed)
 
 func open_profile(profile_service, fingerprint: String):
 	if is_instance_valid(editor):
@@ -73,11 +75,14 @@ func _refresh():
 	body.get_node("KeyActions").visible = not snapshot.is_empty()
 	body.get_node("LoadPicture").visible = not str(snapshot.get("profile.icon_source", "")).is_empty()
 	body.get_node("Status").text = "My profile" if is_editable() else "Read-only • owner-signed public profile"
+	if service == SaveData.get("friends"):
+		body.get_node("Status").text = "Read-only • cached contact; verify fingerprint. Media loads only on request."
+	_render_friend_actions()
 	var avatar_source = str(snapshot.get("profile.avatar_url", ""))
 	var avatar_changed = avatar_preview.source != avatar_source
 	if avatar_changed:
 		avatar_preview.set_source(avatar_source)
-	if not snapshot.is_empty() \
+	if not snapshot.is_empty() and service != SaveData.get("friends") \
 		and (avatar_changed or not is_instance_valid(avatar_preview.model)):
 		avatar_preview.load_preview()
 	if snapshot.is_empty():
@@ -146,3 +151,34 @@ func _notification(what):
 
 func _exit_tree():
 	_unsubscribe()
+	if SaveData.get("friends") != null and SaveData.friends.changed.is_connected(_friend_changed):
+		SaveData.friends.changed.disconnect(_friend_changed)
+
+func _friend_changed():
+	if is_node_ready() and is_visible_in_tree():
+		_render_friend_actions()
+
+func _render_friend_actions():
+	for child in friend_actions.get_children():
+		friend_actions.remove_child(child)
+		child.queue_free()
+	var friends = SaveData.get("friends")
+	if friends == null or friends.owner.is_empty() or profile_owner == friends.owner or snapshot.is_empty():
+		return
+	var status = Label.new()
+	status.text = friends.status(profile_owner)
+	friend_actions.add_child(status)
+	var save_contact = Button.new()
+	save_contact.text = "Save contact"
+	save_contact.pressed.connect(func(): friends.add_contact(get_displayed_public_key(), "", snapshot))
+	friend_actions.add_child(save_contact)
+	var add_friend = Button.new()
+	var relationship = friends.relationship(profile_owner)
+	var blocked: bool = friends.contacts().get(profile_owner, {}).get("blocked", false)
+	add_friend.text = {"friends": "Already friends", "outgoing": "Friend request sent", "incoming": "Incoming request — open Friends", "accepting": "Acceptance pending"}.get(relationship.get("status", ""), "Send friend request")
+	add_friend.disabled = blocked or not relationship.is_empty()
+	add_friend.tooltip_text = "Unblock this account in Friends first" if blocked else "Send a request to this public-key account. Friendship requires their acceptance."
+	add_friend.pressed.connect(func():
+		if not friends.add_contact(get_displayed_public_key(), "", snapshot) or not friends.send_request(profile_owner):
+			_show_error(friends.last_error))
+	friend_actions.add_child(add_friend)

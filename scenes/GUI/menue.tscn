@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://66yrw0ybyadj" path="res://scripts/GUI/menue.gd" id="1_8hq4l"]
 [ext_resource type="PackedScene" uid="uid://2lq4diyhql5i" path="res://scenes/GUI/home_menue.tscn" id="1_sjkj6"]
-[ext_resource type="PackedScene" uid="uid://bj01f1oxo6lkv" path="res://scenes/GUI/world_explorer.tscn" id="2_8hq4l"]
-[ext_resource type="PackedScene" uid="uid://c7sqcc0dridxr" path="res://scenes/GUI/share_session_menue.tscn" id="3_dpg68"]
 [ext_resource type="PackedScene" uid="uid://cw1ia8xw77ut3" path="res://scenes/GUI/settings_menue.tscn" id="4_urf01"]
+[ext_resource type="PackedScene" path="res://scenes/GUI/friends_menue.tscn" id="5_friends"]
+[ext_resource type="PackedScene" uid="uid://bj01f1oxo6lkv" path="res://scenes/GUI/world_explorer.tscn" id="6_explorer"]
 
 [node name="menue" type="TabContainer" unique_id=1733054730]
 anchors_preset = -1
@@ -18,8 +18,8 @@ tab_alignment = 1
 current_tab = 0
 tabs_position = 1
 tab_0/title = "Home"
-tab_1/title = "World Explorer"
-tab_2/title = "Session Share"
+tab_1/title = "Friends"
+tab_2/title = "World Explorer"
 tab_3/title = "Settings"
 script = ExtResource("1_8hq4l")
 
@@ -28,17 +28,17 @@ layout_mode = 2
 metadata/_tab_index = 0
 metadata/_tab_name = "Home"
 
-[node name="world_explorer" parent="." unique_id=538100789 instance=ExtResource("2_8hq4l")]
+[node name="friends_menue" parent="." instance=ExtResource("5_friends")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
-metadata/_tab_name = "World Explorer"
+metadata/_tab_name = "Friends"
 
-[node name="share_session_menue" parent="." unique_id=927537756 instance=ExtResource("3_dpg68")]
+[node name="world_explorer" parent="." instance=ExtResource("6_explorer")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 2
-metadata/_tab_name = "Session Share"
+metadata/_tab_name = "World Explorer"
 
 [node name="settings_menue" parent="." unique_id=1920010780 instance=ExtResource("4_urf01")]
 visible = false

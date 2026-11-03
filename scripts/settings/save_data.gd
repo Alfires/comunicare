@@ -14,6 +14,7 @@ var registry = preload("res://scripts/settings/settings_registry.gd").new()
 var store = preload("res://scripts/settings/settings_store.gd").new()
 var voice = preload("res://scripts/player/voice_controller.gd").new()
 var profile = preload("res://scripts/profile/profile_service.gd").new()
+var friends = preload("res://scripts/profile/friend_service.gd").new()
 var account_error := ""
 signal account_ready
 
@@ -86,12 +87,18 @@ func initialize_profile(path: String = ""):
 		profile.save_profile(fingerprint, fields)
 	_on_profile_changed(fingerprint)
 	account_error = profile.last_error
+	var friends_path = profile_path.get_base_dir().path_join(fingerprint + "-friends.cfg") if not path.is_empty() else "user://friends/".path_join(fingerprint + ".cfg")
+	if path.is_empty():
+		DirAccess.make_dir_recursive_absolute("user://friends")
+	friends.configure(key, friends_path)
+	friends.self_profile = profile.get_profile(fingerprint)
 	account_ready.emit()
 
 func _on_profile_changed(owner: String):
 	if owner != profile.get_local_fingerprint():
 		return
 	var fields: Dictionary = profile.get_profile(owner)
+	friends.self_profile = fields.duplicate(true)
 	data.username = fields.get("profile.username", "User")
 	data.avatar_url = fields.get("profile.avatar_url", data.default_avatar)
 

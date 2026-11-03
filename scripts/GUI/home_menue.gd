@@ -8,6 +8,7 @@ const PROFILE_ICON = preload("res://themes/icons/profile.svg")
 @onready var profile_button: Button = $VBoxContainer/HBoxContainer/Profile
 var profile_panel: Control
 var profile_media = preload("res://scripts/profile/profile_media.gd").new()
+@onready var status_selector: OptionButton = $VBoxContainer/Status
 var submenu_page: Control
 var submenu_kind := ""
 var return_focus: Control
@@ -25,6 +26,16 @@ func _ready():
 	SaveData.voice.availability_changed.connect(_availability_changed)
 	SaveData.store.setting_changed.connect(_setting_changed)
 	_update(SaveData.voice.is_muted())
+	if SaveData.get("friends") != null:
+		status_selector.item_selected.connect(func(index): SaveData.friends.set_status(["online", "do_not_disturb", "offline"][index]))
+		SaveData.friends.changed.connect(_status_changed)
+		_status_changed()
+	else:
+		status_selector.disabled = true
+func _status_changed():
+	if is_instance_valid(status_selector) and not SaveData.friends.state.is_empty():
+		status_selector.select(["online", "do_not_disturb", "offline"].find(SaveData.friends.state.preferred_status))
+
 func _on_toggled(muted: bool):
 	SaveData.voice.set_muted(muted)
 
@@ -45,6 +56,8 @@ func _setting_changed(id: String, _value: Variant):
 		_update(SaveData.voice.is_muted())
 
 func _exit_tree():
+	if SaveData.get("friends") != null and SaveData.friends.changed.is_connected(_status_changed):
+		SaveData.friends.changed.disconnect(_status_changed)
 	SaveData.voice.mute_changed.disconnect(_update)
 	SaveData.voice.availability_changed.disconnect(_availability_changed)
 	SaveData.store.setting_changed.disconnect(_setting_changed)

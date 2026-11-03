@@ -51,6 +51,7 @@ func fixture_map() -> Dictionary:
 
 func run():
 	test_existing_camera_independence()
+	test_existing_singularities()
 	test_rig_validation()
 	test_calibration()
 	test_tracker_roles()
@@ -93,6 +94,10 @@ func test_rig_validation():
 	var missing = mapping.duplicate()
 	missing.erase("head")
 	check(not adapter.validate_mapping(rig, missing).get("valid", true), "missing required head reported")
+	var bad_parent = fixture_rig()
+	bad_parent.set_bone_parent(5, 0)
+	check(not adapter.validate_mapping(bad_parent, mapping).get("valid", true), "wrist outside its elbow chain is rejected")
+	bad_parent.free()
 	rig.set_bone_rest(4, Transform3D.IDENTITY)
 	check(not adapter.validate_mapping(rig, mapping).get("valid", true), "zero-length arm chain rejected before IK")
 	rig.free()
@@ -109,6 +114,13 @@ func test_calibration():
 	var invalid = data.duplicate(true)
 	invalid.scale = -1.0
 	check(not calibration.save_calibration(invalid), "negative avatar scale cannot replace valid calibration")
+	check(calibration.load_calibration().get("scale") == 1.0, "rejected calibration preserves the last valid stored values")
+	var corrupt_file = FileAccess.open("res://corrupt-calibration.json", FileAccess.WRITE)
+	corrupt_file.store_string("broken json")
+	corrupt_file.close()
+	calibration.configure("res://corrupt-calibration.json", "account-a", "a".repeat(64))
+	check(calibration.load_calibration().is_empty(), "corrupt calibration reports unavailable rather than adopting data")
+	check(not calibration.save_calibration(data) and FileAccess.get_file_as_string("res://corrupt-calibration.json") == "broken json", "corrupt calibration is preserved rather than silently overwritten")
 	calibration.configure("res://calibration.json", "account-b", "a".repeat(64))
 	check(calibration.load_calibration().is_empty(), "another account cannot adopt calibration")
 	calibration.configure("res://calibration.json", "account-a", "b".repeat(64))
@@ -123,6 +135,11 @@ func test_tracker_roles():
 	check(roles.targets(1100).has("head"), "fresh assigned target is available")
 	check(not roles.targets(3000).has("head"), "stale tracker expires instead of freezing pose")
 	check(not roles.assign("leftFoot", "missing-device"), "missing tracker cannot pretend to supply FBT")
+	check(not roles.assign("rightHand", "temporary-head"), "one device cannot silently represent two different tracked roles")
+	roles.update_sample("temporary-head", Transform3D.IDENTITY, false, 1200)
+	check(not roles.targets(1250).has("head"), "explicit tracking loss overrides a still-fresh timestamp")
+	roles.update_sample("temporary-head", Transform3D(Basis.IDENTITY, Vector3(0, 1.7, 0)), true, 1300)
+	check(roles.targets(1350).has("head"), "reacquired assigned tracker becomes available without stale pose history")
 	roles.clear()
 	check(roles.targets(1100).is_empty(), "disconnect clears all ephemeral tracker samples")
 	if roles is Node: roles.free()
@@ -143,3 +160,31 @@ func test_fbt_solver():
 	check(rig.get_bone_global_pose(11).is_finite(), "missing FBT subset falls back safely without invalid transforms")
 	rig.free()
 	if solver is Node: solver.free()
+
+func test_existing_singularities():
+	var rig = fixture_rig()
+	root.add_child(rig)
+	var target = Node3D.new()
+	root.add_child(target)
+	var tracking = load("res://scripts/assets/avatar_tracking.gd").new()
+	rig.add_child(tracking)
+	tracking.configure(fixture_map(), null, target, null)
+	var shoulder = rig.get_bone_global_pose(3).origin
+	for position in [shoulder, shoulder + Vector3(10, 0, 0), shoulder + Vector3(0, -0.4, 0), shoulder + Vector3(0, 0, -0.4)]:
+		rig.reset_bone_poses()
+		target.position = position
+		tracking._process_modification()
+		var finite := true
+		for bone in rig.get_bone_count(): finite = finite and rig.get_bone_global_pose(bone).is_finite()
+		check(finite, "existing IK keeps finite poses for singular/unreachable target " + str(position))
+		check(rig.get_bone_global_pose(5).origin.distance_to(shoulder) <= 0.601, "unreachable controller target does not stretch the arm")
+	var right_before = rig.get_bone_pose_rotation(6)
+	tracking.left_target = null
+	tracking._process_modification()
+	check(rig.get_bone_pose_rotation(6).is_equal_approx(right_before), "missing left tracker never modifies opposite arm")
+	check(tracking.has_method("tracking_weights"), "per-chain fallback exposes inspectable tracking blend weights")
+	if tracking.has_method("tracking_weights"):
+		var weights: Dictionary = tracking.tracking_weights()
+		check(weights.get("leftHand", -1) == 0.0, "lost hand tracker blends back to animation rather than holding stale tracking weight")
+	rig.free()
+	target.free()

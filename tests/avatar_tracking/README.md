@@ -6,7 +6,7 @@
 serial is used. Generated poses and temporary device labels are synthetic. Existing
 green animation tests are separate and remain unchanged.
 
-Initial baseline: **2 passed, 6 failed**, exit 1, no Godot errors. As guarded
+Expanded baseline: **11 passed, 7 failed**, exit 1, no Godot errors. As guarded
 components are implemented, their detailed assertions will run and the total
 assertion count will grow. The two baseline solver checks are not proof of FBT.
 
@@ -30,7 +30,15 @@ Proposed interfaces, chosen for testability (not existing-code claims):
 - `full_body_solver.gd`: `configure(skeleton, mapping)`, `solve(role_transform_map,
   delta)` updates valid subset chains without invalid poses on missing roles.
 - Existing AvatarTracking gains `set_calibration` and `set_tracking_validity`;
-  fuller loss/blend/singularity behavior needs additional tests when specified.
+  `tracking_weights()` returns role → current blend weight for observable fallback.
+  Current-code tests now exercise zero-distance, unreachable, vertical and forward
+  arm targets, reach bounds, missing opposite-side mutation and finite poses.
+
+Guarded additions also reject wrong arm hierarchy, verify that rejected/invalid
+calibration preserves previous bytes/values, prevent duplicate device-role use,
+expire invalid samples immediately and permit valid tracker reacquisition. These
+do not execute until their components exist; initial baseline counts report only
+executed assertions, not future conditional cases.
 
 This is not hardware FBT certification, a finger/face/room-mesh system or a remote
 pose replication test. Foot planting/sliding, joint limits, torso fitting, actual

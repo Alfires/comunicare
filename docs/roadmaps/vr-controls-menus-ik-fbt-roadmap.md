@@ -14,6 +14,13 @@ both exit 1 without Godot errors. Their READMEs specify proposed helper interfac
 conditional assertion groups and remaining gaps. No runtime implementation is
 added by these tests, and normal green test/tooling entry points do not run them.
 
+Expanded red baseline: controls **1 pass/20 failures** plus six explicitly blocked
+ray-mapping checks (existing Vector3 × Vector2 bug); tracking **11 passes/7 failures**
+including current-code singularity/reach assertions. Added conditional pointer
+capture, comfort state, frame-rate turning, calibration corruption/ownership and
+tracker reassignment/expiry cases are documented in each suite README. Missing
+components do not count their dependent tests as executed or passed.
+
 Required experience:
 
 - Left joystick moves relative to the headset's **horizontal facing direction**.

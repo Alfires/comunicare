@@ -1,53 +1,82 @@
-# Asset cache and animation usage
+# Avatar sources, automatic motion and emote wheel
 
-## Cache
+## Configure your avatar
 
-Loaded URL avatars and world archives use `user://asset_cache/`. Open it from
-**Settings → Assets**. The default budget is 4 GiB; active objects and imported
-animation originals are protected. The same page controls automatic checks,
-offers an immediate loaded-assets check and confirms removal of unused downloads.
-Failed refreshes retain validated known-good bytes. Source updates never replace
-the active world scene in place.
+Open **Home → your User/profile entry → Avatar setup**. This is an owner-only
+source editor, not a playback console:
 
-HTTPS is required unless the development-only HTTP setting is enabled. Redirects
-are currently refused. Remote world scenes are executable Godot content, not a
-sandbox: enable the explicit trusted-publisher setting only for URLs you trust.
-New clients/relays pin world hashes during create/resolve/join. Older unpinned
-sessions cannot provide this consistency guarantee.
+- Enable **Select model** to choose a compatible `.vrm`/humanoid `.glb` file or
+  HTTPS URL. A model may also contain supported embedded animation clips.
+- Otherwise add one or multiple external `.vrma`/humanoid `.glb` files or URLs.
+- Confirm redistribution permission only for content you are allowed to share.
+  Custom models need that permission to equip; imported emotes without permission
+  cannot be broadcast. Unshared custom movement clips fall back to defaults when
+  connected to a compatible relay.
+- **Apply** equips the candidate configuration. **Cancel / Back** leaves the
+  applied avatar/sources unchanged. Imported originals remain cached.
 
-## Animations
+Idle, walk, run, jump, fall and land are selected automatically. Recognized clip
+names replace these roles; external sources override embedded clips and bundled
+CC0 defaults. Later external sources win. Other compatible clips are emotes.
+The importer currently supports rotation-only, self-contained humanoid GLB/VRMA
+with LINEAR/STEP channels, not arbitrary models or full VRMA conformance.
 
-Open **Home → Animations** (header button). Eight simple original CC0 motions work
-offline. Desktop avatars use idle/walk/run/jump/fall automatically; choose a clip
-and Play to override this, or return to automatic locomotion using its button.
-Pause, Resume, Stop, Loop and speed controls affect the selected motion.
+Selections and wheel layout persist per account under `user://avatars/`. Private
+filesystem paths are never published as avatar URLs. Corrupt configuration files
+are preserved and reported rather than silently replaced.
 
-Import a local `.vrma`/`.glb` or add an HTTPS link. Supported files must be
-self-contained binary glTF with declared VRM/VRMA humanoid mapping, rotation-only
-channels, LINEAR/STEP interpolation and at most 16 MiB. Unsupported expression,
-translation, sparse/CUBICSPLINE or external-reference data produces an error.
-This is not full VRMA conformance. Imported originals are stored in the managed
-library; source files are never deleted. Reopening restores pinned imports.
+## Open and customize Emotes
 
-Defaults synchronize automatically when the relay supports animation version 1.
-For imports, explicitly enable **Share imported motion** only if you have the
-right to redistribute it. Other current instance players request validated bytes
-from the connected owner. Neither a local path nor a private link is advertised;
-the relay forwards bounded chunks without keeping files or offline history.
-No-store links cannot be shared. Missing/unsafe/incompatible motion falls back
-rather than executing imported code. Remote playback/downloads can be disabled
-in the same page. That opt-out currently lasts only for this client process.
+Press **B**, or click **Home → Emotes** in the formerly unused lower-left grid
+cell. Change the key under **Settings → Controls → Emote menu**. Typing, modal
+dialogs and rebinding suppress the shortcut.
 
-Full-body VR motion requires its separate opt-in. Motion never drives collision
-body/root motion or the real camera; actual avatar/IK appearance and headset
-comfort still require manual verification. Change the avatar through the existing
-profile controls; local VRM selection remains preview-only.
+The wheel always has **eight sectors**. Groups with at most eight entries use all
+eight for content. Larger groups show five entries plus **Previous animations**,
+**Page X / Y**, and **Next animations inside the wheel**. There are no paging
+buttons underneath. The center goes Back or cancels; the page indicator is inert.
 
-## Compatibility and limits
+Select an action to apply it to your avatar. One-shots finish automatically;
+explicitly looping clips (name ending in `Loop`) repeat. **Return to movement**,
+movement/jumping/falling, or replacing the avatar interrupts an emote. Basic
+movement animations remain automatic. Opening/browsing groups never starts an
+animation or sends a playback command.
 
-Update client and relay together for wire ID 28, animation hello negotiation and
-world revision metadata. Old relays do not synchronize motion. Headless tests
-exercise synthetic rigs and real loopback transport, not real-world visual sync
-quality. The 100 ms drift goal, full-renderer/XR behavior, large-transfer voice
-fairness and export notices remain release checks. See the roadmap's current
-implementation section for the full remaining-work list.
+Use **Avatar setup → Customize emote groups and wheel** to create nested groups,
+rename/delete groups, add action shortcuts, reorder/move entries and reset the
+layout. Fresh imported actions get an Imported actions group; additional actions
+are available in the editor's action list. Layout is local, not synchronized.
+
+## VR interaction
+
+The invoking controller opens a stable world-space wheel. The default existing
+OpenXR action is B/Y (`by_button`), configurable to Menu under Controls; keyboard
+B is a separate desktop binding. While held, move the controller away from the
+neutral center toward a sector and release to confirm. Group/paging navigation
+keeps the wheel open and switches to a fresh pointer/trigger confirmation.
+Home opens pointer/trigger mode directly. Center cancels or goes Back.
+
+Both hands can invoke the wheel. Interface settings control diameter, dead zone
+and haptics. Tracking/focus loss closes it. Movement inputs are suppressed while
+the XR wheel is open. Motion animation is restricted to lower-body tracks in VR;
+head/hands, camera and collision-body motion are not driven by imported clips.
+Real headset/controller compatibility, visual comfort and IK require manual tests.
+
+## Networking and cache
+
+Update client and relay together: animation **version 2** on wire ID 28 carries
+only resolved locomotion/emote state. Legacy manual Play/Pause/Stop is rejected.
+Movement, voice, profiles and admission are unchanged. Compatible participants
+request missing hash-verified model/animation bytes from the connected owner;
+the relay forwards bounded chunks without persistent files or offline history.
+
+Managed content lives in `user://asset_cache/`. **Settings → Assets** controls
+the default 4 GiB budget, checks loaded assets and clears unused downloads.
+Known-good content survives failed refreshes. HTTPS is required unless the
+development HTTP option is enabled; redirects are currently refused. Remote
+worlds are executable Godot content and require explicit trusted-publisher opt-in.
+
+See the roadmap for remaining release gates: full importer conformance, polished
+blending, real-avatar/XR visuals, measured latency/jitter synchronization, large
+transfer fairness/recovery and exported-build checks are not certified by the
+headless synthetic/loopback suites.

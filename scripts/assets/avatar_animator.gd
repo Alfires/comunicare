@@ -15,17 +15,9 @@ func attach(model: Node3D):
 	player.name = "HumanoidMotion"
 	model.add_child(player)
 	player.root_node = NodePath("..")
-	# A RESET library ensures old motion channels cannot leave a stuck pose.
-	var skeleton = reader._skeleton(model)
-	if skeleton != null:
-		var reset = Animation.new()
-		for index in skeleton.get_bone_count():
-			var track = reset.add_track(Animation.TYPE_ROTATION_3D)
-			reset.track_set_path(track, NodePath(str(model.get_path_to(skeleton)) + ":" + skeleton.get_bone_name(index)))
-			reset.rotation_track_insert_key(track, 0, skeleton.get_bone_rest(index).basis.get_rotation_quaternion())
-		var library = AnimationLibrary.new()
-		library.add_animation("RESET", reset)
-		player.add_animation_library("", library)
+	var library = AnimationLibrary.new()
+	library.add_animation("RESET", Animation.new())
+	player.add_animation_library("", library)
 
 func play_clip(clip: Dictionary, looping: bool = true, speed: float = 1.0, offset: float = 0.0) -> bool:
 	if not is_instance_valid(avatar) or not is_instance_valid(player):
@@ -35,6 +27,18 @@ func play_clip(clip: Dictionary, looping: bool = true, speed: float = 1.0, offse
 		last_error = reader.last_error
 		return false
 	stop()
+	# Reset only bones owned by this motion layer, never tracked XR head/hands.
+	var reset = Animation.new()
+	var skeleton = reader._skeleton(avatar)
+	var mapping: Dictionary = avatar.get_meta("humanoid_bones", {})
+	for source in clip.tracks:
+		var index = skeleton.find_bone(mapping[source.bone])
+		var track = reset.add_track(Animation.TYPE_ROTATION_3D)
+		reset.track_set_path(track, NodePath(str(avatar.get_path_to(skeleton)) + ":" + skeleton.get_bone_name(index)))
+		reset.rotation_track_insert_key(track, 0, skeleton.get_bone_rest(index).basis.get_rotation_quaternion())
+	var reset_library = player.get_animation_library("")
+	reset_library.remove_animation("RESET")
+	reset_library.add_animation("RESET", reset)
 	if player.has_animation_library("motion"):
 		player.remove_animation_library("motion")
 	animation.loop_mode = Animation.LOOP_LINEAR if looping else Animation.LOOP_NONE

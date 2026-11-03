@@ -21,6 +21,11 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / source, target)
         shutil.copy2(ROOT / "scripts/assets/humanoid_animation.gd", project / "scripts/assets/humanoid_animation.gd")
+        for source in (ROOT / "scripts/assets").glob("*.gd"):
+            shutil.copy2(source, project / "scripts/assets" / source.name)
+        (project / "scripts/GUI").mkdir(parents=True, exist_ok=True)
+        for name in ("emote_wheel.gd", "xr_emote_wheel.gd"):
+            shutil.copy2(ROOT / "scripts/GUI" / name, project / "scripts/GUI" / name)
         for source in ["suite.gd", "slow_loader.gd"]:
             shutil.copy2(HERE / source, project / source)
         (project / "project.godot").write_text('config_version=5\n[application]\nconfig/name="Avatar import tests"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')

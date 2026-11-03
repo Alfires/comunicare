@@ -32,13 +32,17 @@ var left_arme_names :=  ["LeftHand", "J_Bip_L_Hand", "mixamorig:LeftHand"]
 var head_forward_offset: float = 0.08
 
 var debug_timer: float = 0.0
+var emote_pressed := {"left": false, "right": false}
 
 
 func _ready():
 	if DataLoader.has_signal("asset_revision_available"):
 		DataLoader.asset_revision_available.connect(_asset_updated)
 	SaveData.profile.profile_changed.connect(_profile_changed)
+	if DataLoader.has_method("get_avatar_configuration"):
+		DataLoader.get_avatar_configuration().changed.connect(_avatar_configuration_changed)
 	add_to_group("player")
+	NetworkHandler.get_animation_controller()
 	load_vrm_model()
 
 func set_player_pos(pos: Vector3):
@@ -46,6 +50,13 @@ func set_player_pos(pos: Vector3):
 	velocity = Vector3.ZERO
 
 func _process(delta: float):
+	var action = str(SaveData.store.get_value("input.xr_emote_action"))
+	for side in ["left", "right"]:
+		var controller = left_controller if side == "left" else right_controller
+		var pressed = controller.is_button_pressed(action)
+		if pressed and not emote_pressed[side] and get_tree().get_nodes_in_group("emote_wheel_input").is_empty() and not SaveData.voice.input_blocked:
+			NetworkHandler.get_animation_controller().open_xr_menu(controller, xr_camera, true)
+		emote_pressed[side] = pressed
 	debug_timer += delta
 	if debug_timer >= 2.0:
 		debug_timer = 0.0
@@ -63,11 +74,13 @@ func _get_movement_input() -> Vector2:
 
 func _physics_process(delta):
 	var movement_input = _get_movement_input()
+	if not get_tree().get_nodes_in_group("emote_wheel_input").is_empty():
+		movement_input = Vector2.ZERO
 	var direction = xr_camera.global_transform.basis * Vector3(movement_input.x, 0, movement_input.y)
 	
 	velocity.y -= gravity * delta
 	
-	if right_controller.is_button_pressed("ax_button") and is_on_floor():
+	if right_controller.is_button_pressed("ax_button") and is_on_floor() and get_tree().get_nodes_in_group("emote_wheel_input").is_empty():
 		velocity.y = jump_force
 
 	
@@ -89,13 +102,15 @@ func update_player_data():
 
 func load_vrm_model():
 	var url: String = SaveData.data["avatar_url"]
+	var configuration = DataLoader.get_avatar_configuration() if DataLoader.has_method("get_avatar_configuration") else null
+	if configuration != null: url = configuration.model_key(url)
 	if url == avatar_url:
 		return
 	avatar_url = url
 	avatar_generation += 1
 	var generation = avatar_generation
 	print("Loading VRM model...")
-	var model = await DataLoader.load_vrm_from_url(url)
+	var model = await configuration.load_model(SaveData.data["avatar_url"]) if configuration != null else await DataLoader.load_vrm_from_url(url)
 
 	if model == null:
 		if generation == avatar_generation:
@@ -156,6 +171,9 @@ func _asset_updated(source: String, _previous: String, _revision: String):
 	if source == avatar_url:
 		avatar_url = ""
 		load_vrm_model()
+
+func _avatar_configuration_changed():
+	load_vrm_model()
 
 func _exit_tree():
 	if DataLoader.has_signal("asset_revision_available") and DataLoader.asset_revision_available.is_connected(_asset_updated):

@@ -14,6 +14,9 @@ class Coordinator extends Node:
 class Remote extends Node3D:
 	var avatar: Node3D
 
+class LocalPlayer extends CharacterBody3D:
+	var avatar_model: Node3D
+
 func _initialize():
 	call_deferred("run")
 
@@ -109,35 +112,135 @@ func run():
 		check(not clip.is_empty() and clip.duration > 0 and not clip.tracks.is_empty(), "offline CC0 default: " + id)
 	avatar.free()
 	await test_ui(bytes)
+	await test_wheel()
 	await test_controller(parsed)
+	await test_automatic_playback()
 	await test_network()
 	print("\nAnimation contracts: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
+func test_automatic_playback():
+	var network = Coordinator.new()
+	root.add_child(network)
+	var body = LocalPlayer.new()
+	var avatar = Node3D.new()
+	var skeleton = Skeleton3D.new()
+	skeleton.name = "Skeleton"
+	var mapping: Dictionary = {}
+	for bone in ["spine", "leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm", "leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg"]:
+		skeleton.add_bone(bone)
+		mapping[bone] = bone
+	avatar.add_child(skeleton)
+	avatar.set_meta("humanoid_bones", mapping)
+	body.avatar_model = avatar
+	body.add_child(avatar)
+	root.add_child(body)
+	body.add_to_group("player")
+	var controller = load("res://scripts/assets/animation_controller.gd").new()
+	root.add_child(controller)
+	controller.configure(network, null)
+	controller._update_locomotion()
+	check(controller.local_state.get("kind") == "locomotion" and controller.local_state.get("action") == "resolved", "actual equipped synthetic avatar receives automatic resolved playback without menu")
+	check(controller.request_emote("builtin:wave") and controller.local_state.kind == "emote", "emote request uses same actual avatar animation layer")
+	var layer = controller.local_animator
+	body.velocity = Vector3(1, 0, 0)
+	controller._update_locomotion()
+	check(controller.active_emote.is_empty() and controller.local_state.kind == "locomotion" and controller.local_animator == layer, "movement interrupts emote and restores automatic state on same layer")
+	controller.queue_free()
+	body.queue_free()
+	network.queue_free()
+	await process_frame
+
+func test_wheel():
+	var layout = load("res://scripts/assets/emote_layout.gd").new()
+	layout.configure("res://wheel.json")
+	var group = layout.add_group("root", "Many dances")
+	var catalog: Dictionary = {}
+	for i in 17:
+		layout.add_emote(group, "dance:%s" % i, "Dance %s" % i)
+		catalog["dance:%s" % i] = {"name": "Dance %s" % i}
+	check(layout.page_count(group) == 4, "17 entries paginate into four five-content pages")
+	var sectors = layout.sectors(group, 0)
+	check(sectors.size() == 8 and sectors[3].type == "next" and sectors[4].type == "indicator" and sectors[5].type == "previous", "paging replaces three in-wheel sectors, never adds footer buttons")
+	check(sectors[5].disabled and not sectors[3].disabled, "first-page Previous disabled, Next enabled")
+	check(layout.sectors(group, 3)[3].disabled, "last-page Next disabled")
+	var wheel = load("res://scripts/GUI/emote_wheel.gd").new()
+	root.add_child(wheel)
+	wheel.open(layout, catalog, false)
+	var changes: Array = []
+	wheel.emote_selected.connect(func(id): changes.append(id))
+	var group_sector = layout.groups.root.entries.size() - 1
+	wheel.activate_sector(group_sector)
+	check(wheel.group == group and changes.is_empty(), "entering a group navigates without choosing an emote")
+	wheel.activate_sector(3)
+	check(wheel.page == 1 and wheel.hovered == -1 and changes.is_empty(), "Next pages inside circle and clears selection without animation")
+	wheel.activate_sector(4)
+	check(changes.is_empty() and wheel.page == 1, "page indicator is non-activating")
+	wheel.activate_sector(0)
+	check(changes == ["dance:5"], "content wedge selects correct stable action on page two")
+	wheel.back()
+	check(wheel.group == "root" and wheel.page == 0, "Back restores parent page")
+	var nested = layout.add_group(group, "Nested")
+	check(not nested.is_empty(), "groups can contain more groups")
+	var candidate = layout.groups.duplicate(true)
+	candidate[nested].entries.append({"type": "group", "id": "root", "name": "Cycle"})
+	check(not layout.commit(candidate), "cyclic nested group graph rejected")
+	var restored = load("res://scripts/assets/emote_layout.gd").new()
+	restored.configure("res://wheel.json")
+	check(restored.groups.has(nested) and restored.groups[group].entries.size() == 18, "nested layout and ordered entries persist")
+	for count in [0, 1, 5, 8, 9, 10, 11, 17]:
+		var candidate_layout = load("res://scripts/assets/emote_layout.gd").new()
+		candidate_layout.groups.root.entries.clear()
+		for i in count:
+			candidate_layout.groups.root.entries.append({"type": "emote", "id": str(i), "name": str(i)})
+		var expected = int(ceil(count / 5.0)) if count > 8 else 1
+		check(candidate_layout.page_count("root") == expected and candidate_layout.sectors("root", 0).size() == 8,
+			"eight-sector pagination boundary: %s entries" % count)
+	var broken_file = FileAccess.open("res://broken-wheel.json", FileAccess.WRITE)
+	broken_file.store_string("not json")
+	broken_file.close()
+	var broken = load("res://scripts/assets/emote_layout.gd").new()
+	broken.configure("res://broken-wheel.json")
+	check(not broken.writable and FileAccess.get_file_as_string("res://broken-wheel.json") == "not json", "corrupt wheel preserved while default layout remains usable")
+	wheel.dismiss()
+	wheel.queue_free()
+	await process_frame
+
 func test_ui(bytes: PackedByteArray):
 	var loader = root.get_node("DataLoader")
 	loader.get_asset_cache().initialize("res://cache")
+	var configuration = loader.get_avatar_configuration()
+	configuration.configure("test-account", "res://avatar.json", loader)
 	var menu = load("res://scenes/GUI/animation_menue.tscn").instantiate()
 	root.add_child(menu)
-	check(menu.selected.item_count == 8, "actual animation page exposes all offline defaults")
+	check(menu.draft_sources.is_empty() and not menu.has_method("play"), "source-only avatar editor has no manual player")
 	var file = FileAccess.open("res://motion.vrma", FileAccess.WRITE)
 	file.store_buffer(bytes)
 	file.close()
-	await menu.import_file("res://motion.vrma")
-	check(menu.selected.item_count == 9 and menu.selected.selected == 8, "actual file import validates and selects user clip")
-	check(not menu.share.button_pressed, "newly imported file never silently grants redistribution consent")
+	await menu.add_source("res://motion.vrma", false)
+	check(menu.draft_sources.size() == 1, "actual file import adds external source to draft")
+	check(not menu.draft_sources[0].share, "newly imported file never silently grants redistribution consent")
 	check(not loader.animation_import_busy and loader.animation_thread == null, "runtime animation worker is joined without blocking main loop")
-	menu.play()
-	check("No compatible avatar" in menu.status.text, "actual player reports absent avatar rather than pretending success")
+	await menu.apply()
+	check(configuration.emotes.size() == 3 and configuration.sources.size() == 1, "Apply resolves non-basic clip without changing locomotion defaults")
 	menu.queue_free()
 	await process_frame
 	menu = load("res://scenes/GUI/animation_menue.tscn").instantiate()
 	root.add_child(menu)
+	check(menu.draft_sources.size() == 1, "applied source configuration restores when page reopens")
+	var disk = load("res://scripts/assets/avatar_configuration.gd").new()
+	root.add_child(disk)
+	disk.configure("test-account", "res://avatar.json", loader)
 	for i in 100:
-		if menu.selected.item_count == 9:
-			break
+		if disk.emotes.size() == 3: break
 		await process_frame
-	check(menu.selected.item_count == 9, "managed imported library restores when page reopens")
+	check(disk.sources.size() == 1 and disk.emotes.size() == 3, "account-scoped sources and role catalog restore from disk")
+	disk.queue_free()
+	var editor = load("res://scripts/GUI/emote_layout_editor.gd").new()
+	menu.add_child(editor)
+	editor.configure(configuration)
+	check(editor.group_choice.item_count == 3, "actual wheel editor exposes root, Dances and applied imported actions group")
+	editor.queue_free()
 	menu.queue_free()
 	await process_frame
 
@@ -160,10 +263,14 @@ func test_controller(parsed: Dictionary):
 	root.add_child(controller)
 	controller.configure(network, null)
 	controller.transport = network.peer
-	controller.automatic_motion = false
+	check(controller.resolve_motion(true, Vector3.ZERO, 1000) == "idle", "automatic state starts idle without opening a menu")
+	check(controller.resolve_motion(true, Vector3(2, 0, 0), 1100) == "walk", "movement resolves automatic walk")
+	check(controller.resolve_motion(false, Vector3(0, 2, 0), 1200) == "jump", "upward airborne state resolves jump")
+	check(controller.resolve_motion(false, Vector3(0, -2, 0), 1300) == "fall", "descending airborne state resolves fall")
+	check(controller.resolve_motion(true, Vector3.ZERO, 1400) == "land" and controller.resolve_motion(true, Vector3.ZERO, 1800) == "idle", "landing transition expires and returns to idle")
 	controller.assets[parsed.hash] = {"parsed": parsed}
-	var value = {"op": "state", "session_id": "test", "version": 1, "peer_id": 7,
-		"generation": "a".repeat(32), "sequence": 1, "action": "play", "offset": 0.5,
+	var value = {"op": "state", "session_id": "test", "version": 2, "peer_id": 7,
+		"generation": "a".repeat(32), "sequence": 1, "action": "resolved", "kind": "emote", "role": "turn", "mask": "full", "avatar_revision": "", "configuration_revision": 0, "offset": 0.5,
 		"speed": 1.0, "loop": true, "duration": 1.0, "builtin": "", "hash": parsed.hash,
 		"size": 1024, "clip": 0, "started": controller.now()}
 	controller.receive(value)
@@ -172,12 +279,13 @@ func test_controller(parsed: Dictionary):
 	value.sequence = 2
 	value.action = "pause"
 	controller.receive(value)
-	check(not controller.remote_animators[7].player.is_playing(), "production receiver applies pause")
+	check(controller.remote_states[7].sequence == 1, "production receiver rejects legacy manual pause")
 	value.session_id = "other"
 	value.sequence = 3
-	value.action = "play"
+	value.action = "resolved"
 	controller.receive(value)
-	check(controller.remote_states[7].sequence == 2, "production receiver rejects another instance's state")
+	check(controller.remote_states[7].sequence == 1, "production receiver rejects another instance's state")
+	check(not controller.has_method("pause") and not controller.has_method("play"), "controller exposes no parallel manual player API")
 	controller.clear()
 	check(controller.remote_states.is_empty() and controller.assets.is_empty(), "client transition removes motion and asset session state")
 	controller.queue_free()
@@ -211,7 +319,7 @@ func test_network():
 	await pump(server, clients)
 	clients[1].join_session(clients[0].current_session_id, "default_wold")
 	await pump(server, clients)
-	var state = {"op": "state", "version": 1, "sequence": 1, "action": "play", "offset": 0.25,
+	var state = {"op": "state", "version": 2, "sequence": 1, "action": "resolved", "kind": "emote", "role": "wave", "mask": "full", "avatar_revision": "", "configuration_revision": 0, "offset": 0.25,
 		"speed": 1.0, "loop": true, "duration": 2.0, "builtin": "wave", "hash": "",
 		"library": "comunicare.procedural.v1", "session_id": clients[0].current_session_id, "peer_id": 254}
 	clients[0].send_animation(state)
@@ -255,10 +363,23 @@ func test_network():
 	check(chunks.size() == 1 and Marshalls.base64_to_raw(chunks[0].bytes) == data, "requested bounded animation bytes forwarded without relay persistence")
 	check(server.animations.requests.is_empty(), "completed transfer leaves no relay queue")
 	state.sequence = 3
+	state.model_hash = "d".repeat(64)
+	state.model_size = data.size()
+	clients[0].send_animation(state)
+	await pump(server, clients)
+	clients[1].send_animation({"op": "request", "asset_kind": "avatar", "session_id": clients[1].current_session_id, "owner": owner, "hash": state.model_hash})
+	await pump(server, clients)
+	var model_requests = messages[0].filter(func(value): return value.get("op") == "request" and value.get("asset_kind") == "avatar")
+	check(model_requests.size() == 1, "same resolved state authorizes separately bounded custom model delivery")
+	clients[0].send_animation({"op": "chunk", "asset_kind": "avatar", "session_id": clients[0].current_session_id, "target": recipient,
+		"hash": state.model_hash, "offset": 0, "bytes": Marshalls.raw_to_base64(data)})
+	await pump(server, clients)
+	check(messages[1].filter(func(value): return value.get("op") == "chunk" and value.get("asset_kind") == "avatar").size() == 1, "model chunks retain asset kind through ephemeral relay")
+	state.sequence = 4
 	state.action = "pause"
 	clients[0].send_animation(state)
 	await pump(server, clients)
-	check(server.animations.states[owner].action == "pause", "reliable pause replaces latest state")
+	check(server.animations.states[owner].action == "resolved" and server.animations.states[owner].sequence == 3, "relay rejects manual pause rather than creating another animation stream")
 	var old_session: String = clients[2].current_session_id
 	var target_index = server.get_session_index(clients[0].current_session_id)
 	server.sessions[target_index][0].world_revision = "b".repeat(64)

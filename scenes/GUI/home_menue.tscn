@@ -73,12 +73,13 @@ size_flags_vertical = 3
 tooltip_text = "View participants and manage the active instance"
 text = "Active Instance"
 
-[node name="Empty3" type="PanelContainer" parent="VBoxContainer/MenuGrid" unique_id=821508840]
+[node name="Emotes" type="Button" parent="VBoxContainer/MenuGrid" unique_id=821508840]
 custom_minimum_size = Vector2(160, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-mouse_filter = 2
+tooltip_text = "Open emote wheel (B)"
+text = "Emotes"
 
 [node name="Empty4" type="PanelContainer" parent="VBoxContainer/MenuGrid" unique_id=1469396557]
 custom_minimum_size = Vector2(160, 48)

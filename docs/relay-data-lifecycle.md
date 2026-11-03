@@ -59,6 +59,12 @@ Verification is in `tests/active_instance/run.py`: actual multi-client cleanup/r
 - Confirm remaining users' unrelated active state still works after cleanup. Run profile, discovery, Active Instance and microphone regressions, plus future friends/presence tests.
 # Animation extension (wire ID 28)
 
+The current negotiated animation version is 2: one resolved locomotion/emote
+state carries bounded avatar/configuration revisions. Requested model chunks and
+motion chunks are typed separately but authorized by that same active state.
+Legacy version-1 manual playback control is not accepted. Group layouts, submenu
+names, local file paths and configuration drafts are never sent to the relay.
+
 Capability-negotiated animation routing keeps only current connected-user state,
 per-connection random generations, rate counters and bounded requested-transfer
 metadata. The relay never downloads motion URLs or writes animation files. It

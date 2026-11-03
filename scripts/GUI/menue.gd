@@ -10,6 +10,8 @@ func _ready():
 
 func _input(event):
 	if event.is_action_pressed("open_menue"):
+		if get_viewport().gui_get_focus_owner() != null and get_viewport().gui_get_focus_owner().get_meta("blocks_global_shortcuts", false):
+			return
 		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 			_reset_menu()
 		visible = !visible

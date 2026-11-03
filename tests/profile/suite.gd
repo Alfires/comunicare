@@ -68,8 +68,8 @@ func test_home_navigation():
 		check(absf(tiles[0].size.x - tiles[1].size.x) <= 1 and absf(tiles[0].size.y - tiles[2].size.y) <= 1
 			and tiles[1].position.x > tiles[0].position.x and tiles[2].position.y > tiles[0].position.y,
 			"Home tiles form equal 2x2 cells at " + str(dimensions))
-		check(tiles[2].get_child_count() == 0 and tiles[3].get_child_count() == 0 and not tiles[2] is Button and not tiles[3] is Button,
-			"bottom Home tiles remain empty non-actionable placeholders")
+		check(tiles[2] is Button and tiles[2].text == "Emotes" and tiles[3].get_child_count() == 0 and not tiles[3] is Button,
+			"first unused Home field opens Emotes while final field remains empty")
 	home.get_node("VBoxContainer/MenuGrid/ActiveInstance").pressed.emit()
 	check(home.submenu_kind == "share_session_menue" and is_instance_valid(home.submenu_page)
 		and home.get_node("Submenu").visible and not home.get_node("VBoxContainer").visible,

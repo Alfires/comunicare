@@ -2,7 +2,13 @@
 
 ## Status and interpretation
 
-**Planning only — 2026-11-03.** This document specifies a replacement for the current manual animation-player experience. No runtime behavior changes with this roadmap.
+**Implementation in progress — 2026-11-03.** The source-only User/Avatar editor, account-scoped applied sources, default/custom role resolution, automatic locomotion/landing, emote requests and interruption, eight-sector desktop wheel, nested group editor, in-wheel paging, Home Emotes tile and registry-backed B binding are now implemented. Animation wire ID 28 negotiates **version 2**, accepting one resolved locomotion/emote state rather than the previous manual play/pause/stop schema. Requested avatar-model and animation transfers remain supporting transport for that state.
+
+A hand-local world-space XR wheel is implemented with original sector visuals, controller-relative selection, hold/release or pointer/trigger confirmation, center Back/Cancel, optional haptics and configurable action/diameter/dead zone. Its headset rendering, practical pointing/selection comfort and tracking/IK behavior have **not** been manually verified. This is not a claim that every proposed release gate below is complete.
+
+Current limits: the importer remains a rotation-only humanoid VRMA/GLB subset; embedded clips must meet that same format/mapping requirement. Custom clip loop detection uses explicit `Loop` name suffixes. Per-publisher trust, polished blending/locomotion hysteresis, very large-transfer retry/fairness benchmarks, full XR action-map portability, persisted remote-content policy and measured synchronization targets remain follow-up work. Custom models require explicit redistribution permission before equipping. Configuration and wheel are account-local JSON, not publicly signed profile fields. No third-party dance assets are added; users can import compatible licensed dances. Source drafts pin validated originals in the cache but do not equip until Apply.
+
+Verification for this slice: `tests/animation_sync/run.py` passes **81** assertions; microphone/settings **94**, profile **121**, discovery **51 + 24 startup**, friends **75**, avatar loading **10**, cache **26**. Active Instance passes **128** in a standalone final rerun; the preceding parallel run failed its voice-delivery assertion once. The profile runner reports one ObjectDB leak warning. No real-headset, full-renderer, production export or Internet-latency verification was performed.
 
 This plan supersedes the manual playback/control UI and parallel animation synchronization proposals in [avatar-cache-and-animation-roadmap.md](avatar-cache-and-animation-roadmap.md). Its cache, licensing, admission and privacy requirements remain applicable.
 
@@ -20,6 +26,8 @@ Requested experience:
 **Button clarification:** the current Home header button is labeled **Animations**, not Avatar. Remove that standalone header entry and route source configuration through the existing self-profile/User menu's Avatar section. Keep the profile/account entry itself. Add a distinct **Emotes** tile in an unused Home grid cell; this opens the radial picker, not the source editor.
 
 ## Current implementation to replace
+
+The following inventory describes the **pre-migration baseline**, retained to explain the replaced behavior; it is no longer the current UI/protocol description.
 
 - `scripts/GUI/home_menue.gd::_ready()` creates an Animations header button and `open_home_menu()` accepts `animation_menue`.
 - `scripts/GUI/animation_menue.gd` exposes clip selection, Play/Pause/Resume/Stop, Loop, speed, a manual automatic-locomotion switch, full-body VR and sharing toggles. Imports currently replace neither the equipped model nor its automatic motion mapping.

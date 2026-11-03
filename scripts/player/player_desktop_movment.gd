@@ -25,7 +25,10 @@ func _ready() -> void:
 	if DataLoader.has_signal("asset_revision_available"):
 		DataLoader.asset_revision_available.connect(_asset_updated)
 	SaveData.profile.profile_changed.connect(_profile_changed)
+	if DataLoader.has_method("get_avatar_configuration"):
+		DataLoader.get_avatar_configuration().changed.connect(_avatar_configuration_changed)
 	add_to_group("player")
+	NetworkHandler.get_animation_controller()
 	$menue.hide()
 	load_player_model()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -105,12 +108,15 @@ func _physics_process(delta):
 
 func load_player_model():
 	var url: String = SaveData.data["avatar_url"]
+	var configuration = DataLoader.get_avatar_configuration() if DataLoader.has_method("get_avatar_configuration") else null
+	if configuration != null:
+		url = configuration.model_key(url)
 	if url == avatar_url:
 		return
 	avatar_url = url
 	avatar_generation += 1
 	var generation = avatar_generation
-	var vrm_model = await DataLoader.load_vrm_from_url(url)
+	var vrm_model = await configuration.load_model(SaveData.data["avatar_url"]) if configuration != null else await DataLoader.load_vrm_from_url(url)
 	if vrm_model == null:
 		if generation == avatar_generation:
 			avatar_url = ""
@@ -193,6 +199,9 @@ func _asset_updated(source: String, _previous: String, _revision: String):
 	if source == avatar_url:
 		avatar_url = ""
 		load_player_model()
+
+func _avatar_configuration_changed():
+	load_player_model()
 
 func _exit_tree():
 	if DataLoader.has_signal("asset_revision_available") and DataLoader.asset_revision_available.is_connected(_asset_updated):

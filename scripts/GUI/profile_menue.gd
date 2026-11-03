@@ -11,6 +11,8 @@ var media = preload("res://scripts/profile/profile_media.gd").new()
 @onready var avatar_preview: Control = $Content/AvatarColumn/AvatarPreview
 var edit_buttons: Dictionary = {}
 var friend_actions: HFlowContainer
+var avatar_setup: Button
+var avatar_editor: Control
 
 func _ready():
 	$Content/Details/Header/Back.pressed.connect(_close)
@@ -34,6 +36,16 @@ func _ready():
 	media.icon_ready.connect(func(texture): body.get_node("Identity/ImageColumn/Picture").texture = texture)
 	media.failed.connect(_show_error)
 	avatar_preview.failed.connect(_show_error)
+	avatar_setup = Button.new()
+	avatar_setup.text = "Avatar setup"
+	avatar_setup.tooltip_text = "Choose a model, animation sources and emote groups"
+	avatar_setup.custom_minimum_size.y = 44
+	$Content/AvatarColumn.add_child(avatar_setup)
+	avatar_setup.pressed.connect(func():
+		if not is_editable(): return
+		if is_instance_valid(avatar_editor): return
+		avatar_editor = load("res://scenes/GUI/animation_menue.tscn").instantiate()
+		add_child(avatar_editor))
 	friend_actions = HFlowContainer.new()
 	body.add_child(friend_actions)
 	body.move_child(friend_actions, 1)
@@ -41,6 +53,7 @@ func _ready():
 		SaveData.friends.changed.connect(_friend_changed)
 
 func open_profile(profile_service, fingerprint: String):
+	if is_instance_valid(avatar_editor): avatar_editor.queue_free()
 	if is_instance_valid(editor):
 		editor.cancel_edit()
 	_unsubscribe()
@@ -61,6 +74,7 @@ func _refresh():
 	media.cancel()
 	snapshot = service.get_profile(profile_owner)
 	edit_button.hide()
+	avatar_setup.visible = is_editable() and not snapshot.is_empty()
 	for button in edit_buttons.values():
 		button.visible = is_editable() and not snapshot.is_empty()
 	body.get_node("Identity/ImageColumn/Picture").texture = media.DEFAULT_ICON
@@ -121,6 +135,7 @@ func _unhandled_input(event: InputEvent):
 			_close()
 
 func _close():
+	if is_instance_valid(avatar_editor): avatar_editor.queue_free()
 	if is_instance_valid(editor):
 		editor.cancel_edit()
 	media.cancel()

@@ -12,6 +12,18 @@ var animation_thread: Thread
 var animation_waiters := 0
 var animation_import_busy := false
 var animation_import_error := ""
+var avatar_configuration: Node
+
+func get_avatar_configuration() -> Node:
+	if avatar_configuration == null:
+		avatar_configuration = preload("res://scripts/assets/avatar_configuration.gd").new()
+		add_child(avatar_configuration)
+	var save = get_node_or_null("/root/SaveData")
+	if save != null and save.get("profile") != null:
+		var owner: String = save.profile.get_local_fingerprint()
+		if not owner.is_empty() and avatar_configuration.account_owner != owner:
+			avatar_configuration.configure(owner, "user://avatars/" + owner + ".json", self)
+	return avatar_configuration
 const MAX_AVATAR_BYTES = 64 * 1024 * 1024
 const MAX_AVATAR_WAITERS = 8
 
@@ -112,6 +124,19 @@ func _process(delta: float):
 			await asset_cache.fetch(source, "avatar", _validate_avatar)
 	if not active_world.get("source_url", "").is_empty():
 		await asset_cache.fetch(active_world.source_url, "world", _validate_world_archive)
+	await _refresh_avatar_sources(false)
+
+func _refresh_avatar_sources(force: bool):
+	if avatar_configuration == null: return
+	var cache = get_asset_cache()
+	var configured: Array = avatar_configuration.sources.duplicate(true)
+	if not avatar_configuration.model.is_empty():
+		var source: Dictionary = avatar_configuration.model.duplicate(true)
+		if not source.get("url", "").is_empty():
+			await cache.fetch(source.url, "avatar", avatar_configuration._validate_model, force)
+	for source in configured:
+		if not source.get("url", "").is_empty():
+			await cache.fetch(source.url, "animation", avatar_configuration._validate_animation, force)
 
 func refresh_loaded_assets():
 	var cache = get_asset_cache()
@@ -121,6 +146,7 @@ func refresh_loaded_assets():
 			await cache.fetch(source, "avatar", _validate_avatar, true)
 	if not active_world.get("source_url", "").is_empty():
 		await cache.fetch(active_world.source_url, "world", _validate_world_archive, true)
+	await _refresh_avatar_sources(true)
 
 func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D:
 	if buffer.is_empty() or buffer.size() > MAX_AVATAR_BYTES:

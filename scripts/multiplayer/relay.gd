@@ -483,7 +483,7 @@ func _handle_auth(peer_id: int, type: int, values: Dictionary):
 		if success:
 			authenticate_peer(peer_id, authenticator.get_identity(peer_id).public_key)
 		AccountPacket.create(PacketInfo.PACKET_TYPE.AUTH_RESULT,
-			{"success": success, "social_version": 1, "animation_version": 1, "world_revision_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
+			{"success": success, "social_version": 1, "animation_version": 2, "world_revision_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
 
 func authenticate_peer(peer_id: int, verified_public_key: String):
 	# Internal trust boundary; wire handlers call this only after proof verification.

@@ -92,6 +92,8 @@ func initialize_profile(path: String = ""):
 		DirAccess.make_dir_recursive_absolute("user://friends")
 	friends.configure(key, friends_path)
 	friends.self_profile = profile.get_profile(fingerprint)
+	if is_inside_tree() and get_node_or_null("/root/DataLoader") != null and get_node("/root/DataLoader").has_method("get_avatar_configuration"):
+		get_node("/root/DataLoader").get_avatar_configuration()
 	account_ready.emit()
 
 func _on_profile_changed(owner: String):

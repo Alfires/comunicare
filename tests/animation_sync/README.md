@@ -1,5 +1,12 @@
 # Animation and revision checks
 
+The suite now covers automatic/resolved animation **version 2**, source-only
+avatar configuration, actual layout editor, nested groups, eight-sector in-wheel
+paging boundaries, movement/landing resolution, emote interruption and rejection
+of the removed manual pause schema. Model transfers are requested separately
+under the same resolved avatar descriptor. This does not certify real-headset
+interaction, production-size model transfers or measured visual synchronization.
+
 Run `python3 tests/animation_sync/run.py` with Godot 4 available (`GODOT` may
 override the executable). The runner copies production sources into a disposable
 Compatibility project under `/tmp/opencode`, uses synthetic GLB/VRMA data and

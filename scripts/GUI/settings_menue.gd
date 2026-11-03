@@ -228,7 +228,7 @@ func _input(event: InputEvent):
 	var candidate = InputEventKey.new()
 	candidate.physical_keycode = code
 	for action in InputMap.get_actions():
-		if action != "toggle_microphone" and InputMap.event_is_action(candidate, action):
+		if action != binding_id.trim_prefix("input.") and InputMap.event_is_action(candidate, action):
 			errors[binding_id].text = "Key already used by " + action + ". Choose another key or Escape."
 			return
 	if code in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]:

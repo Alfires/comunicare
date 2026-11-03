@@ -20,7 +20,7 @@ def main():
             shutil.copytree(ROOT / folder, project / folder)
         (project / "scripts/multiplayer").mkdir(parents=True)
         shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
-        for source in ("scripts/startup/data_loader.gd", "scripts/GUI/animation_menue.gd", "scenes/GUI/animation_menue.tscn"):
+        for source in ("scripts/startup/data_loader.gd", "scripts/GUI/animation_menue.gd", "scripts/GUI/emote_wheel.gd", "scripts/GUI/xr_emote_wheel.gd", "scripts/GUI/emote_layout_editor.gd", "scenes/GUI/animation_menue.tscn"):
             target = project / source
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / source, target)

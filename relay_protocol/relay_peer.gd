@@ -192,7 +192,7 @@ func on_packet(data: PackedByteArray):
 		PacketInfo.PACKET_TYPE.ANIMATION_DATA:
 			if is_authenticated and data.size() <= 16 * 1024:
 				var value = AccountPacket.parse(data)
-				if value.get("op") == "hello" and value.get("version") == 1:
+				if value.get("op") == "hello" and value.get("version") == 2:
 					animation_supported = true
 				animation_data.emit(value)
 		PacketInfo.PACKET_TYPE.JOIN_REQUEST:
@@ -298,8 +298,8 @@ func on_packet(data: PackedByteArray):
 			var values = AccountPacket.parse(data)
 			is_authenticated = values.get("success", false) == true
 			world_revision_supported = is_authenticated and values.get("world_revision_version") == 1
-			if is_authenticated and values.get("animation_version") == 1:
-				AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "hello", "version": 1}).sent(peer)
+			if is_authenticated and values.get("animation_version") == 2:
+				AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "hello", "version": 2}).sent(peer)
 			if is_authenticated and friend_service != null:
 				friend_service.attach(_send_social, false)
 				if values.get("social_version") == 1:

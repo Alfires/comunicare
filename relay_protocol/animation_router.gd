@@ -20,11 +20,11 @@ func handle(server: Node, sender: int, value: Dictionary):
 	if not server.key_mapping.has(sender) or not server.peers.has(sender):
 		return
 	var now = Time.get_ticks_msec()
-	if value.get("op") == "hello" and value.get("version") == 1:
+	if value.get("op") == "hello" and value.get("version") == 2:
 		if not supported.has(sender):
 			supported[sender] = true
 			generations[sender] = Crypto.new().generate_random_bytes(16).hex_encode()
-		_send(server, sender, {"op": "hello", "version": 1})
+		_send(server, sender, {"op": "hello", "version": 2})
 		return
 	if not supported.has(sender):
 		return
@@ -53,10 +53,10 @@ func handle(server: Node, sender: int, value: Dictionary):
 				if absf(value.duration - durations[value.builtin]) > 0.001:
 					return
 			for key in requests.keys():
-				if requests[key].owner == sender and (value.action == "stop" or requests[key].hash != value.get("hash")):
+				if requests[key].owner == sender and requests[key].hash != value.get("model_hash" if requests[key].kind == "avatar" else "hash"):
 					requests.erase(key)
 			var state: Dictionary = {}
-			for field in ["version", "session_id", "sequence", "action", "offset", "speed", "loop", "duration", "builtin", "library", "hash", "size", "clip"]:
+			for field in ["version", "session_id", "sequence", "action", "kind", "role", "mask", "avatar_revision", "configuration_revision", "model_hash", "model_size", "offset", "speed", "loop", "duration", "builtin", "library", "hash", "size", "clip"]:
 				if value.has(field):
 					state[field] = value[field]
 			state.merge({"op": "state", "peer_id": sender, "generation": generations[sender], "started": now})
@@ -67,21 +67,27 @@ func handle(server: Node, sender: int, value: Dictionary):
 			snapshot(server, sender)
 		"request":
 			var owner = value.get("owner")
+			var kind = value.get("asset_kind", "animation")
+			if kind not in ["animation", "avatar"]: return
+			var hash_field = "model_hash" if kind == "avatar" else "hash"
+			var size_field = "model_size" if kind == "avatar" else "size"
 			if not AnimationState.integer(owner, 0, 255) or owner == sender or not _same(server, sender, int(owner)) \
-				or not states.has(int(owner)) or states[int(owner)].get("hash") != value.get("hash") \
-				or states[int(owner)].action == "stop" or requests.size() >= 256:
+				or not states.has(int(owner)) or states[int(owner)].get(hash_field, "") != value.get("hash") \
+				or not InstanceState.valid_fingerprint(value.get("hash")) or not states[int(owner)].has(size_field) \
+				or requests.size() >= 256:
 				return
-			var key = "%s:%s" % [sender, int(owner)]
+			var key = "%s:%s:%s" % [sender, int(owner), kind]
 			if requests.has(key):
 				return
-			requests[key] = {"requester": sender, "owner": int(owner), "hash": value.hash, "next": 0,
-				"size": states[int(owner)].size, "expires": now + 180000, "session_id": value.session_id}
-			_send(server, int(owner), {"op": "request", "requester": sender, "hash": value.hash, "session_id": value.session_id})
+			requests[key] = {"requester": sender, "owner": int(owner), "hash": value.hash, "kind": kind, "next": 0,
+				"size": states[int(owner)][size_field], "expires": now + 900000, "session_id": value.session_id}
+			_send(server, int(owner), {"op": "request", "asset_kind": kind, "requester": sender, "hash": value.hash, "session_id": value.session_id})
 		"chunk":
 			var target = value.get("target")
 			if not AnimationState.integer(target, 0, 255):
 				return
-			var key = "%s:%s" % [int(target), sender]
+			var kind = value.get("asset_kind", "animation")
+			var key = "%s:%s:%s" % [int(target), sender, kind]
 			if not requests.has(key):
 				return
 			var request: Dictionary = requests[key]
@@ -92,7 +98,7 @@ func handle(server: Node, sender: int, value: Dictionary):
 			var bytes = Marshalls.base64_to_raw(value.bytes)
 			if bytes.is_empty() or bytes.size() > AnimationState.CHUNK_BYTES or bytes.size() > request.size - request.next:
 				return
-			_send(server, int(target), {"op": "chunk", "owner": sender, "hash": request.hash,
+			_send(server, int(target), {"op": "chunk", "asset_kind": kind, "owner": sender, "hash": request.hash,
 				"offset": request.next, "bytes": value.bytes, "session_id": request.session_id})
 			request.next += bytes.size()
 			if request.next == request.size:

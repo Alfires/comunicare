@@ -2,7 +2,7 @@
 
 ## Status and goals
 
-**Follow-up direction:** [automatic-avatar-animation-roadmap.md](automatic-avatar-animation-roadmap.md) supersedes the manual animation-player UI and parallel/manual animation synchronization design below. It plans automatic application, one resolved animation state, and source-only configuration under User → Avatar. That follow-up is planning only; current runtime behavior is still described in the implementation section below.
+**Superseding implementation:** [automatic-avatar-animation-roadmap.md](automatic-avatar-animation-roadmap.md) replaces the manual animation-player UI and parallel/manual synchronization design below. Its current implementation includes automatic motion, one resolved version-2 animation state, source-only User/Avatar configuration and the B/Home radial emote wheel. The older implementation notes below describe historical version-1 behavior where they conflict; consult the follow-up status and [usage guide](asset-cache-and-animation-usage.md) for current behavior and remaining release gates.
 
 **Implementation in progress — 2026-11-03.** The original design below remains the target, not a claim that every milestone is complete.
 

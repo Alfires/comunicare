@@ -34,12 +34,8 @@ func _ready():
 		status_selector.disabled = true
 	$VBoxContainer/MenuGrid/WorldExplorer.pressed.connect(open_home_menu.bind("world_explorer"))
 	$VBoxContainer/MenuGrid/ActiveInstance.pressed.connect(open_home_menu.bind("share_session_menue"))
-	var animations = Button.new()
-	animations.text = "Animations"
-	animations.custom_minimum_size = Vector2(48, 48)
-	$VBoxContainer/HBoxContainer.add_child(animations)
-	$VBoxContainer/HBoxContainer.move_child(animations, 1)
-	animations.pressed.connect(open_home_menu.bind("animation_menue"))
+	$VBoxContainer/MenuGrid/Emotes.pressed.connect(func(): NetworkHandler.get_animation_controller().toggle_emote_menu())
+	_setting_changed("input.toggle_animation_menu", SaveData.store.get_value("input.toggle_animation_menu"))
 	$Submenu/Back.pressed.connect(close_home_menu)
 	visibility_changed.connect(_visibility_changed)
 
@@ -65,6 +61,8 @@ func _availability_changed(_message: String):
 func _setting_changed(id: String, _value: Variant):
 	if id == "input.toggle_microphone":
 		_update(SaveData.voice.is_muted())
+	if id == "input.toggle_animation_menu":
+		$VBoxContainer/MenuGrid/Emotes.tooltip_text = "Open emote wheel (" + OS.get_keycode_string(int(_value)) + ")"
 
 func _exit_tree():
 	if SaveData.get("friends") != null and SaveData.friends.changed.is_connected(_status_changed):
@@ -94,7 +92,7 @@ func open_profile(owner: String):
 	profile_panel.open_profile(SaveData.profile, owner)
 
 func open_home_menu(kind: String):
-	if kind not in ["world_explorer", "share_session_menue", "animation_menue"]:
+	if kind not in ["world_explorer", "share_session_menue"]:
 		return
 	if kind == "world_explorer" and get_parent() is TabContainer:
 		var explorer = get_parent().get_node_or_null("world_explorer")

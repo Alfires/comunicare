@@ -26,6 +26,8 @@ def main():
         sources = [
             "scripts/GUI/world_explorer.gd",
             "scripts/GUI/error_popup.gd",
+            "scripts/GUI/emote_wheel.gd",
+            "scripts/GUI/xr_emote_wheel.gd",
             "scripts/multiplayer/relay.gd",
             "scripts/multiplayer/network_handler.gd",
             "scripts/startup/data_loader.gd",

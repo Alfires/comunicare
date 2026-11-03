@@ -1,5 +1,12 @@
 # Repository guidance
 
+## Commit and publication workflow
+- Use Conventional Commits for every commit: `type(scope): description` (for example `feat`, `fix`, `docs`, `test`, `refactor`, `build` or `ci`). Mark real compatibility breaks with `!` and a `BREAKING CHANGE:` explanation; do not label documentation as a feature or fix.
+- Work in small, coherent, independently verified parts. For bug fixes, reproduce the issue with a failing test first, then fix it and commit the passing unit with its tests. Do not publish broken intermediate snapshots merely to make commits smaller.
+- Commit and push each completed verified part to the current branch's configured upstream, as requested by the repository owner. Review explicit staged paths and `git diff --cached --check`; never include unrelated user files, accounts, generated caches or private data. Do not force-push, rewrite history or change branches/remotes implicitly. If push is rejected or verification fails, report the blocker rather than bypassing it.
+- Use ordinary Git commands for repository publication/versioning. Do not add GitHub workflows or use GitHub CLI, APIs, Actions, or other GitHub-specific tooling. Planned release automation must work locally through scripts and opt-in Git hooks, without a hosting-provider dependency.
+- New planning documents belong under `docs/roadmaps/`. Existing root-level roadmaps are pending the link-safe migration described in `docs/roadmaps/documentation-system-roadmap.md`; do not treat their historical plans as current behavior.
+
 ## Runtime and wiring
 - `project.godot` declares Godot **4.7**, Forward Plus and Jolt Physics; the isolated tests use Compatibility rendering instead and do not validate the full renderer/XR stack.
 - The UID main scene resolves to `scenes/startup.tscn` → `scripts/startup/main.gd`. Startup loads the account, authenticates with the relay, then loads `scenes/world.tscn`; the local player is added under the scene-tree root so it survives world changes.

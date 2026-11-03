@@ -3,11 +3,18 @@ extends RefCounted
 ## Extracted authored data, not procedural motion. See asset manifest/license.
 
 const VERSION = 2
-const LIBRARY = "quaternius.standard.v1"
-const IDS = ["idle", "walk", "run", "jump", "fall", "land", "dance", "interact"]
+const LIBRARY = "quaternius.directional.v2"
+const IDS = ["walk", "run", "strafe_left", "strafe_right", "jump", "fall", "dance", "interact"]
 static var library: Dictionary = {}
 
 static func clip(id: String) -> Dictionary:
+	if id == "neutral":
+		var pose = clip("walk").duplicate(true)
+		pose.name = "neutral"
+		pose.duration = 1.0
+		for track in pose.tracks:
+			track.keys = [{"time": 0.0, "rotation": track.keys[0].rotation}]
+		return pose # Static authored standing pose, no idle or landing playback.
 	if library.is_empty():
 		var parser = JSON.new()
 		if parser.parse(FileAccess.get_file_as_string("res://assets/animations/quaternius_standard.json")) != OK:

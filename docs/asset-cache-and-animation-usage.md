@@ -1,5 +1,17 @@
 # Avatar sources, automatic motion and emote wheel
 
+Current movement behavior: forward walk/run and separate left/right directional
+walk variants are selected in player-local space. Idle and landing animation
+playback are disabled; stopping blends to a static authored standing pose.
+Directional variants adapt Quaternius Walk_Loop by reorienting its motion bases;
+the free Standard pack does not include separately authored strafe clips.
+
+In VR, animation keeps torso, shoulders, arms, fingers and legs. Only head/eye/jaw
+and hand tracks are excluded for head/hand tracking; the old lower-body-only
+mask is removed. The local avatar's head triangles use a dedicated camera layer
+excluded only by its first-person camera. Other cameras still render the head,
+including head geometry that originally shared a skinned mesh with the body.
+
 ## Configure your avatar
 
 Open **Home → your User/profile entry → Avatar setup**. This is an owner-only

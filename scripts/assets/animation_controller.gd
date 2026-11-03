@@ -31,8 +31,6 @@ var locomotion_elapsed := 0.0
 var configuration: Node
 var active_emote := ""
 var active_role := ""
-var grounded_before := true
-var landing_until := 0.0
 var applied_revision := -1
 var wheel: Control
 var wheel_layer: CanvasLayer
@@ -116,32 +114,36 @@ func _update_locomotion():
 					cancel_emote()
 				else:
 					return
-			var motion = resolve_motion(player.is_on_floor(), player.velocity, now())
+			var motion = resolve_motion(player.is_on_floor(), player.global_basis.inverse() * player.velocity, now())
 			var revision = configuration.revision if configuration != null else 0
 			var changed_model = not is_instance_valid(local_animator) or local_animator.avatar != _local_model()
 			if active_role != motion or applied_revision != revision or changed_model:
 				var item = configuration.roles.get(motion, {}) if configuration != null else {}
 				if item.is_empty():
-					item = {"clip": Defaults.clip(motion), "builtin": motion, "handle": {}, "index": 0, "share": true, "loop": motion in ["idle", "walk", "run", "fall"]}
+					item = {"clip": Defaults.clip(motion), "builtin": motion, "handle": {}, "index": 0, "share": true, "loop": motion in ["walk", "run", "strafe_left", "strafe_right", "fall"]}
 				if not item.get("share", false) and transport != null and transport.animation_supported:
-					item = {"clip": Defaults.clip(motion), "builtin": motion, "handle": {}, "index": 0, "share": true, "loop": motion in ["idle", "walk", "run", "fall"]}
+					item = {"clip": Defaults.clip(motion), "builtin": motion, "handle": {}, "index": 0, "share": true, "loop": motion in ["walk", "run", "strafe_left", "strafe_right", "fall"]}
 				var applied = _apply_resolved(item, "locomotion", motion)
 				if not applied and item.get("builtin", "").is_empty():
 					applied = _apply_resolved({"clip": Defaults.clip(motion), "builtin": motion, "handle": {}, "index": 0,
-						"share": true, "loop": motion in ["idle", "walk", "run", "fall"]}, "locomotion", motion)
+						"share": true, "loop": motion in ["walk", "run", "strafe_left", "strafe_right", "fall"]}, "locomotion", motion)
 				if applied:
 					active_role = motion
 					applied_revision = revision
 			return
 
-func resolve_motion(grounded: bool, velocity: Vector3, at_msec: float) -> String:
-	var motion = "idle"
+func resolve_motion(grounded: bool, velocity: Vector3, _at_msec: float) -> String:
+	var motion = "neutral"
 	if not grounded: motion = "jump" if velocity.y > 0 else "fall"
 	elif Vector2(velocity.x, velocity.z).length() > 0.1:
-		motion = "run" if Vector2(velocity.x, velocity.z).length() > 4 else "walk"
-	if grounded and not grounded_before: landing_until = at_msec + 350
-	grounded_before = grounded
-	return "land" if grounded and at_msec < landing_until else motion
+		if absf(velocity.x) > absf(velocity.z): motion = "strafe_left" if velocity.x < 0 else "strafe_right"
+		else: motion = "run" if absf(velocity.z) > 4 else "walk"
+	return motion
+
+static func tracking_mask(clip: Dictionary) -> Dictionary:
+	var result = clip.duplicate(true)
+	result.tracks = result.tracks.filter(func(track): return track.bone not in ["head", "leftEye", "rightEye", "jaw", "leftHand", "rightHand"])
+	return result
 
 func emote_catalog() -> Dictionary:
 	if configuration != null:
@@ -176,16 +178,15 @@ func cancel_emote():
 func _apply_resolved(item: Dictionary, kind: String, action_id: String) -> bool:
 	var clip: Dictionary = item.clip
 	if _is_vr():
-		clip = clip.duplicate(true)
-		clip.tracks = clip.tracks.filter(func(track): return track.bone in ["leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg", "leftFoot", "rightFoot", "leftToes", "rightToes"])
+		clip = tracking_mask(clip)
 		if clip.tracks.is_empty():
-			last_error = "This action has no safe lower-body VR tracks."
+			last_error = "This action has no untracked VR animation channels."
 			return false
 	if not _play_resolved(clip, item.get("builtin", ""), item.get("handle", {}), item.get("index", 0), item.get("loop", false), 1.0, item.get("share", false)):
 		return false
 	local_state.kind = kind
 	local_state.role = action_id
-	local_state.mask = "lower_body" if _is_vr() else "full"
+	local_state.mask = "tracked_head_hands" if _is_vr() else "full"
 	local_state.avatar_revision = str(_local_model().get_meta("asset_revision", ""))
 	local_state.configuration_revision = configuration.revision if configuration != null else 0
 	local_state.configuration_owner = configuration.account_owner if configuration != null else ""
@@ -429,9 +430,8 @@ func _apply_remote(id: int):
 	if not value.loop and AnimationState.playhead(value, now()) >= value.duration:
 		if is_instance_valid(remote_animators.get(id)): remote_animators[id].stop()
 		return
-	if value.get("mask") == "lower_body":
-		clip = clip.duplicate(true)
-		clip.tracks = clip.tracks.filter(func(track): return track.bone in ["leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg", "leftFoot", "rightFoot", "leftToes", "rightToes"])
+	if value.get("mask") == "tracked_head_hands":
+		clip = tracking_mask(clip)
 		if clip.tracks.is_empty(): return
 	var animator = remote_animators.get(id)
 	if not is_instance_valid(animator) or animator.avatar != remote.avatar:

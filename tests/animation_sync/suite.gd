@@ -61,6 +61,15 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	var direction_controller = load("res://scripts/assets/animation_controller.gd").new()
+	check(direction_controller.resolve_motion(true, Vector3(-2, 0, 0), 0) == "strafe_left", "leftward movement chooses left strafe")
+	check(direction_controller.resolve_motion(true, Vector3(2, 0, 0), 0) == "strafe_right", "rightward movement chooses right strafe")
+	check(direction_controller.resolve_motion(true, Vector3.ZERO, 0) == "neutral", "standing still has no idle animation")
+	var masked = direction_controller.tracking_mask(Defaults.clip("walk"))
+	var bones: Array = masked.tracks.map(func(track): return track.bone)
+	check("leftUpperArm" in bones and "rightLowerArm" in bones and "chest" in bones, "VR tracking mask preserves untracked arms and torso animation")
+	check(not "head" in bones and not "leftHand" in bones and not "rightHand" in bones, "VR tracking mask excludes only tracked head and hands")
+	direction_controller.free()
 	await test_transition_blending()
 	var walk = Defaults.clip("walk")
 	var upper_tracks: Dictionary = {}
@@ -192,6 +201,16 @@ func test_authored_upper_body():
 	check(avatar != null, "production loader imports real VRM regression fixture")
 	if avatar == null: return
 	root.add_child(avatar)
+	var camera = Camera3D.new()
+	root.add_child(camera)
+	var other_camera = Camera3D.new()
+	root.add_child(other_camera)
+	var first_person = load("res://scripts/assets/first_person_avatar.gd")
+	check(first_person.apply(avatar, camera), "real combined VRM mesh splits head triangles for first-person rendering")
+	check(camera.cull_mask & first_person.HEAD_LAYER == 0 and other_camera.cull_mask & first_person.HEAD_LAYER != 0,
+		"only player camera excludes head layer; other cameras keep head visible")
+	camera.queue_free()
+	other_camera.queue_free()
 	var animator = Animator.new()
 	avatar.add_child(animator)
 	animator.attach(avatar)
@@ -357,11 +376,11 @@ func test_controller(parsed: Dictionary):
 	root.add_child(controller)
 	controller.configure(network, null)
 	controller.transport = network.peer
-	check(controller.resolve_motion(true, Vector3.ZERO, 1000) == "idle", "automatic state starts idle without opening a menu")
-	check(controller.resolve_motion(true, Vector3(2, 0, 0), 1100) == "walk", "movement resolves automatic walk")
+	check(controller.resolve_motion(true, Vector3.ZERO, 1000) == "neutral", "automatic state starts neutral without opening a menu")
+	check(controller.resolve_motion(true, Vector3(0, 0, -2), 1100) == "walk", "movement resolves automatic walk")
 	check(controller.resolve_motion(false, Vector3(0, 2, 0), 1200) == "jump", "upward airborne state resolves jump")
 	check(controller.resolve_motion(false, Vector3(0, -2, 0), 1300) == "fall", "descending airborne state resolves fall")
-	check(controller.resolve_motion(true, Vector3.ZERO, 1400) == "land" and controller.resolve_motion(true, Vector3.ZERO, 1800) == "idle", "landing transition expires and returns to idle")
+	check(controller.resolve_motion(true, Vector3.ZERO, 1400) == "neutral" and controller.resolve_motion(true, Vector3.ZERO, 1800) == "neutral", "ground contact selects static neutral with no landing playback")
 	controller.assets[parsed.hash] = {"parsed": parsed}
 	var value = {"op": "state", "session_id": "test", "version": 2, "peer_id": 7,
 		"generation": "a".repeat(32), "sequence": 1, "action": "resolved", "kind": "emote", "role": "turn", "mask": "full", "avatar_revision": "", "configuration_revision": 0, "offset": 0.5,

@@ -30,5 +30,12 @@ defaults. Wave/Cheer placeholders are replaced by the pack's actual Dance and
 Interact clips. Existing user shortcuts to removed placeholders show Unavailable
 and can be reassigned in the wheel editor; user layouts are not overwritten.
 
+Directional library revision `quaternius.directional.v2` removes Idle_Loop and
+Jump_Land from bundled playback data and adds left/right reference-space
+adaptations of Walk_Loop (+/-90 degrees). These use unchanged authored motion
+samples, not new hand-keyed animation, but are **not dedicated authored strafe
+clips**. A static first walk frame supplies the no-idle standing pose. The manifest
+and converter record these adaptations explicitly.
+
 User-imported assets retain their own licenses. A cache hash or successful import
 does not grant permission to redistribute them.

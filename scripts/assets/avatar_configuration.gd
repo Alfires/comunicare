@@ -4,7 +4,7 @@ extends Node
 signal changed
 const Defaults = preload("res://scripts/assets/default_animations.gd")
 const Layout = preload("res://scripts/assets/emote_layout.gd")
-const ROLES = ["idle", "walk", "run", "jump", "fall", "land"]
+const ROLES = ["walk", "run", "strafe_left", "strafe_right", "jump", "fall"]
 var account_owner := ""
 var path := ""
 var revision := 0
@@ -101,7 +101,7 @@ func _reset_catalog():
 	emotes.clear()
 	for id in Defaults.IDS:
 		var item = {"id": "builtin:" + id, "name": id.capitalize(), "clip": Defaults.clip(id),
-			"builtin": id, "handle": {}, "index": 0, "share": true, "loop": id in ["idle", "walk", "run", "fall", "dance"]}
+			"builtin": id, "handle": {}, "index": 0, "share": true, "loop": id in ["walk", "run", "strafe_left", "strafe_right", "fall", "dance"]}
 		if id in ROLES: roles[id] = item
 		else: emotes[item.id] = item
 
@@ -145,7 +145,7 @@ func _restore():
 static func role_for(name: String) -> String:
 	var normalized = name.to_lower().strip_edges().replace(" ", "").replace("_", "").replace("-", "")
 	for role in ROLES:
-		if normalized == role or normalized == role + "loop":
+		if normalized == role.replace("_", "") or normalized == role.replace("_", "") + "loop":
 			return role
 	return ""
 
@@ -154,6 +154,7 @@ func _merge_source(source: Dictionary, handle: Dictionary, parsed: Dictionary):
 		var clip: Dictionary = parsed.clips[index]
 		var id: String = source.hash + ":" + str(index)
 		var role = role_for(clip.name)
+		if clip.name.to_lower().strip_edges() in ["idle", "idle_loop", "land", "jump_land"]: continue
 		var item = {"id": id, "name": clip.name + " • " + source.name, "clip": clip,
 			"builtin": "", "handle": handle, "index": index, "share": source.get("share", false),
 			"loop": role in ["idle", "walk", "run", "fall"] or clip.name.to_lower().ends_with("loop")}

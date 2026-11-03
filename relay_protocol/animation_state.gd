@@ -4,9 +4,9 @@ extends RefCounted
 const VERSION = 2
 const MAX_BYTES = 16 * 1024 * 1024
 const CHUNK_BYTES = 8192
-const BUILTINS = ["idle", "walk", "run", "jump", "fall", "land", "dance", "interact"]
-const LIBRARY = "quaternius.standard.v1"
-const DURATIONS = {"idle": 2.5, "walk": 1.3333333730697632, "run": 0.9333333373069763, "jump": 1.3333333730697632, "fall": 2.5, "land": 1.2666666507720947, "dance": 1.0, "interact": 2.0}
+const BUILTINS = ["neutral", "walk", "run", "strafe_left", "strafe_right", "jump", "fall", "dance", "interact"]
+const LIBRARY = "quaternius.directional.v2"
+const DURATIONS = {"neutral": 1.0, "strafe_left": 1.3333333730697632, "strafe_right": 1.3333333730697632, "walk": 1.3333333730697632, "run": 0.9333333373069763, "jump": 1.3333333730697632, "fall": 2.5, "dance": 1.0, "interact": 2.0}
 
 static func integer(value: Variant, minimum: int, maximum: int) -> bool:
 	return (value is int or value is float) and is_finite(float(value)) \
@@ -21,7 +21,7 @@ static func valid(value: Dictionary) -> bool:
 		or not integer(value.get("sequence"), 1, 2147483647) \
 		or value.get("action") != "resolved" or value.get("kind") not in ["locomotion", "emote"] \
 		or not value.get("role") is String or value.role.length() > 256 \
-		or value.get("mask") not in ["full", "lower_body"] \
+		or value.get("mask") not in ["full", "tracked_head_hands"] \
 		or not integer(value.get("configuration_revision"), 0, 2147483647) \
 		or not value.get("avatar_revision") is String or value.avatar_revision.length() > 64 \
 		or not number(value.get("offset"), 0, 600) or not number(value.get("speed"), 0.25, 2.0) \

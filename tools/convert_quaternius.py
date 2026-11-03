@@ -14,8 +14,8 @@ import math
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMBER = "Animation Library[Standard]/Godot/AnimationLibrary_Godot_Standard.glb"
-SELECTION = {"idle": "Idle_Loop", "walk": "Walk_Loop", "run": "Jog_Fwd_Loop",
-             "jump": "Jump_Start", "fall": "Jump_Loop", "land": "Jump_Land",
+SELECTION = {"walk": "Walk_Loop", "run": "Jog_Fwd_Loop", "strafe_left": "Walk_Loop", "strafe_right": "Walk_Loop",
+             "jump": "Jump_Start", "fall": "Jump_Loop",
              "dance": "Dance_Loop", "interact": "Interact"}
 MAPPING = {"DEF-hips": "hips", "DEF-spine.001": "spine", "DEF-spine.002": "chest",
            "DEF-spine.003": "upperChest", "DEF-neck": "neck", "DEF-head": "head"}
@@ -92,7 +92,11 @@ def main():
                 continue
             rest = norm(reference[index][1][0])
             duration = max(duration, times[-1][0])
-            tracks.append({"bone": MAPPING[node_name], "source_rest": global_reference(index), "reference_space": "gltf_humanoid",
+            basis = global_reference(index)
+            if role in ["strafe_left", "strafe_right"]:
+                angle = math.pi / 2 if role == "strafe_left" else -math.pi / 2
+                basis = mul([0, math.sin(angle/2), 0, math.cos(angle/2)], basis)
+            tracks.append({"bone": MAPPING[node_name], "source_rest": basis, "reference_space": "gltf_humanoid",
                            "keys": [[t[0], *norm(mul(inv(rest), norm(q)))] for t, q in zip(times, values)]})
         clips[role] = {"name": role, "source_clip": name, "duration": duration, "tracks": tracks,
                        "provenance": {"author": "Quaternius", "license": "CC0-1.0"}}
@@ -106,7 +110,7 @@ def main():
                 "download_version": "Standard-1.0", "retrieved": "2026-11-03", "archive_sha256": hashlib.sha256(archive).hexdigest(),
                 "original_file": MEMBER, "original_sha256": hashlib.sha256(data).hexdigest(),
                 "converted_sha256": hashlib.sha256(payload.encode()).hexdigest(), "clips": SELECTION,
-                "conversion": "Authored rotation keys extracted without synthesis; A_TPose reference deltas and global bone bases preserved; translations/scales omitted for in-place playback. Fingers retained; optional bones may be skipped on target rigs."}
+                "conversion": "Authored rotation keys extracted without synthesis; A_TPose deltas/global bases preserved; translation/scale omitted. Left/right strafe variants reorient Walk_Loop reference bases by +/-90 degrees; these are adapted walks, not dedicated authored strafes. Idle/landing clips excluded. Fingers retained; optional bones may be skipped."}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print({role: (clip["duration"], len(clip["tracks"])) for role, clip in clips.items()})
 

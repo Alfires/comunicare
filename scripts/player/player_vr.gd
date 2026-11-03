@@ -131,6 +131,7 @@ func load_vrm_model():
 
 	vrm_model = model
 	add_child(vrm_model)
+	preload("res://scripts/assets/first_person_avatar.gd").apply(vrm_model, xr_camera)
 	vrm_model.position = Vector3.ZERO
 
 	skeleton = _find_skeleton(vrm_model)

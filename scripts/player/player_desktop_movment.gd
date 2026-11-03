@@ -132,6 +132,7 @@ func load_player_model():
 	skeleton = null
 	head_idx = -1
 	add_child(vrm_model)
+	preload("res://scripts/assets/first_person_avatar.gd").apply(vrm_model, camera)
 	await get_tree().process_frame
 	
 	skeleton = vrm_model.find_child("Skeleton3D")

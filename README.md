@@ -1,4 +1,8 @@
 # comunicare
+
+**Start here:** [Documentation](docs/README.md) · [Contributing](CONTRIBUTING.md) ·
+[Roadmaps](docs/roadmaps/README.md). The early development checklist below is
+historical and is not a current implementation or verification report.
 Comunicare is a VR and desktop chatting game designed to let you explore worlds and connect with others.
 Programmed in Godot.
 Its in a very early release.

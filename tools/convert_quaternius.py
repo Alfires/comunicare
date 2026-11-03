@@ -14,7 +14,7 @@ import math
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMBER = "Animation Library[Standard]/Godot/AnimationLibrary_Godot_Standard.glb"
-SELECTION = {"walk": "Walk_Loop", "run": "Jog_Fwd_Loop", "strafe_left": "Walk_Loop", "strafe_right": "Walk_Loop",
+SELECTION = {"neutral": "Idle_Loop", "walk": "Walk_Loop", "run": "Jog_Fwd_Loop", "strafe_left": "Walk_Loop", "strafe_right": "Walk_Loop",
              "jump": "Jump_Start",
              "dance": "Dance_Loop", "interact": "Interact"}
 MAPPING = {"DEF-hips": "hips", "DEF-spine.001": "spine", "DEF-spine.002": "chest",
@@ -96,21 +96,25 @@ def main():
             if role in ["strafe_left", "strafe_right"]:
                 angle = math.pi / 2 if role == "strafe_left" else -math.pi / 2
                 basis = mul([0, math.sin(angle/2), 0, math.cos(angle/2)], basis)
-            tracks.append({"bone": MAPPING[node_name], "source_rest": basis, "reference_space": "gltf_humanoid",
-                           "keys": [[t[0], *norm(mul(inv(rest), norm(q)))] for t, q in zip(times, values)]})
+            keys = [[t[0], *norm(mul(inv(rest), norm(q)))] for t, q in zip(times, values)]
+            if role == "neutral":
+                keys = [[0.0, *keys[0][1:]]]  # Static authored standing pose, never an idle loop.
+            tracks.append({"bone": MAPPING[node_name], "source_rest": basis, "reference_space": "gltf_humanoid", "keys": keys})
+        if role == "neutral":
+            duration = 1.0
         clips[role] = {"name": role, "source_clip": name, "duration": duration, "tracks": tracks,
                        "provenance": {"author": "Quaternius", "license": "CC0-1.0"}}
     out = ROOT / "assets/animations"
     payload = json.dumps({"schema": 1, "clips": clips}, separators=(",", ":")) + "\n"
     (out / "quaternius_standard.json").write_text(payload)
     (out / "Quaternius-License.txt").write_text("\n".join(line.rstrip() for line in license_text.decode().splitlines()) + "\n")
-    manifest = {"schema": 2, "library": "quaternius.standard.v1", "author": "Quaternius", "license": "CC0-1.0",
+    manifest = {"schema": 2, "library": "quaternius.directional.v3", "author": "Quaternius", "license": "CC0-1.0",
                 "source_url": "https://store.godotengine.org/asset/quaternius/universal-animation-library/",
                 "download_url": "https://store.godotengine.org/asset/quaternius/universal-animation-library/download/44/",
                 "download_version": "Standard-1.0", "retrieved": "2026-11-03", "archive_sha256": hashlib.sha256(archive).hexdigest(),
                 "original_file": MEMBER, "original_sha256": hashlib.sha256(data).hexdigest(),
                 "converted_sha256": hashlib.sha256(payload.encode()).hexdigest(), "clips": SELECTION,
-                "conversion": "Authored rotation keys extracted without synthesis; A_TPose deltas/global bases preserved; translation/scale omitted. Left/right strafe variants reorient Walk_Loop reference bases by +/-90 degrees; these are adapted walks, not dedicated authored strafes. Idle/landing clips excluded. Fingers retained; optional bones may be skipped."}
+                "conversion": "Authored rotation keys extracted without synthesis; A_TPose deltas/global bases preserved; translation/scale omitted. Neutral is only the first Idle_Loop frame, no idle motion. Left/right strafe variants reorient Walk_Loop reference bases by +/-90 degrees; adapted walks, not dedicated authored strafes. Falling/landing clips excluded. Fingers retained; optional bones may be skipped."}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print({role: (clip["duration"], len(clip["tracks"])) for role, clip in clips.items()})
 

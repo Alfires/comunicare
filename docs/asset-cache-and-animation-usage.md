@@ -1,5 +1,10 @@
 # Avatar sources, automatic motion and emote wheel
 
+Standing uses one frame from Quaternius **Idle_Loop**, not a frame of Walk_Loop.
+Only that standing pose is retained: no breathing/swaying or idle animation is
+played. Walk-to-standing regression tests cover multiple stopping phases and
+verify that every animated bone settles to the standing pose and stays still.
+
 First-person clearance defaults to **15 cm forward** of the desktop avatar's
 rest-eye position (`first_person_forward_offset` on the player script). In VR,
 the avatar shell is offset 15 cm backward instead; headset tracking and camera

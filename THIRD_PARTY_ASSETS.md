@@ -40,5 +40,9 @@ and converter record these adaptations explicitly.
 Jump_Loop (falling) is also no longer bundled or played. Descending selects the
 same static authored neutral pose used when standing still.
 
+`quaternius.directional.v3` corrects neutral standing: it retains exactly the
+first frame of **Idle_Loop**, rather than freezing a Walk_Loop frame. Idle motion
+is not included or played. The manifest/converter record the standing source.
+
 User-imported assets retain their own licenses. A cache hash or successful import
 does not grant permission to redistribute them.

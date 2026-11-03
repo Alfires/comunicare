@@ -61,6 +61,9 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	await test_walk_to_standing()
+	var standing_source = Defaults.clip("neutral")
+	check(standing_source.get("source_clip") == "Idle_Loop", "standing samples an authored standing pose, never a frozen forward-walk frame")
 	var airborne = load("res://scripts/assets/animation_controller.gd").new()
 	check(airborne.resolve_motion(false, Vector3(0, -3, 0), 0) == "neutral", "descending does not start a falling animation")
 	check(not "fall" in Defaults.IDS, "falling clip is removed from default selection")
@@ -165,6 +168,36 @@ func run():
 	await test_network()
 	print("\nAnimation contracts: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
+
+func test_walk_to_standing():
+	var avatar = Node3D.new()
+	var rig = Skeleton3D.new()
+	rig.name = "Rig"
+	avatar.add_child(rig)
+	var mapping: Dictionary = {}
+	for track in Defaults.clip("neutral").tracks:
+		rig.add_bone(track.bone)
+		mapping[track.bone] = track.bone
+	avatar.set_meta("humanoid_bones", mapping)
+	root.add_child(avatar)
+	var animator = Animator.new()
+	avatar.add_child(animator)
+	animator.attach(avatar)
+	var reference = Reader.new().bind_clip(Defaults.clip("neutral"), avatar)
+	for phase in [0.1, 0.45, 0.9]:
+		animator.play_clip(Defaults.clip("walk"), true, 1.0, phase)
+		animator.player.advance(0.3)
+		animator.play_clip(Defaults.clip("neutral"), false)
+		animator.player.advance(0.4)
+		var clean := true
+		for track in reference.get_track_count():
+			var bone = rig.find_bone(String(reference.track_get_path(track).get_subname(0)))
+			clean = clean and rig.get_bone_pose_rotation(bone).angle_to(reference.track_get_key_value(track, 0)) < 0.002
+		check(clean, "stopping walk at phase %s settles every bone to standing without leftover walk pose" % phase)
+		var frozen = rig.get_bone_pose_rotation(rig.find_bone("leftUpperLeg"))
+		animator.player.advance(1.5)
+		check(frozen.angle_to(rig.get_bone_pose_rotation(rig.find_bone("leftUpperLeg"))) < 0.002, "standing remains motionless after transition")
+	avatar.free()
 
 func test_tracking_targets():
 	var rig = Skeleton3D.new()

@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-**Planning only.** This document defines the documentation system and local release automation to implement in small verified Conventional Commits. It does not install hooks, move existing documents, change application versions, create tags or implement a documentation website.
+**Implementation in progress.** Documentation navigation, contribution/architecture/testing guides and link-safe relocation of the nine existing roadmaps are implemented. A local Conventional Commit parser and deterministic explicit-baseline release planner, metadata preparation/checking and annotated-tag commands are available with temporary-Git tests. No real application baseline/version, release tag or hooks have been installed. Exhaustive function references, symbol/link tooling, opt-in hooks, prereleases and release fault/recovery coverage remain incomplete; the requirements below remain the target, not a completion claim. See [release usage](../development/releases.md).
 
 Requirements:
 

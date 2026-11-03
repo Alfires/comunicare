@@ -16,6 +16,7 @@ headset, renderer, microphone or production-network verification.
 - [Runtime architecture](architecture/overview.md)
 - [Verification](development/testing.md)
 - [Documentation conventions](development/documentation.md)
+- [Local Git-only releases](development/releases.md)
 - [Roadmaps and remaining work](roadmaps/README.md)
 
 ## Status

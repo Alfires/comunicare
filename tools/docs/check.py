@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import argparse
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,7 +44,13 @@ def check_file(path):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--changed", action="store_true", help="Check changed tracked Markdown only")
+    args = parser.parse_args()
     names = subprocess.check_output(["git", "ls-files", "-z", "--", "*.md"], cwd=ROOT).decode().split("\0")
+    if args.changed:
+        changed = subprocess.check_output(["git", "diff", "HEAD", "--name-only", "-z", "--", "*.md"], cwd=ROOT).decode().split("\0")
+        names = [name for name in names if name in changed]
     # Vendored manuals may reference assets intentionally not included here.
     errors = [error for name in names if name and not name.startswith("addons/") and (ROOT / name).exists() for error in check_file(ROOT / name)]
     print("\n".join(errors) if errors else "Tracked Markdown local links/anchors pass")

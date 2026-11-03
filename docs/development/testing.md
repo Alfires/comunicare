@@ -1,5 +1,11 @@
 # Verification
 
+Documentation/release automation has one offline entry point:
+`python3 tools/check_repository.py`. It runs parser/link/coverage tests, temporary
+Git release/hook/failure tests and repository drift checks. It does not install
+hooks, create real tags, push, contact external hosts or run the game. The game
+suites below remain separate and required for behavioral code changes.
+
 Run from the repository root, with Python 3 and `godot` available:
 
 ```sh

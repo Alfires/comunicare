@@ -1,6 +1,7 @@
 # Documentation conventions
 
-Offline local file/heading checks: `python3 tools/docs/check.py`.
+Offline local file/heading checks: `python3 tools/docs/check.py` (or `--changed`
+for changed tracked Markdown relative to HEAD).
 Checker fixtures: `python3 tools/docs/test_check.py`. Only tracked Markdown is
 scanned, excluding vendored add-on manuals. External URLs are not fetched. This
 does not validate behavioral reference-page coverage. Production declarations are

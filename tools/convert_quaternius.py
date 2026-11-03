@@ -15,7 +15,7 @@ import math
 ROOT = Path(__file__).resolve().parents[1]
 MEMBER = "Animation Library[Standard]/Godot/AnimationLibrary_Godot_Standard.glb"
 SELECTION = {"walk": "Walk_Loop", "run": "Jog_Fwd_Loop", "strafe_left": "Walk_Loop", "strafe_right": "Walk_Loop",
-             "jump": "Jump_Start", "fall": "Jump_Loop",
+             "jump": "Jump_Start",
              "dance": "Dance_Loop", "interact": "Interact"}
 MAPPING = {"DEF-hips": "hips", "DEF-spine.001": "spine", "DEF-spine.002": "chest",
            "DEF-spine.003": "upperChest", "DEF-neck": "neck", "DEF-head": "head"}

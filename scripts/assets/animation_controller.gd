@@ -134,7 +134,7 @@ func _update_locomotion():
 
 func resolve_motion(grounded: bool, velocity: Vector3, _at_msec: float) -> String:
 	var motion = "neutral"
-	if not grounded: motion = "jump" if velocity.y > 0 else "fall"
+	if not grounded: motion = "jump" if velocity.y > 0 else "neutral"
 	elif Vector2(velocity.x, velocity.z).length() > 0.1:
 		if absf(velocity.x) > absf(velocity.z): motion = "strafe_left" if velocity.x < 0 else "strafe_right"
 		else: motion = "run" if absf(velocity.z) > 4 else "walk"

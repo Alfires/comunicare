@@ -3,6 +3,9 @@ extends RefCounted
 const HEAD_LAYER = 1 << 19
 const BODY_LAYER = 1 << 18
 
+static func is_camera_interior_bone(role: String) -> bool:
+	return role in ["hips", "spine", "chest", "upperChest", "neck", "head", "leftEye", "rightEye", "jaw"]
+
 static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 	camera.set_meta("first_person_camera", true)
 	camera.cull_mask &= ~HEAD_LAYER
@@ -29,6 +32,10 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 	var head = rig.find_bone(mapping.head)
 	if head < 0: return false
 	var head_bones: Dictionary = {}
+	for role in mapping:
+		if is_camera_interior_bone(role):
+			var index = rig.find_bone(mapping[role])
+			if index >= 0: head_bones[index] = true
 	for index in rig.get_bone_count():
 		var parent = index
 		while parent >= 0:
@@ -41,7 +48,8 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		if node.has_meta("first_person_split") or node.mesh == null: continue
 		var mesh: Mesh = node.mesh
 		var visibility: String = annotations.get(str(node.name), "auto")
-		if visibility == "both": continue
+		# Even author-marked Both meshes need local interior filtering. Keep the
+		# original intact; only local derivatives lose camera-intersecting torso.
 		if visibility == "thirdPersonOnly":
 			node.set_meta("first_person_original", true)
 			continue
@@ -59,7 +67,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var bones = arrays[Mesh.ARRAY_BONES]
 			var weights = arrays[Mesh.ARRAY_WEIGHTS]
-			if visibility != "firstPersonOnly" and bones != null and weights != null and not vertices.is_empty() and node.skin != null:
+			if bones != null and weights != null and not vertices.is_empty() and node.skin != null:
 				var influences = bones.size() / vertices.size()
 				for vertex in vertices.size():
 					var head_weight := 0.0
@@ -71,8 +79,8 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 						var name = node.skin.get_bind_name(bind)
 						var bone = rig.find_bone(name) if name != &"" else node.skin.get_bind_bone(bind)
 						if head_bones.has(bone): head_weight += weights[offset]
-					if head_weight >= 0.5: head_vertices[vertex] = true
-			elif visibility != "firstPersonOnly" and (node.name.to_lower().contains("head") or node.name.to_lower().contains("hair") or node.name.to_lower().contains("face")):
+					if head_weight >= 0.25: head_vertices[vertex] = true
+			elif node.name.to_lower().contains("head") or node.name.to_lower().contains("hair") or node.name.to_lower().contains("face") or node.name.to_lower().contains("body") or node.name.to_lower().contains("torso"):
 				for vertex in vertices.size(): head_vertices[vertex] = true
 			var indices = arrays[Mesh.ARRAY_INDEX]
 			if indices == null or indices.is_empty():

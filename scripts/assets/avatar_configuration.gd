@@ -4,7 +4,7 @@ extends Node
 signal changed
 const Defaults = preload("res://scripts/assets/default_animations.gd")
 const Layout = preload("res://scripts/assets/emote_layout.gd")
-const ROLES = ["walk", "run", "strafe_left", "strafe_right", "jump", "fall"]
+const ROLES = ["walk", "run", "strafe_left", "strafe_right", "jump"]
 var account_owner := ""
 var path := ""
 var revision := 0
@@ -154,7 +154,7 @@ func _merge_source(source: Dictionary, handle: Dictionary, parsed: Dictionary):
 		var clip: Dictionary = parsed.clips[index]
 		var id: String = source.hash + ":" + str(index)
 		var role = role_for(clip.name)
-		if clip.name.to_lower().strip_edges() in ["idle", "idle_loop", "land", "jump_land"]: continue
+		if clip.name.to_lower().strip_edges() in ["idle", "idle_loop", "land", "jump_land", "fall", "fall_loop", "jump_loop"]: continue
 		var item = {"id": id, "name": clip.name + " • " + source.name, "clip": clip,
 			"builtin": "", "handle": handle, "index": index, "share": source.get("share", false),
 			"loop": role in ["idle", "walk", "run", "fall"] or clip.name.to_lower().ends_with("loop")}

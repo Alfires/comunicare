@@ -61,6 +61,13 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	var airborne = load("res://scripts/assets/animation_controller.gd").new()
+	check(airborne.resolve_motion(false, Vector3(0, -3, 0), 0) == "neutral", "descending does not start a falling animation")
+	check(not "fall" in Defaults.IDS, "falling clip is removed from default selection")
+	airborne.free()
+	var view_policy = load("res://scripts/assets/first_person_avatar.gd")
+	check(view_policy.is_camera_interior_bone("chest") and view_policy.is_camera_interior_bone("hips") and not view_policy.is_camera_interior_bone("leftUpperArm"), "local camera hides interior torso but preserves arms")
+	check(view_policy.has_method("is_camera_interior_bone"), "first-person filtering excludes camera-intersecting torso as well as head")
 	var strafe_service = load("res://scripts/assets/animation_controller.gd").new()
 	check(strafe_service.has_method("strafe_pose"), "sideways animation has a leg-only composition policy")
 	if strafe_service.has_method("strafe_pose"):
@@ -438,7 +445,7 @@ func test_controller(parsed: Dictionary):
 	check(controller.resolve_motion(true, Vector3.ZERO, 1000) == "neutral", "automatic state starts neutral without opening a menu")
 	check(controller.resolve_motion(true, Vector3(0, 0, -2), 1100) == "walk", "movement resolves automatic walk")
 	check(controller.resolve_motion(false, Vector3(0, 2, 0), 1200) == "jump", "upward airborne state resolves jump")
-	check(controller.resolve_motion(false, Vector3(0, -2, 0), 1300) == "fall", "descending airborne state resolves fall")
+	check(controller.resolve_motion(false, Vector3(0, -2, 0), 1300) == "neutral", "descending airborne state stays neutral without fall playback")
 	check(controller.resolve_motion(true, Vector3.ZERO, 1400) == "neutral" and controller.resolve_motion(true, Vector3.ZERO, 1800) == "neutral", "ground contact selects static neutral with no landing playback")
 	controller.assets[parsed.hash] = {"parsed": parsed}
 	var value = {"op": "state", "session_id": "test", "version": 2, "peer_id": 7,

@@ -4,7 +4,7 @@ extends RefCounted
 
 const VERSION = 2
 const LIBRARY = "quaternius.directional.v2"
-const IDS = ["walk", "run", "strafe_left", "strafe_right", "jump", "fall", "dance", "interact"]
+const IDS = ["walk", "run", "strafe_left", "strafe_right", "jump", "dance", "interact"]
 static var library: Dictionary = {}
 
 static func clip(id: String) -> Dictionary:

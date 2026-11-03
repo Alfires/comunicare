@@ -1,5 +1,12 @@
 # Avatar sources, automatic motion and emote wheel
 
+Falling playback is now removed: descending uses the static neutral pose, with
+no fall loop. First-person derivatives exclude the torso/pelvis/neck as well as
+the head so the camera does not look into the avatar shell. Arms and legs remain
+available locally; other cameras and shadows retain the intact full avatar.
+This deliberately sacrifices first-person torso visibility for reliable interior
+clipping avoidance, rather than moving the camera or hiding the body globally.
+
 ## First-person rendering and VR tracking
 
 Avatar import now prepares a separate first-person mesh derivative on the worker

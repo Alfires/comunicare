@@ -35,6 +35,8 @@ var debug_timer: float = 0.0
 
 
 func _ready():
+	if DataLoader.has_signal("asset_revision_available"):
+		DataLoader.asset_revision_available.connect(_asset_updated)
 	SaveData.profile.profile_changed.connect(_profile_changed)
 	add_to_group("player")
 	load_vrm_model()
@@ -150,7 +152,14 @@ func _profile_changed(owner: String):
 	if owner == SaveData.profile.get_local_fingerprint():
 		load_vrm_model()
 
+func _asset_updated(source: String, _previous: String, _revision: String):
+	if source == avatar_url:
+		avatar_url = ""
+		load_vrm_model()
+
 func _exit_tree():
+	if DataLoader.has_signal("asset_revision_available") and DataLoader.asset_revision_available.is_connected(_asset_updated):
+		DataLoader.asset_revision_available.disconnect(_asset_updated)
 	avatar_generation += 1
 	SaveData.profile.profile_changed.disconnect(_profile_changed)
 

@@ -14,6 +14,8 @@ var file_picker: FileDialog
 var bytes_loader: Callable
 
 func _ready():
+	if DataLoader.has_signal("asset_revision_available"):
+		DataLoader.asset_revision_available.connect(_asset_updated)
 	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	$Layout/Load.pressed.connect(load_preview)
 	$Layout/Controls/Left.pressed.connect(func(): pivot.rotate_y(0.3))
@@ -35,6 +37,10 @@ func _ready():
 	file_picker.file_selected.connect(load_file)
 	add_child(file_picker)
 	$Layout/Controls/OpenFile.pressed.connect(func(): file_picker.popup_centered_ratio(0.8))
+
+func _asset_updated(url: String, _previous: String, _revision: String):
+	if url == source and is_instance_valid(model) and is_visible_in_tree() and not loader.is_valid():
+		load_preview()
 
 func load_file(path: String) -> bool:
 	if path.get_extension().to_lower() != "vrm":

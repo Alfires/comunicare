@@ -2,7 +2,13 @@
 
 ## Status and goals
 
-**Planning only — 2026-11-03.** This roadmap does not implement caching, importers, uploads or animation networking. All components, defaults and wire additions below are proposed unless explicitly described as current behavior.
+**Implementation in progress — 2026-11-03.** The original design below remains the target, not a claim that every milestone is complete.
+
+### Current implementation slice
+
+Shared client-local content-addressed storage, atomic index writes, hash checks, bounded/coalesced fetches, conditional GET, failure backoff, offline fallback, no-store lifetimes, pinned local imports, quota/lease protection and corrupt-index preservation are implemented in `scripts/assets/asset_cache.gd`. DataLoader uses the cache for URL avatars and world archives, retains active revisions, and checks loaded avatars periodically. Desktop/VR/remote/preview consumers receive same-URL update notifications. Registry-driven Assets settings and confirmed unused-cache clearing are available.
+
+`tests/asset_cache/run.py` exercises isolated real loopback HTTP and storage behavior. Remaining cache work includes broader recovery/fault injection, per-item management, complete stale/orphan-derived reclamation, safe redirect support, URL destination policy and world trust/revision-pinning protocol. World caching does **not** yet guarantee matching world revisions across an instance or sandbox untrusted scenes. Animation phases below remain planned until explicitly updated.
 
 Build one client-local asset folder that automatically caches every successfully validated avatar and world the client loads, and also caches animation assets. Detect source changes, download replacements safely, and keep known-good content when a refresh fails. Include freely reusable default animations, allow users to import animation files or links, and synchronize playback with every other eligible player in the same instance.
 

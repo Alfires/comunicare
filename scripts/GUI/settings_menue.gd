@@ -88,9 +88,36 @@ func _render():
 		errors[definition.id] = error
 		page.add_child(row)
 		_update_value(definition.id, SaveData.store.get_value(definition.id))
+	if category_pages.has("Assets") and DataLoader.has_method("get_asset_cache"):
+		_add_cache_actions(category_pages.Assets)
 	if not category_pages.has(selected_category):
 		selected_category = "" if category_pages.is_empty() else str(category_pages.keys()[0])
 	select_category(selected_category)
+
+func _add_cache_actions(page: VBoxContainer):
+	var cache = DataLoader.get_asset_cache()
+	cache.initialize()
+	var summary = Label.new()
+	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	page.add_child(summary)
+	var update = func():
+		if is_instance_valid(summary):
+			summary.text = "Managed assets: %.1f MiB\n%s" % [cache.usage_bytes() / 1048576.0, cache.last_error]
+	update.call()
+	var open = Button.new()
+	open.text = "Open cache folder"
+	open.pressed.connect(func(): OS.shell_open(ProjectSettings.globalize_path(cache.directory)))
+	page.add_child(open)
+	var clear = Button.new()
+	clear.text = "Clear unused downloads (keep active assets and imports)"
+	page.add_child(clear)
+	var confirm = ConfirmationDialog.new()
+	confirm.dialog_text = "Remove unused cached downloads? Active assets and imported originals will be kept."
+	clear.add_child(confirm)
+	clear.pressed.connect(func(): confirm.popup_centered())
+	confirm.confirmed.connect(func():
+		cache.clear_unused()
+		update.call())
 
 func select_category(category: String):
 	if not category_pages.has(category):

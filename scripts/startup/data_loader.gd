@@ -3,31 +3,69 @@ extends Node3D
 var avatar_import_busy := false
 var avatar_import_waiters := 0
 var avatar_thread: Thread
+signal asset_revision_available(source: String, previous: String, revision: String)
+var asset_cache: Node
+var cache_poll_elapsed := 0.0
+var avatar_sources: Dictionary = {}
+var active_world: Dictionary = {}
 const MAX_AVATAR_BYTES = 64 * 1024 * 1024
 const MAX_AVATAR_WAITERS = 8
 
-func load_vrm_from_url(url: String):
-	"""Load a VRM model from a URL"""
-	var http_request = HTTPRequest.new()
-	http_request.use_threads = true
-	http_request.timeout = 30
-	http_request.body_size_limit = 64 * 1024 * 1024
-	add_child(http_request)
-	if http_request.request(url) != OK:
-		http_request.queue_free()
-		return null
-	print("Downloading modell")
-	var response = await http_request.request_completed
-	http_request.queue_free()
-	print("responded")
+func get_asset_cache() -> Node:
+	if asset_cache == null:
+		asset_cache = preload("res://scripts/assets/asset_cache.gd").new()
+		asset_cache.name = "AssetCache"
+		add_child(asset_cache)
+		asset_cache.revision_available.connect(func(source, previous, revision):
+			# Initial acquisition is not an update. Defer callbacks until fetch has
+			# released its coalescing job; consumers may immediately request bytes.
+			if not previous.is_empty():
+				asset_revision_available.emit.call_deferred(source, previous, revision))
+		var settings = get_node_or_null("/root/SaveData")
+		if settings != null and settings.get("store") != null:
+			settings.store.setting_changed.connect(_cache_setting_changed)
+			for id in ["cache.quota_mib", "cache.automatic_refresh", "cache.allow_http"]:
+				_cache_setting_changed(id, settings.store.get_value(id))
+	return asset_cache
 
-	if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
-		printerr("Download failed with response code: ", response[1])
+func _cache_setting_changed(id: String, value: Variant):
+	if asset_cache == null or value == null:
 		return
+	match id:
+		"cache.quota_mib": asset_cache.quota_bytes = int(value) * 1024 * 1024
+		"cache.automatic_refresh": asset_cache.automatic_refresh = value == true
+		"cache.allow_http": asset_cache.allow_http = value == true
 
-	# Each request returns its own model; no shared _model race between local and
-	# remote avatars. Scene generation stays on the main thread.
-	return await _load_model_from_buffer(response[3])
+func load_vrm_from_url(url: String, force: bool = false):
+	var cache = get_asset_cache()
+	var handle: Dictionary = await cache.fetch(url, "avatar", _validate_avatar, force)
+	if handle.is_empty():
+		return null
+	var model = await _load_model_from_file(handle.path)
+	if model != null:
+		model.set_meta("asset_lease", handle.lease)
+		model.set_meta("asset_revision", handle.hash)
+		model.set_meta("asset_source", url)
+		avatar_sources[url] = weakref(model)
+	return model
+
+func _validate_avatar(path: String) -> bool:
+	var model = await _load_model_from_file(path)
+	if model == null:
+		return false
+	model.free()
+	return true
+
+func _process(delta: float):
+	cache_poll_elapsed += delta
+	if cache_poll_elapsed < 900 or asset_cache == null or not asset_cache.automatic_refresh:
+		return
+	cache_poll_elapsed = randf_range(-30, 30)
+	for source in avatar_sources.keys():
+		if avatar_sources[source].get_ref() == null:
+			avatar_sources.erase(source)
+		else:
+			await asset_cache.fetch(source, "avatar", _validate_avatar)
 
 func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D:
 	if buffer.is_empty() or buffer.size() > MAX_AVATAR_BYTES:
@@ -96,30 +134,50 @@ func prepare_world_from_url(url: String) -> Dictionary:
 	if url == "default_wold":
 		var home = load("res://scenes/world.tscn")
 		return {"scene": home, "spawn_point": [0, 1, 0]} if home is PackedScene else {}
-	var directory = "user://worlds/" + str(Time.get_ticks_usec()) + "/"
-	if DirAccess.make_dir_recursive_absolute(directory) != OK:
+	var cache = get_asset_cache()
+	var handle: Dictionary = await cache.fetch(url, "world", _validate_world_archive)
+	if handle.is_empty():
 		return {}
-	var http_request = HTTPRequest.new()
-	http_request.timeout = 30
-	http_request.body_size_limit = 128 * 1024 * 1024
-	add_child(http_request)
-	var error = http_request.request(url)
-	if error != OK:
-		http_request.queue_free()
-		return {}
-	var response = await http_request.request_completed
-	http_request.queue_free()
-	if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
-		return {}
-	var archive_path = directory + "world.cne"
-	var file = FileAccess.open(archive_path, FileAccess.WRITE)
-	if file == null:
-		return {}
-	file.store_buffer(response[3])
-	file.close()
-	var staged = prepare_world(archive_path, directory + "content/")
-	DirAccess.remove_absolute(archive_path)
+	var content = cache.world_path(handle.hash)
+	if handle.get("temporary", false):
+		content = cache.directory.path_join("staging/transient-world-%s/content/" % Time.get_ticks_usec())
+	# Derived files are immutable once referenced. Each changed archive hash
+	# gets its own folder; refresh never writes into the active scene's files.
+	var staged: Dictionary
+	if FileAccess.file_exists(content + "manifest.json"):
+		staged = _prepare_extracted_world(content)
+	else:
+		staged = prepare_world(handle.path, content)
+	if not staged.is_empty():
+		staged["asset_handle"] = handle
+		staged["revision"] = handle.hash
+		if handle.get("temporary", false):
+			var cleanup = TemporaryWorld.new()
+			cleanup.cache = weakref(cache)
+			cleanup.path = content.get_base_dir().trim_suffix("/content")
+			staged["extraction_lease"] = cleanup
 	return staged
+
+class TemporaryWorld extends RefCounted:
+	var cache: WeakRef
+	var path: String
+	func _notification(what):
+		if what == NOTIFICATION_PREDELETE and cache != null:
+			var owner = cache.get_ref()
+			if is_instance_valid(owner):
+				owner._clear_directory(path)
+				if DirAccess.dir_exists_absolute(path):
+					DirAccess.remove_absolute(path)
+
+func _validate_world_archive(path: String) -> bool:
+	var cache = get_asset_cache()
+	var content = cache.directory.path_join("staging/world-%s/" % Time.get_ticks_usec())
+	var staged = prepare_world(path, content)
+	var valid = not staged.is_empty()
+	staged.clear()
+	cache._clear_directory(content.trim_suffix("/"))
+	DirAccess.remove_absolute(content)
+	return valid
 
 func load_world(cne_word_path: String) -> bool:
 	var extract_path = "user://worlds/" + str(Time.get_ticks_usec()) + "/content/"
@@ -129,6 +187,9 @@ func load_world(cne_word_path: String) -> bool:
 func prepare_world(archive_path: String, extract_path: String) -> Dictionary:
 	if not extract_zip(archive_path, extract_path):
 		return {}
+	return _prepare_extracted_world(extract_path)
+
+func _prepare_extracted_world(extract_path: String) -> Dictionary:
 	var manifest = load_manifest(extract_path + "manifest.json")
 	if not manifest.get("main_scene") is String or not _safe_archive_path(manifest.main_scene):
 		return {}
@@ -152,6 +213,7 @@ func activate_world(staged: Dictionary) -> bool:
 	if get_tree().change_scene_to_packed(staged.scene) != OK:
 		return false
 	await get_tree().scene_changed
+	active_world = staged.duplicate()
 	var spawn = staged.get("spawn_point", [0, 0, 0])
 	for player in get_tree().get_nodes_in_group("player"):
 		if player.has_method("set_player_pos"):

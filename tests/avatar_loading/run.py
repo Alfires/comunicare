@@ -16,7 +16,7 @@ def main():
         return 2
     with tempfile.TemporaryDirectory(prefix="comunicare-avatar-", dir="/tmp/opencode") as directory:
         project = Path(directory)
-        for source in ["scripts/startup/data_loader.gd", "relay_protocol/world_address.gd"]:
+        for source in ["scripts/startup/data_loader.gd", "scripts/assets/asset_cache.gd", "relay_protocol/world_address.gd"]:
             target = project / source
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / source, target)

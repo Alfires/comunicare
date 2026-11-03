@@ -140,9 +140,9 @@ func test_category_navigation():
 	var save = root.get_node("SaveData")
 	var scene = load("res://scenes/GUI/settings_menue.tscn").instantiate()
 	root.add_child(scene)
-	check(scene.category_buttons.keys() == ["Audio", "Controls", "Interface"],
+	check(scene.category_buttons.keys() == ["Assets", "Audio", "Controls", "Interface"],
 		"left sidebar lists registry category names")
-	check(scene.category_pages.Audio.visible and not scene.category_pages.Controls.visible
+	check(scene.category_pages.Assets.visible and not scene.category_pages.Audio.visible and not scene.category_pages.Controls.visible
 		and not scene.category_pages.Interface.visible, "only initial category page is visible")
 	scene.category_buttons.Controls.pressed.emit()
 	check(scene.selected_category == "Controls" and scene.category_pages.Controls.visible

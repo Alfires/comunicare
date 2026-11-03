@@ -59,6 +59,9 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "cache.quota_mib", "category": "Assets", "label": "Cache storage budget", "description": "Active assets and imported originals are protected. A full cache rejects new downloads.", "type": "number", "default": 4096.0, "min": 256.0, "max": 65536.0, "step": 256.0, "unit": "MiB", "order": 0},
+		{"id": "cache.automatic_refresh", "category": "Assets", "label": "Check cached assets for updates", "description": "Revalidate on use and periodically check loaded avatars. World updates never replace the active scene automatically.", "type": "boolean", "default": true, "order": 1},
+		{"id": "cache.allow_http", "category": "Assets", "label": "Allow insecure HTTP asset URLs (development)", "description": "Off by default. HTTP traffic can be read or changed in transit.", "type": "boolean", "default": false, "order": 2},
 		{"id": "audio.microphone_muted", "category": "Audio", "label": "Mute microphone", "description": "Stop recording and sending your microphone audio.", "type": "boolean", "default": true, "order": 0},
 		{"id": "audio.master_volume", "category": "Audio", "label": "Master volume", "type": "number", "default": 80.0, "min": 0.0, "max": 100.0, "step": 1.0, "unit": "%", "order": 1},
 		{"id": "audio.voice_volume", "category": "Audio", "label": "Other players' volume", "type": "number", "default": 100.0, "min": 0.0, "max": 100.0, "step": 1.0, "unit": "%", "order": 2},

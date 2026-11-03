@@ -29,6 +29,7 @@ def main():
             "scripts/multiplayer/relay.gd",
             "scripts/multiplayer/network_handler.gd",
             "scripts/startup/data_loader.gd",
+            "scripts/assets/asset_cache.gd",
             "scenes/GUI/world_explorer.tscn",
             *[str(p.relative_to(ROOT)) for p in (ROOT / "relay_protocol").glob("*.gd")],
         ]

@@ -35,6 +35,10 @@ placeholder_text = "search for something or enter a worlds link"
 layout_mode = 2
 text = "Search"
 
+[node name="StatusSpace" type="Control" parent="VBoxContainer" unique_id=310157535]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer" unique_id=937296959]
 layout_mode = 2
 size_flags_vertical = 3
@@ -55,6 +59,49 @@ layout_mode = 2
 text = "Loading rooms..."
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=94418319]
+
+[node name="Status" type="Label" parent="." unique_id=5048704]
+layout_mode = 0
+offset_top = 42.0
+offset_right = 700.0
+offset_bottom = 68.0
+
+[node name="WorldInfo" type="VBoxContainer" parent="." unique_id=81309310]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 72.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Back" type="Button" parent="WorldInfo" unique_id=1792927920]
+layout_mode = 2
+text = "Back"
+
+[node name="Name" type="Label" parent="WorldInfo" unique_id=1342209648]
+layout_mode = 2
+
+[node name="Description" type="Label" parent="WorldInfo" unique_id=1447581771]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Create" type="Button" parent="WorldInfo" unique_id=165783572]
+layout_mode = 2
+text = "Create public instance"
+
+[node name="Heading" type="Label" parent="WorldInfo" unique_id=1152236004]
+layout_mode = 2
+text = "Public instances"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="WorldInfo" unique_id=738143983]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Instances" type="VBoxContainer" parent="WorldInfo/ScrollContainer" unique_id=1569802847]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/reload" to="." method="_on_reload_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/search" to="." method="_on_search_pressed"]

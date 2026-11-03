@@ -12,10 +12,12 @@ func _ready():
 		get_tree().change_scene_to_file("res://scenes/relay.tscn")
 	else:
 		print("Game starting up...")
-		await SaveData.load_acount()
-		await SaveData.laod_data()
-		await NetworkHandler.create_peer()
-		NetworkHandler.create_session()
+		if not SaveData.load_acount():
+			push_error(SaveData.account_error)
+			load_initial_scene()
+			return
+		if await NetworkHandler.create_peer():
+			NetworkHandler.create_session()
 		call_deferred("load_initial_scene")
 
 func load_initial_scene():

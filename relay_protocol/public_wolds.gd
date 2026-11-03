@@ -26,8 +26,8 @@ func decode(data: PackedByteArray) -> void:
 	super.decode(data)
 	var json_bytes = data.slice(1)
 	var json_string = json_bytes.get_string_from_utf8()
-	sessions = JSON.parse_string(json_string)
-	sessions = _convert_floats_to_ints(sessions)
+	var values = JSON.parse_string(json_string)
+	sessions = _convert_floats_to_ints(values) if values is Array else []
 
 func _convert_floats_to_ints(value):
 	if value is Dictionary:

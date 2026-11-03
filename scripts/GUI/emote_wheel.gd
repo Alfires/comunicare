@@ -15,6 +15,7 @@ var message := ""
 var old_mouse_mode := Input.MOUSE_MODE_VISIBLE
 var old_focus: WeakRef
 var capture_mouse := true
+var input_owned := false
 var inner := 0.28
 
 func _ready():
@@ -43,6 +44,7 @@ func open(wheel_layout, actions: Dictionary, mouse: bool = true):
 	old_focus = weakref(focus) if focus != null else null
 	if mouse:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	input_owned = true
 	show()
 	grab_focus()
 	refresh()
@@ -115,11 +117,20 @@ func back():
 
 func dismiss():
 	hide()
+	_restore_input()
+	closed.emit()
+
+func _restore_input():
+	if not input_owned: return
+	input_owned = false
 	if capture_mouse:
 		Input.mouse_mode = old_mouse_mode
 	if old_focus != null and is_instance_valid(old_focus.get_ref()):
-		old_focus.get_ref().grab_focus()
-	closed.emit()
+		var focus = old_focus.get_ref()
+		if focus.is_inside_tree() and focus.is_visible_in_tree(): focus.grab_focus()
+
+func _exit_tree():
+	_restore_input()
 
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and visible:

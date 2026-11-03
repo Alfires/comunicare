@@ -60,6 +60,28 @@ func run():
 	if is_instance_valid(replacement) and not replacement.is_queued_for_deletion():
 		replacement.toggle_emote_menu()
 		check(is_instance_valid(replacement.wheel) and replacement.wheel.visible, "Home callback works after retiring controller replacement")
+		# A UI layer can be removed during teardown independently of the service.
+		# Reopening must recreate both layer and wheel, not touch freed references.
+		replacement.wheel_layer.queue_free()
+		await process_frame
+		replacement.toggle_emote_menu()
+		check(is_instance_valid(replacement.wheel) and replacement.wheel.is_inside_tree() and replacement.wheel.visible,
+			"Home callback recreates externally removed overlay and wheel")
+		replacement.wheel.dismiss()
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		var initial_mode = Input.mouse_mode
+		replacement.toggle_emote_menu()
+		check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "opening wheel releases captured desktop mouse")
+		replacement.wheel_layer.queue_free()
+		await process_frame
+		await process_frame
+		check(Input.mouse_mode == initial_mode, "overlay teardown restores desktop capture without requiring Cancel")
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		replacement.toggle_emote_menu()
+		var removed_wheel = replacement.wheel
+		removed_wheel.get_parent().remove_child(removed_wheel)
+		check(not removed_wheel.input_owned, "detached wheel releases input ownership even without dismiss")
+		removed_wheel.free()
 	player.queue_free()
 	if is_instance_valid(replacement): replacement.queue_free()
 	network.queue_free()

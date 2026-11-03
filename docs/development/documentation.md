@@ -3,7 +3,10 @@
 Offline local file/heading checks: `python3 tools/docs/check.py`.
 Checker fixtures: `python3 tools/docs/test_check.py`. Only tracked Markdown is
 scanned, excluding vendored add-on manuals. External URLs are not fetched. This
-does not yet validate a complete function inventory or reference-page coverage.
+does not validate behavioral reference-page coverage. Production declarations are
+indexed with `python3 tools/docs/inventory.py`; run with `--check` to reject drift.
+The scanner's fixture test is `python3 tools/docs/test_inventory.py`. Inventory
+entries are exact source declarations, not automatically reviewed explanations.
 
 Current guides explain supported behavior, prerequisites, errors/recovery,
 security and limitations. Architecture pages explain ownership/data flow and

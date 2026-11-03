@@ -15,6 +15,7 @@ headset, renderer, microphone or production-network verification.
 - [Contribution workflow](../CONTRIBUTING.md)
 - [Runtime architecture](architecture/overview.md)
 - [Service contracts and data flows](reference/services.md)
+- [Production function/class/signal inventory](reference/scripts.md)
 - [Verification](development/testing.md)
 - [Documentation conventions](development/documentation.md)
 - [Local Git-only releases](development/releases.md)

@@ -28,7 +28,12 @@ def main():
             for sha in git("rev-list", "--no-merges", remote_sha + ".." + local_sha).splitlines():
                 parse(git("show", "-s", "--format=%B", sha))
         root = Path(__file__).resolve().parents[2]
-        return subprocess.run([sys.executable, str(root / "tools/docs/check.py")]).returncode
+        for tool in ["tools/docs/check.py", "tools/docs/inventory.py"]:
+            command = [sys.executable, str(root / tool)]
+            if tool.endswith("inventory.py"): command.append("--check")
+            result = subprocess.run(command)
+            if result.returncode: return result.returncode
+        return 0
     except (ValueError, OSError, subprocess.CalledProcessError) as error:
         print(f"Pre-push check failed: {error}", file=sys.stderr)
         return 1

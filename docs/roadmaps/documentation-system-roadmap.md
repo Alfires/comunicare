@@ -2,25 +2,38 @@
 
 ## Status and scope
 
-Latest delivered increments: recoverable release metadata publication with a
-recovery journal/rollback tests; deterministic dev previews; real disposable Git
-hook integration tests and explicit new-branch validation baselines; production
-declaration inventory/checking; current player/operator and social/world/voice
-guides. These supersede earlier pending descriptions below where applicable.
-The inventory is **not** a claim of exhaustive reviewed function-by-function
-contracts. Remaining work includes those detailed contracts, richer schema/packet
-examples and release-plan/tag attestation plus exhaustive crash/network-failure
-coverage. No real release baseline/tag or hook installation has been performed.
+**Documentation/tooling delivery complete, with explicit operating limits.**
+The design sections below are retained as the original target; this status is the
+current implementation summary:
 
-**Implementation in progress.** Documentation navigation, contribution/architecture/testing guides and link-safe relocation of the nine existing roadmaps are implemented. A local Conventional Commit parser and deterministic explicit-baseline release planner, metadata preparation/checking and annotated-tag commands are available with temporary-Git tests. No real application baseline/version, release tag or hooks have been installed. Exhaustive function references, symbol/link tooling, opt-in hooks, prereleases and release fault/recovery coverage remain incomplete; the requirements below remain the target, not a completion claim. See [release usage](../development/releases.md).
+- Current guides, architecture/lifecycle sequences, decisions, service/function
+  contracts, protocol/storage/configuration examples and troubleshooting are linked
+  from [documentation home](../README.md). All nine existing plans were relocated
+  here with repaired references and a status index.
+- All 59 production modules and every named public function have contract entries;
+  private callbacks/algorithms are grouped by module and all declarations remain
+  indexed. Coverage checks detect missing entries, not semantic truth of prose.
+- Offline checks cover tracked Markdown files/anchors, production declaration
+  drift, contract entry coverage and detected private-key/runtime artifacts.
+  `python3 tools/check_repository.py` runs the complete local tooling checks/tests.
+- Git-only release commands calculate stable/preview versions and changelogs from
+  explicit history, prepare recoverable metadata, verify source-plan attestation
+  and create annotated stable tags only on explicit request. Opt-in hooks preserve
+  existing policy and validate proposed refs; new branches use a configured base.
+- Disposable Git tests cover message/bump rules, deterministic dry runs, preparation,
+  dirty state, altered notes, duplicate tags, recovery/write errors, invalid journals,
+  merge/revert policy, missing/unreachable/shallow history, absent upstream, remote
+  hook rejection and competing atomic pushes. No external hosting tools are used.
 
-Additional implemented slice: offline tracked-Markdown file/anchor checking with
-fixtures, a service-contract reference, and opt-in commit-msg/pre-push scripts plus
-an existing-policy-preserving installer. Hooks remain uninstalled. Pre-push
-currently refuses new remote branches without a baseline instead of handling all
-new-branch histories automatically. Full symbol inventory and hook integration/
-mutation-failure tests remain pending. Preparation is sequential multi-file writing,
-not transactional; this limitation is explicit in the release guide.
+Deliberate limits rather than unfinished hidden automation: no initial app version
+is guessed, no production release tag/hook installation is performed implicitly,
+preview tagging is refused (preview metadata remains available), and local hooks
+cannot enforce server policy. Recoverable multi-file writes are not a filesystem-wide
+atomic transaction or proof of every OS/power-loss scenario. Real GPU/XR/audio and
+Internet quality remain game release checks, not documentation-tool guarantees.
+See [release operations](../development/releases.md) and
+[documentation maintenance](../development/documentation.md). Future behavior
+changes require corresponding reference/inventory updates in the same small commit.
 
 Requirements:
 

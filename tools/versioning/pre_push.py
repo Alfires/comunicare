@@ -33,7 +33,7 @@ def main():
             for sha in git("rev-list", "--no-merges", remote_sha + ".." + local_sha).splitlines():
                 parse(git("show", "-s", "--format=%B", sha))
         root = Path(__file__).resolve().parents[2]
-        for tool in ["tools/docs/check.py", "tools/docs/inventory.py", "tools/docs/contracts.py"]:
+        for tool in ["tools/docs/check.py", "tools/docs/inventory.py", "tools/docs/contracts.py", "tools/docs/privacy.py"]:
             command = [sys.executable, str(root / tool)]
             if tool.endswith("inventory.py"): command.append("--check")
             result = subprocess.run(command)

@@ -5,7 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
-| [Documentation system](documentation-system-roadmap.md) | In progress: navigation and relocation implemented; reference/checking/versioning work continues |
+| [Documentation system](documentation-system-roadmap.md) | Documentation/tooling delivered with explicit operating limits; current guides, function/schema reference and local Git release checks linked from docs home |
 | [Conventional Commits](conventional-commit-roadmap.md) | Historical assembly plan; current [contribution rules](../../CONTRIBUTING.md) supersede old no-push/two-type assumptions |
 | [Settings and microphone](microphone-and-settings-roadmap.md) | Implemented with hardware limitations; see tests/microphone_settings |
 | [Profiles and settings](profile-and-expanded-settings-roadmap.md) | Implemented with limitations; ownership is profile-service controlled |

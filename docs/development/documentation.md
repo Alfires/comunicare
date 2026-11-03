@@ -16,6 +16,12 @@ groups. Run `python3 tools/docs/contracts.py` and
 This checks coverage only, not semantic truth: reviewers must still compare
 behavior with code/tests. Add a contract entry with any new public function.
 
+`python3 tools/docs/privacy.py` scans tracked files for private-key PEM markers
+and runtime/cache/recovery artifacts without printing contents or deleting files.
+The narrow tests/asset_cache path is test infrastructure, not an exempt secret
+store. This is a limited safety check, not a universal credential detector; do not
+commit real keys, signed private URLs or personal data simply because it passes.
+
 Current guides explain supported behavior, prerequisites, errors/recovery,
 security and limitations. Architecture pages explain ownership/data flow and
 teardown. Reference pages name exact source functions, signatures, outputs,

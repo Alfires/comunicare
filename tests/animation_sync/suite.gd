@@ -61,6 +61,9 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	await test_tracking_targets()
+	var first_person_service = load("res://scripts/assets/first_person_avatar.gd")
+	check(first_person_service.has_method("prepare"), "first-person geometry is prepared during detached import, not cut on camera attachment")
 	var direction_controller = load("res://scripts/assets/animation_controller.gd").new()
 	check(direction_controller.resolve_motion(true, Vector3(-2, 0, 0), 0) == "strafe_left", "leftward movement chooses left strafe")
 	check(direction_controller.resolve_motion(true, Vector3(2, 0, 0), 0) == "strafe_right", "rightward movement chooses right strafe")
@@ -138,6 +141,39 @@ func run():
 	print("\nAnimation contracts: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
+func test_tracking_targets():
+	var rig = Skeleton3D.new()
+	root.add_child(rig)
+	for name in ["Head", "Upper", "Lower", "Hand"]: rig.add_bone(name)
+	rig.set_bone_parent(2, 1)
+	rig.set_bone_parent(3, 2)
+	rig.set_bone_rest(0, Transform3D(Basis.IDENTITY, Vector3(0, 1.6, 0)))
+	rig.set_bone_rest(1, Transform3D(Basis.IDENTITY, Vector3(0.2, 1.4, 0)))
+	rig.set_bone_rest(2, Transform3D(Basis.IDENTITY, Vector3(0.3, 0, 0)))
+	rig.set_bone_rest(3, Transform3D(Basis.IDENTITY, Vector3(0.3, 0, 0)))
+	rig.reset_bone_poses()
+	var head = Node3D.new()
+	var hand = Node3D.new()
+	root.add_child(head)
+	root.add_child(hand)
+	head.position = Vector3(0.05, 1.7, -0.1)
+	hand.position = Vector3(0.55, 1.2, -0.2)
+	var camera_before = head.global_transform
+	var modifier = load("res://scripts/assets/avatar_tracking.gd").new()
+	rig.add_child(modifier)
+	modifier.configure({"head": "Head", "leftUpperArm": "Upper", "leftLowerArm": "Lower", "leftHand": "Hand"}, head, hand, null)
+	modifier._process_modification()
+	check(rig.get_bone_global_pose(3).origin.distance_to(hand.position) < 0.015, "final-pose arm IK places wrist at controller target")
+	check(rig.get_bone_global_pose(0).origin.distance_to(head.position) < 0.001, "avatar head follows independent headset target")
+	check(head.global_transform.is_equal_approx(camera_before), "tracking solver never moves headset/camera target")
+	# Animation changes upstream arm rotations; final tracking must still win.
+	rig.set_bone_pose_rotation(1, Quaternion(Vector3.UP, 0.8))
+	modifier._process_modification()
+	check(rig.get_bone_global_pose(3).origin.distance_to(hand.position) < 0.015, "arm IK corrects animated shoulder/elbow changes back to tracked wrist")
+	rig.free()
+	head.free()
+	hand.free()
+
 func test_transition_blending():
 	var avatar = Node3D.new()
 	var rig = Skeleton3D.new()
@@ -206,7 +242,17 @@ func test_authored_upper_body():
 	var other_camera = Camera3D.new()
 	root.add_child(other_camera)
 	var first_person = load("res://scripts/assets/first_person_avatar.gd")
+	var original_meshes: Dictionary = {}
+	for mesh in avatar.find_children("*", "MeshInstance3D", true, false):
+		if not mesh.get_meta("first_person_derivative", false): original_meshes[mesh] = mesh.mesh
 	check(first_person.apply(avatar, camera), "real combined VRM mesh splits head triangles for first-person rendering")
+	var unchanged := true
+	for mesh in original_meshes: unchanged = unchanged and mesh.mesh == original_meshes[mesh]
+	check(unchanged, "first-person activation leaves every original third-person mesh unchanged")
+	check(other_camera.cull_mask & first_person.BODY_LAYER == 0, "other cameras exclude local first-person derivative layer")
+	var count_before = avatar.find_children("*", "MeshInstance3D", true, false).size()
+	first_person.apply(avatar, camera)
+	check(avatar.find_children("*", "MeshInstance3D", true, false).size() == count_before, "repeated first-person activation never creates more geometry")
 	check(camera.cull_mask & first_person.HEAD_LAYER == 0 and other_camera.cull_mask & first_person.HEAD_LAYER != 0,
 		"only player camera excludes head layer; other cameras keep head visible")
 	camera.queue_free()

@@ -1,9 +1,27 @@
 extends RefCounted
-## Separate head triangles onto a camera-exclusive layer, not global visibility.
+## Prepare a first-person derivative without ever replacing the original mesh.
 const HEAD_LAYER = 1 << 19
+const BODY_LAYER = 1 << 18
 
 static func apply(avatar: Node3D, camera: Camera3D) -> bool:
+	camera.set_meta("first_person_camera", true)
 	camera.cull_mask &= ~HEAD_LAYER
+	camera.cull_mask |= BODY_LAYER
+	if not avatar.get_meta("first_person_prepared", false): return false
+	for node in avatar.find_children("*", "MeshInstance3D", true, false):
+		if node.get_meta("first_person_original", false):
+			node.layers = 0 if node.get_meta("first_person_only", false) else HEAD_LAYER
+		elif node.get_meta("first_person_derivative", false):
+			node.layers = BODY_LAYER
+			node.visible = true
+	return true
+
+static func configure_camera(node: Node):
+	if node is Camera3D and not node.get_meta("first_person_camera", false):
+		node.cull_mask &= ~BODY_LAYER
+
+static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
+	if avatar.get_meta("first_person_prepared", false): return true
 	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
 	var rig: Skeleton3D = reader._skeleton(avatar)
 	var mapping: Dictionary = avatar.get_meta("humanoid_bones", {})
@@ -22,9 +40,16 @@ static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 	for node in avatar.find_children("*", "MeshInstance3D", true, false):
 		if node.has_meta("first_person_split") or node.mesh == null: continue
 		var mesh: Mesh = node.mesh
+		var visibility: String = annotations.get(str(node.name), "auto")
+		if visibility == "both": continue
+		if visibility == "thirdPersonOnly":
+			node.set_meta("first_person_original", true)
+			continue
+		if visibility == "firstPersonOnly":
+			node.set_meta("first_person_only", true)
+			node.layers = 0
 		var body_mesh = ArrayMesh.new()
-		var head_mesh = ArrayMesh.new()
-		for target in [body_mesh, head_mesh]:
+		for target in [body_mesh]:
 			target.blend_shape_mode = mesh.blend_shape_mode
 			for i in mesh.get_blend_shape_count(): target.add_blend_shape(mesh.get_blend_shape_name(i))
 		var split := false
@@ -34,9 +59,10 @@ static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var bones = arrays[Mesh.ARRAY_BONES]
 			var weights = arrays[Mesh.ARRAY_WEIGHTS]
-			if bones != null and weights != null and not vertices.is_empty() and node.skin != null:
+			if visibility != "firstPersonOnly" and bones != null and weights != null and not vertices.is_empty() and node.skin != null:
 				var influences = bones.size() / vertices.size()
 				for vertex in vertices.size():
+					var head_weight := 0.0
 					for influence in int(influences):
 						var offset = vertex * int(influences) + influence
 						if weights[offset] <= 0.01: continue
@@ -44,8 +70,9 @@ static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 						if bind >= node.skin.get_bind_count(): continue
 						var name = node.skin.get_bind_name(bind)
 						var bone = rig.find_bone(name) if name != &"" else node.skin.get_bind_bone(bind)
-						if head_bones.has(bone): head_vertices[vertex] = true
-			elif node.name.to_lower().contains("head") or node.name.to_lower().contains("hair") or node.name.to_lower().contains("face"):
+						if head_bones.has(bone): head_weight += weights[offset]
+					if head_weight >= 0.5: head_vertices[vertex] = true
+			elif visibility != "firstPersonOnly" and (node.name.to_lower().contains("head") or node.name.to_lower().contains("hair") or node.name.to_lower().contains("face")):
 				for vertex in vertices.size(): head_vertices[vertex] = true
 			var indices = arrays[Mesh.ARRAY_INDEX]
 			if indices == null or indices.is_empty():
@@ -58,7 +85,7 @@ static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 				var destination = head_indices if is_head else body_indices
 				destination.append_array(indices.slice(triangle, triangle + 3))
 			var blends = mesh.surface_get_blend_shape_arrays(surface)
-			for pair in [[body_mesh, body_indices], [head_mesh, head_indices]]:
+			for pair in [[body_mesh, body_indices]]:
 				if pair[1].is_empty(): continue
 				var output = arrays.duplicate()
 				output[Mesh.ARRAY_INDEX] = pair[1]
@@ -66,28 +93,34 @@ static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 				var material = node.get_surface_override_material(surface)
 				pair[0].surface_set_material(pair[0].get_surface_count() - 1, material if material != null else mesh.surface_get_material(surface))
 			if not head_indices.is_empty(): split = true
-		if not split: continue
-		var original_layers: int = node.layers
-		var duplicate = node.duplicate(0) as MeshInstance3D
-		duplicate.name = str(node.name) + "_OtherCamerasHead"
-		duplicate.mesh = head_mesh
-		duplicate.layers = HEAD_LAYER
+		# Keep every original surface, skin, material and expression track intact.
+		# Only the optional local-view derivative uses filtered triangle indices.
+		if body_mesh.get_surface_count() == 0:
+			node.set_meta("first_person_original", true)
+			continue
+		var duplicate = MeshInstance3D.new()
+		duplicate.name = str(node.name) + "_FirstPerson"
+		duplicate.mesh = body_mesh if split else mesh
+		duplicate.skin = node.skin
+		duplicate.skeleton = node.skeleton
+		duplicate.material_override = node.material_override
+		duplicate.custom_aabb = node.custom_aabb
+		duplicate.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		duplicate.layers = BODY_LAYER
+		duplicate.visible = false
+		duplicate.set_meta("first_person_derivative", true)
 		duplicate.set_meta("first_person_split", true)
 		# Keep the same skeleton path and transform by adding a sibling.
 		node.get_parent().add_child(duplicate)
 		duplicate.transform = node.transform
 		node.set_meta("first_person_split", true)
-		if body_mesh.get_surface_count() > 0: node.mesh = body_mesh
-		else: node.layers = HEAD_LAYER
-		if body_mesh.get_surface_count() == 0:
-			duplicate.queue_free() # Original is already head-only; no duplicate needed.
-		else:
-			node.layers = original_layers & ~HEAD_LAYER
-			var sync = BlendShapeSync.new()
-			sync.source = node
-			sync.target = duplicate
-			node.add_child(sync)
+		node.set_meta("first_person_original", true)
+		var sync = BlendShapeSync.new()
+		sync.source = node
+		sync.target = duplicate
+		node.add_child(sync)
 		changed = true
+	avatar.set_meta("first_person_prepared", true)
 	return changed
 
 class BlendShapeSync extends Node:
@@ -95,5 +128,7 @@ class BlendShapeSync extends Node:
 	var target: MeshInstance3D
 	func _process(_delta: float):
 		if not is_instance_valid(source) or not is_instance_valid(target): return
+		target.transform = source.transform
+		target.material_override = source.material_override
 		for index in mini(source.get_blend_shape_count(), target.get_blend_shape_count()):
 			target.set_blend_shape_value(index, source.get_blend_shape_value(index))

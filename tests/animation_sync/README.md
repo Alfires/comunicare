@@ -1,5 +1,13 @@
 # Animation and revision checks
 
+First-person tests now assert detached import preparation, unchanged original
+mesh resources, camera-exclusive derivative layers and idempotent activation.
+Tracking tests exercise actual SkeletonModifier head/arm solving against external
+targets, including an upstream animated-arm disturbance and camera immutability.
+The optional real-avatar group covers combined skinned geometry. Rendering,
+mirror/shadow appearance and physical tracking calibration still need manual XR
+checks; headless pose assertions do not validate their visual quality.
+
 ## Authored default animation regressions
 
 Defaults now use the free CC0 Quaternius Standard pack, not generated motion.

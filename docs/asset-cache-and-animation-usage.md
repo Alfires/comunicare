@@ -1,5 +1,28 @@
 # Avatar sources, automatic motion and emote wheel
 
+## First-person rendering and VR tracking
+
+Avatar import now prepares a separate first-person mesh derivative on the worker
+before the detached avatar enters the scene tree. VRM 0.x/1.0 first-person mesh
+annotations take priority; Auto meshes use dominant head-bone skin weights to
+filter the local view. The original full mesh is never replaced or cut. The
+local camera renders the derivative, other cameras render the original, both
+share one skeleton, and expressions are copied from the original to the local
+derivative. The original remains the shadow caster. Additional cameras created
+after startup automatically exclude the local-body layer.
+
+VR now has a final SkeletonModifier tracking pass: head alignment and two-bone
+arm solving follow the external headset/controller targets after animation.
+The old unconfigured XRBodyModifier/TwoBoneIK placeholders are removed. Tracking
+never moves the camera; only active XR targets override pose. Fingers and other
+untracked channels remain animated. Reach is clamped to the avatar's limb length.
+
+Limitations: automatic first-person filtering can still require avatar-author
+annotations for unusual skinning/accessories. Headset/controller orientation and
+body proportions need real-device calibration/visual testing; automated target
+tests are not a claim of VRChat-equivalent full-body IK. Remote live tracker
+poses are not added to the existing animation protocol by this rendering fix.
+
 Current movement behavior: forward walk/run and separate left/right directional
 walk variants are selected in player-local space. Idle and landing animation
 playback are disabled; stopping blends to a static authored standing pose.

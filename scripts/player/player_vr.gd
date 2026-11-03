@@ -139,12 +139,11 @@ func load_vrm_model():
 		print("ERROR: Skeleton not found")
 		return
 	
-	var xrbm := XRBodyModifier3D.new()
-	skeleton.add_child(xrbm)
+	var tracking = preload("res://scripts/assets/avatar_tracking.gd").new()
+	skeleton.add_child(tracking)
+	tracking.configure(vrm_model.get_meta("humanoid_bones", {}), xr_camera, left_controller, right_controller)
 	# The tracked camera stays under XROrigin3D. Avatar animation/IK must
 	# follow the headset, never make the headset follow an animated bone.
-	var TBID := _create_TwoBoneIK3D()
-	skeleton.add_child(TBID)
 
 	
 func _find_skeleton(node: Node) -> Skeleton3D:
@@ -173,10 +172,6 @@ func _exit_tree():
 		DataLoader.asset_revision_available.disconnect(_asset_updated)
 	avatar_generation += 1
 	SaveData.profile.profile_changed.disconnect(_profile_changed)
-
-func _create_TwoBoneIK3D() -> TwoBoneIK3D:
-	var TBID = TwoBoneIK3D.new()
-	return TBID
 
 ## Gives you the bone name from a list of names
 func get_bone_by_array(bone_array: Array,_skeleton: Skeleton3D) -> String:

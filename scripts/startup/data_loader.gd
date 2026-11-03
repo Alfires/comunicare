@@ -14,6 +14,12 @@ var animation_import_busy := false
 var animation_import_error := ""
 var avatar_configuration: Node
 
+func _ready():
+	get_tree().node_added.connect(_configure_avatar_camera)
+
+func _configure_avatar_camera(node: Node):
+	preload("res://scripts/assets/first_person_avatar.gd").configure_camera(node)
+
 func get_avatar_configuration() -> Node:
 	if avatar_configuration == null:
 		avatar_configuration = preload("res://scripts/assets/avatar_configuration.gd").new()
@@ -204,6 +210,20 @@ func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D:
 				bone_names[bone] = nodes[mapping[bone]].resource_name
 		model.set_meta("humanoid_bones", bone_names)
 		model.set_meta("vrm_legacy_orientation", state.json.get("extensions", {}).has("VRM"))
+		var annotations: Dictionary = {}
+		var extensions: Dictionary = state.json.get("extensions", {})
+		var first_person = extensions.get("VRMC_vrm", {}).get("firstPerson", {})
+		for entry in first_person.get("meshAnnotations", []):
+			var index = int(entry.get("node", -1))
+			if index >= 0 and index < nodes.size(): annotations[str(nodes[index].resource_name)] = entry.get("type", "auto")
+		var legacy = extensions.get("VRM", {}).get("firstPerson", {})
+		for entry in legacy.get("meshAnnotations", []):
+			var flag = str(entry.get("firstPersonFlag", "Auto"))
+			var types = {"Auto": "auto", "Both": "both", "ThirdPersonOnly": "thirdPersonOnly", "FirstPersonOnly": "firstPersonOnly"}
+			for index in nodes.size():
+				if nodes[index].mesh == int(entry.get("mesh", -1)) and nodes[index].mesh >= 0:
+					annotations[str(nodes[index].resource_name)] = types.get(flag, "auto")
+		preload("res://scripts/assets/first_person_avatar.gd").prepare(model, annotations)
 	return model
 
 func _exit_tree():

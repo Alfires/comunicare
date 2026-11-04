@@ -4439,217 +4439,224 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 17,
+      "line": 18,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_configure_avatar_camera",
-      "line": 20,
+      "line": 21,
       "signature": "func _configure_avatar_camera(node: Node)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "get_avatar_configuration",
-      "line": 23,
+      "line": 24,
       "signature": "func get_avatar_configuration() -> Node",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_asset_cache",
-      "line": 36,
+      "line": 37,
       "signature": "func get_asset_cache() -> Node",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_cache_setting_changed",
-      "line": 53,
+      "line": 54,
       "signature": "func _cache_setting_changed(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_vrm_from_url",
-      "line": 62,
+      "line": 65,
       "signature": "func load_vrm_from_url(url: String, force: bool = false)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "read_animation",
-      "line": 77,
+      "line": 80,
       "signature": "func read_animation(path: String, bytes: PackedByteArray = PackedByteArray()) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_read_animation_worker",
-      "line": 98,
+      "line": 101,
       "signature": "func _read_animation_worker(path: String, bytes: PackedByteArray) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_validate_avatar",
-      "line": 103,
+      "line": 106,
       "signature": "func _validate_avatar(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 120,
+      "line": 123,
       "signature": "func _process(delta: float)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_refresh_avatar_sources",
-      "line": 135,
+      "line": 138,
       "signature": "func _refresh_avatar_sources(force: bool)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "refresh_loaded_assets",
-      "line": 147,
+      "line": 150,
       "signature": "func refresh_loaded_assets()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_load_model_from_buffer",
-      "line": 157,
+      "line": 160,
       "signature": "func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_load_model_from_file",
-      "line": 162,
+      "line": 165,
       "signature": "func _load_model_from_file(path: String) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_import_avatar",
-      "line": 165,
+      "line": 168,
       "signature": "func _import_avatar(buffer: PackedByteArray, path: String) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_build_avatar",
-      "line": 188,
+      "line": 191,
       "signature": "func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 229,
+      "line": 232,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_world_from_url",
-      "line": 242,
+      "line": 245,
       "signature": "func load_world_from_url(cne_word_url: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "prepare_world_from_url",
-      "line": 246,
+      "line": 249,
       "signature": "func prepare_world_from_url(url: String, expected_revision: String = \"\") -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "built_in_world_revision",
-      "line": 273,
+      "line": 276,
       "signature": "func built_in_world_revision() -> String",
       "visibility": "public"
     },
     {
       "kind": "class",
       "name": "TemporaryWorld",
-      "line": 277,
+      "line": 280,
       "signature": "class TemporaryWorld extends RefCounted",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 280,
+      "line": 283,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_validate_world_archive",
-      "line": 288,
+      "line": 291,
       "signature": "func _validate_world_archive(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_world",
-      "line": 293,
+      "line": 296,
       "signature": "func load_world(cne_word_path: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "prepare_world",
-      "line": 298,
+      "line": 301,
       "signature": "func prepare_world(archive_path: String, _extract_path: String) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_prepare_extracted_world",
-      "line": 305,
+      "line": 308,
       "signature": "func _prepare_extracted_world(_extract_path: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "activate_world",
-      "line": 310,
+      "line": 313,
       "signature": "func activate_world(staged: Dictionary) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
+      "name": "stop_world_scripts",
+      "line": 338,
+      "signature": "func stop_world_scripts()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
       "name": "_safe_archive_path",
-      "line": 323,
+      "line": 341,
       "signature": "func _safe_archive_path(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "extract_zip",
-      "line": 327,
+      "line": 345,
       "signature": "func extract_zip(zip_path: String, extract_to: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "load_manifest",
-      "line": 366,
+      "line": 384,
       "signature": "func load_manifest(manifest_path: String) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "create_directories_recursive",
-      "line": 380,
+      "line": 398,
       "signature": "func create_directories_recursive(path: String) -> void",
       "visibility": "public"
     }
@@ -4896,78 +4903,108 @@
     {
       "kind": "func",
       "name": "_failure",
-      "line": 62,
+      "line": 76,
       "signature": "func _failure(message: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_bad",
-      "line": 66,
+      "line": 80,
       "signature": "func _bad(message: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_validate_sections",
-      "line": 70,
+      "line": 84,
       "signature": "func _validate_sections(path: String, sections: Array, files: Dictionary, document: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_properties",
-      "line": 121,
+      "line": 135,
       "signature": "func _properties(type: String, properties: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_matches_type",
-      "line": 156,
+      "line": 171,
       "signature": "func _matches_type(value: Variant, expected: int) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_value_safe",
-      "line": 172,
+      "line": 187,
       "signature": "func _value_safe(value: Variant, depth: int) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_material",
-      "line": 184,
+      "line": 199,
       "signature": "func _material(properties: Dictionary, external: Dictionary) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_validate_references",
-      "line": 195,
+      "line": 210,
       "signature": "func _validate_references(document: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_references",
-      "line": 217,
+      "line": 232,
       "signature": "func _references(value: Variant, resources: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_texture_header",
-      "line": 225,
+      "line": 240,
       "signature": "func _texture_header(bytes: PackedByteArray, extension: String, maximum: int) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_big_u32",
-      "line": 246,
+      "line": 261,
       "signature": "func _big_u32(bytes: PackedByteArray, offset: int) -> int",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/world_runtime.gd": [
+    {
+      "kind": "func",
+      "name": "configure",
+      "line": 14,
+      "signature": "func configure(root_node: Node, document: Dictionary) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "dispatch",
+      "line": 31,
+      "signature": "func dispatch(event: String, entity: String) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "stop_scripts",
+      "line": 58,
+      "signature": "func stop_scripts()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_process",
+      "line": 62,
+      "signature": "func _process(delta: float)",
       "visibility": "private"
     }
   ],

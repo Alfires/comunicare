@@ -13,6 +13,7 @@ var animation_waiters := 0
 var animation_import_busy := false
 var animation_import_error := ""
 var avatar_configuration: Node
+var world_runtime: Node
 
 func _ready():
 	get_tree().node_added.connect(_configure_avatar_camera)
@@ -58,6 +59,8 @@ func _cache_setting_changed(id: String, value: Variant):
 		"cache.automatic_refresh": asset_cache.automatic_refresh = value == true
 		"cache.allow_http": asset_cache.allow_http = value == true
 		"cache.trust_remote_worlds": asset_cache.trust_remote_worlds = value == true
+		"world.scripts_enabled":
+			if value == false: stop_world_scripts()
 
 func load_vrm_from_url(url: String, force: bool = false):
 	var cache = get_asset_cache()
@@ -314,11 +317,26 @@ func activate_world(staged: Dictionary) -> bool:
 		return false
 	await get_tree().scene_changed
 	active_world = staged.duplicate()
+	if staged.get("document") is Dictionary:
+		world_runtime = preload("res://scripts/worlds/world_runtime.gd").new()
+		get_tree().current_scene.add_child(world_runtime)
+		var configured = world_runtime.configure(get_tree().current_scene, staged.document)
+		var save = get_node_or_null("/root/SaveData")
+		if save != null and save.get("store") != null and not save.store.setting_changed.is_connected(_cache_setting_changed):
+			save.store.setting_changed.connect(_cache_setting_changed)
+		var enabled = save == null or save.get("store") == null or save.store.get_value("world.scripts_enabled") != false
+		if configured.ok and enabled:
+			world_runtime.dispatch("start", "")
+		else:
+			world_runtime.stop_scripts()
 	var spawn = staged.get("spawn_point", [0, 0, 0])
 	for player in get_tree().get_nodes_in_group("player"):
 		if player.has_method("set_player_pos"):
 			player.set_player_pos(Vector3(spawn[0], spawn[1], spawn[2]))
 	return true
+
+func stop_world_scripts():
+	if is_instance_valid(world_runtime): world_runtime.stop_scripts()
 
 func _safe_archive_path(path: String) -> bool:
 	return not path.is_empty() and not path.is_absolute_path() and not ":" in path \

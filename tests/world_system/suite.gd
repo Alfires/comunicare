@@ -50,6 +50,7 @@ func run():
 	test_builder()
 	test_extensions()
 	test_scripts()
+	test_script_runtime()
 	test_interaction()
 	test_replication()
 	test_moderation()
@@ -151,6 +152,30 @@ func test_scripts():
 
 func envelope(kind: String, entity: String = "item", epoch: int = 0) -> Dictionary:
 	return {"kind": kind, "session_id": "session-a", "revision": "hash-a", "generation": "ga", "entity": entity, "epoch": epoch, "sequence": 1}
+
+func test_script_runtime():
+	var runtime = component("world_runtime", ["configure", "dispatch", "stop_scripts"])
+	if runtime == null: return
+	var builder = component("world_builder", ["build_package"])
+	if builder == null:
+		dispose(runtime)
+		return
+	var built = builder.build_package("res://packages/scripted.zip")
+	check(ok(built), "package accepts restricted declarative script and metadata binding")
+	if ok(built):
+		var world = built.scene.instantiate()
+		check(ok(runtime.configure(world, built.document)), "runtime resolves only current-world stable entity bindings")
+		check(ok(runtime.dispatch("start", "")) and not world.get_node("Item").visible, "packaged start event executes useful restricted visual behavior")
+		check(ok(runtime.dispatch("use", "item")) and world.get_node("Item").visible, "use event runs bound item script")
+		var before: bool = world.get_node("Item").visible
+		check(rejected(runtime.dispatch("use", "not-in-world")) and world.get_node("Item").visible == before, "unknown event target cannot control world nodes")
+		runtime.stop_scripts()
+		check(rejected(runtime.dispatch("start", "")) and world.get_node("Item").visible, "trusted stop disables callbacks without applying queued world commands")
+		world.free()
+	check(rejected(builder.build_package("res://packages/script_forbidden.zip")), "forbidden script API rejected before scene activation")
+	check(rejected(builder.build_package("res://packages/script_missing.zip")), "missing metadata-bound script rejects package")
+	dispose(runtime)
+	dispose(builder)
 
 func test_interaction():
 	var service = component("world_interaction", ["configure", "apply", "snapshot", "disconnect_member"])

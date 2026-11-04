@@ -50,6 +50,13 @@ def write_packages(destination):
                 output.writestr(key, value)
 
     archive("valid")
+    binding = scene.replace('metadata/world_entity_id = "item"', 'metadata/world_entity_id = "item"\nmetadata/world_script = "logic/item.worldscript"')
+    program = {"version": 1, "events": {"start": [{"op": "command", "capability": "entity.visual", "entity": "item", "property": "visible", "value": False}], "use": [{"op": "command", "capability": "entity.visual", "entity": "item", "property": "visible", "value": True}]}}
+    script_metadata = {**metadata, "script_capabilities": ["entity.visual"]}
+    archive("scripted", {"scenes/world.tscn": binding, "logic/item.worldscript": json.dumps(program)}, manifest=script_metadata)
+    bad_program = {"version": 1, "events": {"start": [{"op": "command", "capability": "os.execute", "entity": "item", "property": "visible", "value": False}]}}
+    archive("script_forbidden", {"scenes/world.tscn": binding, "logic/item.worldscript": json.dumps(bad_program)}, manifest=script_metadata)
+    archive("script_missing", {"scenes/world.tscn": binding}, manifest=script_metadata)
     archive("traversal", {"../escape.txt": "not allowed"})
     archive("absolute", {"/outside.txt": "not allowed"})
     archive("backslash", {"textures\\escape.png": png})

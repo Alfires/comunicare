@@ -391,6 +391,23 @@ func test_real_loader():
 	legacy.close()
 	check(loader.prepare_world("res://legacy.cne", "res://legacy-content/").is_empty(),
 		"real loader rejects legacy executable-scene format rather than bypassing safe parser")
+	var scripted = ZIPPacker.new()
+	scripted.open("res://scripted.zip")
+	scripted.start_file("manifest.json")
+	scripted.write_file('{"format":"comunicare.world","schema_version":1,"world_id":"script-fixture","release":"1","requires":{"world_api":1,"script_api":1},"main_scene":"world.tscn","script_capabilities":["entity.visual"]}'.to_utf8_buffer())
+	scripted.close_file()
+	scripted.start_file("world.tscn")
+	scripted.write_file('[gd_scene format=3]\n[node name="ScriptedWorld" type="Node3D"]\nmetadata/world_entity_id = "root"\nmetadata/world_script = "logic/start.worldscript"\n'.to_utf8_buffer())
+	scripted.close_file()
+	scripted.start_file("logic/start.worldscript")
+	scripted.write_file('{"version":1,"events":{"start":[{"op":"command","capability":"entity.visual","entity":"root","property":"visible","value":false}]}}'.to_utf8_buffer())
+	scripted.close_file()
+	scripted.close()
+	var script_stage = loader.prepare_world("res://scripted.zip", "")
+	check(await loader.activate_world(script_stage) and not current_scene.visible,
+		"real world activation runs packaged restricted start event")
+	loader.stop_world_scripts()
+	check(not loader.world_runtime.enabled, "real DataLoader exposes trusted immediate script stop")
 	loader.free()
 
 func test_instance_submenu():

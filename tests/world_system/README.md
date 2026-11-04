@@ -1,7 +1,7 @@
 # RED safe-world acceptance contracts
 
 **Implementation update:** initial services and safe scene reconstruction now
-pass **109 assertions**, with zero failures/blocked groups and no Godot errors.
+pass **117 assertions**, with zero failures/blocked groups and no Godot errors.
 The three Python runner self-tests also pass. The suite remains opt-in. Historical RED
 notes below describe the test-first starting point, not current missing services.
 Production DataLoader now uses the safe builder; see the authoring guide for its

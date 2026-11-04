@@ -58,9 +58,36 @@ template project and safe offline preview UI remain follow-up work.
 - Terrain3D requirements can be validated, but **no Terrain3D adapter is installed**.
   Such worlds currently fail staging. Authors can use addon tools locally and
   convert supported results, but actual terrain baking/integration remains pending.
-- Restricted instruction VM, item leases, ordered snapshots and moderation policies
-  have isolated service tests. They are not automatically active gameplay features
-  merely because those services exist.
+- Restricted visual world scripts now run on activation with an Assets setting to
+  stop callbacks immediately; this is not unrestricted GDScript or synchronized
+  gameplay scripting. Item leases, ordered snapshots and moderation policies have
+  isolated service tests but are not yet wired into player/relay gameplay.
+
+## Restricted visual scripts
+
+Add string node metadata `world_script = "logic/item.worldscript"` to a node with
+`world_entity_id = "item"`; include that file in the ZIP and grant `entity.visual`
+in manifest `script_capabilities`. The initial `.worldscript` text format is JSON:
+
+```json
+{
+  "version": 1,
+  "events": {
+    "start": [
+      {"op": "command", "capability": "entity.visual", "entity": "item", "property": "visible", "value": false}
+    ]
+  }
+}
+```
+
+Start and capped 20 Hz tick callbacks run locally; use/grab/release dispatch is
+available to trusted runtime callers but not yet connected to player controls.
+Only visibility commands are currently implemented. Data loops and command counts
+are metered; no OS/files/network/engine calls, dynamic evaluation or node objects
+are available. Disable **Run restricted world visual scripts** in Assets to stop
+callbacks; enabling again takes effect on the next load. This initial declarative
+format is not the full planned typed scripting language, and local callbacks must
+not be used as authoritative shared game state.
 
 Verification: `python3 tests/world_system/run.py`, its Python runner self-tests,
 and `python3 tests/public_discovery/run.py` (real DataLoader staging/activation).

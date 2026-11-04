@@ -6,7 +6,7 @@ const Zip = preload("res://scripts/worlds/world_zip_reader.gd")
 const Extensions = preload("res://scripts/worlds/world_extension_registry.gd")
 const NODE_TYPES = ["Node", "Node3D", "Marker3D", "MeshInstance3D", "StaticBody3D", "RigidBody3D", "CollisionShape3D", "Area3D", "DirectionalLight3D", "OmniLight3D", "SpotLight3D"]
 const RESOURCE_TYPES = ["BoxMesh", "SphereMesh", "CylinderMesh", "PlaneMesh", "CapsuleMesh", "BoxShape3D", "SphereShape3D", "CapsuleShape3D", "CylinderShape3D", "StandardMaterial3D", "ORMMaterial3D"]
-const NODE_PROPERTIES = ["position", "rotation", "scale", "transform", "visible", "mesh", "material_override", "shape", "disabled", "mass", "freeze", "gravity_scale", "collision_layer", "collision_mask", "light_color", "light_energy", "omni_range", "spot_range", "metadata/world_entity_id", "metadata/world_pickup", "metadata/world_spawn"]
+const NODE_PROPERTIES = ["position", "rotation", "scale", "transform", "visible", "mesh", "material_override", "shape", "disabled", "mass", "freeze", "gravity_scale", "collision_layer", "collision_mask", "light_color", "light_energy", "omni_range", "spot_range", "metadata/world_entity_id", "metadata/world_pickup", "metadata/world_spawn", "metadata/world_script"]
 const MATERIAL_PROPERTIES = ["albedo_color", "albedo_texture", "metallic", "metallic_texture", "metallic_texture_channel", "roughness", "roughness_texture", "roughness_texture_channel", "normal_enabled", "normal_texture", "normal_scale", "ao_enabled", "ao_texture", "ao_texture_channel", "emission_enabled", "emission", "emission_texture", "emission_energy_multiplier", "uv1_scale", "uv1_offset", "uv2_scale", "uv2_offset", "texture_filter", "texture_repeat", "transparency", "alpha_scissor_threshold", "cull_mode", "shading_mode", "clearcoat_enabled", "clearcoat", "clearcoat_roughness", "clearcoat_texture", "heightmap_enabled", "heightmap_scale", "heightmap_texture", "detail_enabled", "detail_albedo", "detail_normal", "orm_texture"]
 var last_error := ""
 
@@ -36,7 +36,7 @@ func inspect_package(path: String, overrides: Dictionary = {}) -> Dictionary:
 		if not capability in ["entity.read", "entity.visual", "interaction.events"]: return _failure("Forbidden script capability")
 	var extensions = Extensions.new().validate_requirements(manifest.get("extensions", []), {}, files.keys())
 	if not extensions.ok: return extensions
-	var document = {"entities": {}, "materials": {}, "scenes": {}, "textures": {}, "manifest": manifest, "resources": {}}
+	var document = {"entities": {}, "materials": {}, "scenes": {}, "textures": {}, "manifest": manifest, "resources": {}, "programs": {}}
 	var decoded_texture_bytes = 0
 	for name in files:
 		var extension: String = name.get_extension().to_lower()
@@ -54,9 +54,23 @@ func inspect_package(path: String, overrides: Dictionary = {}) -> Dictionary:
 			"json":
 				var json = Text.new().parse_json(files[name].get_string_from_utf8())
 				if not json.ok: return _failure("Invalid JSON data: " + name)
+			"worldscript":
+				var program = Text.new().parse_json(files[name].get_string_from_utf8())
+				if not program.ok or not program.value is Dictionary or not Data.keys_only(program.value, ["version", "events"]) \
+					or program.value.get("version") != 1 or not program.value.get("events") is Dictionary:
+					return _failure("Invalid restricted world program")
+				document.programs[name] = program.value
 			_:
 				return _failure("Unsupported package file: " + name)
 	if not _validate_references(document): return _failure(last_error)
+	if document.programs.size() > 64: return _failure("Too many world scripts")
+	for entity in document.entities.values():
+		if not entity.script.is_empty() and not document.programs.has(entity.script): return _failure("Missing bound world script")
+	for program in document.programs.values():
+		for event in program.events:
+			if not event in ["start", "tick", "use", "grab", "release"]: return _failure("Unsupported world event")
+			var checked = preload("res://scripts/worlds/world_script_vm.gd").new().run_event(program.events[event], {"capabilities": manifest.get("script_capabilities", []), "entities": document.entities.keys()}, {})
+			if not checked.ok: return _failure(checked.error)
 	return {"ok": true, "revision": archive.revision, "document": document}
 
 func _failure(message: String) -> Dictionary:
@@ -112,7 +126,7 @@ func _validate_sections(path: String, sections: Array, files: Dictionary, docume
 					# Main scene entities only; reusable scenes need scoped IDs at build time.
 					if path == document.manifest.main_scene:
 						if not id is String or id.is_empty() or document.entities.has(id): return _bad("Invalid or duplicate entity ID")
-						document.entities[id] = {"path": node_path, "pickup": properties.get("metadata/world_pickup", false), "spawn": properties.get("metadata/world_spawn", false)}
+						document.entities[id] = {"path": node_path, "pickup": properties.get("metadata/world_pickup", false), "spawn": properties.get("metadata/world_spawn", false), "script": properties.get("metadata/world_script", "")}
 			_:
 				return _bad("Unsupported scene section: " + section.kind)
 	document.resources[path] = {"external": ext, "sub": sub}
@@ -137,8 +151,9 @@ func _properties(type: String, properties: Dictionary) -> bool:
 			if not value is Dictionary or value.get("type") != "Vector2" or value.args.size() != 2: return _bad("Plane size needs Vector2")
 		elif key.ends_with("_enabled") or key in ["visible", "disabled", "freeze", "texture_repeat", "metadata/world_pickup", "metadata/world_spawn"]:
 			if not value is bool: return _bad("Property needs boolean: " + key)
-		elif key == "metadata/world_entity_id":
+		elif key in ["metadata/world_entity_id", "metadata/world_script"]:
 			if not value is String: return _bad("Entity ID must be text")
+			if key == "metadata/world_script" and not Data.safe_path(value): return _bad("Invalid world script path")
 		elif key in ["mesh", "material", "material_override", "shape"] or key.ends_with("_texture") or key in ["detail_albedo", "detail_normal"]:
 			if not value is Dictionary or not value.get("type") in ["ExtResource", "SubResource"] or value.args.size() != 1 or not value.args[0] is String: return _bad("Property needs resource reference: " + key)
 		elif key in ["albedo_color", "light_color", "emission"]:

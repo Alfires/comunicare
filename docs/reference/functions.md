@@ -1,5 +1,15 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/world_runtime.gd -->
+## Restricted world event execution
+
+`configure` resolves stable current-world entities through weak node references and
+copies validated program bindings. `dispatch` runs bounded start/tick/use/grab/release
+instruction lists, validates the whole command transaction and applies visibility
+only to current Node3D targets. `stop_scripts` disables all callbacks immediately.
+Private processing ticks at most 20 Hz; no networking/deterministic game consensus
+is implied. No world-supplied script is attached to a node or executed as GDScript.
+
 <!-- module: scripts/worlds/world_data.gd -->
 ## World data guards
 
@@ -333,11 +343,12 @@ must not access active SceneTree or globally register request-local extensions.
 | `read_animation` | Await bounded worker parsing of file or byte buffer (empty path selects bytes); returns parsed dictionary or `{}`, sets animation_import_error. |
 | `refresh_loaded_assets` | Await forced checks for live avatar sources, active world and configured sources; source notifications can rebind, world refresh does not hot-swap scene. |
 | `load_world_from_url` | Convenience await prepare then activate; bool. Multiplayer code must use coordinator admission rather than bypass it through this wrapper. |
-| `prepare_world_from_url` | Await built-in or trusted remote exact revision preparation; returns staged scene/spawn/handles or `{}`. Refuses trust/revision mismatch; pins bytes. Does not activate or host. |
+| `prepare_world_from_url` | Await built-in or validated safe remote exact revision preparation; returns staged scene/spawn/handles or `{}`. Refuses revision/schema mismatch; pins bytes. Does not activate or host. |
 | `built_in_world_revision` | Returns hash of built-in scene file; not its complete transitive dependency graph. |
-| `load_world` | Local archive convenience prepare/activate with timestamped extraction; bool; trusted caller controls path. |
-| `prepare_world` | Extracts bounded archive then validates manifest/PackedScene/spawn; returns staging dictionary or `{}`. Loading executable resources is not sandboxed. |
-| `activate_world` | Await PackedScene transition, retain active handles and move player group to spawn; bool failure on invalid scene/change. Use after acknowledged transition. |
+| `load_world` | Local safe archive convenience prepare/activate; bool; trusted caller controls path. No filesystem extraction occurs. |
+| `prepare_world` | Bounded data parsing and reviewed scene reconstruction; returns staging dictionary or `{}`. Legacy extract-path argument remains unused for compatibility. |
+| `activate_world` | Await application-owned scene transition, retain active handles, attach restricted visual runtime and move player group to spawn; bool failure on invalid scene/change. Use after acknowledged transition. |
+| `stop_world_scripts` | Immediately disables current runtime callbacks if one exists; also invoked by the world script setting. Re-enabling requires a fresh world activation. |
 | `extract_zip` | Extracts relative safe entries with count/total-byte ceilings; bool false on unsafe path/read/write failure. Partial managed extraction may need caller cleanup. |
 | `load_manifest` | Parses file JSON object or `{}` with diagnostic; not independently full world validation. |
 | `create_directories_recursive` | Creates missing parent path; internal trusted path only, not a permission boundary. |

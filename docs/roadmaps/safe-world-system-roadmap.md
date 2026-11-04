@@ -3,6 +3,8 @@
 **Status: proposal, 2026-11-04. No runtime implementation or security certification.**
 **Authoring clarification:** worlds are ordinary Godot projects, edited in Godot
 with its built-in nodes, scene instances, resources, materials and texture tools.
+Third-party addons and custom nodes, including Terrain3D, are also part of the
+authoring target, through safe conversion or reviewed client integrations.
 Add a metadata file and manually package the world; no custom editor or mandatory
 publishing plugin. This supersedes the initial custom-editor/JSON-source proposal.
 This is the target design for replacing downloaded executable Godot worlds. It
@@ -14,6 +16,8 @@ does not make today's loader safe. The current behavior remains documented in
 - Anyone can create a normal Godot project and build, save and update the world in
   the Godot editor, with full standard-material texture support and a documented
   safe profile of built-in nodes/resources. Publication is manual for now.
+  Creators can also use third-party custom nodes/addons; their content crosses
+  the runtime boundary through the extension compatibility system in section 4.4.
   Optional scripts still run on players' devices, but only inside a restricted
   world-language interpreter, never as downloaded GDScript or native code.
 - Desktop and VR users can pick up, use, carry, pass and throw the same items.
@@ -79,6 +83,7 @@ Proposed modules, names subject to implementation review:
 | `WorldPackageReader` / `WorldValidator` | Bounded ZIP/TSCN/TRES/media parsing to typed data; no engine resource execution or project startup. |
 | `WorldDocument` / `WorldBuilder` | Stable IDs, validated components; construct only application-owned node types/materials. |
 | Godot editor / optional future author tools | Native scene/resource editing and saves; metadata examples and manual packaging instructions first, optional validation/export convenience later. |
+| `WorldExtensionRegistry` / reviewed adapters | Map declared custom-node data to validated runtime content or supported client-bundled integrations; never install executable addons from worlds. |
 | `WorldScriptVM` / `WorldCapabilityBroker` | Metered interpreter and checked commands; no engine objects cross the boundary. |
 | `InteractionService` / desktop and VR adapters | Selection, grip requests, prediction, held pose, use and release. |
 | `WorldStateReplicator` | Revision-scoped commands, snapshots, sequencing and recovery. |
@@ -103,6 +108,7 @@ state into published worlds.
 ```text
 my-world/
   project.godot                # normal Godot project, author-side only
+  addons/*                    # author-installed addons, e.g. Terrain3D
   world.json                   # world metadata; packaged as manifest.json
   scenes/world.tscn            # main scene made in the Godot editor
   scenes/props/*.tscn          # reusable native scene instances
@@ -134,6 +140,10 @@ my-world/
 - The author's own local project can contain trusted tools/GDScript for authoring,
   but that code is never automatically included or run on joining clients. Ordinary
   Godot GDScript is not converted into safe world scripts merely by packaging it.
+- Custom nodes are not categorically forbidden. Creators may install Terrain3D
+  and other addons in their own Godot project and edit with their normal tools.
+  Publication uses the conversion/integration routes in section 4.4; the addon
+  itself remains author-side unless separately shipped as trusted client software.
 - Collaboration uses ordinary Godot project files/version control. Keep source
   backups; validators never rewrite source or overwrite newer/corrupt metadata.
   Opening an untrusted project in Godot can execute editor tooling: joiners must
@@ -251,6 +261,85 @@ Illustrative manifest, not a frozen wire/schema specification:
 - Instance state is ephemeral and disappears when the last participant leaves.
   No automatic cross-instance, cross-revision or reconnect restore. User-triggered
   world-state export, if added later, needs a distinct consent/schema design.
+
+### 4.4 Third-party extensions and custom nodes, including Terrain3D
+
+**Goal:** creators can author with Godot extensions rather than being limited to
+built-in nodes. Supporting the authored result does not grant a world permission
+to execute the extension's GDScript, GDExtension library, importer or GPU programs.
+Provide two explicit routes, with per-addon documentation and versioned adapters:
+
+1. **Author-side bake/conversion.** Use the addon locally, then manually export or
+   bake its result into supported meshes, collision data, textures, materials and
+   node metadata. Package that data through the normal manual ZIP workflow. If an
+   addon has no suitable built-in export, a reviewed conversion tool is needed for
+   that addon; don't claim all custom nodes can be converted automatically.
+   Static terrain/decorations should not require joiners to install the addon.
+2. **Reviewed native/custom-node integration.** For features that cannot be baked
+   faithfully or efficiently, bundle a reviewed, pinned addon implementation and
+   adapter with the Comunicare client through its normal software release process.
+   Worlds carry only schema-validated extension data. The trusted adapter creates
+   the supported custom nodes and resources from that data, using bounded loaders,
+   reviewed properties and application-owned shaders. Such code is part of the
+   client's trusted computing base, **not sandboxed by the world-script VM**.
+
+No arbitrary addon installation from a world ZIP, automatic code download based on
+metadata, native-library loading, package-selected class construction or publisher
+signature bypass. A dependency declaration is a compatibility requirement, not
+authorization to install software. Missing required integration fails during staging
+before membership changes; optional features need an explicitly authored fallback.
+
+Example future metadata for the integration route (names/versions illustrative):
+
+```json
+{
+  "extensions": [
+    {
+      "id": "comunicare.terrain3d",
+      "data_schema": 1,
+      "required": true,
+      "data": "terrain/index.json"
+    }
+  ]
+}
+```
+
+The extension registry maps this logical ID/schema to client-bundled code, tested
+addon versions and supported Godot/platform/renderer combinations. It does not
+accept a library URL, script path or arbitrary class name. Extension files are
+covered by the archive revision and all normal bounds/path checks. Native binary
+resource formats require a dedicated bounded decoder/converter; do not introduce
+an unrestricted `ResourceLoader` path to load an addon's saved data.
+
+**Terrain3D is the first concrete integration target:**
+
+- Author normally with Terrain3D's terrain node and editor tools. Preserve terrain
+  shape, surface layers, texture tiling/blending and collision in the published
+  result. Include height/control/color maps, layer textures and any supported
+  vegetation/instancing data needed by the selected route.
+- Evaluate actual Terrain3D versions, save formats, available export APIs, licensing
+  and Godot 4.7 compatibility before selecting the adapter. This roadmap does not
+  assert that the addon is already installed, supported or has a one-click bake.
+- Prototype bake-to-chunked-mesh/collision plus textures/material reconstruction,
+  comparing surface-layer fidelity and seams. If baking loses essential blending,
+  LOD or large-world performance, implement the reviewed bundled integration rather
+  than silently flattening materials or dropping features.
+- Bound region count/resolution, height range, layer count, texture-array memory,
+  collision generation, vegetation density, LOD work and load time. Large terrain
+  must meet desktop/VR budgets; raising global package limits silently is not a fix.
+- Keep Terrain3D/custom terrain shaders in the reviewed client implementation, not
+  in a downloadable shader-code escape hatch. Validate all world-selected parameters.
+- Terrain is static in the initial release. Runtime deformation needs separate
+  bounded commands, replication and collision-update contracts before being enabled.
+
+For other addons publish a support matrix: native integration, baked output only,
+restricted-VM behavior rewrite, or unsupported with reason. Editor-only helpers
+need no runtime adapter when their saved result already uses supported data. A
+custom node with arbitrary behavior cannot preserve that behavior merely by copying
+its script; reimplement it in the restricted VM or review a client integration.
+Adapters must not expose filesystem, network, engine objects or extra admin rights
+to world scripts. Their licenses, updates and security regressions are client
+maintenance responsibilities, not something a world author can override.
 
 ## 5. Script execution without engine execution
 
@@ -405,7 +494,9 @@ The initial workflow is entirely manual:
 
 1. Create a new project in the supported Godot version (currently 4.7).
 2. Build a world normally using Godot nodes, scene instances, imported models,
-   materials and textures. Save the main scene and all dependencies.
+   materials and textures, including supported third-party nodes such as Terrain3D.
+   Save the main scene and all dependencies. For custom nodes, follow the addon's
+   documented bake or reviewed integration route before packaging.
 3. Add `world.json` using the documented metadata example, mark spawn/pickup/grip
    nodes through metadata and optionally add restricted world-script files.
 4. Copy selected content into a staging folder, copy `world.json` as
@@ -429,6 +520,10 @@ The initial workflow is entirely manual:
 - Manual packaging must not depend on hidden cache files or undocumented remap
   tables. Test a freshly copied project/package on a second machine with no author
   import cache. Never run a packaged editor plugin to import a downloaded world.
+- Addon-specific conversion/export may be manually invoked where required; this
+  does not make a general publishing plugin or custom editor mandatory. Native
+  custom-node declarations in a source scene must resolve through a reviewed
+  adapter, never through automatic loading of the source project's `addons` folder.
 - Save edits as a new immutable revision. Upload the exported package using the
   existing hosting method; no automatic request for hosting credentials. Keep older
   files at immutable URLs if old pinned instances should remain joinable.
@@ -477,6 +572,7 @@ as completed implementation.
 | 0 — contracts | Threat model, metadata schema, Godot node/resource/texture parity matrix, VM semantics, permission matrix, wire negotiation and moderation privacy review | Supported native authoring features and rejected executable features are explicit; parser-isolation decision recorded. |
 | 1 — data-only worlds | Bounded ZIP/TSCN/TRES/media reader, typed document/builder, standard-material texture pipeline | Hostile corpus fails closed; no downloaded resource execution; representative multi-textured Godot scenes preserve reviewed properties; malformed input preserves current world. |
 | 2 — manual Godot authoring | Example Godot project, metadata template, node/grip metadata guide, manual ZIP instructions and safe preview | New ordinary Godot project can be edited/reopened, packaged and played on a clean machine without custom editor/plugin/compiler or author import cache. |
+| 2a — addon/custom-node compatibility | Extension registry, bake/integration contracts, Terrain3D reference project and reviewed conversion or bundled adapter | Terrain geometry, layers, textures and collision work on a clean client; unsupported addon versions fail before join; world archives cannot install code; platform/VR memory and fidelity gates pass. |
 | 3 — restricted scripting | Typed text language bound through metadata, fuel/memory accounting, broker and diagnostics | Doors/puzzles work; filesystem/network/reflection and handle escape tests fail; infinite loops/event floods cannot freeze trusted UI. |
 | 4 — ephemeral replication | Sequenced events, grip leases, late-join snapshots, bounded physics controller transfer | Multi-client loss/reorder/race/disconnect tests; no cross-instance/revision packets accepted; relay restart/cleanup retains no user/session history. |
 | 5 — complete pickup UX | Shared desktop/VR interaction, remote grips, throws, handoff and two hands | Real desktop + headset sessions see identical holders; tracking loss, comfort, collision and accessibility checks pass. |
@@ -500,6 +596,10 @@ Required test matrix:
 - Godot-created scene/material fixtures covering PBR channels, alpha, UV transforms,
   normal/color-space handling, mipmaps, filtering, lightmaps and HDR environments;
   compare safe-preview renders with the documented native rendering profile.
+- Terrain3D/custom-node fixtures covering layer blending, terrain seams, LOD,
+  collision, baked/integrated equivalence and missing adapters; malicious extension
+  metadata, forged IDs/schemas and embedded GDExtension/script/shader payloads must
+  never load code. Audit bundled adapters and native data decoders separately.
 - VM arithmetic/loop/call-depth/heap/event exhaustion, command amplification,
   stale/forged handles, capability bypass and world-UI impersonation boundaries.
 - Cross-account local-save access, corrupt save preservation, interrupted writes,
@@ -525,7 +625,9 @@ enabling native world code; useful restricted scripts run; VR/desktop players se
 items; and the creator can leave without taking the instance or special powers with
 them. Ban continuity and failure modes must be visible, not silently weakened.
 
-Not promised: arbitrary Godot addon compatibility, general-purpose native scripting,
+Not promised: automatic execution/compatibility of every Godot addon, general-purpose native scripting,
 perfect anti-cheat, permanent shared worlds, a new hosting platform, admin gameplay
 consoles, a separate world editor, mandatory publishing automation, arbitrary custom
 shaders, seamless forced updates or zero-risk execution of all possible media.
+Supported third-party custom nodes, with Terrain3D as the reference target, are
+in scope; unrestricted world-supplied extension code is not.

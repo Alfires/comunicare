@@ -1,34 +1,45 @@
 # VR controls and tracking: implemented behavior
 
-- Left stick requests horizontal head-relative movement with radial dead zone and
-  analog magnitude. Head pitch/roll does not change speed; diagonal input is bounded.
-- Right stick turns around the headset's floor pivot. Settings → VR Movement selects
-  Snap (default 30°, one per deflection) or Smooth (default 60°/s), speed/dead zones.
-- Either lower face button A/X toggles one shared Home/Friends/Explorer/Settings
-  viewport. A no longer jumps. Optional jump uses right stick click and is off by
-  default. B/Y retains the emote wheel; menu/modal focus suppresses emote opening.
-- Point with controller aim and click trigger; pointer release survives drag-off and
-  close. Menu/input capture blocks synthetic movement/turning until sticks return
-  neutral. Focus/head tracking loss blocks locomotion.
-- VR Comfort offers optional vignette/snap blink and a seated short-capsule mode.
-  Effects never move the camera and cannot guarantee absence of motion sickness.
+- Left stick requests bounded analog head-relative ground movement. Head pitch/roll
+  does not change speed. Right stick turns around the headset floor pivot, with
+  Snap (30° default) or Smooth (60°/s default) in VR Movement settings.
+- A/X on either hand toggles one shared main-menu viewport. Optional jump is right
+  stick click and off by default; B/Y retains the separate emote wheel.
+- Controller aim/trigger operates UI, with press capture/release on drag-off/close.
+  Stick over the panel scrolls it. Text focus opens a pointer virtual keyboard;
+  editable/read-only and length restrictions remain enforced. Close releases target.
+- UI/focus/tracking loss blocks synthetic motion until controls return neutral.
+  Comfort preferences offer optional vignette/blink, seated capsule mode and dead
+  zones. No setting guarantees prevention of motion sickness or shifts headset pose.
+- Room-scale following collision-moves the capsule toward the physical headset
+  floor point, compensating origin so the headset world pose does not jump. Repeated
+  stationary samples are idempotent; walls block capsule, not physical head motion.
 
-The main menu surface is stable while open. It uses the existing service owners,
-not duplicate settings/account data. Automatic viewport mouse-coordinate conversion
-handles actual non-square size, front face, bounds and world transforms.
+## Tracker setup and calibration
 
-Tracking primitives validate required humanoid chains, store bounded per-owner/
-avatar calibration and accept fresh uniquely assigned optional role samples. Head/
-grip offsets are applied by the final modifier; optional pelvis/feet targets are
-solved before head/arms. Device discovery/role-assignment/calibration UI is **not**
-provided yet: the sample provider is an integration API, not certified plug-and-play
-FBT. Tracking activation currently uses binary validity weights, not polished fades.
+Use **VR tracker setup** in the main viewport. Fresh positional poses actually
+exposed by the active runtime are listed for hips/feet assignment; duplicate role
+use is rejected and missing devices remain untracked. Assignments are session-local,
+not hardware serial history. No claim that every tracker/runtime combination works.
 
-Remaining work: complete room-scale/collision policy; headset-ready keyboard,
-scrolling and file selection; physical tracker/runtime profiles; foot planting,
-body constraints, hardware calibration and multi-client tracker-pose replication.
-Do not infer these from passing synthetic tests. Test on real devices before use
-as a release-quality comfort or FBT system.
+The save action records current headset height and zero head/grip translations in
+an account/avatar-scoped store. This is **not full-body orientation/T-pose calibration**.
+Invalid/corrupt/wrong-owner data is preserved, not overwritten. Rig chain warnings
+are displayed. The optional solver accepts pelvis/feet subsets before head/arms.
+
+Temporary head/hand validity loss fades last solved pose toward base animation over
+.2 seconds; reacquisition fades in. Hard target removal releases ownership. Camera
+remains independent; limb reach is bounded. Tests use synthetic poses, not physical
+controller calibration or certified anatomical constraints.
+
+## Remaining release work
+
+Full-body orientation/offset calibration and foot planting; robust torso/joint
+constraints; ceiling-safe dynamic capsule growth; head-clipping feedback; safe
+teleport; headset-accessible platform file selection; runtime hardware/profile
+coverage; networked live tracker poses. Physical boundary safety and room-scale
+comfort cannot be established by collision-unit tests. Real headset/controller,
+mirror/shadow and large-network tests are required before release-quality claims.
 
 Tests: `python3 tests/vr_controls/run.py`,
 `python3 tests/avatar_tracking/run.py`. Architecture and API details are in the

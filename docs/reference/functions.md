@@ -80,6 +80,16 @@ saves when allowed; predelete disconnects registry. See [format](storage-formats
 
 ## Voice and player nodes
 
+<!-- module: scripts/player/vr_room_scale.gd -->
+### [VRRoomScale](../../scripts/player/vr_room_scale.gd)
+
+RefCounted physical walking reconciliation. `reconcile` takes attached body/origin/
+head nodes, collision-moves capsule toward horizontal headset displacement (bounded
+to .5 m per call), restores origin world transform so physical head pose stays
+unchanged, and returns actual body displacement. Repeated stationary input is
+idempotent. Collision cannot stop real-world walking; callers still need boundary/
+head-clipping feedback and ceiling-safe capsule policy. No camera recenter/teleport.
+
 <!-- module: scripts/player/vr_locomotion.gd -->
 ### [VRLocomotion](../../scripts/player/vr_locomotion.gd)
 

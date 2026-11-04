@@ -43,6 +43,7 @@ func run():
 	test_comfort_state()
 	test_text_entry()
 	test_tracking_setup()
+	await test_room_scale()
 	print("\nRED VR controls: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -264,3 +265,47 @@ func test_tracking_setup():
 	check("fixture missing rig" in setup.status.text, "tracking setup exposes rig diagnostics instead of pretending calibration succeeded")
 	setup.queue_free()
 	player.queue_free()
+
+func test_room_scale():
+	var path = "res://scripts/player/vr_room_scale.gd"
+	check(ResourceLoader.exists(path), "room-scale capsule follows physical horizontal headset displacement")
+	if not ResourceLoader.exists(path): return
+	var body = CharacterBody3D.new()
+	var shape = CollisionShape3D.new()
+	var capsule = CapsuleShape3D.new()
+	capsule.radius = 0.2
+	capsule.height = 1.6
+	shape.shape = capsule
+	shape.position.y = 0.8
+	body.add_child(shape)
+	var origin = XROrigin3D.new()
+	body.add_child(origin)
+	var head = Node3D.new()
+	origin.add_child(head)
+	head.position = Vector3(0.4, 1.6, 0.1)
+	root.add_child(body)
+	await physics_frame
+	var before = head.global_transform
+	var follow = load(path).new()
+	follow.reconcile(body, origin, head)
+	check(Vector2(body.position.x, body.position.z).distance_to(Vector2(0.4, 0.1)) < 0.001, "room-scale body aligns with physical headset floor position")
+	check(head.global_transform.is_equal_approx(before), "capsule following never changes physical headset world pose")
+	var stable = body.position
+	follow.reconcile(body, origin, head)
+	check(body.position.is_equal_approx(stable), "physical headset displacement is not counted twice")
+	var wall = StaticBody3D.new()
+	var wall_shape = CollisionShape3D.new()
+	var box = BoxShape3D.new()
+	box.size = Vector3(0.1, 3, 3)
+	wall_shape.shape = box
+	wall.add_child(wall_shape)
+	wall.position = Vector3(0.8, 1.0, 0)
+	root.add_child(wall)
+	head.position.x += 0.6
+	before = head.global_transform
+	await physics_frame
+	follow.reconcile(body, origin, head)
+	check(body.global_position.x < 0.6, "room-scale collision body cannot follow physical head through wall")
+	check(head.global_transform.is_equal_approx(before), "blocked physical walking does not push tracked headset back artificially")
+	wall.queue_free()
+	body.queue_free()

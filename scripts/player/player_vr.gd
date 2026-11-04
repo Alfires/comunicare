@@ -52,6 +52,7 @@ var tracking_calibration = preload("res://scripts/assets/tracking_calibration.gd
 var rig_report: Dictionary = {}
 var virtual_keyboard: Control
 var scroll_at := {"left": 0, "right": 0}
+var room_scale = preload("res://scripts/player/vr_room_scale.gd").new()
 
 
 func _ready():
@@ -103,6 +104,7 @@ func _get_movement_input() -> Vector2:
 	return left_controller.get_vector2("primary").limit_length(1.0)
 
 func _physics_process(delta):
+	if focused and xr_camera.get_is_active(): room_scale.reconcile(self, origin_node, xr_camera)
 	var movement_input = _get_movement_input()
 	var turn_axis = right_controller.get_vector2("primary").x
 	var blocked = not focused or not xr_camera.get_is_active() or _menu_open() or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty() or NetworkHandler.session_busy

@@ -1,5 +1,17 @@
 # Relay data lifecycle — project-wide requirement
 
+## Federation transport extension
+
+TLS peering keeps only bounded active links, signed public summaries, rate state
+and active datagram-tunnel routing. Infrastructure private keys, certificates,
+operator seeds and relay-ID blocks may be persistent configuration; user accounts,
+sessions, tunnel tokens and directory snapshots must not be persisted. Link loss
+withdraws dependent summaries and closes affected tunnels. Tunnels expire without
+live keepalives; closing the origin UDP proxy causes ordinary ENet liveness cleanup
+at the origin (bounded by its configured connection timeout), not instant account
+deletion. No intermediate layer writes user packet history or restores disconnected
+membership after restart. See the setup guide for current provenance limitations.
+
 ## Governing rule
 
 The relay is a **temporary, in-memory router for currently connected users**, not a persistent account or social database. This applies to every system: authentication, profiles, instances, moderation, friends, presence, delivery queues, caches and future features.

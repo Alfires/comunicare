@@ -1,5 +1,66 @@
 # Production function contracts
 
+<!-- module: scripts/multiplayer/federation/secure_relay_link.gd -->
+## Certificate-verified framed TLS link
+
+`connect_to` requires an explicit trusted certificate/common name; `accept_connection`
+uses an infrastructure key/certificate. `poll` bounds handshake time, incoming frame
+size/work and outgoing queues. `connected`, `send`, `drain` expose framed dictionary
+messages; `close` clears stream/queues. No unsafe TLS fallback or account storage.
+
+<!-- module: scripts/multiplayer/federation/relay_directory_service.gd -->
+## Live relay directory and datagram routing
+
+`start` binds TLS infrastructure, `trust_peer` registers explicit public key/certificate
+trust, `connect_peer` initiates a verified neighbour link with retry/backoff.
+`set_local_instances` validates public origin summaries; `set_blocked` purges dependent
+state/routes, `poll` processes bounded TLS authentication/gossip/tunnels and expiry,
+`public_instances` copies summaries, `stop` clears links/tunnels/live state.
+`set_gameplay_port` configures the local UDP origin target. Private tunnel routing
+preserves ENet account/admission at the origin; it is not game simulation or PKI audit.
+
+<!-- module: scripts/multiplayer/federation/relay_directory_client.gd -->
+## Anonymous simultaneous directory client
+
+`add_trusted` registers an explicitly verified certificate/relay association; `query`
+opens up to four TLS directory connections. `set_blocks` tears down blocked sources
+and filters distant origins. `poll` checks correlated public responses and expiry;
+`instances` deduplicates global keys; `stop` closes links. No account is published.
+
+<!-- module: scripts/multiplayer/federation/relay_directory_trust.gd -->
+## Local public certificate trust bundle
+
+`load_trust` validates bounded stored entries and preserves corrupt/newer files.
+`add_certificate` imports an explicit local PEM after user action; `remove` requires
+explicit removal before key replacement. `apply_to` configures trusted directory
+endpoints. Private save atomically replaces public trust configuration; no private
+key or advertised certificate is automatically accepted.
+
+<!-- module: scripts/multiplayer/federation/relay_game_tunnel.gd -->
+## Origin gameplay over verified TLS routes
+
+`start` binds a local UDP endpoint and opens a trusted TLS connection to the ingress;
+`poll` requests a scoped origin route, validates returned blocked paths and forwards
+bounded ENet datagrams. `close` sends best-effort route cleanup and closes local
+state. Existing origin account auth remains end-to-end. This reliable TCP tunnel
+does not guarantee low-latency datagram behavior or per-actor ingress policy.
+
+<!-- module: scripts/multiplayer/federation/relay_operator_config.gd -->
+## Operator infrastructure configuration
+
+`load_config` reads bounded versioned JSON, existing private key/certificate and
+explicit peer public-key/certificate files; returns typed configuration or preserves
+files with a diagnostic. It never generates/replaces keys, stores users, or restores
+sessions. Only explicit operator startup uses this configuration path.
+
+<!-- module: scripts/multiplayer/federation/lan_relay_transport.gd -->
+## Local IPv4 discovery datagrams
+
+`start` optionally binds multicast listener and sends bounded operator advertisements;
+`poll` caps datagram work, validates source addresses through the candidate model
+and expires hints. `stop` leaves groups/closes socket. Actual interface multicast
+availability is OS-dependent; this is not DNS-SD, certificate trust or automatic login.
+
 <!-- module: scripts/multiplayer/federation/relay_validation.gd -->
 ## Relay configuration guards
 
@@ -772,6 +833,13 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+`get_directory_browser` lazily loads public trust and optional LAN socket;
+`refresh_relay_directories` queries bounded trusted endpoints; `get_remote_instances`
+and `get_lan_relay_candidates` expose copied public/hint state. `trust_relay_directory`
+requires explicit local certificate import. `join_remote_instance` stages exact
+content, establishes a checked encrypted route, freshly authenticates to the origin
+and joins through existing admission. Old membership ends once transport switches;
+failure after that point cannot claim old membership preservation.
 `get_relay_preferences` lazily loads client-local ordered entries, migrates the old
 scalar endpoint once and binds immediate endpoint-block cleanup. The live client
 iterates unpinned allowed entries on timeout/unavailability and never claims server
@@ -804,6 +872,10 @@ children; animation service lives under DataLoader, not that cleanup list.
 | `manage_instance` | Guards busy/pending/admin and emits revisioned action with target identity/peer guards; returns request ID or empty, completion via signal. |
 
 <!-- module: scripts/multiplayer/relay.gd -->
+`start_federation` explicitly loads operator infrastructure configuration, starts
+the TLS service, trusts/connects configured peers and optionally starts LAN hints.
+Normal `handle_events` exports only pinned public instances and polls live links;
+teardown closes federation state. Legacy local-only relay startup remains supported.
 ### [Relay](../../scripts/multiplayer/relay.gd)
 
 Server scene Node. Main-thread ENet event loop; transient auth/profile/membership/

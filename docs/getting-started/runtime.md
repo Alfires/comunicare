@@ -32,7 +32,8 @@ Reconnecting does not silently rejoin a previous instance; choose/create one aga
 **Ordered-list update:** the old scalar endpoint is now migration-only. Use the
 [ordered relay list](../guides/relay-preferences.md) in Network settings after
 migration. Its top allowed entry is default and unavailable entries fall back in
-order. Live relay federation and physical LAN discovery are not implemented yet.
+order. [Federation setup](../guides/relay-federation-setup.md) documents the new
+certificate-trusted TLS peering, LAN hints and routed gameplay, including limitations.
 
 Normal client startup can generate an account key and migrate/write settings,
 profiles, contacts and avatar selections. Back up user data before experimenting.

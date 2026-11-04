@@ -23,6 +23,7 @@ var discovery_generation := ""
 var discovery_sequence := 0
 var filter_text := ""
 var legacy_timed_out := false
+var local_instances: Dictionary = {}
 signal reset
 
 func _ready() -> void:
@@ -36,6 +37,13 @@ func _ready() -> void:
 	_request_catalog()
 	_render_worlds()
 	_attach_peer()
+	if NetworkHandler.has_signal("relay_directory_changed"):
+		NetworkHandler.relay_directory_changed.connect(_merge_relay_instances)
+	if NetworkHandler.has_method("refresh_relay_directories"):
+		# Real client startup has a settings owner. Transport-only isolated callers
+		# must not create persisted preference state just by opening a browser.
+		var save = get_node_or_null("/root/SaveData")
+		if save != null and save.get("store") != null: NetworkHandler.refresh_relay_directories()
 
 func _request_catalog() -> void:
 	if http_request.request("https://raw.githubusercontent.com/Alfires/comunicare-Officel-World-List/refs/heads/main/worlds.json") != OK:
@@ -49,6 +57,7 @@ func _process(_delta: float) -> void:
 		# Clear stale entries, but allow a later reliable response to recover.
 		status.text = "Discovery timed out; retrying public instances…"
 		instances.clear()
+		local_instances.clear()
 		_render_worlds()
 		refresh_started = Time.get_ticks_msec()
 		if not discovery_peer.directory_supported:
@@ -79,6 +88,7 @@ func _attach_peer() -> void:
 	legacy_timed_out = false
 	refreshing = false
 	instances.clear()
+	local_instances.clear()
 	_render_worlds()
 	if discovery_peer == null:
 		status.text = "Relay disconnected"
@@ -93,6 +103,8 @@ func _attach_peer() -> void:
 		status.text = "Connecting to relay…"
 
 func _exit_tree() -> void:
+	if NetworkHandler.has_signal("relay_directory_changed") and NetworkHandler.relay_directory_changed.is_connected(_merge_relay_instances):
+		NetworkHandler.relay_directory_changed.disconnect(_merge_relay_instances)
 	if discovery_peer == null:
 		return
 	if discovery_peer.directory_result.is_connected(receive_directory_result): discovery_peer.directory_result.disconnect(receive_directory_result)
@@ -107,15 +119,28 @@ func _on_disconnected() -> void:
 	discovery_request_id = ""
 	refreshing = false
 	instances.clear()
+	local_instances.clear()
 	status.text = "Relay disconnected"
 	_render_worlds()
 
 func load_sessions(sessions: Array) -> void:
-	instances = Model.summaries(sessions)
+	local_instances = Model.summaries(sessions)
+	_merge_relay_instances()
 	refreshing = false
 	last_refresh = Time.get_ticks_msec()
 	status.text = ""
 	_render_worlds()
+
+func _merge_relay_instances():
+	instances = local_instances.duplicate(true)
+	if NetworkHandler.has_method("get_remote_instances"):
+		for summary in NetworkHandler.get_remote_instances():
+			var value: Dictionary = summary.duplicate(true)
+			var id = summary.origin_relay_id + ":" + summary.origin_boot_id + ":" + summary.instance_id
+			value.session_id = id
+			value.remote_relay = true
+			instances[id] = value
+	if is_node_ready(): _render_worlds()
 
 func receive_directory_result(value: Dictionary):
 	if not refreshing or discovery_request_id.is_empty() or value.get("request_id") != discovery_request_id or value.get("generation") != discovery_generation: return
@@ -189,6 +214,7 @@ func _render_info() -> void:
 		row.set_meta("session_id", id)
 		var label = Label.new()
 		label.text = "%s — %d players\n%s" % [instance.name, instance.player_count, instance.description]
+		if instance.get("remote_relay", false): label.text += "\nFederated relay " + str(instance.origin_relay_id).left(12)
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(label)
 		var join = Button.new()
@@ -209,7 +235,11 @@ func _join_instance(id: String) -> void:
 	_render_info()
 	status.text = "Joining instance…"
 	# The network coordinator stages the advertised world and waits for the relay.
-	var success: bool = await NetworkHandler.join_session(id, instances[id].world_url)
+	var success: bool
+	if instances[id].get("remote_relay", false):
+		success = await NetworkHandler.join_remote_instance(instances[id])
+	else:
+		success = await NetworkHandler.join_session(id, instances[id].world_url)
 	if not is_inside_tree():
 		return
 	busy = false

@@ -16,6 +16,8 @@ var world_items = WorldItemRouter.new()
 var availabil_peer_ids: Array = range(255,-1,-1)
 
 var connection: ENetConnection
+var federation_directory
+var lan_transport
 
 
 func _ready() -> void:
@@ -28,6 +30,9 @@ func start_relay():
 		print("Failed to start relay")
 		return
 	print("Relay stated")
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--federation-config="):
+			start_federation(argument.trim_prefix("--federation-config="))
 	
 
 func _process(_delta):
@@ -36,6 +41,19 @@ func _process(_delta):
 	
 
 func handle_events() -> void:
+	if federation_directory != null:
+		var summaries: Array = []
+		for wrapped in sessions:
+			var session: Dictionary = wrapped[0]
+			if session.mode != PacketInfo.MODE.PUBLIC or session.peers.is_empty(): continue
+			var revision: String = session.get("world_revision", "")
+			if revision.length() != 64: continue # Unpinned legacy sessions are not exported.
+			summaries.append({"origin_relay_id": federation_directory.relay_id, "origin_boot_id": federation_directory.boot_id,
+				"instance_id": session.session_id, "world_url": session.world_url, "world_revision": revision,
+				"mode": 0, "name": session.name, "description": session.description, "player_count": session.peers.size()})
+		federation_directory.set_local_instances(summaries)
+		federation_directory.poll()
+	if lan_transport != null: lan_transport.poll()
 	animations.tick()
 	social.tick(self)
 	_expire_admissions()
@@ -62,6 +80,31 @@ func handle_events() -> void:
 				
 		packed_event = connection.service()
 		event_type = packed_event[0]
+
+func start_federation(config_path: String) -> bool:
+	var config = load("res://scripts/multiplayer/federation/relay_operator_config.gd").new().load_config(config_path)
+	if not config.ok:
+		push_warning(config.error)
+		return false
+	var service = load("res://scripts/multiplayer/federation/relay_directory_service.gd").new()
+	if not service.start(config.key, config.certificate, config.port, config.bind):
+		push_warning(service.last_error)
+		return false
+	for id in config.blocks: service.set_blocked(id, true)
+	for peer_config in config.peers:
+		var id = service.trust_peer(peer_config.key, peer_config.certificate)
+		if peer_config.connect: service.connect_peer(peer_config.host, peer_config.port, id, peer_config.common_name)
+	federation_directory = service
+	service.set_gameplay_port(connection.get_local_port())
+	if config.lan_enabled:
+		lan_transport = load("res://scripts/multiplayer/federation/lan_relay_transport.gd").new()
+		lan_transport.start(true, config.blocks, {"version": 1, "relay_id": service.relay_id, "boot_id": service.boot_id,
+			"label": config.label, "host": "source", "port": service.local_port})
+	return true
+
+func _exit_tree():
+	if federation_directory != null: federation_directory.stop()
+	if lan_transport != null: lan_transport.stop()
 
 
 func peer_connected(peer: ENetPacketPeer):

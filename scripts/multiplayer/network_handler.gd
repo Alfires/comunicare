@@ -8,6 +8,115 @@ var relay_port := 7374
 var relay_preferences
 var active_relay_entry: Dictionary = {}
 var relay_selection_errors: Array = []
+var directory_browser
+var directory_trust
+var lan_discovery
+var directory_refresh_at := 0
+var gameplay_tunnel
+var current_origin := ""
+signal relay_directory_changed
+
+func get_directory_browser():
+	if directory_browser != null: return directory_browser
+	directory_browser = load("res://scripts/multiplayer/federation/relay_directory_client.gd").new()
+	directory_trust = load("res://scripts/multiplayer/federation/relay_directory_trust.gd").new()
+	directory_trust.load_trust()
+	directory_trust.apply_to(directory_browser)
+	directory_browser.changed.connect(func(): relay_directory_changed.emit())
+	var preferences = get_relay_preferences().snapshot()
+	directory_browser.set_blocks(preferences.blocked_ids, preferences.blocked_endpoints)
+	lan_discovery = load("res://scripts/multiplayer/federation/lan_relay_transport.gd").new()
+	var enabled = false
+	var save = get_node_or_null("/root/SaveData")
+	if save != null and save.get("store") != null: enabled = save.store.get_value("network.lan_discovery") != false
+	lan_discovery.start(enabled, preferences.blocked_ids)
+	return directory_browser
+
+func refresh_relay_directories():
+	var browser = get_directory_browser()
+	for id in browser.trusted:
+		if browser.links.size() >= 4 and not browser.links.has(id): break
+		browser.query(id)
+
+func get_remote_instances() -> Array:
+	return directory_browser.instances() if directory_browser != null else []
+
+func get_lan_relay_candidates() -> Array:
+	return lan_discovery.model.candidates() if lan_discovery != null else []
+
+func trust_relay_directory(id: String, host: String, port: int, certificate_path: String, common_name: String = "comunicare-relay") -> bool:
+	get_directory_browser()
+	if not directory_trust.add_certificate(id, host, port, certificate_path, common_name):
+		last_session_error = directory_trust.last_error
+		return false
+	directory_trust.apply_to(directory_browser)
+	refresh_relay_directories()
+	return true
+
+func join_remote_instance(instance: Dictionary) -> bool:
+	if session_busy or connection_in_progress:
+		last_session_error = "Another connection/transition is in progress"
+		return false
+	var browser = get_directory_browser()
+	var origin = str(instance.get("origin_relay_id", ""))
+	var destination = str(instance.get("instance_id", ""))
+	var revision = str(instance.get("world_revision", ""))
+	var policy = get_relay_preferences().snapshot()
+	if origin in policy.blocked_ids: return _transition_failed("Destination relay blocked")
+	var selected: Dictionary = {}
+	# Prefer main/fallback list as ingress where it has explicit certificate trust;
+	# directory/explicit instance access is not limited to those saved entries.
+	for entry in policy.entries:
+		if browser.trusted.has(entry.relay_id) and not relay_preferences.is_blocked(entry):
+			selected = browser.trusted[entry.relay_id]
+			break
+	if selected.is_empty():
+		for id in browser.links:
+			if id in policy.blocked_ids: continue
+			for summary in browser.links[id].instances:
+				if summary.get("origin_relay_id") == origin and summary.get("origin_boot_id") == instance.get("origin_boot_id") and summary.get("instance_id") == destination:
+					selected = browser.trusted[id]
+					break
+			if not selected.is_empty(): break
+	if selected.is_empty(): return _transition_failed("No allowed certificate-trusted route to instance")
+	session_busy = true
+	var staged: Dictionary = await DataLoader.prepare_world_from_url(str(instance.get("world_url", "")), revision)
+	if staged.is_empty(): return _transition_failed("Cannot stage exact destination world revision")
+	var tunnel = load("res://scripts/multiplayer/federation/relay_game_tunnel.gd").new()
+	if not tunnel.start(selected.host, int(selected.port), selected.certificate, origin, policy.blocked_ids, selected.common_name):
+		return _transition_failed("Cannot start trusted relay route")
+	var until = Time.get_ticks_msec() + 10000
+	while not tunnel.ready and tunnel.last_error.is_empty() and Time.get_ticks_msec() < until:
+		tunnel.poll()
+		await get_tree().process_frame
+	if not tunnel.ready:
+		tunnel.close()
+		return _transition_failed("Destination route unavailable or blocked")
+	# Preserve the old connection while route/content preparation is still fallible.
+	# Once switching transports begins, old membership ends; failures cannot claim
+	# to preserve that membership. Destination still reauthenticates/admit normally.
+	if gameplay_tunnel != null: gameplay_tunnel.close()
+	gameplay_tunnel = tunnel
+	current_origin = origin
+	if peer != null and peer.peer != null: peer.peer.peer_disconnect_now()
+	if peer != null: peer.disconnected_from_relay()
+	relay_ip = "127.0.0.1"
+	relay_port = tunnel.local_port
+	connection_in_progress = true
+	var success = await _connect_relay_candidate()
+	connection_in_progress = false
+	if not success:
+		tunnel.close()
+		gameplay_tunnel = null
+		return _transition_failed(last_session_error)
+	if origin in relay_preferences.snapshot().blocked_ids:
+		tunnel.close()
+		return _activation_failed("Destination relay blocked during authentication")
+	peer.expected_world_revision = revision
+	_start_request("join", destination)
+	peer.join_session(destination, str(instance.world_url))
+	var result: Dictionary = await session_response
+	return await _finish_transition(result, staged, str(instance.world_url))
 
 func get_relay_preferences():
 	if relay_preferences != null: return relay_preferences
@@ -28,6 +137,16 @@ func get_relay_preferences():
 	return relay_preferences
 
 func _relay_policy_changed():
+	if directory_browser != null:
+		var policy = relay_preferences.snapshot()
+		directory_browser.set_blocks(policy.blocked_ids, policy.blocked_endpoints)
+		if lan_discovery != null: lan_discovery.model.configure({"enabled": lan_discovery.socket != null}, policy.blocked_ids)
+		if gameplay_tunnel != null:
+			# Conservatively end a route on block changes until all active actor
+			# ingress provenance is carried by the origin membership protocol.
+			gameplay_tunnel.close()
+			gameplay_tunnel = null
+			if peer != null: peer.disconnected_from_relay()
 	if active_relay_entry.is_empty() or not relay_preferences.is_blocked(active_relay_entry): return
 	if peer != null:
 		if peer.peer != null: peer.peer.peer_disconnect_now()
@@ -98,6 +217,20 @@ func _accept_session_result(result: Dictionary) -> bool:
 	return result.operation == "create" and not session_busy
 
 func _process(_delta):
+	if gameplay_tunnel != null:
+		gameplay_tunnel.poll()
+		if not gameplay_tunnel.last_error.is_empty():
+			last_session_error = gameplay_tunnel.last_error
+			gameplay_tunnel.close()
+			gameplay_tunnel = null
+			if peer != null: peer.disconnected_from_relay()
+	if directory_browser != null:
+		directory_browser.poll()
+		if lan_discovery != null: lan_discovery.poll()
+		if Time.get_ticks_msec() >= directory_refresh_at:
+			directory_refresh_at = Time.get_ticks_msec() + 5000
+			refresh_relay_directories()
+			relay_directory_changed.emit()
 	if snapshot_deadline > 0 and Time.get_ticks_msec() >= snapshot_deadline:
 		snapshot_deadline = 0
 		instance_status = "Active Instance unavailable: relay did not provide state. Update the relay or retry."
@@ -137,17 +270,32 @@ func create_peer() -> bool:
 	if connection_in_progress: return await relay_connection_finished
 	if peer != null and peer.is_connected_to_relay and peer.is_authenticated: return true
 	connection_in_progress = true
+	if gameplay_tunnel != null:
+		gameplay_tunnel.close()
+		gameplay_tunnel = null
 	relay_selection_errors.clear()
 	var candidates = _relay_candidates()
 	for entry in candidates:
-		# Identity pins require a future verified server-identity handshake. Do not
-		# pretend the existing client-auth ENet connection verifies a pinned relay.
 		if not str(entry.get("relay_id", "")).is_empty():
-			relay_selection_errors.append(str(entry.label) + ": relay identity verification unavailable on legacy ENet transport")
-			continue
+			var browser = get_directory_browser()
+			if not browser.trusted.has(entry.relay_id):
+				relay_selection_errors.append(str(entry.label) + ": import the relay certificate before using its identity pin")
+				continue
+			var trusted: Dictionary = browser.trusted[entry.relay_id]
+			var tunnel = load("res://scripts/multiplayer/federation/relay_game_tunnel.gd").new()
+			if not tunnel.start(trusted.host, int(trusted.port), trusted.certificate, entry.relay_id, relay_preferences.snapshot().blocked_ids, trusted.common_name): continue
+			var until = Time.get_ticks_msec() + 10000
+			while not tunnel.ready and tunnel.last_error.is_empty() and Time.get_ticks_msec() < until:
+				tunnel.poll()
+				await get_tree().process_frame
+			if not tunnel.ready:
+				tunnel.close()
+				continue
+			gameplay_tunnel = tunnel
+			current_origin = entry.relay_id
 		if relay_preferences != null and relay_preferences.is_blocked(entry): continue
-		relay_ip = entry.host
-		relay_port = int(entry.port)
+		relay_ip = "127.0.0.1" if gameplay_tunnel != null else entry.host
+		relay_port = gameplay_tunnel.local_port if gameplay_tunnel != null else int(entry.port)
 		active_relay_entry = entry.duplicate(true)
 		var success = await _connect_relay_candidate()
 		var still_allowed = relay_preferences == null
@@ -164,6 +312,9 @@ func create_peer() -> bool:
 			last_session_error = "Relay preference changed while connecting; retry with the current list"
 			break
 		relay_selection_errors.append("%s:%s — %s" % [entry.host, entry.port, last_session_error])
+		if gameplay_tunnel != null:
+			gameplay_tunnel.close()
+			gameplay_tunnel = null
 		# Authentication rejection is not permission to try alternate relays to
 		# circumvent account/security policy. Capacity/unreachable may fail over.
 		if peer != null and peer.authentication_rejected: break

@@ -31,7 +31,11 @@ def main():
             source = ROOT / "scripts/multiplayer/federation"
             if source.is_dir():
                 shutil.copytree(source, project / "scripts/multiplayer/federation")
+            for folder in ("relay_protocol", "scripts/profile"):
+                shutil.copytree(ROOT / folder, project / folder)
+            shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
             shutil.copy2(HERE / "suite.gd", project / "suite.gd")
+            shutil.copy2(HERE / "transport_suite.gd", project / "transport_suite.gd")
             (project / "project.godot").write_text(
                 'config_version=5\n[application]\nconfig/name="RED federation contracts"\n'
                 '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
@@ -46,7 +50,14 @@ def main():
                                     capture_output=True, text=True, timeout=60, env=env)
             print(result.stdout, end="")
             print(result.stderr, end="")
-            return result_code(result)
+            code = result_code(result)
+            if code: return code
+            transport = subprocess.run([godot, "--headless", "--path", directory, "--script", "res://transport_suite.gd"],
+                                       capture_output=True, text=True, timeout=60, env=env)
+            print(transport.stdout, end="")
+            print(transport.stderr, end="")
+            if "ERROR:" in transport.stdout + transport.stderr or "Federation transport:" not in transport.stdout: return 2
+            return transport.returncode if transport.returncode in (0, 1) else 2
     except (OSError, subprocess.TimeoutExpired) as error:
         print(f"Infrastructure failure: {error}")
         return 2

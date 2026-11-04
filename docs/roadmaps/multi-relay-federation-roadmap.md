@@ -1,6 +1,15 @@
 # Multi-relay federation, ordered failover and LAN discovery
 
 **Status: proposal, 2026-11-04. No federation or LAN discovery implementation.**
+**Live network update:** TLS certificate verification, signed neighbour/origin
+directory exchange, simultaneous anonymous directory clients, configured operator
+peering, IPv4 LAN hint sockets and routed ENet gameplay are now implemented. Real
+three-relay tests authenticate two users through distinct ingresses and deliver
+origin item state. See [setup and limitations](../guides/relay-federation-setup.md).
+Not all roadmap gates are complete: automatic peer/bootstrap trust, per-actor
+ingress block conflicts, IPv6/mDNS, seamless transition rollback, WAN/VR performance
+and hostile-operator/partition review remain open. Historical initial status below
+does not override this update or imply those gates passed.
 **Initial implementation:** ordered client preferences, structured settings panel,
 endpoint blocking and actual client failover now exist. Seven policy/data services
 and panel checks pass 81 assertions, with real coordinator fallback tested separately.

@@ -1,5 +1,11 @@
 # Relay lists — initial implementation
 
+**Network implementation update:** certificate-trusted TLS peering, anonymous
+simultaneous directory connections, local UDP discovery hints and origin-routed
+gameplay now exist. See [federation setup](relay-federation-setup.md) for operator
+configuration, certificate import and explicit remaining limits. Earlier
+"not implemented" statements below are historical for the first list milestone.
+
 Settings → Network now includes an ordered relay list. Add a hostname/IP and UDP
 port, make a row main, move it down, remove it, or block/unblock its endpoint.
 The top allowed entry is tried first. Timeout/unavailable transport advances to

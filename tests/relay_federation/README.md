@@ -1,5 +1,13 @@
 # RED multi-relay acceptance contracts
 
+**Live transport update:** the runner now also copies the real relay/protocol and
+runs `transport_suite.gd`: 28 assertions exercise certificate-verified TLS framing,
+three live directory relays, signed multi-hop public summaries, concurrent anonymous
+directory links, origin account authentication through encrypted datagram tunnels,
+two users via different ingresses sharing membership/item state, block filtering
+and actual local UDP advertisement parsing. No physical multicast/WAN/VR or audited
+PKI claim is made. The old pure-service-only limits below describe the first stage.
+
 **Implementation update:** 81 service/UI assertions now pass without blocked groups
 or Godot errors. Actual coordinator fallback/endpoint blocking also has loopback
 coverage in multiplayer_reliability. The RED baseline below is historical. No

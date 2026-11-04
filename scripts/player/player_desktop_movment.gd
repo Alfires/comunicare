@@ -22,6 +22,18 @@ var avatar_model: Node3D
 var avatar_generation := 0
 var avatar_url := ""
 var world_grip: Node3D
+var focused := true
+var sprint = preload("res://scripts/player/sprint_policy.gd").new()
+
+func get_walk_speed() -> float:
+	return speed
+
+func _notification(what):
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		focused = false
+		sprint.suppress()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		focused = true
 
 func _ready() -> void:
 	world_grip = Node3D.new()
@@ -92,10 +104,16 @@ func _unhandled_input(event: InputEvent):
 		get_viewport().set_input_as_handled()
 			
 	
+func _movement_blocked() -> bool:
+	return not focused or Input.mouse_mode == Input.MOUSE_MODE_VISIBLE or SaveData.voice.input_blocked \
+		or NetworkHandler.session_busy or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty()
+
 func _physics_process(delta):
 	# Get input
 	var input_direction = Vector3(0,0,0)
-	if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+	var blocked = _movement_blocked()
+	var target_speed = sprint.target_speed(speed, Input.is_action_pressed("sprint"), blocked)
+	if not blocked:
 		input_direction = Input.get_vector("left", "right", "back", "forward")
 	var forward = -global_transform.basis.z  # Camera forward direction
 	var right = global_transform.basis.x     # Camera right direction
@@ -105,17 +123,17 @@ func _physics_process(delta):
 	
 	# Apply movement
 	if direction:
-		velocity.x = lerp(velocity.x, direction.x * speed, acceleration * delta)
-		velocity.z = lerp(velocity.z, direction.z * speed, acceleration * delta)
+		velocity.x = lerp(velocity.x, direction.x * target_speed, minf(acceleration * delta, 1.0))
+		velocity.z = lerp(velocity.z, direction.z * target_speed, minf(acceleration * delta, 1.0))
 	else:
-		velocity.x = lerp(velocity.x, 0.0, friction * delta)
-		velocity.z = lerp(velocity.z, 0.0, friction * delta)
+		velocity.x = lerp(velocity.x, 0.0, minf(friction * delta, 1.0))
+		velocity.z = lerp(velocity.z, 0.0, minf(friction * delta, 1.0))
 	
 	# Apply gravity
 	velocity.y -= gravity * delta
 	
 	# Handle jumping
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor() and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+	if Input.is_action_just_pressed("ui_accept") and is_on_floor() and not blocked:
 		velocity.y = jump_force
 	
 	# Move the character

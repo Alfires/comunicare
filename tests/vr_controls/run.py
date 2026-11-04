@@ -20,6 +20,8 @@ def main():
         for folder in ("scripts", "relay_protocol"):
             shutil.copytree(ROOT / folder, project / folder, ignore=shutil.ignore_patterns("__pycache__"))
         shutil.copy2(HERE / "suite.gd", project / "suite.gd")
+        shutil.copy2(HERE / "sprint_suite.gd", project / "sprint_suite.gd")
+        shutil.copy2(HERE / "desktop_fixture.gd", project / "desktop_fixture.gd")
         for name in ("save_data", "data_loader", "network_handler"):
             shutil.copy2(HERE / "fixtures" / (name + ".gd"), project / (name + ".gd"))
         for source in ("scenes/player/player_vr.tscn", "openxr_action_map.tres"):
@@ -39,7 +41,7 @@ def main():
             '[autoload]\nSaveData="*res://save_data.gd"\nDataLoader="*res://data_loader.gd"\n'
             'NetworkHandler="*res://network_handler.gd"\n'
             '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-        for args in (["--editor", "--import"], ["--script", "res://suite.gd"]):
+        for args in (["--editor", "--import"], ["--script", "res://sprint_suite.gd"], ["--script", "res://suite.gd"]):
             try:
                 result = subprocess.run([executable, "--headless", "--path", directory, *args],
                                         capture_output=True, text=True, timeout=60)

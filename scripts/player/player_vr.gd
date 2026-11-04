@@ -63,6 +63,15 @@ var tracking_elapsed := 0.0
 var foot_grounding = preload("res://scripts/assets/foot_grounding.gd").new()
 var grounded_body_targets: Dictionary = {}
 var world_grip_pressed := {"left": false, "right": false}
+var sprint = preload("res://scripts/player/sprint_policy.gd").new()
+
+func get_walk_speed() -> float:
+	return float(SaveData.store.get_value("vr.move_speed"))
+
+func _sprint_speed(blocked: bool, teleport_mode: bool) -> float:
+	var active = left_controller.get_is_active()
+	return sprint.target_speed(get_walk_speed(), active and left_controller.is_button_pressed("primary_click"),
+		blocked or teleport_mode or not active)
 
 
 func _ready():
@@ -143,7 +152,7 @@ func _physics_process(delta):
 	if focused and xr_camera.get_is_active(): room_scale.reconcile(self, origin_node, xr_camera)
 	var movement_input = _get_movement_input()
 	var turn_axis = right_controller.get_vector2("primary").x
-	var blocked = not focused or not xr_camera.get_is_active() or _menu_open() or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty() or NetworkHandler.session_busy
+	var blocked = not focused or not xr_camera.get_is_active() or _menu_open() or SaveData.voice.input_blocked or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty() or NetworkHandler.session_busy
 	if not left_controller.get_is_active(): movement_input = Vector2.ZERO
 	if not right_controller.get_is_active(): turn_axis = 0
 	if blocked:
@@ -161,7 +170,7 @@ func _physics_process(delta):
 	else:
 		teleport_held = false
 		if is_instance_valid(teleport_marker): teleport_marker.hide()
-	movement_speed = float(SaveData.store.get_value("vr.move_speed"))
+	movement_speed = _sprint_speed(blocked or motion_rearm, teleport_mode)
 	var desired = locomotion.desired_velocity(movement_input, xr_camera.global_basis, movement_speed, float(SaveData.store.get_value("vr.move_dead_zone")))
 	turning.dead_zone = float(SaveData.store.get_value("vr.turn_dead_zone"))
 	var mode = str(SaveData.store.get_value("vr.turn_mode"))
@@ -347,6 +356,7 @@ func _publish_tracking():
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		focused = false
+		sprint.suppress()
 		_close_main_menu()
 		comfort.reset()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:

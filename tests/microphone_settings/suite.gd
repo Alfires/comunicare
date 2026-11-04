@@ -41,6 +41,7 @@ func run():
 	await test_home_in_tab_panel()
 	test_current_settings_scene()
 	test_category_navigation()
+	test_sprint_binding()
 	test_legacy_persistence()
 	test_registry_store()
 	test_voice_controller()
@@ -173,6 +174,42 @@ func test_category_navigation():
 	check(not scene.category_buttons.has("Video") and scene.category_pages.has(scene.selected_category)
 		and scene.category_pages[scene.selected_category].visible,
 		"removing selected category falls back to an available page")
+	scene.free()
+
+func test_sprint_binding():
+	var save = root.get_node("SaveData")
+	var definition = save.registry.get_definition("input.sprint")
+	check(not definition.is_empty() and definition.get("default") == KEY_CTRL, "sprint defaults to standalone Ctrl")
+	check(InputMap.has_action("sprint"), "sprint is installed in InputMap")
+	if definition.is_empty(): return
+	check(save.registry.validate(definition, KEY_CTRL), "sprint explicitly permits Ctrl")
+	check(not save.registry.validate(save.registry.get_definition("input.toggle_microphone"), KEY_CTRL), "ordinary bindings still reject modifiers")
+	var scene = load("res://scenes/GUI/settings_menue.tscn").instantiate()
+	root.add_child(scene)
+	scene._begin_binding("input.sprint")
+	var event = InputEventKey.new()
+	event.keycode = KEY_CTRL
+	event.physical_keycode = KEY_CTRL
+	event.ctrl_pressed = true
+	event.pressed = true
+	scene._input(event)
+	check(scene.binding_id.is_empty() and save.store.get_value("input.sprint") == KEY_CTRL, "settings UI accepts standalone Ctrl for sprint")
+	Input.parse_input_event(event.duplicate())
+	Input.flush_buffered_events()
+	check(Input.is_action_pressed("sprint"), "Ctrl down activates held sprint action")
+	event.pressed = false
+	event.ctrl_pressed = false
+	Input.parse_input_event(event.duplicate())
+	Input.flush_buffered_events()
+	check(not Input.is_action_pressed("sprint"), "Ctrl release clears sprint action")
+	check(save.store.set_value("input.sprint", KEY_P), "sprint accepts an ordinary replacement key")
+	check(InputMap.action_get_events("sprint")[0].physical_keycode == KEY_P, "sprint rebind updates live InputMap")
+	check(save.store.save_settings(), "sprint binding saves")
+	save.store.set_value("input.sprint", KEY_CTRL)
+	save.store.load_settings()
+	check(save.store.get_value("input.sprint") == KEY_P, "sprint binding survives reload")
+	save.store.reset_value("input.sprint")
+	check(save.store.get_value("input.sprint") == KEY_CTRL, "sprint reset restores Ctrl")
 	scene.free()
 
 func test_legacy_persistence():

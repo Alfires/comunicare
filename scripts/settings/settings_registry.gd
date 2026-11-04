@@ -53,12 +53,13 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 			return definition.get("options") is Dictionary and definition.options.has(value)
 		"key_binding":
 			return value is int and value > 0 and value < (1 << 23) \
-				and value not in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META] \
+				and (value not in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META] or value in definition.get("allowed_modifier_keys", [])) \
 				and not OS.get_keycode_string(value).is_empty()
 	return false
 
 func register_defaults():
 	for definition in [
+		{"id": "input.sprint", "category": "Controls", "label": "Sprint (hold)", "description": "Hold while moving to travel 1.5 times faster. VR: hold left joystick click.", "type": "key_binding", "allowed_modifier_keys": [KEY_CTRL], "default": KEY_CTRL, "order": 9},
 		{"id": "network.lan_discovery", "category": "Network", "label": "Discover relays on local network", "description": "Receive local multicast hints. Only explicitly certificate-trusted directories are queried; advertisements never log in or change your saved relay order. Changes take effect after restart.", "type": "boolean", "default": true, "order": 2},
 		{"id": "network.relay_address", "category": "Network", "label": "Legacy relay address (migration only)", "visible": false, "type": "text", "default": "127.0.0.1", "min_length": 1, "max_length": 253, "order": 0},
 		{"id": "network.relay_port", "category": "Network", "label": "Legacy relay UDP port (migration only)", "visible": false, "type": "number", "default": 7374.0, "min": 1.0, "max": 65535.0, "step": 1.0, "order": 1},

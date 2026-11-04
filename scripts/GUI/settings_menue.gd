@@ -235,7 +235,8 @@ func _input(event: InputEvent):
 		if action != binding_id.trim_prefix("input.") and InputMap.event_is_action(candidate, action):
 			errors[binding_id].text = "Key already used by " + action + ". Choose another key or Escape."
 			return
-	if code in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]:
+	var definition = SaveData.registry.get_definition(binding_id)
+	if code in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META] and code not in definition.get("allowed_modifier_keys", []):
 		errors[binding_id].text = "Choose a non-modifier key."
 		return
 	_commit(code, binding_id)

@@ -1,5 +1,37 @@
 # VR controls and tracking: implemented behavior
 
+## Safety, teleport and expanded tracking
+
+VR Movement now selects smooth or point-and-teleport locomotion. In teleport mode,
+hold left stick forward to aim at a walkable surface within 8 m; a green marker
+appears only for bounded height and capsule-clearance hits. Release to neutral
+commits after revalidation; other input/focus/UI loss cancels. A short blink
+accompanies commit. No local tracked headset transform is overwritten.
+
+Capsule growth queries ceiling clearance first; shrinking remains permitted.
+Default-enabled head-overlap fade queries a small sphere against world geometry.
+The viewport Comfort preset explicitly sets snap, moderate speed, vignette/blink
+and no jump; it does not silently change all unrelated preferences. Physical
+boundaries and platform safety overlays remain runtime responsibilities.
+
+Tracker setup now offers a cancelable three-second reference-pose capture. It saves
+per-role tracker-to-avatar-bone translation/quaternion offsets, applied only to
+calibrated available hips/feet. Match the avatar reference stance; reassignment
+invalidates that role offset. This is a mounting calibration, not automatic body
+measurement, safe-pose recognition or a guaranteed correct result on arbitrary rigs.
+Stationary feet suppress sub-centimeter target jitter and release for deliberate
+motion; this is not a world-contact/terrain foot-plant solver.
+
+Negotiated tracking version 1 sends bounded root-relative head/hand/body targets
+at 20 Hz within the active instance when sharing enabled. Toggle sharing under
+VR Comfort. Relay checks actor/session/rate and expires pose after one second;
+receivers interpolate matching avatar revisions and fade stale head/hands. No
+tracker IDs, playspace mesh or durable pose history is sent. Old peers fall back
+to resolved animation. Internet jitter/appearance remains a manual release gate.
+
+Avatar source text field accepts a local path as a headset-accessible alternative
+to a platform file picker; native filesystem browsing varies by runtime/platform.
+
 - Left stick requests bounded analog head-relative ground movement. Head pitch/roll
   does not change speed. Right stick turns around the headset floor pivot, with
   Snap (30° default) or Smooth (60°/s default) in VR Movement settings.
@@ -22,8 +54,8 @@ exposed by the active runtime are listed for hips/feet assignment; duplicate rol
 use is rejected and missing devices remain untracked. Assignments are session-local,
 not hardware serial history. No claim that every tracker/runtime combination works.
 
-The save action records current headset height and zero head/grip translations in
-an account/avatar-scoped store. This is **not full-body orientation/T-pose calibration**.
+The save action records current headset height and per-body-role mount offsets in
+an account/avatar-scoped store. It is not an automatic anatomical calibration.
 Invalid/corrupt/wrong-owner data is preserved, not overwritten. Rig chain warnings
 are displayed. The optional solver accepts pelvis/feet subsets before head/arms.
 
@@ -34,12 +66,13 @@ controller calibration or certified anatomical constraints.
 
 ## Remaining release work
 
-Full-body orientation/offset calibration and foot planting; robust torso/joint
-constraints; ceiling-safe dynamic capsule growth; head-clipping feedback; safe
-teleport; headset-accessible platform file selection; runtime hardware/profile
-coverage; networked live tracker poses. Physical boundary safety and room-scale
-comfort cannot be established by collision-unit tests. Real headset/controller,
-mirror/shadow and large-network tests are required before release-quality claims.
+Remaining quality/release gates: anatomical joint-limit/torso solving, world-ground
+foot contact, arbitrary-rig automatic sizing, per-platform file browsing and runtime
+controller/tracker profiles. Physical boundary safety and room-scale comfort cannot
+be established by collision-unit tests. Real headset/controller, mirror/shadow and
+large-network tests are required before release-quality claims. Current mount
+calibration, target stabilization and interpolation are bounded initial policies,
+not VRChat-equivalent body tracking or certified universal hardware support.
 
 Tests: `python3 tests/vr_controls/run.py`,
 `python3 tests/avatar_tracking/run.py`. Architecture and API details are in the

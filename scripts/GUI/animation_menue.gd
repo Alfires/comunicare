@@ -55,9 +55,9 @@ func _ready():
 	layout.add_child(permission)
 	url = LineEdit.new()
 	url.max_length = 4096
-	url.placeholder_text = "HTTPS model or animation URL"
+	url.placeholder_text = "HTTPS URL or local file path (headset file-picker fallback)"
 	layout.add_child(url)
-	_button(layout, "Add URL", func(): add_source(url.text.strip_edges(), model_mode.button_pressed))
+	_button(layout, "Add URL / local path", func(): add_source(url.text.strip_edges(), model_mode.button_pressed))
 	picker = FileDialog.new()
 	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
 	picker.access = FileDialog.ACCESS_FILESYSTEM

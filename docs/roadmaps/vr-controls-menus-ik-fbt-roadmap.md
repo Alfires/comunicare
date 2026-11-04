@@ -2,6 +2,22 @@
 
 ## Status, scope and interpretation
 
+**Additional implementation (2026-11-04):** controller keyboard/scrolling, runtime
+tracker setup, cancelable per-role mount calibration, .2 s tracked-chain fades,
+collision-tested room-scale follow, ceiling-safe capsule growth, head-overlap fade,
+validated point teleport, stationary foot-target stabilization and negotiated
+instance-scoped tracked-pose replication are implemented. Current suites pass
+105 controls / 52 tracking assertions; production regression runners also pass,
+with the existing profile ObjectDB shutdown warning. This supersedes earlier
+pending feature lists below where applicable. The original phases remain history.
+
+Open quality gates are not hidden feature-completion claims: real hardware/runtime
+coverage, anatomical joint/torso limits, floor-contact foot planting and automatic
+arbitrary-rig sizing still need further engineering/testing. Existing synthetic
+tests cannot certify these. Native file picking has a local-path keyboard fallback,
+not universal headset filesystem UI. Do not describe all roadmap acceptance or
+full-body comfort as finished simply because target-policy tests are green.
+
 **Implementation update:** the previously red controls suite now passes **81**
 assertions; tracking passes **39**. Planar locomotion, snap/smooth pivot turning,
 either-hand A/X shared-menu toggle, typed comfort preferences, corrected viewport

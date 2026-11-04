@@ -216,6 +216,14 @@ func _toggle_main_menu():
 			var setup = preload("res://scripts/GUI/vr_tracking_setup.gd").new()
 			main_panel.viewport.add_child(setup)
 			setup.configure(self))
+		var comfort_button = Button.new()
+		comfort_button.text = "Comfort preset"
+		comfort_button.position = Vector2(200, 45)
+		comfort_button.custom_minimum_size = Vector2(160, 40)
+		main_panel.viewport.add_child(comfort_button)
+		comfort_button.pressed.connect(func():
+			for pair in [["vr.turn_mode", "snap"], ["vr.snap_angle", 30.0], ["vr.move_speed", 1.5], ["vr.comfort_vignette", true], ["vr.snap_blink", true], ["vr.jump_enabled", false]]:
+				SaveData.store.set_value(pair[0], pair[1]))
 		virtual_keyboard = preload("res://scripts/GUI/vr_keyboard.gd").new()
 		main_panel.viewport.add_child(virtual_keyboard)
 		main_panel.viewport.gui_focus_changed.connect(func(control):

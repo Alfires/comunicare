@@ -1,5 +1,26 @@
 # Production function contracts
 
+<!-- module: relay_protocol/world_item_router.gd -->
+## Ephemeral relay world item routing
+
+`handle` negotiates capability, scopes requests to authenticated active membership
+and pinned revision, rate-limits operations, arbitrates exclusive leases and forwards
+bounded normalized held-object poses. `leave` clears sender sequences and holder
+references and deletes empty-instance state. `disconnect_peer` also clears capability,
+generation and rate state. Private send/broadcast paths skip disconnected transport.
+No world loading, scripts, simulation or durable data exists on this router.
+
+<!-- module: scripts/worlds/world_pickup_controller.gd -->
+## Client world item adapter
+
+`configure` binds trusted coordinator/loader. `activate` resolves validated pickup
+entities and requests a live snapshot; `reset` restores collision/freeze settings
+and clears world references. `request_grab` checks nearby local entity/grip/anchor;
+`grab_nearest` selects within a capped range. `release_grip` and `held_by_local` use
+acknowledged leases. `receive` checks scope/sequence and state before changing items.
+Private processing attaches local held props, publishes capped poses and interpolates
+remote transforms. This is initial carrying, not swept collision/two-hand physics.
+
 <!-- module: scripts/worlds/world_runtime.gd -->
 ## Restricted world event execution
 
@@ -339,6 +360,7 @@ must not access active SceneTree or globally register request-local extensions.
 | --- | --- |
 | `get_avatar_configuration` | Lazily creates child config and reconfigures for current fingerprint; returns owned service, not caller-owned node. May initiate async restore. |
 | `get_asset_cache` | Lazily creates stable cache, connects settings/revision notifications; returns service, not an asset handle. Relay initialization still refuses persistence. |
+| `get_world_pickups` | Lazily creates stable client pickup adapter under DataLoader, bound to the coordinator. World activation configures validated pickup entities; server startup must not call this factory. |
 | `load_vrm_from_url` | Await validated cache fetch and detached import; returns model/null. Success carries lease/revision/source metadata; caller attaches/frees on main thread. Force bypasses HTTP validators. |
 | `read_animation` | Await bounded worker parsing of file or byte buffer (empty path selects bytes); returns parsed dictionary or `{}`, sets animation_import_error. |
 | `refresh_loaded_assets` | Await forced checks for live avatar sources, active world and configured sources; source notifications can rebind, world refresh does not hot-swap scene. |
@@ -735,6 +757,7 @@ Moderation policy is client-owned disk state, unlike relay session metadata.
 | Functions | Contract |
 | --- | --- |
 | `send_animation` | Sends reliable AccountPacket only after authentication/capability; caller supplies sole resolved-state/supporting transport payload. |
+| `send_world` | Sends bounded caller world-item intent only after authenticated item capability negotiation. Relay derives sender and enforces instance/revision/lease scope; callers must supply current pinned content revision. |
 | `configure_moderation` | Loads bounded owner-key policy or preserves/reports corrupt/wrong-account file; no automatic fail-open approval. |
 | `connect_to_relay` | Creates one-peer ENet connection/host and initiates connection; call handle_events for completion; not authenticated immediately. |
 | `create_session`, `join_session` | Sends authenticated selected metadata/session/world and expected revision; no local success claim. |

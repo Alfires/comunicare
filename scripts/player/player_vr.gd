@@ -62,6 +62,7 @@ var tracking_sequence := 0
 var tracking_elapsed := 0.0
 var foot_grounding = preload("res://scripts/assets/foot_grounding.gd").new()
 var grounded_body_targets: Dictionary = {}
+var world_grip_pressed := {"left": false, "right": false}
 
 
 func _ready():
@@ -101,6 +102,7 @@ func _process(delta: float):
 	if input_router.menu_toggle(left_controller.is_button_pressed(menu_action), right_controller.is_button_pressed(menu_action), suppressed):
 		_toggle_main_menu()
 	_update_menu_pointer()
+	_update_world_grips()
 	var action = str(SaveData.store.get_value("input.xr_emote_action"))
 	for side in ["left", "right"]:
 		var controller = left_controller if side == "left" else right_controller
@@ -120,6 +122,18 @@ func _process(delta: float):
 		
 func _get_movement_input() -> Vector2:
 	return left_controller.get_vector2("primary").limit_length(1.0)
+
+func _update_world_grips():
+	if not DataLoader.has_method("get_world_pickups"): return
+	var pickups = DataLoader.get_world_pickups()
+	var blocked = not focused or _menu_open() or SaveData.voice.input_blocked or NetworkHandler.session_busy \
+		or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty()
+	for side in ["left", "right"]:
+		var hand: XRController3D = left_controller if side == "left" else right_controller
+		var pressed = not blocked and hand.get_is_active() and hand.get_float("grip") >= 0.6
+		if pressed and not world_grip_pressed[side]: pickups.grab_nearest(hand, side, 0.3)
+		if not pressed and world_grip_pressed[side]: pickups.release_grip(side)
+		world_grip_pressed[side] = pressed
 
 func _physics_process(delta):
 	grounded_body_targets = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)

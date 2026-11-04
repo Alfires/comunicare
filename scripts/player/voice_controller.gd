@@ -16,6 +16,7 @@ func configure(settings):
 	_on_setting_changed("audio.microphone_muted", is_muted())
 	_on_setting_changed("input.toggle_microphone", store.get_value("input.toggle_microphone"))
 	_on_setting_changed("input.toggle_animation_menu", store.get_value("input.toggle_animation_menu"))
+	_on_setting_changed("input.world_grab", store.get_value("input.world_grab"))
 
 func _ready():
 	set_process_input(not ("--relay" in OS.get_cmdline_args() or OS.has_feature("dedicated_server")))
@@ -38,7 +39,7 @@ func _on_setting_changed(id: String, value: Variant):
 		if is_instance_valid(capture_node):
 			capture_node.set_muted(bool(value))
 		mute_changed.emit(bool(value))
-	elif id in ["input.toggle_microphone", "input.toggle_animation_menu"]:
+	elif id in ["input.toggle_microphone", "input.toggle_animation_menu", "input.world_grab"]:
 		var action = id.trim_prefix("input.")
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)

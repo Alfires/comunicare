@@ -21,8 +21,13 @@ var skeleton = null
 var avatar_model: Node3D
 var avatar_generation := 0
 var avatar_url := ""
+var world_grip: Node3D
 
 func _ready() -> void:
+	world_grip = Node3D.new()
+	world_grip.name = "WorldItemGrip"
+	camera.add_child(world_grip)
+	world_grip.position = Vector3(0.25, -0.2, -0.9)
 	if DataLoader.has_signal("asset_revision_available"):
 		DataLoader.asset_revision_available.connect(_asset_updated)
 	SaveData.profile.profile_changed.connect(_profile_changed)
@@ -75,6 +80,16 @@ func _input(event: InputEvent) -> void:
 			
 		else:
 			camera.current = true
+
+func _unhandled_input(event: InputEvent):
+	if event.is_action_pressed("world_grab") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
+		and not SaveData.voice.input_blocked and not NetworkHandler.session_busy:
+		var pickups = DataLoader.get_world_pickups()
+		if pickups.held_by_local("virtual"):
+			pickups.release_grip("virtual")
+		else:
+			pickups.grab_nearest(world_grip, "virtual", 1.5)
+		get_viewport().set_input_as_handled()
 			
 	
 func _physics_process(delta):

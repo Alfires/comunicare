@@ -78,3 +78,14 @@ Leaving an instance removes its actor state and pairwise transfer references;
 disconnect also removes capabilities, generations and rate counters. No offline
 animation mailbox, durable playback history or disconnected-owner source list is
 permitted. Client-local cache/library retention is separate from relay policy.
+
+## World item extension (wire ID 29)
+
+Negotiated item version 1 stores bounded active-instance leases, current held poses,
+connection generations, per-active-sender sequences and rate buckets in memory only.
+It never downloads/executes worlds or writes state. Leave/disconnect clears sender
+sequences and holder/generation references, announces release to connected members,
+and deletes empty-instance state. Disconnect additionally removes negotiation/rates.
+Unheld item transforms may survive as active world state while members remain, but
+must not contain previous-holder identity. No offline replay or retained owner log.
+The relay arbitrates exclusive leases; it does not simulate physics or prove reach.

@@ -1,0 +1,200 @@
+extends Node
+## Client adapter: reviewed local items, same relay leases for desktop and VR.
+var coordinator: Node
+var loader: Node
+var peer
+var items: Dictionary = {}
+var states: Dictionary = {}
+var anchors: Dictionary = {}
+var originals: Dictionary = {}
+var local_sequence := 0
+var received_sequence := -1
+var session := ""
+var revision := ""
+var elapsed := 0.0
+var snapshot_elapsed := 0.0
+
+func configure(network: Node, data_loader: Node):
+	coordinator = network
+	loader = data_loader
+
+func activate(world: Node, document: Dictionary, world_revision: String):
+	reset()
+	revision = world_revision
+	session = str(coordinator.get("current_session_id")) if coordinator != null else ""
+	_attach_peer()
+	if peer != null and not peer.current_session_id.is_empty(): session = peer.current_session_id
+	for id in document.get("entities", {}):
+		var entry: Dictionary = document.entities[id]
+		if not entry.get("pickup", false): continue
+		var item = world if entry.path == "." else world.get_node_or_null(NodePath(entry.path))
+		if item is Node3D:
+			items[id] = weakref(item)
+			originals[id] = {"transform": item.transform}
+			if item is RigidBody3D:
+				originals[id].freeze = item.freeze
+				originals[id].layer = item.collision_layer
+				originals[id].mask = item.collision_mask
+	_attach_peer()
+	_snapshot()
+
+func _attach_peer():
+	var current = coordinator.get("peer") if coordinator != null else null
+	if peer == current: return
+	if peer != null and peer.world_data.is_connected(receive): peer.world_data.disconnect(receive)
+	peer = current
+	if peer != null: peer.world_data.connect(receive)
+
+func reset():
+	for id in items:
+		_restore(id)
+	items.clear()
+	states.clear()
+	anchors.clear()
+	originals.clear()
+	received_sequence = -1
+	snapshot_elapsed = 0.0
+	# Sender sequence spans activations within the same connection, because a
+	# relay lease can survive other peers changing worlds in the same instance.
+	session = ""
+	revision = ""
+
+func _restore(id: String):
+	var item = items[id].get_ref()
+	if item is RigidBody3D and originals.has(id):
+		item.freeze = originals[id].get("freeze", false)
+		item.collision_layer = originals[id].get("layer", 1)
+		item.collision_mask = originals[id].get("mask", 1)
+
+func _send(value: Dictionary) -> bool:
+	_attach_peer()
+	if peer == null or not peer.world_supported or session.is_empty() or peer.current_session_id != session: return false
+	value.session_id = session
+	value.revision = revision
+	peer.send_world(value)
+	return true
+
+func _snapshot():
+	_send({"op": "snapshot"})
+
+func request_grab(id: String, grip: String, anchor: Node3D) -> bool:
+	if not items.has(id) or not grip in ["left", "right", "virtual"] or not is_instance_valid(anchor): return false
+	var item = items[id].get_ref()
+	if not item is Node3D or not item.is_inside_tree() or not anchor.is_inside_tree() or item.global_position.distance_to(anchor.global_position) > 2.0: return false
+	var query = PhysicsRayQueryParameters3D.create(anchor.global_position, item.global_position)
+	var exclusions: Array[RID] = []
+	var ancestor: Node = anchor
+	while ancestor != null:
+		if ancestor is CollisionObject3D: exclusions.append(ancestor.get_rid())
+		ancestor = ancestor.get_parent()
+	query.exclude = exclusions
+	var hit = anchor.get_world_3d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty() and hit.collider != item and not item.is_ancestor_of(hit.collider): return false
+	if states.get(id, {}).get("holder", -1) != -1: return false
+	anchors[grip] = weakref(anchor)
+	local_sequence += 1
+	return _send({"op": "grab", "entity": id, "grip": grip, "epoch": states.get(id, {}).get("epoch", 0), "sequence": local_sequence})
+
+func grab_nearest(anchor: Node3D, grip: String, max_distance: float = 0.3) -> bool:
+	var selected = ""
+	var distance = clampf(max_distance, 0.05, 2.0)
+	for id in items:
+		var item = items[id].get_ref()
+		if not item is Node3D or states.get(id, {}).get("holder", -1) != -1: continue
+		var separation = item.global_position.distance_to(anchor.global_position)
+		if separation < distance:
+			selected = id
+			distance = separation
+	return request_grab(selected, grip, anchor) if not selected.is_empty() else false
+
+func release_grip(grip: String) -> bool:
+	if peer == null: return false
+	for id in states:
+		var state: Dictionary = states[id]
+		if state.holder == peer.world_peer_id and state.grip == grip:
+			local_sequence += 1
+			return _send({"op": "release", "entity": id, "epoch": state.epoch, "sequence": local_sequence})
+	return false
+
+func held_by_local(grip: String) -> bool:
+	if peer == null: return false
+	for state in states.values():
+		if state.holder == peer.world_peer_id and state.grip == grip: return true
+	return false
+
+func receive(value: Dictionary):
+	if value.get("session_id") != session or value.get("revision") != revision: return
+	if not value.get("sequence") is float and not value.get("sequence") is int: return
+	if value.sequence <= received_sequence: return
+	if value.get("op") == "snapshot" and value.get("items") is Dictionary:
+		var checked: Dictionary = {}
+		for id in value.items:
+			if items.has(id) and _valid_state(value.items[id]): checked[id] = value.items[id].duplicate(true)
+		states = checked
+	elif value.get("op") in ["item", "pose"] and items.has(value.get("entity")) and _valid_state(value):
+		states[value.entity] = value.duplicate(true)
+	else:
+		return
+	received_sequence = int(value.sequence)
+	for id in items:
+		var item = items[id].get_ref()
+		if not is_instance_valid(item): continue
+		if item is RigidBody3D:
+			var held = states.get(id, {}).get("holder", -1) != -1
+			if held:
+				item.freeze = true
+				# Remote held props never apply forces to the player's body.
+				item.collision_layer = 0
+				item.collision_mask = 0
+			else:
+				_restore(id)
+
+func _valid_state(value: Variant) -> bool:
+	var guard = preload("res://scripts/worlds/world_data.gd")
+	if not value is Dictionary or not guard.integer(value.get("holder"), -1, 255) or not guard.integer(value.get("epoch"), 0, 2147483646): return false
+	if value.epoch < 0 or value.epoch > 2147483646: return false
+	if value.holder != -1 and (not value.get("generation") is String or not value.get("grip") in ["left", "right", "virtual"]): return false
+	if not value.get("position", []) is Array or not value.get("rotation", []) is Array: return false
+	if value.get("position", []).is_empty() and value.get("rotation", []).is_empty(): return true
+	if value.position.size() != 3 or value.rotation.size() != 4: return false
+	for number in value.position + value.rotation:
+		if not (number is int or number is float) or not is_finite(float(number)) or absf(float(number)) > 10000: return false
+	return absf(Quaternion(value.rotation[0], value.rotation[1], value.rotation[2], value.rotation[3]).length_squared() - 1.0) < 0.02
+
+func _process(delta: float):
+	if coordinator == null or loader == null: return
+	_attach_peer()
+	if peer != null and peer.current_session_id != session:
+		if not session.is_empty(): reset()
+		return
+	if peer == null or not peer.world_supported: return
+	snapshot_elapsed += delta
+	if snapshot_elapsed >= 5.0:
+		snapshot_elapsed = 0.0
+		_snapshot()
+	elapsed += delta
+	var send_pose = elapsed >= 0.05
+	if send_pose: elapsed = 0.0
+	for id in states:
+		var item = items.get(id).get_ref() if items.has(id) else null
+		var state: Dictionary = states[id]
+		if not item is Node3D or not item.is_inside_tree(): continue
+		if state.holder == peer.world_peer_id:
+			var anchor = anchors.get(state.grip)
+			if anchor == null or not is_instance_valid(anchor.get_ref()):
+				if send_pose: release_grip(state.grip)
+				continue
+			var hand: Node3D = anchor.get_ref()
+			item.global_transform = hand.global_transform
+			if send_pose:
+				var q = item.global_basis.orthonormalized().get_rotation_quaternion()
+				local_sequence += 1
+				_send({"op": "pose", "entity": id, "epoch": state.epoch, "sequence": local_sequence, "position": [item.global_position.x, item.global_position.y, item.global_position.z], "rotation": [q.x, q.y, q.z, q.w]})
+		elif not state.get("position", []).is_empty():
+			var target = Vector3(state.position[0], state.position[1], state.position[2])
+			item.global_position = item.global_position.lerp(target, minf(1.0, delta * 20.0))
+			var q = Quaternion(state.rotation[0], state.rotation[1], state.rotation[2], state.rotation[3])
+			item.global_basis = Basis(item.global_basis.orthonormalized().get_rotation_quaternion().slerp(q, minf(1.0, delta * 20.0)))
+
+func _exit_tree():
+	if peer != null and peer.world_data.is_connected(receive): peer.world_data.disconnect(receive)

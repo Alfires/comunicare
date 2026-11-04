@@ -12,6 +12,7 @@ var instance_rates: Dictionary = {}
 var admissions: Dictionary = {}
 var social = FriendRouter.new()
 var animations = AnimationRouter.new()
+var world_items = WorldItemRouter.new()
 var availabil_peer_ids: Array = range(255,-1,-1)
 
 var connection: ENetConnection
@@ -82,6 +83,7 @@ func peer_disconnected(peer: ENetPacketPeer):
 	peer.remove_meta("id")
 	var fingerprint: String = key_mapping.get(peer_id, {}).get("fingerprint", "")
 	animations.disconnect_peer(self, peer_id)
+	world_items.disconnect_peer(self, peer_id)
 	social.disconnect_peer(self, peer_id)
 	availabil_peer_ids.push_back(peer_id)
 	peers.erase(peer_id)
@@ -116,6 +118,9 @@ func on_packed(peer_id: int, data: PackedByteArray):
 	if data.is_empty():
 		return
 	var packed_type: int = data.decode_u8(0)
+	if packed_type == PacketInfo.PACKET_TYPE.WORLD_DATA:
+		if data.size() <= 4096: world_items.handle(self, peer_id, AccountPacket.parse(data))
+		return
 	if packed_type == PacketInfo.PACKET_TYPE.ANIMATION_DATA:
 		if data.size() <= 16 * 1024:
 			animations.handle(self, peer_id, AccountPacket.parse(data))
@@ -268,6 +273,7 @@ func on_packed(peer_id: int, data: PackedByteArray):
 # tools 
 func remove_user_from_session(peer_id: int, session_index: int):
 	animations.leave(self, peer_id)
+	world_items.leave(self, peer_id)
 	sessions[session_index][0].revision = int(sessions[session_index][0].get("revision", 0)) + 1
 	sessions[session_index][0]["peers"].erase(peer_id)
 	sessions[session_index][0]["owners"].erase(peer_id)
@@ -491,7 +497,7 @@ func _handle_auth(peer_id: int, type: int, values: Dictionary):
 		if success:
 			authenticate_peer(peer_id, authenticator.get_identity(peer_id).public_key)
 		AccountPacket.create(PacketInfo.PACKET_TYPE.AUTH_RESULT,
-			{"success": success, "social_version": 1, "animation_version": 2, "tracking_version": 1, "world_revision_version": 1, "directory_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
+			{"success": success, "social_version": 1, "animation_version": 2, "tracking_version": 1, "world_revision_version": 1, "directory_version": 1, "world_items_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
 
 func authenticate_peer(peer_id: int, verified_public_key: String):
 	# Internal trust boundary; wire handlers call this only after proof verification.

@@ -2866,217 +2866,217 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 20,
+      "line": 21,
       "signature": "func _ready() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "start_relay",
-      "line": 23,
+      "line": 24,
       "signature": "func start_relay()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 32,
+      "line": 33,
       "signature": "func _process(_delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "handle_events",
-      "line": 37,
+      "line": 38,
       "signature": "func handle_events() -> void",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "peer_connected",
-      "line": 66,
+      "line": 67,
       "signature": "func peer_connected(peer: ENetPacketPeer)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "peer_disconnected",
-      "line": 76,
+      "line": 77,
       "signature": "func peer_disconnected(peer: ENetPacketPeer)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "on_packed",
-      "line": 115,
+      "line": 117,
       "signature": "func on_packed(peer_id: int, data: PackedByteArray)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "remove_user_from_session",
-      "line": 269,
+      "line": 274,
       "signature": "func remove_user_from_session(peer_id: int, session_index: int)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "generate_code",
-      "line": 282,
+      "line": 288,
       "signature": "func generate_code() -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_session_index",
-      "line": 292,
+      "line": 298,
       "signature": "func get_session_index(session_id: String) -> int",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_user_in_session",
-      "line": 301,
+      "line": 307,
       "signature": "func get_user_in_session(peer_id: int) -> int",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_public_session",
-      "line": 307,
+      "line": 313,
       "signature": "func get_public_session() -> Array",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "notify_session",
-      "line": 320,
+      "line": 326,
       "signature": "func notify_session(index: int)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "send_result",
-      "line": 332,
+      "line": 338,
       "signature": "func send_result(peer_id: int, operation: String, session_id: String, success: bool, message: String, world_url: String = \"\")",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "valid_creation",
-      "line": 339,
+      "line": 345,
       "signature": "func valid_creation(value: Dictionary) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_send_instance",
-      "line": 343,
+      "line": 349,
       "signature": "func _send_instance(peer_id: int, index: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_send_account",
-      "line": 355,
+      "line": 361,
       "signature": "func _send_account(peer_id: int, type: int, value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_instance_result",
-      "line": 359,
+      "line": 365,
       "signature": "func _instance_result(peer_id: int, request: Dictionary, error: String, revision: int = -1)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_handle_instance_request",
-      "line": 374,
+      "line": 380,
       "signature": "func _handle_instance_request(peer_id: int, request: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_handle_auth",
-      "line": 473,
+      "line": 479,
       "signature": "func _handle_auth(peer_id: int, type: int, values: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "authenticate_peer",
-      "line": 496,
+      "line": 502,
       "signature": "func authenticate_peer(peer_id: int, verified_public_key: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_cancel_candidate_admissions",
-      "line": 503,
+      "line": 509,
       "signature": "func _cancel_candidate_admissions(candidate: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_begin_admission",
-      "line": 508,
+      "line": 514,
       "signature": "func _begin_admission(candidate: int, session: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_session_access",
-      "line": 529,
+      "line": 535,
       "signature": "func _session_access(candidate: int, session: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_join_decision",
-      "line": 543,
+      "line": 549,
       "signature": "func _join_decision(actor: int, value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_admission_reply",
-      "line": 559,
+      "line": 565,
       "signature": "func _admission_reply(actor: int, value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_finish_admission",
-      "line": 576,
+      "line": 582,
       "signature": "func _finish_admission(token: String, allow: bool, message: String = \"\")",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_expire_admissions",
-      "line": 601,
+      "line": 607,
       "signature": "func _expire_admissions()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "publish_profile",
-      "line": 606,
+      "line": 612,
       "signature": "func publish_profile(peer_id: int, fields: Dictionary) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_profiles_for_peer",
-      "line": 629,
+      "line": 635,
       "signature": "func get_profiles_for_peer(peer_id: int) -> Array",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_send_profiles",
-      "line": 643,
+      "line": 649,
       "signature": "func _send_profiles(peer_id: int)",
       "visibility": "private"
     }
@@ -3164,91 +3164,98 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 25,
+      "line": 26,
       "signature": "func _ready() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 37,
+      "line": 42,
       "signature": "func _process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "update_player_data",
-      "line": 47,
+      "line": 52,
       "signature": "func update_player_data()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_player_pos",
-      "line": 54,
+      "line": 59,
       "signature": "func set_player_pos(pos: Vector3)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 57,
+      "line": 62,
       "signature": "func _input(event: InputEvent) -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_unhandled_input",
+      "line": 84,
+      "signature": "func _unhandled_input(event: InputEvent)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_physics_process",
-      "line": 80,
+      "line": 95,
       "signature": "func _physics_process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_player_model",
-      "line": 110,
+      "line": 125,
       "signature": "func load_player_model()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_find_eye_bone",
-      "line": 149,
+      "line": 164,
       "signature": "func _find_eye_bone() -> int",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_calculate_head_offset",
-      "line": 159,
+      "line": 174,
       "signature": "func _calculate_head_offset() -> Vector3",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_profile_changed",
-      "line": 191,
+      "line": 206,
       "signature": "func _profile_changed(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 195,
+      "line": 210,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_avatar_configuration_changed",
-      "line": 200,
+      "line": 215,
       "signature": "func _avatar_configuration_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 203,
+      "line": 218,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -3257,161 +3264,168 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 67,
+      "line": 68,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "set_player_pos",
-      "line": 80,
+      "line": 81,
       "signature": "func set_player_pos(pos: Vector3)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 84,
+      "line": 85,
       "signature": "func _process(delta: float)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_get_movement_input",
-      "line": 121,
+      "line": 123,
       "signature": "func _get_movement_input() -> Vector2",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_update_world_grips",
+      "line": 126,
+      "signature": "func _update_world_grips()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_physics_process",
-      "line": 124,
+      "line": 138,
       "signature": "func _physics_process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_teleport",
-      "line": 177,
+      "line": 191,
       "signature": "func _update_teleport(enabled: bool, stick: Vector2)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_menu_open",
-      "line": 207,
+      "line": 221,
       "signature": "func _menu_open() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_toggle_main_menu",
-      "line": 210,
+      "line": 224,
       "signature": "func _toggle_main_menu()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_close_main_menu",
-      "line": 251,
+      "line": 265,
       "signature": "func _close_main_menu()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_flush_pointer_events",
-      "line": 260,
+      "line": 274,
       "signature": "func _flush_pointer_events()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_menu_pointer",
-      "line": 269,
+      "line": 283,
       "signature": "func _update_menu_pointer()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_create_comfort_overlay",
-      "line": 293,
+      "line": 307,
       "signature": "func _create_comfort_overlay()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_runtime_trackers",
-      "line": 307,
+      "line": 321,
       "signature": "func _update_runtime_trackers()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_publish_tracking",
-      "line": 318,
+      "line": 332,
       "signature": "func _publish_tracking()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 333,
+      "line": 347,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "update_player_data",
-      "line": 343,
+      "line": 357,
       "signature": "func update_player_data()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "load_vrm_model",
-      "line": 349,
+      "line": 363,
       "signature": "func load_vrm_model()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_find_skeleton",
-      "line": 406,
+      "line": 420,
       "signature": "func _find_skeleton(node: Node) -> Skeleton3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_profile_changed",
-      "line": 415,
+      "line": 429,
       "signature": "func _profile_changed(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 419,
+      "line": 433,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_avatar_configuration_changed",
-      "line": 424,
+      "line": 438,
       "signature": "func _avatar_configuration_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 427,
+      "line": 441,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "get_bone_by_array",
-      "line": 439,
+      "line": 453,
       "signature": "func get_bone_by_array(bone_array: Array,_skeleton: Skeleton3D) -> String",
       "visibility": "public"
     }
@@ -3492,91 +3506,91 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 20,
+      "line": 21,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "is_muted",
-      "line": 23,
+      "line": 24,
       "signature": "func is_muted() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_muted",
-      "line": 26,
+      "line": 27,
       "signature": "func set_muted(value: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "toggle_muted",
-      "line": 33,
+      "line": 34,
       "signature": "func toggle_muted()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_on_setting_changed",
-      "line": 36,
+      "line": 37,
       "signature": "func _on_setting_changed(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "register_capture",
-      "line": 50,
+      "line": 51,
       "signature": "func register_capture(node: Node) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "unregister_capture",
-      "line": 57,
+      "line": 58,
       "signature": "func unregister_capture(node: Node)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_availability",
-      "line": 62,
+      "line": 63,
       "signature": "func set_availability(message: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "binding_text",
-      "line": 66,
+      "line": 67,
       "signature": "func binding_text() -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "handle_toggle_input",
-      "line": 73,
+      "line": 74,
       "signature": "func handle_toggle_input(event: InputEvent, suppressed: bool) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_focus_blocks_input",
-      "line": 81,
+      "line": 82,
       "signature": "func _focus_blocks_input(node: Node) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 95,
+      "line": 96,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 102,
+      "line": 103,
       "signature": "func _notification(what)",
       "visibility": "private"
     }
@@ -4438,225 +4452,232 @@
     },
     {
       "kind": "func",
+      "name": "get_world_pickups",
+      "line": 19,
+      "signature": "func get_world_pickups() -> Node",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
       "name": "_ready",
-      "line": 18,
+      "line": 26,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_configure_avatar_camera",
-      "line": 21,
+      "line": 29,
       "signature": "func _configure_avatar_camera(node: Node)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "get_avatar_configuration",
-      "line": 24,
+      "line": 32,
       "signature": "func get_avatar_configuration() -> Node",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_asset_cache",
-      "line": 37,
+      "line": 45,
       "signature": "func get_asset_cache() -> Node",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_cache_setting_changed",
-      "line": 54,
+      "line": 63,
       "signature": "func _cache_setting_changed(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_vrm_from_url",
-      "line": 65,
+      "line": 74,
       "signature": "func load_vrm_from_url(url: String, force: bool = false)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "read_animation",
-      "line": 80,
+      "line": 89,
       "signature": "func read_animation(path: String, bytes: PackedByteArray = PackedByteArray()) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_read_animation_worker",
-      "line": 101,
+      "line": 110,
       "signature": "func _read_animation_worker(path: String, bytes: PackedByteArray) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_validate_avatar",
-      "line": 106,
+      "line": 115,
       "signature": "func _validate_avatar(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 123,
+      "line": 132,
       "signature": "func _process(delta: float)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_refresh_avatar_sources",
-      "line": 138,
+      "line": 147,
       "signature": "func _refresh_avatar_sources(force: bool)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "refresh_loaded_assets",
-      "line": 150,
+      "line": 159,
       "signature": "func refresh_loaded_assets()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_load_model_from_buffer",
-      "line": 160,
+      "line": 169,
       "signature": "func _load_model_from_buffer(buffer: PackedByteArray) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_load_model_from_file",
-      "line": 165,
+      "line": 174,
       "signature": "func _load_model_from_file(path: String) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_import_avatar",
-      "line": 168,
+      "line": 177,
       "signature": "func _import_avatar(buffer: PackedByteArray, path: String) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_build_avatar",
-      "line": 191,
+      "line": 200,
       "signature": "func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 232,
+      "line": 241,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_world_from_url",
-      "line": 245,
+      "line": 254,
       "signature": "func load_world_from_url(cne_word_url: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "prepare_world_from_url",
-      "line": 249,
+      "line": 258,
       "signature": "func prepare_world_from_url(url: String, expected_revision: String = \"\") -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "built_in_world_revision",
-      "line": 276,
+      "line": 285,
       "signature": "func built_in_world_revision() -> String",
       "visibility": "public"
     },
     {
       "kind": "class",
       "name": "TemporaryWorld",
-      "line": 280,
+      "line": 289,
       "signature": "class TemporaryWorld extends RefCounted",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 283,
+      "line": 292,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_validate_world_archive",
-      "line": 291,
+      "line": 300,
       "signature": "func _validate_world_archive(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_world",
-      "line": 296,
+      "line": 305,
       "signature": "func load_world(cne_word_path: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "prepare_world",
-      "line": 301,
+      "line": 310,
       "signature": "func prepare_world(archive_path: String, _extract_path: String) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_prepare_extracted_world",
-      "line": 308,
+      "line": 317,
       "signature": "func _prepare_extracted_world(_extract_path: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "activate_world",
-      "line": 313,
+      "line": 322,
       "signature": "func activate_world(staged: Dictionary) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "stop_world_scripts",
-      "line": 338,
+      "line": 349,
       "signature": "func stop_world_scripts()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_safe_archive_path",
-      "line": 341,
+      "line": 352,
       "signature": "func _safe_archive_path(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "extract_zip",
-      "line": 345,
+      "line": 356,
       "signature": "func extract_zip(zip_path: String, extract_to: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "load_manifest",
-      "line": 384,
+      "line": 395,
       "signature": "func load_manifest(manifest_path: String) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "create_directories_recursive",
-      "line": 398,
+      "line": 409,
       "signature": "func create_directories_recursive(path: String) -> void",
       "visibility": "public"
     }
@@ -4975,6 +4996,113 @@
       "name": "_big_u32",
       "line": 261,
       "signature": "func _big_u32(bytes: PackedByteArray, offset: int) -> int",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/world_pickup_controller.gd": [
+    {
+      "kind": "func",
+      "name": "configure",
+      "line": 17,
+      "signature": "func configure(network: Node, data_loader: Node)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "activate",
+      "line": 21,
+      "signature": "func activate(world: Node, document: Dictionary, world_revision: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_attach_peer",
+      "line": 41,
+      "signature": "func _attach_peer()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "reset",
+      "line": 48,
+      "signature": "func reset()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_restore",
+      "line": 62,
+      "signature": "func _restore(id: String)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_send",
+      "line": 69,
+      "signature": "func _send(value: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_snapshot",
+      "line": 77,
+      "signature": "func _snapshot()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "request_grab",
+      "line": 80,
+      "signature": "func request_grab(id: String, grip: String, anchor: Node3D) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "grab_nearest",
+      "line": 98,
+      "signature": "func grab_nearest(anchor: Node3D, grip: String, max_distance: float = 0.3) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "release_grip",
+      "line": 110,
+      "signature": "func release_grip(grip: String) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "held_by_local",
+      "line": 119,
+      "signature": "func held_by_local(grip: String) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "receive",
+      "line": 125,
+      "signature": "func receive(value: Dictionary)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_valid_state",
+      "line": 152,
+      "signature": "func _valid_state(value: Variant) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_process",
+      "line": 164,
+      "signature": "func _process(delta: float)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_exit_tree",
+      "line": 199,
+      "signature": "func _exit_tree()",
       "visibility": "private"
     }
   ],
@@ -5646,28 +5774,28 @@
     {
       "kind": "func",
       "name": "encode",
-      "line": 43,
+      "line": 44,
       "signature": "func encode() -> PackedByteArray",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "decode",
-      "line": 49,
+      "line": 50,
       "signature": "func decode(data: PackedByteArray) -> void",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "sent",
-      "line": 52,
+      "line": 53,
       "signature": "func sent(target: ENetPacketPeer)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "broadcast",
-      "line": 55,
+      "line": 56,
       "signature": "func broadcast(target: ENetConnection)",
       "visibility": "public"
     }
@@ -5770,211 +5898,225 @@
     },
     {
       "kind": "signal",
+      "name": "world_data",
+      "line": 29,
+      "signature": "signal world_data(value: Dictionary)",
+      "visibility": "public"
+    },
+    {
+      "kind": "signal",
       "name": "directory_result",
-      "line": 26,
+      "line": 30,
       "signature": "signal directory_result(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "animation_data",
-      "line": 28,
+      "line": 32,
       "signature": "signal animation_data(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "send_animation",
-      "line": 30,
+      "line": 34,
       "signature": "func send_animation(value: Dictionary)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "send_world",
+      "line": 38,
+      "signature": "func send_world(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "join_requests_changed",
-      "line": 33,
+      "line": 41,
       "signature": "signal join_requests_changed",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_send_social",
-      "line": 35,
+      "line": 43,
       "signature": "func _send_social(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "configure_moderation",
-      "line": 39,
+      "line": 47,
       "signature": "func configure_moderation(path: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_save_moderation",
-      "line": 68,
+      "line": 76,
       "signature": "func _save_moderation() -> bool",
       "visibility": "private"
     },
     {
       "kind": "signal",
       "name": "instance_snapshot",
-      "line": 82,
+      "line": 90,
       "signature": "signal instance_snapshot(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "instance_result",
-      "line": 83,
+      "line": 91,
       "signature": "signal instance_result(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "instance_evicted",
-      "line": 84,
+      "line": 92,
       "signature": "signal instance_evicted(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "on_disconnected_from_relay",
-      "line": 90,
+      "line": 98,
       "signature": "signal on_disconnected_from_relay()",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "connected",
-      "line": 91,
+      "line": 99,
       "signature": "signal connected()",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "player_data",
-      "line": 92,
+      "line": 100,
       "signature": "signal player_data(data: PlayerData)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "on_session_peers_update",
-      "line": 93,
+      "line": 101,
       "signature": "signal on_session_peers_update()",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "voice_data",
-      "line": 94,
+      "line": 102,
       "signature": "signal voice_data(data: VoiceData)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "on_public_session",
-      "line": 95,
+      "line": 103,
       "signature": "signal on_public_session(sessions: Array)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "session_result",
-      "line": 96,
+      "line": 104,
       "signature": "signal session_result(result: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "authentication_finished",
-      "line": 97,
+      "line": 105,
       "signature": "signal authentication_finished(success: bool)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "profiles_updated",
-      "line": 98,
+      "line": 106,
       "signature": "signal profiles_updated(session_id: String, profiles: Array)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "connect_to_relay",
-      "line": 100,
+      "line": 108,
       "signature": "func connect_to_relay(relay_ip: String,relay_port: int)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "create_session",
-      "line": 108,
+      "line": 116,
       "signature": "func create_session(join_mode: int,name: String,description: String , world_url: String) -> void",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "join_session",
-      "line": 120,
+      "line": 128,
       "signature": "func join_session(session_id: String, world_url: String = \"\") -> void",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "resolve_instance",
-      "line": 125,
+      "line": 133,
       "signature": "func resolve_instance(session_id: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "decide_join",
-      "line": 129,
+      "line": 137,
       "signature": "func decide_join(token: String, allow: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "handle_events",
-      "line": 133,
+      "line": 141,
       "signature": "func handle_events() -> void",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "connected_to_relay",
-      "line": 164,
+      "line": 172,
       "signature": "func connected_to_relay()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "disconnected_from_relay",
-      "line": 173,
+      "line": 181,
       "signature": "func disconnected_from_relay()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "on_packet",
-      "line": 192,
+      "line": 203,
       "signature": "func on_packet(data: PackedByteArray)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "publish_profile",
-      "line": 334,
+      "line": 356,
       "signature": "func publish_profile(profile: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "request_instance",
-      "line": 338,
+      "line": 360,
       "signature": "func request_instance(value: Dictionary)",
       "visibility": "public"
     }
@@ -6096,6 +6238,64 @@
       "name": "is_valid",
       "line": 4,
       "signature": "func is_valid(value: Variant) -> bool",
+      "visibility": "public"
+    }
+  ],
+  "relay_protocol/world_item_router.gd": [
+    {
+      "kind": "class_name",
+      "name": "WorldItemRouter",
+      "line": 1,
+      "signature": "class_name WorldItemRouter",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_send",
+      "line": 9,
+      "signature": "func _send(server: Node, id: int, value: Dictionary)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_broadcast",
+      "line": 13,
+      "signature": "func _broadcast(server: Node, index: int, value: Dictionary)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "handle",
+      "line": 16,
+      "signature": "func handle(server: Node, sender: int, value: Dictionary)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_result",
+      "line": 82,
+      "signature": "func _result(server: Node, sender: int, value: Dictionary, success: bool)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_pose",
+      "line": 85,
+      "signature": "func _pose(value: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "leave",
+      "line": 95,
+      "signature": "func leave(server: Node, sender: int)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "disconnect_peer",
+      "line": 115,
+      "signature": "func disconnect_peer(server: Node, sender: int)",
       "visibility": "public"
     }
   ]

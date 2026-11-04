@@ -46,8 +46,13 @@ template project and safe offline preview UI remain follow-up work.
   pending. No downloaded custom shader programs.
 - In Godot's node metadata, `world_entity_id` is a stable string ID;
   `world_pickup` and `world_spawn` are booleans. A spawn marker supplies the initial
-  player position. Pickup metadata is preserved, but network/player interaction
-  wiring is separate from package loading.
+  player position. Pickup metadata opts a Node3D prop into initial shared carrying.
+  Desktop **E** picks up/drops a nearby prop (rebind under Controls); VR grip holds
+  a nearby prop until release. Both clients and relay need item protocol version 1.
+  Held poses are replicated only inside the exact instance/pinned revision.
+  Initial carrying disables held rigidbody collision to prevent player pushing;
+  swept collision, grip offsets, throws, two-hand interaction and handoff remain
+  pending. Free/drop physics is local, not a fully synchronized physics simulation.
 - Files are never extracted or mounted as engine resources. Static parsing rejects
   scripts, executable sections/connections, unsupported types and missing references.
   Strict limits cover ZIP sizes, decoder output/work, parsed depth and textures.
@@ -60,8 +65,9 @@ template project and safe offline preview UI remain follow-up work.
   convert supported results, but actual terrain baking/integration remains pending.
 - Restricted visual world scripts now run on activation with an Assets setting to
   stop callbacks immediately; this is not unrestricted GDScript or synchronized
-  gameplay scripting. Item leases, ordered snapshots and moderation policies have
-  isolated service tests but are not yet wired into player/relay gameplay.
+  gameplay scripting. Item leases and held poses now have relay/player wiring and
+  loopback/scene-object tests. Kick/ban-only role policy remains an isolated service;
+  the existing live Active Instance extra-management UI has not yet been narrowed.
 
 ## Restricted visual scripts
 

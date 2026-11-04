@@ -14,6 +14,14 @@ var animation_import_busy := false
 var animation_import_error := ""
 var avatar_configuration: Node
 var world_runtime: Node
+var world_pickups: Node
+
+func get_world_pickups() -> Node:
+	if not is_instance_valid(world_pickups):
+		world_pickups = preload("res://scripts/worlds/world_pickup_controller.gd").new()
+		add_child(world_pickups)
+		world_pickups.configure(get_node_or_null("/root/NetworkHandler"), self)
+	return world_pickups
 
 func _ready():
 	get_tree().node_added.connect(_configure_avatar_camera)
@@ -46,7 +54,8 @@ func get_asset_cache() -> Node:
 				asset_revision_available.emit.call_deferred(source, previous, revision))
 		var settings = get_node_or_null("/root/SaveData")
 		if settings != null and settings.get("store") != null:
-			settings.store.setting_changed.connect(_cache_setting_changed)
+			if not settings.store.setting_changed.is_connected(_cache_setting_changed):
+				settings.store.setting_changed.connect(_cache_setting_changed)
 			for id in ["cache.quota_mib", "cache.automatic_refresh", "cache.allow_http", "cache.trust_remote_worlds"]:
 				_cache_setting_changed(id, settings.store.get_value(id))
 	return asset_cache
@@ -313,6 +322,7 @@ func _prepare_extracted_world(_extract_path: String) -> Dictionary:
 func activate_world(staged: Dictionary) -> bool:
 	if not staged.get("scene") is PackedScene:
 		return false
+	if is_instance_valid(world_pickups): world_pickups.reset()
 	if get_tree().change_scene_to_packed(staged.scene) != OK:
 		return false
 	await get_tree().scene_changed
@@ -329,6 +339,7 @@ func activate_world(staged: Dictionary) -> bool:
 			world_runtime.dispatch("start", "")
 		else:
 			world_runtime.stop_scripts()
+		get_world_pickups().activate(get_tree().current_scene, staged.document, str(staged.get("revision", "")))
 	var spawn = staged.get("spawn_point", [0, 0, 0])
 	for player in get_tree().get_nodes_in_group("player"):
 		if player.has_method("set_player_pos"):

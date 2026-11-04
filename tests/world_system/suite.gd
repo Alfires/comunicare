@@ -4,6 +4,18 @@ var passed := 0
 var failed := 0
 var blocked: Array[String] = []
 
+class PeerFixture extends RefCounted:
+	signal world_data(value: Dictionary)
+	var world_supported := true
+	var world_peer_id := 1
+	var current_session_id := "pickup-room"
+	var sent: Array = []
+	func send_world(value: Dictionary): sent.append(value.duplicate(true))
+
+class NetworkFixture extends Node:
+	var peer = PeerFixture.new()
+	var current_session_id := "pickup-room"
+
 func _initialize():
 	call_deferred("run")
 
@@ -52,6 +64,7 @@ func run():
 	test_scripts()
 	test_script_runtime()
 	test_interaction()
+	test_pickup_adapter()
 	test_replication()
 	test_moderation()
 	check(not FileAccess.file_exists("user://WORLD_SCRIPT_EXECUTED"), "fixture execution sentinel absent (harness check only when reader is blocked)")
@@ -234,6 +247,53 @@ func test_replication():
 	check(rejected(state.apply_event("alice", gap)), "sequence gap requires recovery, not silent divergent commit")
 	check(rejected(state.accept_snapshot("alice", "ga", snapshot)), "old snapshot cannot roll state back after newer event")
 	dispose(state)
+
+func test_pickup_adapter():
+	var adapter = component("world_pickup_controller", ["configure", "activate", "request_grab", "receive", "release_grip", "reset"])
+	if adapter == null: return
+	var network = NetworkFixture.new()
+	var loader = Node.new()
+	var world = Node3D.new()
+	var item = RigidBody3D.new()
+	item.name = "Item"
+	world.add_child(item)
+	root.add_child(world)
+	var hand = Node3D.new()
+	world.add_child(hand)
+	adapter.configure(network, loader)
+	adapter.activate(world, {"entities": {"item": {"path": "Item", "pickup": true}}}, "hash")
+	check(adapter.request_grab("item", "virtual", hand), "desktop adapter sends real scoped grab request for nearby item")
+	check(network.peer.sent.back().get("entity") == "item" and network.peer.sent.back().get("revision") == "hash", "pickup message pins active world revision")
+	var held = {"op": "item", "session_id": "pickup-room", "revision": "hash", "entity": "item", "holder": 1, "generation": "g1", "grip": "virtual", "epoch": 1, "sequence": 1, "position": [], "rotation": []}
+	adapter.receive(held)
+	check(item.freeze and item.collision_layer == 0, "acknowledged held rigidbody cannot push local player")
+	hand.position = Vector3(0.5, 1, 0)
+	adapter._process(0.05)
+	check(item.global_position.is_equal_approx(hand.global_position), "local held mesh follows desktop/VR gameplay anchor")
+	check(network.peer.sent.back().get("op") == "pose", "holder publishes bounded held-object transform")
+	check(adapter.release_grip("virtual"), "desktop drop uses current lease epoch")
+	var remote = held.duplicate(true)
+	remote.holder = 2
+	remote.generation = "g2"
+	remote.sequence = 2
+	remote.position = [2.0, 1.0, 0.0]
+	remote.rotation = [0.0, 0.0, 0.0, 1.0]
+	adapter.receive(remote)
+	adapter._process(0.05)
+	check(item.global_position.is_equal_approx(Vector3(2, 1, 0)), "remote held-item state moves actual scene object, not only snapshot data")
+	var wrong = remote.duplicate(true)
+	wrong.revision = "different-world"
+	wrong.sequence = 3
+	wrong.position = [99.0, 0.0, 0.0]
+	adapter.receive(wrong)
+	adapter._process(0.05)
+	check(item.global_position.x < 3.0, "foreign revision cannot move rendered object")
+	adapter.reset()
+	check(not item.freeze and item.collision_layer == 1, "transition/reset restores physical item settings")
+	adapter.free()
+	world.free()
+	loader.free()
+	network.free()
 
 func test_moderation():
 	var policy = component("world_instance_policy", ["configure", "authorize", "disconnect_member", "snapshot", "can_admit"])

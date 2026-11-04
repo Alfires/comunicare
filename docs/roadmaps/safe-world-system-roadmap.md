@@ -7,8 +7,11 @@ DataLoader rejects legacy executable archives and stages safe packages. This is 
 limited first milestone. A second milestone adds packaged JSON `.worldscript`
 visual callbacks on activation and a trusted settings stop; it is not the complete
 typed language or synchronized gameplay scripting. The full system is not done:
-transport/player wiring, full text-language syntax, Terrain3D, complete node/texture
-support and author UI are not complete.
+full text-language syntax, Terrain3D, complete node/texture support and author UI
+are not complete. Initial negotiated item transport and desktop E/VR grip carrying
+now exist, with real-loopback isolation/lease/cleanup checks and scene-object pose
+application. Throws, two hands, handoff, collision-safe carrying and narrowed live
+admin management remain pending; real-headset visual quality is unverified.
 See [current authoring limits](../guides/safe-world-authoring.md); historical RED
 baseline and proposed phases below remain planning history where superseded.
 **Test-first update:** opt-in [RED world contracts](../../tests/world_system/README.md)

@@ -23,6 +23,23 @@ The misspellings are compatibility identifiers, not recommended new names.
 | 24 | SOCIAL_DATA | Version-1 negotiated live social routing; signed consent and scoped presence |
 | 25–27 | INSTANCE_LOOKUP / JOIN_REQUEST / JOIN_DECISION | Authorized code lookup and expiring admin approval |
 | 28 | ANIMATION_DATA | Version-2 resolved animation plus requested typed asset delivery |
+| 29 | WORLD_DATA | Negotiated version-1 ephemeral item leases, snapshots and bounded held poses |
+
+### World item version 1
+
+AUTH_RESULT advertises `world_items_version: 1`; client sends hello/version and
+receives transport-derived peer ID plus random connection generation. Without this
+exchange `send_world` does nothing. Requests carry exact `session_id`/`revision`;
+grab/release/pose additionally carry stable entity, monotonic sender sequence and
+lease epoch. Grip is left/right/virtual. Relay derives holder and generation, never
+trusts a claimed actor, and limits 60 requests/s, two held items/sender and 256
+tracked items/instance. Poses are finite bounded XYZ plus normalized quaternion.
+Reliable item/pose broadcasts and snapshots contain an instance sequence watermark.
+State/rates are active-memory only; disconnect releases leases and removes identity
+references, empty instances are deleted. The relay has no world geometry, so it
+cannot validate actual reach/item existence. Clients ignore unknown entity IDs and
+validate scope/poses before moving scene objects. This is initial carrying, not
+authoritative anti-cheat or cross-client free-body physics synchronization.
 
 IDs 6–8 are not assigned here. Access modes are PUBLIC=0, PRIVAT=1, FRIENDS=2,
 FRIENDSP=3, REQUEST=4. Friendship/presence never grants profile editing rights.

@@ -23,6 +23,10 @@ var tracking_supported := false
 var world_revision_supported := false
 var expected_world_revision := ""
 var directory_supported := false
+var world_supported := false
+var world_peer_id := -1
+var world_generation := ""
+signal world_data(value: Dictionary)
 signal directory_result(value: Dictionary)
 var session_result_guard: Callable
 signal animation_data(value: Dictionary)
@@ -30,6 +34,10 @@ signal animation_data(value: Dictionary)
 func send_animation(value: Dictionary):
 	if is_authenticated and peer != null and animation_supported:
 		AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, value).sent(peer)
+
+func send_world(value: Dictionary):
+	if is_authenticated and peer != null and world_supported:
+		AccountPacket.create(PacketInfo.PACKET_TYPE.WORLD_DATA, value).sent(peer)
 signal join_requests_changed
 
 func _send_social(value: Dictionary):
@@ -171,6 +179,9 @@ func connected_to_relay():
 	
 	
 func disconnected_from_relay():
+	world_supported = false
+	world_peer_id = -1
+	world_generation = ""
 	animation_supported = false
 	tracking_supported = false
 	world_revision_supported = false
@@ -195,6 +206,15 @@ func on_packet(data: PackedByteArray):
 	var packet_type: int = data.decode_u8(0)
 	
 	match packet_type:
+		PacketInfo.PACKET_TYPE.WORLD_DATA:
+			if is_authenticated and data.size() <= 128 * 1024:
+				var value = AccountPacket.parse(data)
+				if value.get("op") == "hello" and value.get("version") == 1 and InstanceState.integer(value.get("peer_id"), 0, 255) and value.get("generation") is String:
+					world_supported = true
+					world_peer_id = int(value.peer_id)
+					world_generation = value.generation
+				elif world_supported and value.get("session_id") == current_session_id:
+					world_data.emit(value)
 		PacketInfo.PACKET_TYPE.ANIMATION_DATA:
 			if is_authenticated and data.size() <= 16 * 1024:
 				var value = AccountPacket.parse(data)
@@ -311,6 +331,8 @@ func on_packet(data: PackedByteArray):
 			var values = AccountPacket.parse(data)
 			is_authenticated = values.get("success", false) == true
 			world_revision_supported = is_authenticated and values.get("world_revision_version") == 1
+			if is_authenticated and values.get("world_items_version") == 1:
+				AccountPacket.create(PacketInfo.PACKET_TYPE.WORLD_DATA, {"op": "hello", "version": 1}).sent(peer)
 			directory_supported = is_authenticated and values.get("directory_version") == 1
 			if is_authenticated and values.get("animation_version") == 2:
 				AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "hello", "version": 2}).sent(peer)

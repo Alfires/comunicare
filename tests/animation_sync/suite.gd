@@ -537,11 +537,34 @@ func test_network():
 		clients.append(client)
 	await pump(server, clients, 0.8)
 	check(clients.all(func(client): return client.is_authenticated and client.animation_supported), "three real clients negotiate authenticated animation capability")
+	check(clients.all(func(client): return client.get("world_supported") == true), "real peers negotiate shared world item capability")
 	clients[0].create_session(0, "Room", "", "default_wold")
 	clients[2].create_session(0, "Other", "", "default_wold")
 	await pump(server, clients)
 	clients[1].join_session(clients[0].current_session_id, "default_wold")
 	await pump(server, clients)
+	if clients[0].has_method("send_world"):
+		var world_received: Array = [[], [], []]
+		for index in clients.size(): clients[index].world_data.connect(func(value): world_received[index].append(value))
+		clients[0].send_world({"op": "grab", "session_id": clients[0].current_session_id, "revision": "", "entity": "cup", "grip": "left", "sequence": 1, "epoch": 0})
+		await pump(server, clients)
+		var grips: Array = world_received[1].filter(func(value): return value.get("op") == "item")
+		check(grips.size() == 1 and grips[0].get("holder") == 0 and grips[0].get("grip") == "left", "real relay sends authenticated item holder/grip to same-instance peer")
+		check(world_received[2].is_empty(), "same world in another instance receives no item state")
+		if not grips.is_empty():
+			var lease_epoch = grips[0].epoch
+			clients[1].send_world({"op": "grab", "session_id": clients[1].current_session_id, "revision": "", "entity": "cup", "grip": "virtual", "sequence": 1, "epoch": lease_epoch})
+			await pump(server, clients)
+			check(world_received[1].any(func(value): return value.get("op") == "result" and value.get("ok") == false), "real concurrent desktop grab cannot steal VR lease")
+			clients[0].send_world({"op": "pose", "session_id": clients[0].current_session_id, "revision": "", "entity": "cup", "epoch": lease_epoch, "sequence": 2, "position": [1, 1, 1], "rotation": [0, 0, 0, 1]})
+			await pump(server, clients)
+			check(world_received[1].any(func(value): return value.get("op") == "pose" and value.get("position") == [1.0, 1.0, 1.0]), "real held-object pose reaches remote participant")
+			clients[1].send_world({"op": "pose", "session_id": clients[1].current_session_id, "revision": "", "entity": "cup", "epoch": lease_epoch, "sequence": 2, "position": [2, 2, 2], "rotation": [0, 0, 0, 1]})
+			await pump(server, clients)
+			check(world_received[1].filter(func(value): return value.get("op") == "pose").size() == 1, "nonholder pose rejected instead of forging held-object movement")
+			clients[1].send_world({"op": "snapshot", "session_id": clients[1].current_session_id, "revision": ""})
+			await pump(server, clients)
+			check(world_received[1].any(func(value): return value.get("op") == "snapshot" and value.get("items", {}).has("cup")), "real late-item snapshot supplies current live lease")
 	var state = {"op": "state", "version": 2, "sequence": 1, "action": "resolved", "kind": "emote", "role": "dance", "mask": "full", "avatar_revision": "", "configuration_revision": 0, "offset": 0.25,
 		"speed": 1.0, "loop": true, "duration": 1.0, "builtin": "dance", "hash": "",
 		"library": Defaults.LIBRARY, "session_id": clients[0].current_session_id, "peer_id": 254}
@@ -632,8 +655,17 @@ func test_network():
 	check(not server.animations.states.has(owner) and not server.animations.supported.has(owner)
 		and not server.animations.generations.has(owner), "disconnect erases actor state, capability and generation")
 	check(not server.animations.poses.has(owner) and not server.animations.pose_supported.has(owner) and not server.animations.pose_rates.has(owner), "disconnect removes live tracker pose and capability/rate references")
+	check(not server.world_items.supported.has(owner) and not server.world_items.generations.has(owner) and not server.world_items.rates.has(owner), "disconnect deletes world capability/generation/rate state")
+	var retained_holder = false
+	for instance in server.world_items.instances.values():
+		if instance.senders.has(owner): retained_holder = true
+		for item in instance.items.values():
+			if item.holder == owner: retained_holder = true
+	check(not retained_holder, "disconnect clears indirect item holder and sequence references")
 	for client in clients:
-		client.connection.destroy()
-	await pump(server, [], 0.1)
+		if client.peer.get_state() == ENetPacketPeer.STATE_CONNECTED: client.peer.peer_disconnect()
+	await pump(server, clients, 0.4)
+	check(server.world_items.instances.is_empty(), "empty instances leave no relay world-item state")
+	for client in clients: client.connection.destroy()
 	server.connection.destroy()
 	server.free()

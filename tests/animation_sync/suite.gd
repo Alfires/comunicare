@@ -102,6 +102,20 @@ func run():
 	check(direction_controller.resolve_motion(true, Vector3(-2, 0, 0), 0) == "strafe_left", "leftward movement chooses left strafe")
 	check(direction_controller.resolve_motion(true, Vector3(2, 0, 0), 0) == "strafe_right", "rightward movement chooses right strafe")
 	check(direction_controller.resolve_motion(true, Vector3.ZERO, 0) == "neutral", "standing still has no idle animation")
+	check("walk_reference_speed" in direction_controller, "locomotion supports player-relative run threshold")
+	if "walk_reference_speed" in direction_controller:
+		direction_controller.walk_reference_speed = 2.0
+		check(direction_controller.resolve_motion(true, Vector3(0, 0, -2), 0) == "walk", "default VR walking remains walk")
+		check(direction_controller.resolve_motion(true, Vector3(0, 0, -3), 0) == "run", "default VR sprint selects run below old 4 m/s threshold")
+		check(direction_controller.resolve_motion(true, Vector3(0, 0, -2.4), 0) == "run", "run hysteresis retains run near boundary")
+		check(direction_controller.resolve_motion(true, Vector3(0, 0, -2.1), 0) == "walk", "slowing down returns to walk")
+		check(direction_controller.resolve_motion(true, Vector3(0, 0, -2.4), 0) == "walk", "walk hysteresis avoids threshold flicker")
+		direction_controller.walk_reference_speed = 5.0
+		check(direction_controller.resolve_motion(true, Vector3(0, 0, -5), 0) == "walk", "fast configured VR walking is not mistaken for sprint")
+		check(direction_controller.resolve_motion(true, Vector3(0, 0, -7.5), 0) == "run", "configured VR sprint selects run")
+		check(direction_controller.resolve_motion(true, Vector3(7.5, 0, 0), 0) == "strafe_right", "sprint preserves strafe precedence")
+		check(direction_controller.resolve_motion(true, Vector3.ZERO, 0) == "neutral", "stationary sprint cannot select run")
+		check(direction_controller.resolve_motion(false, Vector3(0, 2, -7.5), 0) == "jump", "sprint preserves airborne role")
 	var masked = direction_controller.tracking_mask(Defaults.clip("walk"))
 	var bones: Array = masked.tracks.map(func(track): return track.bone)
 	check("leftUpperArm" in bones and "rightLowerArm" in bones and "chest" in bones, "VR tracking mask preserves untracked arms and torso animation")
@@ -529,10 +543,12 @@ func test_network():
 	check(server.connection.create_host_bound("127.0.0.1", 0) == OK, "animation relay binds isolated loopback")
 	var clients: Array = []
 	var messages: Array = [[], [], []]
+	var movements: Array = [[], [], []]
 	for i in 3:
 		var client = RelayPeer.new()
 		client.account_key = Crypto.new().generate_rsa(2048)
 		client.animation_data.connect(func(value): messages[i].append(value))
+		client.player_data.connect(func(value): movements[i].append(value))
 		client.connect_to_relay("127.0.0.1", server.connection.get_local_port())
 		clients.append(client)
 	await pump(server, clients, 0.8)
@@ -575,6 +591,11 @@ func test_network():
 	check(messages[2].filter(func(value): return value.get("op") == "state").is_empty(), "same-world different instance receives no animation")
 	var owner = int(received[0].peer_id) if not received.is_empty() else -1
 	check(owner != 254 and server.animations.states.has(owner), "relay derives actor from authenticated transport, not claimed ID")
+	for distance in [3.0, 4.5]:
+		PlayerData.create(1, Vector3(0, 0, -distance), Vector3.ZERO).sent(clients[0].peer)
+		await pump(server, clients)
+		check(not movements[1].is_empty() and movements[1].back().position.is_equal_approx(Vector3(0, 0, -distance)), "ordinary movement transport delivers sprint displacement %s to instance peer" % distance)
+	check(movements[2].is_empty(), "sprint displacement stays isolated from other instances")
 	check(clients[0].get("tracking_supported") == true, "authenticated peers negotiate tracked-pose capability separately from animation")
 	if clients[0].get("tracking_supported") == true:
 		var pose = {"op": "pose", "version": 1, "session_id": clients[0].current_session_id, "sequence": 1,

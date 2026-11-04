@@ -912,35 +912,35 @@
     {
       "kind": "func",
       "name": "_cancel_binding",
-      "line": 244,
+      "line": 245,
       "signature": "func _cancel_binding()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 251,
+      "line": 252,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_show_error",
-      "line": 255,
+      "line": 256,
       "signature": "func _show_error(message: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_saved",
-      "line": 259,
+      "line": 260,
       "signature": "func _on_saved()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 262,
+      "line": 263,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -1453,210 +1453,210 @@
     {
       "kind": "func",
       "name": "_update_locomotion",
-      "line": 109,
+      "line": 112,
       "signature": "func _update_locomotion()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "resolve_motion",
-      "line": 138,
+      "line": 142,
       "signature": "func resolve_motion(grounded: bool, velocity: Vector3, _at_msec: float) -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "tracking_mask",
-      "line": 146,
+      "line": 153,
       "signature": "func tracking_mask(clip: Dictionary) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "strafe_pose",
-      "line": 151,
+      "line": 158,
       "signature": "func strafe_pose(clip: Dictionary) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "emote_catalog",
-      "line": 161,
+      "line": 168,
       "signature": "func emote_catalog() -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "request_emote",
-      "line": 172,
+      "line": 179,
       "signature": "func request_emote(id: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "cancel_emote",
-      "line": 186,
+      "line": 193,
       "signature": "func cancel_emote()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_apply_resolved",
-      "line": 191,
+      "line": 198,
       "signature": "func _apply_resolved(item: Dictionary, kind: String, action_id: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_is_vr",
-      "line": 218,
+      "line": 225,
       "signature": "func _is_vr() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_send",
-      "line": 223,
+      "line": 230,
       "signature": "func _send(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "toggle_emote_menu",
-      "line": 230,
+      "line": 237,
       "signature": "func toggle_emote_menu()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_choose_emote",
-      "line": 252,
+      "line": 259,
       "signature": "func _choose_emote(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "open_xr_menu",
-      "line": 262,
+      "line": 269,
       "signature": "func open_xr_menu(hand: XRController3D, camera: XRCamera3D, hold: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 273,
+      "line": 280,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_local_model",
-      "line": 285,
+      "line": 292,
       "signature": "func _local_model() -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_new_animator",
-      "line": 293,
+      "line": 300,
       "signature": "func _new_animator(model: Node3D) -> Node",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_dispose_animator",
-      "line": 299,
+      "line": 306,
       "signature": "func _dispose_animator(animator: Node)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_play_resolved",
-      "line": 306,
+      "line": 313,
       "signature": "func _play_resolved(clip: Dictionary, builtin: String, handle: Dictionary, clip_index: int, looping: bool, speed: float, share: bool) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_clear_local",
-      "line": 339,
+      "line": 346,
       "signature": "func _clear_local()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "receive",
-      "line": 348,
+      "line": 355,
       "signature": "func receive(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_member",
-      "line": 409,
+      "line": 416,
       "signature": "func _member(id: int) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_apply_remote",
-      "line": 412,
+      "line": 419,
       "signature": "func _apply_remote(id: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_send_chunk",
-      "line": 480,
+      "line": 487,
       "signature": "func _send_chunk()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_prepare_remote_model",
-      "line": 498,
+      "line": 505,
       "signature": "func _prepare_remote_model(id: int, state: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_store_remote_model",
-      "line": 524,
+      "line": 531,
       "signature": "func _store_remote_model(id: int, request: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_receive_chunk",
-      "line": 538,
+      "line": 545,
       "signature": "func _receive_chunk(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_remove_remote",
-      "line": 589,
+      "line": 596,
       "signature": "func _remove_remote(id: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "clear",
-      "line": 608,
+      "line": 615,
       "signature": "func clear()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 631,
+      "line": 638,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_tracking",
-      "line": 638,
+      "line": 645,
       "signature": "func _update_tracking(delta: float)",
       "visibility": "private"
     }
@@ -4189,99 +4189,120 @@
   "scripts/player/player_desktop_movment.gd": [
     {
       "kind": "func",
+      "name": "get_walk_speed",
+      "line": 28,
+      "signature": "func get_walk_speed() -> float",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_notification",
+      "line": 31,
+      "signature": "func _notification(what)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_ready",
-      "line": 26,
+      "line": 38,
       "signature": "func _ready() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 42,
+      "line": 54,
       "signature": "func _process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "update_player_data",
-      "line": 52,
+      "line": 64,
       "signature": "func update_player_data()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_player_pos",
-      "line": 59,
+      "line": 71,
       "signature": "func set_player_pos(pos: Vector3)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 62,
+      "line": 74,
       "signature": "func _input(event: InputEvent) -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_unhandled_input",
-      "line": 84,
+      "line": 96,
       "signature": "func _unhandled_input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_movement_blocked",
+      "line": 107,
+      "signature": "func _movement_blocked() -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_physics_process",
-      "line": 95,
+      "line": 111,
       "signature": "func _physics_process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_player_model",
-      "line": 125,
+      "line": 143,
       "signature": "func load_player_model()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_find_eye_bone",
-      "line": 164,
+      "line": 182,
       "signature": "func _find_eye_bone() -> int",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_calculate_head_offset",
-      "line": 174,
+      "line": 192,
       "signature": "func _calculate_head_offset() -> Vector3",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_profile_changed",
-      "line": 206,
+      "line": 224,
       "signature": "func _profile_changed(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 210,
+      "line": 228,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_avatar_configuration_changed",
-      "line": 215,
+      "line": 233,
       "signature": "func _avatar_configuration_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 218,
+      "line": 236,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -4289,169 +4310,183 @@
   "scripts/player/player_vr.gd": [
     {
       "kind": "func",
-      "name": "_ready",
+      "name": "get_walk_speed",
       "line": 68,
+      "signature": "func get_walk_speed() -> float",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_sprint_speed",
+      "line": 71,
+      "signature": "func _sprint_speed(blocked: bool, teleport_mode: bool) -> float",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 77,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "set_player_pos",
-      "line": 81,
+      "line": 90,
       "signature": "func set_player_pos(pos: Vector3)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 85,
+      "line": 94,
       "signature": "func _process(delta: float)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_get_movement_input",
-      "line": 123,
+      "line": 132,
       "signature": "func _get_movement_input() -> Vector2",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_world_grips",
-      "line": 126,
+      "line": 135,
       "signature": "func _update_world_grips()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_physics_process",
-      "line": 138,
+      "line": 147,
       "signature": "func _physics_process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_teleport",
-      "line": 191,
+      "line": 200,
       "signature": "func _update_teleport(enabled: bool, stick: Vector2)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_menu_open",
-      "line": 221,
+      "line": 230,
       "signature": "func _menu_open() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_toggle_main_menu",
-      "line": 224,
+      "line": 233,
       "signature": "func _toggle_main_menu()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_close_main_menu",
-      "line": 265,
+      "line": 274,
       "signature": "func _close_main_menu()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_flush_pointer_events",
-      "line": 274,
+      "line": 283,
       "signature": "func _flush_pointer_events()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_menu_pointer",
-      "line": 283,
+      "line": 292,
       "signature": "func _update_menu_pointer()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_create_comfort_overlay",
-      "line": 307,
+      "line": 316,
       "signature": "func _create_comfort_overlay()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_runtime_trackers",
-      "line": 321,
+      "line": 330,
       "signature": "func _update_runtime_trackers()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_publish_tracking",
-      "line": 332,
+      "line": 341,
       "signature": "func _publish_tracking()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 347,
+      "line": 356,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "update_player_data",
-      "line": 357,
+      "line": 367,
       "signature": "func update_player_data()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "load_vrm_model",
-      "line": 363,
+      "line": 373,
       "signature": "func load_vrm_model()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_find_skeleton",
-      "line": 420,
+      "line": 430,
       "signature": "func _find_skeleton(node: Node) -> Skeleton3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_profile_changed",
-      "line": 429,
+      "line": 439,
       "signature": "func _profile_changed(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 433,
+      "line": 443,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_avatar_configuration_changed",
-      "line": 438,
+      "line": 448,
       "signature": "func _avatar_configuration_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 441,
+      "line": 451,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "get_bone_by_array",
-      "line": 453,
+      "line": 463,
       "signature": "func get_bone_by_array(bone_array: Array,_skeleton: Skeleton3D) -> String",
       "visibility": "public"
     }
@@ -4507,6 +4542,22 @@
       "visibility": "private"
     }
   ],
+  "scripts/player/sprint_policy.gd": [
+    {
+      "kind": "func",
+      "name": "suppress",
+      "line": 6,
+      "signature": "func suppress()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "target_speed",
+      "line": 9,
+      "signature": "func target_speed(walk_speed: float, pressed: bool, blocked: bool) -> float",
+      "visibility": "public"
+    }
+  ],
   "scripts/player/voice_controller.gd": [
     {
       "kind": "signal",
@@ -4532,91 +4583,91 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 21,
+      "line": 22,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "is_muted",
-      "line": 24,
+      "line": 25,
       "signature": "func is_muted() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_muted",
-      "line": 27,
+      "line": 28,
       "signature": "func set_muted(value: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "toggle_muted",
-      "line": 34,
+      "line": 35,
       "signature": "func toggle_muted()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_on_setting_changed",
-      "line": 37,
+      "line": 38,
       "signature": "func _on_setting_changed(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "register_capture",
-      "line": 51,
+      "line": 52,
       "signature": "func register_capture(node: Node) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "unregister_capture",
-      "line": 58,
+      "line": 59,
       "signature": "func unregister_capture(node: Node)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_availability",
-      "line": 63,
+      "line": 64,
       "signature": "func set_availability(message: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "binding_text",
-      "line": 67,
+      "line": 68,
       "signature": "func binding_text() -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "handle_toggle_input",
-      "line": 74,
+      "line": 75,
       "signature": "func handle_toggle_input(event: InputEvent, suppressed: bool) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_focus_blocks_input",
-      "line": 82,
+      "line": 83,
       "signature": "func _focus_blocks_input(node: Node) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 96,
+      "line": 97,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 103,
+      "line": 104,
       "signature": "func _notification(what)",
       "visibility": "private"
     }

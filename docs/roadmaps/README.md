@@ -5,7 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
-| [Desktop and VR sprinting](sprinting-roadmap.md) | Planned: hold left joystick click in VR or Ctrl on desktop for a proposed 1.5× horizontal speed boost; scoped modifier-key support, input safety, animation integration and verification gates |
+| [Desktop and VR sprinting](sprinting-roadmap.md) | Implemented with manual gates: hold left joystick click in VR or Ctrl on desktop for 1.5× horizontal speed; rebindable Ctrl, suppression/rearming and relative walk/run selection; hardware comfort and visual two-client validation remain open |
 | [Documentation system](documentation-system-roadmap.md) | Documentation/tooling delivered with explicit operating limits; current guides, function/schema reference and local Git release checks linked from docs home |
 | [Real UI multiplayer investigation/testing](real-ui-multiplayer-validation-roadmap.md) | Investigated with full production autoloads and rendered UI: unrelated Add relay disconnects active federated play; offline startup delays menu; legacy port edits do not change effective list; planned hit-tested/two-client UI gates supersede service-only stability claims |
 | [Multi-relay federation and LAN discovery](multi-relay-federation-roadmap.md) | Ordered preferences/failover plus live trusted TLS peering, signed public directories, concurrent clients, IPv4 LAN hints and routed gameplay implemented; per-actor ingress policy, automatic trust/bootstrap, IPv6/mDNS and WAN/VR/security gates remain open |

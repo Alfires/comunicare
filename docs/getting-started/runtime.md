@@ -49,3 +49,9 @@ Player controls/settings are defined by [InputMap](../../project.godot) and the
 [settings registry](../../scripts/settings/settings_registry.gd). The desktop view
 has player-owned mouse look; VR camera pose is headset-owned. Avatars/rendering
 are visual representations and must not drive the tracked camera.
+
+On desktop, hold **Ctrl** while moving to sprint at **1.5×** walking speed
+(default 3 → 4.5 m/s); release to walk. Rebind **Sprint (hold)** in Settings →
+Controls. Menus, focus loss, rebinding and session transitions suppress sprint;
+release and press again after returning to play. In VR, hold **left joystick
+click** while moving; see [VR controls](../guides/vr-controls.md).

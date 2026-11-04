@@ -41,6 +41,11 @@ to a platform file picker; native filesystem browsing varies by runtime/platform
 - Left stick requests bounded analog head-relative ground movement. Head pitch/roll
   does not change speed. Right stick turns around the headset floor pivot, with
   Snap (30° default) or Smooth (60°/s default) in VR Movement settings.
+- Hold **left joystick click** while moving to sprint at **1.5×** configured
+  walking speed (default 2 → 3 m/s). Release to walk. Sprint is smooth-locomotion
+  only: it does not extend teleport range or amplify physical room-scale motion.
+  After menu/focus/tracking suppression, return the movement controls to neutral
+  and release/repress the sprint click. Right click remains optional jump.
 - A/X on either hand toggles one shared main-menu viewport. Optional jump is right
   stick click and off by default; B/Y retains the separate emote wheel.
 - Controller aim/trigger operates UI, with press capture/release on drag-off/close.

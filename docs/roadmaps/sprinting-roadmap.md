@@ -2,9 +2,33 @@
 
 ## Status and scope
 
-**Planned — 2026-11-04.** This document proposes sprinting; it does not claim
-that sprint input or a speed boost is implemented. It extends the movement work
-in [VR controls, menus, IK and FBT](vr-controls-menus-ik-fbt-roadmap.md).
+**Implemented with manual release gates — 2026-11-04.** Hold-to-sprint, scoped
+Ctrl rebinding, a shared 1.5× horizontal target-speed policy and input
+suppression/rearming are implemented. Automatic animation now uses actual speed
+relative to the player's unboosted walking speed, with walk/run hysteresis.
+Existing movement/animation transport remains unchanged. Current controls are in
+the [runtime guide](../getting-started/runtime.md) and
+[VR guide](../guides/vr-controls.md).
+
+The design and original baseline below are retained as implementation history,
+not a description of still-missing sprint input. Real-headset controller support,
+VR comfort, physical left/right Ctrl behavior and visual desktop/VR two-client
+checks remain manual gates. Synthetic controller/input and loopback packet tests
+are not hardware or full-renderer certification.
+
+Verification for this implementation:
+
+- `python3 tests/microphone_settings/run.py`: 108 passed, 0 failed, no skipped groups.
+- `python3 tests/vr_controls/run.py`: 25 sprint checks and 105 existing VR checks passed.
+  Desktop physics uses a fixture that bypasses unavailable headless mouse capture;
+  VR checks use synthetic XR tracker input, not a headset.
+- `python3 tests/animation_sync/run.py`: lifecycle checks passed and 164 animation/
+  relay assertions passed, including relative run thresholds and same-instance
+  sprint displacement. Optional real VRM fixture skipped (no `AVATAR_FIXTURE`).
+- `python3 tests/multiplayer_reliability/run.py`: 23 client and 27 discovery
+  assertions passed.
+- Documentation local links, declaration inventory and function-contract coverage
+  checks passed. These checks do not establish semantic or hardware correctness.
 
 Requested controls:
 

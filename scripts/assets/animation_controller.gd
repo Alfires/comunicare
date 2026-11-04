@@ -106,6 +106,9 @@ func _process(delta: float):
 func now() -> float:
 	return Time.get_ticks_msec() + clock_offset
 
+var walk_reference_speed := 3.0
+var locomotion_running := false
+
 func _update_locomotion():
 	for player in get_tree().get_nodes_in_group("player"):
 		if player is CharacterBody3D and _local_model() != null:
@@ -117,6 +120,7 @@ func _update_locomotion():
 					cancel_emote()
 				else:
 					return
+			walk_reference_speed = player.get_walk_speed() if player.has_method("get_walk_speed") else 3.0
 			var motion = resolve_motion(player.is_on_floor(), player.global_basis.inverse() * player.velocity, now())
 			var revision = configuration.revision if configuration != null else 0
 			var changed_model = not is_instance_valid(local_animator) or local_animator.avatar != _local_model()
@@ -137,10 +141,13 @@ func _update_locomotion():
 
 func resolve_motion(grounded: bool, velocity: Vector3, _at_msec: float) -> String:
 	var motion = "neutral"
+	var horizontal_speed = Vector2(velocity.x, velocity.z).length()
+	var threshold = maxf(walk_reference_speed, 0.1) * (1.1 if locomotion_running else 1.3)
+	locomotion_running = grounded and horizontal_speed > threshold
 	if not grounded: motion = "jump" if velocity.y > 0 else "neutral"
-	elif Vector2(velocity.x, velocity.z).length() > 0.1:
+	elif horizontal_speed > 0.1:
 		if absf(velocity.x) > absf(velocity.z): motion = "strafe_left" if velocity.x < 0 else "strafe_right"
-		else: motion = "run" if absf(velocity.z) > 4 else "walk"
+		else: motion = "run" if locomotion_running else "walk"
 	return motion
 
 static func tracking_mask(clip: Dictionary) -> Dictionary:

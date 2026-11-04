@@ -463,6 +463,7 @@ stale loads. Camera forward clearance and rest-eye calibration are local only.
 | `update_player_data` | Sends current transform only with connected acknowledged session and no transition; does not grant membership. |
 | `set_player_pos` | Sets local body position, used after world activation; caller provides valid spawn. |
 | `load_player_model` | Awaited profile/config model acquisition; skips unchanged key, protects latest generation and swaps only successful result. Attaches local first-person view, calibrates camera from rest geometry. |
+| `get_walk_speed` | Returns unboosted desktop walking speed for automatic walk/run classification. Physics applies the shared held-sprint multiplier to horizontal target speed only; focus/UI/rebind/session suppression requires release before sprint can resume. |
 
 <!-- module: scripts/player/player_vr.gd -->
 ### [VR player](../../scripts/player/player_vr.gd)
@@ -478,6 +479,17 @@ model does not replace working avatar. Hardware checks are manual.
 | `update_player_data` | Sends eligible session body transform, not head/controller poses. |
 | `load_vrm_model` | Awaited config/profile import, generation/skeleton checks, model swap/first-person setup and local tracking configuration; camera remains under XROrigin. |
 | `get_bone_by_array` | Returns first existing candidate name or empty string; helper for legacy naming, not a substitute for validated humanoid metadata. |
+| `get_walk_speed` | Returns the current registry-backed VR walking speed, without sprint boost. Left primary click boosts smooth locomotion only; existing neutral rearm plus sprint release protects recovery. Teleport and physical room-scale motion are not boosted. |
+
+<!-- module: scripts/player/sprint_policy.gd -->
+### [Sprint policy](../../scripts/player/sprint_policy.gd)
+
+One instance per local player; no persistent or network-owned state.
+
+| Functions | Contract |
+| --- | --- |
+| `suppress` | Requires a subsequent unblocked release before another held sprint can boost speed. Called immediately on focus loss, including between physics frames. |
+| `target_speed` | Returns finite nonnegative walking speed times 1.5 only for an eligible held press. Blocked input arms the release requirement; unblocked release clears it. Never compounds speed or changes vertical motion. |
 
 <!-- module: scripts/player/remote_player.gd -->
 ### [Remote player](../../scripts/player/remote_player.gd)
@@ -627,7 +639,7 @@ poses are not included in this protocol.
 | --- | --- |
 | `configure` | Binds network/loader and applied avatar config; requires main-tree collaborators. No ownership transfer. |
 | `now` | Returns local monotonic milliseconds plus estimated relay offset; not wall-clock time. |
-| `resolve_motion` | Pure role choice from grounded/local-space velocity: static neutral, forward walk/run, left/right strafe, upward jump; no fall/landing playback. |
+| `resolve_motion` | Chooses static neutral, forward/back walk/run, left/right strafe or upward jump from actual grounded/local-space velocity; no fall/landing playback. Uses unboosted player walking speed as reference, entering run above 1.3× and leaving at 1.1× (stateful hysteresis). Sprint intent alone cannot trigger run at rest; strafe retains precedence. |
 | `tracking_mask` | Returns copied clip excluding tracked head/eye/jaw/hand channels, preserving untracked limbs/torso. Does not itself perform IK. |
 | `strafe_pose` | Returns copied lateral legs combined with exact unrotated forward-walk upper-body motion; no procedural replacement keys. |
 | `emote_catalog` | Returns applied compatible action entries plus cancel intent when configured; builtin fallback otherwise. Catalog browsing does not send packets. |

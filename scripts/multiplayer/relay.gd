@@ -251,7 +251,14 @@ func on_packed(peer_id: int, data: PackedByteArray):
 					peers[peer].send(0, out, ENetPacketPeer.FLAG_UNSEQUENCED)
 			
 		PacketInfo.PACKET_TYPE.GET_PUBLIC_SESSIONS:
-			GetPublicSessions.create((get_public_session())).sent(peers[peer_id])
+			if data.size() > 2048: return
+			var request = GetPublicSessions.create_from_data(data)
+			if not request.envelope.is_empty():
+				var value = request.envelope
+				if not key_mapping.has(peer_id) or value.get("version") != 1: return
+				if not value.get("request_id") is String or value.request_id.length() > 128 or not value.get("generation") is String or value.generation.length() > 128: return
+				GetPublicSessions.directory({"version": 1, "request_id": value.request_id, "generation": value.generation, "sessions": get_public_session()}).sent(peers[peer_id])
+			else: GetPublicSessions.create((get_public_session())).sent(peers[peer_id])
 			 
 		_:
 			push_error("Packed type was unknown: ",packed_type)
@@ -483,7 +490,7 @@ func _handle_auth(peer_id: int, type: int, values: Dictionary):
 		if success:
 			authenticate_peer(peer_id, authenticator.get_identity(peer_id).public_key)
 		AccountPacket.create(PacketInfo.PACKET_TYPE.AUTH_RESULT,
-			{"success": success, "social_version": 1, "animation_version": 2, "tracking_version": 1, "world_revision_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
+			{"success": success, "social_version": 1, "animation_version": 2, "tracking_version": 1, "world_revision_version": 1, "directory_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
 
 func authenticate_peer(peer_id: int, verified_public_key: String):
 	# Internal trust boundary; wire handlers call this only after proof verification.

@@ -21,6 +21,7 @@ func run():
 	test_retry_liveness()
 	test_query_intent()
 	test_decoder_contract()
+	test_quiet_wire_codecs()
 	print("\nRED discovery reliability: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -95,3 +96,15 @@ func test_decoder_contract():
 		check(not decoder.json_object("{\"x\":1}".to_utf8_buffer(), 2).get("ok", true), "byte limit applies before JSON parse")
 		check(decoder.json_object("{\"request_id\":\"one\"}".to_utf8_buffer(), 1024).get("ok", false), "valid bounded object remains decodable")
 	if decoder is Node: decoder.free()
+
+func test_quiet_wire_codecs():
+	for type in [PacketInfo.PACKET_TYPE.CREATE_SESSION, PacketInfo.PACKET_TYPE.JOIN_SESSOIN,
+		PacketInfo.PACKET_TYPE.SESSION_RESULT, PacketInfo.PACKET_TYPE.GET_PUBLIC_SESSIONS, PacketInfo.PACKET_TYPE.GET_SESSION_PEERS]:
+		var bytes = PackedByteArray([type])
+		bytes.append_array("{broken".to_utf8_buffer())
+		match type:
+			PacketInfo.PACKET_TYPE.CREATE_SESSION: check(CreateSession.create_from_data(bytes).session_info.is_empty(), "create decoder quietly rejects malformed object")
+			PacketInfo.PACKET_TYPE.JOIN_SESSOIN: check(JoinSession.create_from_data(bytes).session_id.is_empty(), "join decoder quietly rejects malformed object")
+			PacketInfo.PACKET_TYPE.SESSION_RESULT: check(SessionResult.create_from_data(bytes).result.is_empty(), "session result quietly rejects malformed object")
+			PacketInfo.PACKET_TYPE.GET_PUBLIC_SESSIONS: check(GetPublicSessions.create_from_data(bytes).sessions.is_empty(), "directory codec quietly rejects malformed object")
+			PacketInfo.PACKET_TYPE.GET_SESSION_PEERS: check(GetSessionPeers.create_from_data(bytes).peers.is_empty(), "peer-list codec quietly rejects malformed object")

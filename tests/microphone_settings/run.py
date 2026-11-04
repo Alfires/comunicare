@@ -23,7 +23,7 @@ def main():
     ) as directory:
         project = Path(directory)
         # Copy real settings/UI/capture code, including future roadmap files.
-        for folder in ("scripts/settings", "scripts/profile", "scripts/GUI", "scripts/player", "relay_protocol", "scenes/GUI"):
+        for folder in ("scripts/settings", "scripts/discovery", "scripts/profile", "scripts/GUI", "scripts/player", "relay_protocol", "scenes/GUI"):
             shutil.copytree(ROOT / folder, project / folder)
         shutil.copy2(ROOT / "default_bus_layout.tres", project / "default_bus_layout.tres")
         shutil.copytree(ROOT / "themes/icons", project / "themes/icons")

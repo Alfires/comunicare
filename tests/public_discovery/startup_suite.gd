@@ -111,8 +111,9 @@ func test_live_startup(handler: Node):
 	scene._on_reload_pressed()
 	scene.refresh_started = Time.get_ticks_msec() - 10001
 	scene._process(0)
-	check(scene.instances.is_empty() and scene.refreshing and "timed out" in scene.status.text,
-		"discovery timeout clears stale rows while keeping one request outstanding")
+	check(scene.instances.is_empty() and ("timed out" in scene.status.text or "Refreshing" in scene.status.text) \
+		and (scene.refreshing or not scene.discovery_request_id.is_empty()),
+		"discovery timeout clears stale rows and issues a correlated retry on capable relay")
 	await pump(relay)
 	check(scene.instances.size() == 1 and not scene.refreshing, "late reliable discovery response recovers after timeout")
 	connected_peer.peer.peer_disconnect()

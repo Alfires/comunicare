@@ -25,6 +25,7 @@ def main():
         # account writes, editor plugins, external relay, or project.godot changes.
         sources = [
             "scripts/GUI/world_explorer.gd",
+            "scripts/discovery/discovery_model.gd",
             "scripts/GUI/error_popup.gd",
             "scripts/GUI/emote_wheel.gd",
             "scripts/GUI/xr_emote_wheel.gd",

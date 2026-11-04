@@ -646,6 +646,23 @@ Moderation policy is client-owned disk state, unlike relay session metadata.
 
 ## Protocol functions
 
+<!-- module: relay_protocol/decode_result.gd -->
+### [DecodeResult](../../relay_protocol/decode_result.gd)
+
+Pure quiet JSON ingress. `json_value` rejects empty/oversized/deeper-than-32 input
+before parsing and returns ok/value or ok=false/error without engine exceptions.
+`json_object` additionally rejects nonobjects. Callers still enforce exact packet
+schema, actor authorization and operation limits; successful JSON is not trust.
+
+<!-- module: scripts/discovery/discovery_model.gd -->
+### [DiscoveryModel](../../scripts/discovery/discovery_model.gd)
+
+Pure catalog/directory model. `catalog` validates bounded bytes/entries/metadata
+and returns ok/value or failure preserving caller's previous data. `summaries`
+normalizes public-only exact-URL instances with integral counts/text bounds.
+`classify_query` separates HTTP/builtin URL, five-character alphanumeric room code
+and local filter. These functions do not issue requests, admit users or render UI.
+
 <!-- module: relay_protocol/tracking_pose.gd -->
 ### [TrackingPose](../../relay_protocol/tracking_pose.gd)
 
@@ -705,6 +722,7 @@ membership/rate. Avatar revision mismatch prevents remote application.
 | Functions | Contract |
 | --- | --- |
 | `create`, `create_from_data` | Construct reliable public-summary array / decode validated response. |
+| `directory` | Construct negotiated version-1 dictionary envelope for correlated requests/results; legacy arrays remain a separate codec path. |
 | `encode`, `decode` | JSON array with recursive integer normalization; non-array empty. Client browser validates public mode/identity/address separately. Filename spelling retained. |
 
 <!-- module: relay_protocol/get_session_peers.gd -->
@@ -989,6 +1007,8 @@ exit detaches old subscriptions. Own active instance hidden, not the whole URL.
 | Functions | Contract |
 | --- | --- |
 | `load_sessions` | Validates/replaces public summaries, groups exact URLs and rebuilds open cards/rows; no implicit join/create. |
+| `receive_directory_result` | Accepts only current request/generation version-1 envelope while refreshing, then applies validated summary snapshot. |
+| `classify_query` | Delegates explicit filter/url/code policy to pure discovery model. |
 | `create_world_info_menue` | Opens content info for selected world and lists every eligible other public instance at that URL; legacy spelling retained. Buttons join exact session IDs. |
 | `close_info_menu` | Releases info page and restores browser, no relay mutation. |
 

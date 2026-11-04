@@ -13,11 +13,8 @@ static func create(type: int, data: Dictionary) -> AccountPacket:
 static func parse(data: PackedByteArray) -> Dictionary:
 	if data.size() < 2 or data.size() > 256 * 1024:
 		return {}
-	var parser = JSON.new()
-	if parser.parse(data.slice(1).get_string_from_utf8()) != OK:
-		return {}
-	var value = parser.data
-	return value if value is Dictionary else {}
+	var result = DecodeResult.json_object(data.slice(1), 256 * 1024)
+	return result.value if result.ok else {}
 
 func encode() -> PackedByteArray:
 	var data = super.encode()

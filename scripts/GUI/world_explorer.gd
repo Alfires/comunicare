@@ -17,6 +17,12 @@ var refreshing := false
 var refresh_started := 0
 var last_refresh := 0
 var busy := false
+const Model = preload("res://scripts/discovery/discovery_model.gd")
+var discovery_request_id := ""
+var discovery_generation := ""
+var discovery_sequence := 0
+var filter_text := ""
+var legacy_timed_out := false
 signal reset
 
 func _ready() -> void:
@@ -24,13 +30,16 @@ func _ready() -> void:
 	$WorldInfo/Back.pressed.connect(close_info_menu)
 	$WorldInfo/Create.pressed.connect(_on_create_pressed)
 	http_request.timeout = 15
+	http_request.body_size_limit = 2 * 1024 * 1024
+	http_request.max_redirects = 0
 	http_request.request_completed.connect(_on_request_completed)
 	_request_catalog()
 	_render_worlds()
 	_attach_peer()
 
 func _request_catalog() -> void:
-	http_request.request("https://github.com/Alfires/comunicare-Officel-World-List/raw/refs/heads/main/worlds.json")
+	if http_request.request("https://raw.githubusercontent.com/Alfires/comunicare-Officel-World-List/refs/heads/main/worlds.json") != OK:
+		status.text = "Catalog request could not start; public discovery still works"
 
 func _process(_delta: float) -> void:
 	if discovery_peer != NetworkHandler.peer:
@@ -38,24 +47,36 @@ func _process(_delta: float) -> void:
 	if refreshing and Time.get_ticks_msec() - refresh_started > 10000:
 		# A request has no correlation ID: don't issue overlapping requests.
 		# Clear stale entries, but allow a later reliable response to recover.
-		status.text = "Discovery timed out. Waiting for relay response…"
-		if get_node_or_null("ErrorPopup") == null or not $ErrorPopup.visible:
-			_show_error(status.text)
+		status.text = "Discovery timed out; retrying public instances…"
 		instances.clear()
 		_render_worlds()
 		refresh_started = Time.get_ticks_msec()
+		if not discovery_peer.directory_supported:
+			# Legacy responses cannot correlate retries. Reconnect rather than
+			# accepting a late old result as a new snapshot.
+			refreshing = false
+			legacy_timed_out = true
+			status.text = "Legacy directory timed out. Reconnect to retry safely."
+		else:
+			refreshing = false
+			discovery_request_id = ""
+			_on_reload_pressed()
 	if not refreshing and discovery_peer != null and discovery_peer.is_connected_to_relay \
 		and Time.get_ticks_msec() - last_refresh > 15000:
 		_on_reload_pressed()
 
 func _attach_peer() -> void:
 	if discovery_peer != null:
+		if discovery_peer.directory_result.is_connected(receive_directory_result): discovery_peer.directory_result.disconnect(receive_directory_result)
 		for pair in [[discovery_peer.on_public_session, load_sessions],
 			[discovery_peer.connected, _on_reload_pressed],
 			[discovery_peer.on_disconnected_from_relay, _on_disconnected]]:
 			if pair[0].is_connected(pair[1]):
 				pair[0].disconnect(pair[1])
 	discovery_peer = NetworkHandler.peer
+	discovery_generation = Crypto.new().generate_random_bytes(16).hex_encode()
+	discovery_request_id = ""
+	legacy_timed_out = false
 	refreshing = false
 	instances.clear()
 	_render_worlds()
@@ -63,6 +84,7 @@ func _attach_peer() -> void:
 		status.text = "Relay disconnected"
 		return
 	discovery_peer.on_public_session.connect(load_sessions)
+	discovery_peer.directory_result.connect(receive_directory_result)
 	discovery_peer.connected.connect(_on_reload_pressed)
 	discovery_peer.on_disconnected_from_relay.connect(_on_disconnected)
 	if discovery_peer.is_connected_to_relay:
@@ -73,6 +95,7 @@ func _attach_peer() -> void:
 func _exit_tree() -> void:
 	if discovery_peer == null:
 		return
+	if discovery_peer.directory_result.is_connected(receive_directory_result): discovery_peer.directory_result.disconnect(receive_directory_result)
 	for pair in [[discovery_peer.on_public_session, load_sessions],
 		[discovery_peer.connected, _on_reload_pressed],
 		[discovery_peer.on_disconnected_from_relay, _on_disconnected]]:
@@ -80,48 +103,40 @@ func _exit_tree() -> void:
 			pair[0].disconnect(pair[1])
 
 func _on_disconnected() -> void:
+	discovery_generation = ""
+	discovery_request_id = ""
 	refreshing = false
 	instances.clear()
 	status.text = "Relay disconnected"
 	_render_worlds()
 
 func load_sessions(sessions: Array) -> void:
-	var replacement: Dictionary = {}
-	for value in sessions:
-		if not value is Dictionary or value.get("mode", -1) != PacketInfo.MODE.PUBLIC:
-			continue
-		var id = value.get("session_id")
-		if not id is String or id.is_empty() or id.length() > 128 \
-			or not WorldAddress.is_valid(value.get("world_url")):
-			continue
-		if replacement.has(id):
-			continue
-		var count = value.get("player_count", 0)
-		if not (count is int or count is float) or not is_finite(float(count)):
-			continue
-		replacement[id] = {
-			"session_id": id, "world_url": value.world_url,
-			"name": str(value.get("name", "Public instance")).left(128),
-			"description": str(value.get("description", "")).left(2048),
-			"player_count": clampi(int(count), 0, 256),
-		}
-	instances = replacement
+	instances = Model.summaries(sessions)
 	refreshing = false
 	last_refresh = Time.get_ticks_msec()
 	status.text = ""
 	_render_worlds()
+
+func receive_directory_result(value: Dictionary):
+	if not refreshing or discovery_request_id.is_empty() or value.get("request_id") != discovery_request_id or value.get("generation") != discovery_generation: return
+	if value.get("version") != 1 or not value.get("sessions") is Array: return
+	discovery_request_id = ""
+	load_sessions(value.sessions)
+
+func classify_query(text: String) -> String:
+	return Model.classify_query(text)
 
 func _on_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		status.text = "Catalog unavailable; public discovery still works"
 		_show_error(status.text)
 		return
-	var values = JSON.parse_string(body.get_string_from_utf8())
-	if not values is Array:
+	var values = Model.catalog(body)
+	if not values.ok:
 		status.text = "Invalid world catalog"
 		_show_error(status.text)
 		return
-	worlds_list = values
+	worlds_list = values.value
 	_render_worlds()
 
 func _clear(container: Node) -> void:
@@ -143,6 +158,7 @@ func _render_worlds() -> void:
 				"description": instance.world_url}
 	_clear(world_listing)
 	for world in worlds_by_url.values():
+		if not filter_text.is_empty() and not filter_text.to_lower() in (str(world.get("name", "")) + " " + str(world.get("description", ""))).to_lower(): continue
 		var preview = Button.new()
 		preview.text = str(world.get("name", world.url))
 		preview.tooltip_text = world.url
@@ -218,9 +234,10 @@ func _on_create_pressed() -> void:
 
 func _on_search_pressed() -> void:
 	var value = searchbar.text.strip_edges()
-	if WorldAddress.is_valid(value):
+	var intent = classify_query(value)
+	if intent == "url":
 		create_world_info_menue({"url": value})
-	elif not busy and not value.is_empty():
+	elif intent == "code" and not busy:
 		busy = true
 		var success: bool = await NetworkHandler.join_session(value)
 		if is_inside_tree():
@@ -228,8 +245,12 @@ func _on_search_pressed() -> void:
 			status.text = "Joined instance" if success else NetworkHandler.last_session_error
 			if not success:
 				_show_error(NetworkHandler.last_session_error)
+	else:
+		filter_text = value
+		_render_worlds()
 
 func _on_reload_pressed() -> void:
+	if legacy_timed_out: return
 	if refreshing:
 		return
 	if discovery_peer == null or not discovery_peer.is_connected_to_relay:
@@ -239,7 +260,11 @@ func _on_reload_pressed() -> void:
 	refreshing = true
 	refresh_started = Time.get_ticks_msec()
 	status.text = "Refreshing public instances…"
-	GetPublicSessions.create([]).sent(discovery_peer.peer)
+	if discovery_peer.directory_supported:
+		discovery_sequence += 1
+		discovery_request_id = str(discovery_sequence)
+		GetPublicSessions.directory({"version": 1, "request_id": discovery_request_id, "generation": discovery_generation}).sent(discovery_peer.peer)
+	else: GetPublicSessions.create([]).sent(discovery_peer.peer)
 
 func close_info_menu() -> void:
 	selected_url = ""

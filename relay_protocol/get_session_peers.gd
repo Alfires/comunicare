@@ -26,8 +26,14 @@ func decode(data: PackedByteArray) -> void:
 	super.decode(data)
 	var json_bytes = data.slice(1)
 	var json_string = json_bytes.get_string_from_utf8()
-	peers = JSON.parse_string(json_string)
-	peers = _convert_floats_to_ints(peers)
+	peers = []
+	var parsed = DecodeResult.json_value(json_bytes, 4096)
+	if not parsed.ok or not parsed.value is Array or parsed.value.size() > 256: return
+	for value in parsed.value:
+		if not InstanceState.integer(value, 0, 255) or int(value) in peers:
+			peers.clear()
+			return
+		peers.append(int(value))
 
 func _convert_floats_to_ints(value):
 	if value is Dictionary:

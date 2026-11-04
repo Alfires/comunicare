@@ -22,6 +22,8 @@ var animation_supported := false
 var tracking_supported := false
 var world_revision_supported := false
 var expected_world_revision := ""
+var directory_supported := false
+signal directory_result(value: Dictionary)
 var session_result_guard: Callable
 signal animation_data(value: Dictionary)
 
@@ -172,6 +174,7 @@ func disconnected_from_relay():
 	animation_supported = false
 	tracking_supported = false
 	world_revision_supported = false
+	directory_supported = false
 	expected_world_revision = ""
 	join_requests.clear()
 	join_requests_changed.emit()
@@ -255,8 +258,12 @@ func on_packet(data: PackedByteArray):
 			on_session_peers_update.emit()
 			
 		PacketInfo.PACKET_TYPE.GET_PUBLIC_SESSIONS:
-			public_session = GetPublicSessions.create_from_data(data).sessions
-			on_public_session.emit(public_session)
+			var packet = GetPublicSessions.create_from_data(data)
+			if not packet.envelope.is_empty():
+				if directory_supported: directory_result.emit(packet.envelope)
+			else:
+				public_session = packet.sessions
+				on_public_session.emit(public_session)
 		PacketInfo.PACKET_TYPE.SESSION_RESULT:
 			var result = SessionResult.create_from_data(data).result
 			if session_result_guard.is_valid() and not session_result_guard.call(result): return
@@ -303,6 +310,7 @@ func on_packet(data: PackedByteArray):
 			var values = AccountPacket.parse(data)
 			is_authenticated = values.get("success", false) == true
 			world_revision_supported = is_authenticated and values.get("world_revision_version") == 1
+			directory_supported = is_authenticated and values.get("directory_version") == 1
 			if is_authenticated and values.get("animation_version") == 2:
 				AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "hello", "version": 2}).sent(peer)
 				if values.get("tracking_version") == 1:

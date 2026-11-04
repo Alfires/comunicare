@@ -22,6 +22,7 @@ func encode() -> PackedByteArray:
 
 func decode(data: PackedByteArray) -> void:
 	super.decode(data)
-	var values = JSON.parse_string(data.slice(1).get_string_from_utf8())
+	var parsed = DecodeResult.json_object(data.slice(1), 16 * 1024)
+	var values = parsed.value if parsed.ok else {}
 	if values is Dictionary:
 		result = values

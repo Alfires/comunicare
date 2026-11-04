@@ -428,6 +428,9 @@ RefCounted account/avatar-scoped persistence. `configure` binds path/owner/revis
 offsets or empty and blocks corrupt/incompatible replacement. `save_calibration`
 temp-renames valid candidate only when owner/store usable. No raw hardware IDs or
 pose history. Scope checks are integrity isolation, not cryptographic signatures.
+`capture_roles` calculates finite bounded position/quaternion mount offsets from
+tracked and desired reference poses; `calibrated_targets` applies only available
+calibrated roles, never inventing missing targets. User must match reference pose.
 
 <!-- module: scripts/assets/tracker_role_provider.gd -->
 ### [TrackerRoleProvider](../../scripts/assets/tracker_role_provider.gd)
@@ -447,7 +450,9 @@ RefCounted optional pelvis/feet target solver. `configure` binds skeleton/map;
 `solve` accepts finite skeleton-space role transforms and positive delta, sets
 bounded pelvis pose and solves reachable two-bone legs/foot orientation. Missing
 roles leave base animation intact; no camera writes or tracker discovery.
-No foot-planting/ground collision or complete joint-limit calibration is implied.
+`stable_foot_target` holds sub-centimeter stationary jitter and releases/smooths
+deliberate movement; missing role clears plant. This is target stabilization, not
+world-ground collision/foot-contact detection or complete joint-limit calibration.
 
 <!-- module: scripts/profile/profile_identity.gd -->
 ### [ProfileIdentity](../../scripts/profile/profile_identity.gd)
@@ -785,7 +790,9 @@ friend-message feature from the filename.
 Viewport-local setup panel. `configure` binds the active VR player; private refresh
 lists fresh runtime-exposed positional trackers and lets users assign/unassign
 hips/feet with duplicate-role guards. Calibration saves current eye height and
-zero grip offsets only, explicitly not full-body orientation calibration. No device
+per-role position/orientation mount offsets in a three-second cancelable capture.
+The user must match the avatar reference stance; reassignment invalidates that role's
+offset and requires recalibration. No device
 serial persistence or implied support for trackers absent from the OpenXR runtime.
 The panel reports rig warnings and preserves blocked corrupt calibration stores.
 

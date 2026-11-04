@@ -57,6 +57,8 @@ func run():
 	test_tracker_roles()
 	test_fbt_solver()
 	test_tracking_fades()
+	test_role_calibration()
+	test_foot_stability()
 	print("\nRED tracking: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -219,3 +221,32 @@ func test_tracking_fades():
 	check(weight > 0 and weight < 1, "reacquired tracking fades back in rather than snapping to controller")
 	rig.free()
 	target.free()
+
+func test_role_calibration():
+	var calibration = load("res://scripts/assets/tracking_calibration.gd").new()
+	check(calibration.has_method("capture_roles") and calibration.has_method("calibrated_targets"), "FBT calibration captures positional and rotational tracker-to-bone offsets")
+	if not calibration.has_method("capture_roles"): return
+	var tracker = Transform3D(Basis(Vector3.UP, 0.8), Vector3(1, 1, 0.2))
+	var desired = Transform3D(Basis(Vector3.RIGHT, 0.3), Vector3(1.05, 0.9, 0.15))
+	var offsets: Dictionary = calibration.capture_roles({"hips": tracker}, {"hips": desired})
+	var restored: Dictionary = calibration.calibrated_targets({"hips": tracker}, offsets)
+	check(restored.hips.is_equal_approx(desired), "waist tracker orientation and mounting offset calibrate to current avatar bone")
+	check(calibration.calibrated_targets({}, offsets).is_empty(), "calibration never invents missing tracker targets")
+	calibration.configure("res://role-calibration.json", "account-a", "a".repeat(64))
+	var data = {"schema": 1, "eye_height": 1.65, "scale": 1.0, "head_offset": [0, 0, 0], "left_grip_offset": [0, 0, 0], "right_grip_offset": [0, 0, 0], "role_offsets": offsets}
+	check(calibration.save_calibration(data), "full role offsets persist in owner/avatar scoped calibration")
+	check(calibration.calibrated_targets({"hips": tracker}, calibration.load_calibration().role_offsets).hips.is_equal_approx(desired), "persisted role calibration restores exact corrected pose")
+
+func test_foot_stability():
+	var solver = load("res://scripts/assets/full_body_solver.gd").new()
+	check(solver.has_method("stable_foot_target"), "FBT foot solver suppresses stationary tracker jitter")
+	if not solver.has_method("stable_foot_target"): return
+	var initial = Transform3D(Basis.IDENTITY, Vector3(0.1, 0.1, 0))
+	var first: Transform3D = solver.stable_foot_target("leftFoot", initial, 1.0 / 60)
+	var jitter = initial
+	jitter.origin.x += 0.005
+	check(solver.stable_foot_target("leftFoot", jitter, 1.0 / 60).origin.is_equal_approx(first.origin), "sub-centimeter planted foot jitter does not slide ankle")
+	var step = initial
+	step.origin += Vector3(0.1, 0.1, 0)
+	var moved: Transform3D = solver.stable_foot_target("leftFoot", step, 1.0 / 60)
+	check(moved.origin.distance_to(first.origin) > 0.01, "deliberate foot lift releases plant instead of pinning user")

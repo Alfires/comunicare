@@ -23,7 +23,39 @@ func _valid(data: Variant) -> bool:
 		if not values is Array or values.size() != 3: return false
 		for value in values:
 			if not (value is int or value is float) or not is_finite(value) or absf(value) > 1: return false
+	var offsets = data.get("role_offsets", {})
+	if not offsets is Dictionary or offsets.size() > 6: return false
+	for role in offsets:
+		if role not in ["head", "leftHand", "rightHand", "hips", "leftFoot", "rightFoot"] or not _valid_offset(offsets[role]): return false
 	return true
+
+func _valid_offset(values: Variant) -> bool:
+	if not values is Array or values.size() != 7: return false
+	for value in values:
+		if not (value is int or value is float) or not is_finite(value) or absf(value) > 2: return false
+	var q = Quaternion(values[3], values[4], values[5], values[6])
+	return absf(q.length_squared() - 1) < 0.01 and Vector3(values[0], values[1], values[2]).length() <= 1
+
+func capture_roles(samples: Dictionary, desired: Dictionary) -> Dictionary:
+	var result: Dictionary = {}
+	for role in desired:
+		if not samples.get(role) is Transform3D or not desired[role] is Transform3D: continue
+		if not samples[role].is_finite() or not desired[role].is_finite(): continue
+		var offset: Transform3D = samples[role].affine_inverse() * desired[role]
+		var q = offset.basis.orthonormalized().get_rotation_quaternion()
+		var values = [offset.origin.x, offset.origin.y, offset.origin.z, q.x, q.y, q.z, q.w]
+		if _valid_offset(values): result[role] = values
+	return result
+
+func calibrated_targets(samples: Dictionary, offsets: Dictionary) -> Dictionary:
+	var result: Dictionary = {}
+	for role in samples:
+		if not samples[role] is Transform3D or not samples[role].is_finite(): continue
+		if not offsets.has(role): continue # New assignments need explicit calibration.
+		var v = offsets[role]
+		if not _valid_offset(v): continue
+		result[role] = samples[role] * Transform3D(Basis(Quaternion(v[3], v[4], v[5], v[6])), Vector3(v[0], v[1], v[2]))
+	return result
 
 func load_calibration() -> Dictionary:
 	if not FileAccess.file_exists(path): return {}

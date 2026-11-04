@@ -57,6 +57,7 @@ var safety = preload("res://scripts/player/vr_safety.gd").new()
 var teleport_held := false
 var teleport_candidate: Dictionary = {}
 var teleport_marker: MeshInstance3D
+var role_offsets: Dictionary = {}
 
 
 func _ready():
@@ -79,7 +80,7 @@ func set_player_pos(pos: Vector3):
 func _process(delta: float):
 	_update_runtime_trackers()
 	if is_instance_valid(tracking_modifier) and is_instance_valid(skeleton):
-		var targets = tracker_roles.targets(Time.get_ticks_msec())
+		var targets = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)
 		var body_targets: Dictionary = {}
 		for role in ["hips", "leftFoot", "rightFoot"]:
 			if targets.has(role): body_targets[role] = skeleton.global_transform.affine_inverse() * targets[role]
@@ -357,7 +358,9 @@ func load_vrm_model():
 	var revision: String = vrm_model.get_meta("asset_revision", "")
 	if not owner.is_empty() and not revision.is_empty():
 		tracking_calibration.configure("user://tracking/" + owner + "-" + revision + ".json", owner, revision)
-		tracking.set_calibration(tracking_calibration.load_calibration())
+		var saved_calibration = tracking_calibration.load_calibration()
+		tracking.set_calibration(saved_calibration)
+		role_offsets = saved_calibration.get("role_offsets", {})
 	# The tracked camera stays under XROrigin3D. Avatar animation/IK must
 	# follow the headset, never make the headset follow an animated bone.
 

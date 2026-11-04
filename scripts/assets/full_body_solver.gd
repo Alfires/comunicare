@@ -2,10 +2,25 @@ extends RefCounted
 ## Optional target-space pelvis/feet solver. No tracker discovery or camera writes.
 var skeleton: Skeleton3D
 var humanoid: Dictionary = {}
+var planted: Dictionary = {}
+
+func stable_foot_target(role: String, target: Transform3D, delta: float) -> Transform3D:
+	if not planted.has(role):
+		planted[role] = target
+		return target
+	var previous: Transform3D = planted[role]
+	var distance = previous.origin.distance_to(target.origin)
+	if distance < 0.015 and absf(target.origin.y - previous.origin.y) < 0.01:
+		return Transform3D(target.basis, previous.origin)
+	# Release on deliberate movement. Bounded smoothing preserves responsiveness.
+	var result = previous.interpolate_with(target, clampf(delta * 30, 0, 1))
+	planted[role] = result
+	return result
 
 func configure(rig: Skeleton3D, mapping: Dictionary):
 	skeleton = rig
 	humanoid = mapping.duplicate()
+	planted.clear()
 
 func solve(targets: Dictionary, delta: float):
 	if not is_instance_valid(skeleton) or not is_finite(delta) or delta <= 0: return
@@ -19,7 +34,10 @@ func solve(targets: Dictionary, delta: float):
 			skeleton.set_bone_pose_rotation(hips, local.basis.orthonormalized().get_rotation_quaternion())
 	for side in ["left", "right"]:
 		var target = targets.get(side + "Foot")
-		if not target is Transform3D or not target.is_finite(): continue
+		if not target is Transform3D or not target.is_finite():
+			planted.erase(side + "Foot")
+			continue
+		target = stable_foot_target(side + "Foot", target, delta)
 		var upper = skeleton.find_bone(humanoid.get(side + "UpperLeg", ""))
 		var lower = skeleton.find_bone(humanoid.get(side + "LowerLeg", ""))
 		var foot = skeleton.find_bone(humanoid.get(side + "Foot", ""))

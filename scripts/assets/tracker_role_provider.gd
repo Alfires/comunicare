@@ -25,3 +25,12 @@ func targets(now: int) -> Dictionary:
 func clear():
 	samples.clear()
 	assignments.clear()
+
+func available(now: int) -> Array:
+	var result: Array = []
+	for id in samples:
+		if samples[id].valid and now >= samples[id].at and now - samples[id].at <= 1000: result.append(id)
+	return result
+
+func unassign(role: String):
+	assignments.erase(role)

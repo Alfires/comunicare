@@ -3,6 +3,10 @@ extends SceneTree
 var passed := 0
 var failed := 0
 
+class TrackingPlayer extends Node:
+	var tracker_roles = preload("res://scripts/assets/tracker_role_provider.gd").new()
+	var rig_report = {"valid": false, "errors": ["fixture missing rig"]}
+
 func _initialize():
 	call_deferred("run")
 
@@ -38,6 +42,7 @@ func run():
 	test_pointer_capture()
 	test_comfort_state()
 	test_text_entry()
+	test_tracking_setup()
 	print("\nRED VR controls: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -243,3 +248,19 @@ func test_text_entry():
 	check(not keyboard.visible, "virtual keyboard closes without leaving a visible input overlay")
 	field.queue_free()
 	keyboard.queue_free()
+
+func test_tracking_setup():
+	var player = TrackingPlayer.new()
+	root.add_child(player)
+	player.tracker_roles.update_sample("waist-fixture", Transform3D.IDENTITY, true, Time.get_ticks_msec())
+	var setup = load("res://scripts/GUI/vr_tracking_setup.gd").new()
+	root.add_child(setup)
+	setup.configure(player)
+	check(setup.choices.hips.item_count == 2, "actual setup panel lists exposed fresh tracker and untracked fallback")
+	setup.choices.hips.item_selected.emit(1)
+	check(player.tracker_roles.assignments.get("hips") == "waist-fixture", "actual setup selection assigns tracker through role provider")
+	setup.choices.hips.item_selected.emit(0)
+	check(not player.tracker_roles.assignments.has("hips"), "actual setup untracked choice removes role assignment")
+	check("fixture missing rig" in setup.status.text, "tracking setup exposes rig diagnostics instead of pretending calibration succeeded")
+	setup.queue_free()
+	player.queue_free()

@@ -37,6 +37,7 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / source, target)
         shutil.copy2(HERE / "network.gd", project / "network.gd")
+        shutil.copy2(ROOT / "scripts/GUI/vr_tracking_setup.gd", project / "scripts/GUI/vr_tracking_setup.gd")
         shutil.copy2(HERE / "suite.gd", project / "suite.gd")
         shutil.copy2(HERE / "lifecycle_suite.gd", project / "lifecycle_suite.gd")
         (project / "project.godot").write_text(

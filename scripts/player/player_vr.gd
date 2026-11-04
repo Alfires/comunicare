@@ -70,6 +70,7 @@ func set_player_pos(pos: Vector3):
 	velocity = Vector3.ZERO
 
 func _process(delta: float):
+	_update_runtime_trackers()
 	if is_instance_valid(tracking_modifier) and is_instance_valid(skeleton):
 		var targets = tracker_roles.targets(Time.get_ticks_msec())
 		var body_targets: Dictionary = {}
@@ -154,6 +155,15 @@ func _toggle_main_menu():
 		main_panel.viewport.set_meta("vr_menu", true)
 		main_ui = load("res://scenes/GUI/menue.tscn").instantiate()
 		main_panel.viewport.add_child(main_ui)
+		var tracking_button = Button.new()
+		tracking_button.text = "VR tracker setup"
+		tracking_button.position = Vector2(12, 45)
+		tracking_button.custom_minimum_size = Vector2(180, 40)
+		main_panel.viewport.add_child(tracking_button)
+		tracking_button.pressed.connect(func():
+			var setup = preload("res://scripts/GUI/vr_tracking_setup.gd").new()
+			main_panel.viewport.add_child(setup)
+			setup.configure(self))
 		virtual_keyboard = preload("res://scripts/GUI/vr_keyboard.gd").new()
 		main_panel.viewport.add_child(virtual_keyboard)
 		main_panel.viewport.gui_focus_changed.connect(func(control):
@@ -224,6 +234,17 @@ func _create_comfort_overlay():
 	comfort_material.shader = shader
 	mesh.material_override = comfort_material
 	xr_camera.add_child(mesh)
+
+func _update_runtime_trackers():
+	var trackers = XRServer.get_trackers(XRServer.TRACKER_ANY)
+	for id in trackers:
+		var tracker = trackers[id]
+		if not tracker is XRPositionalTracker or tracker is XRControllerTracker: continue
+		if str(id) in ["head", "/user/head"]: continue
+		var pose = tracker.get_pose("default")
+		if pose == null: continue
+		tracker_roles.update_sample(str(id), origin_node.global_transform * pose.transform,
+			pose.has_tracking_data and pose.tracking_confidence != XRPose.XR_TRACKING_CONFIDENCE_NONE, Time.get_ticks_msec())
 
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:

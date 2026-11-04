@@ -413,7 +413,9 @@ pose history. Scope checks are integrity isolation, not cryptographic signatures
 
 RefCounted transient sample adapter. `update_sample` accepts finite timestamped
 validity/pose per ephemeral ID, ignores older samples. `assign` validates supported
-role/existing valid device and prevents one device on two roles. `targets` returns
+role/existing valid device and prevents one device on two roles. `available` lists
+fresh runtime sample IDs; `unassign` clears a role without deleting the sample.
+`targets` returns
 fresh assigned transforms within one second; `clear` drops samples/assignments.
 This adapter does not discover hardware or claim every runtime exposes FBT.
 
@@ -755,6 +757,16 @@ protocol; use FriendEvent/FriendService/FriendRouter. Do not infer an offline
 friend-message feature from the filename.
 
 ## UI contracts
+
+<!-- module: scripts/GUI/vr_tracking_setup.gd -->
+### [VRTrackingSetup](../../scripts/GUI/vr_tracking_setup.gd)
+
+Viewport-local setup panel. `configure` binds the active VR player; private refresh
+lists fresh runtime-exposed positional trackers and lets users assign/unassign
+hips/feet with duplicate-role guards. Calibration saves current eye height and
+zero grip offsets only, explicitly not full-body orientation calibration. No device
+serial persistence or implied support for trackers absent from the OpenXR runtime.
+The panel reports rig warnings and preserves blocked corrupt calibration stores.
 
 <!-- module: scripts/GUI/vr_keyboard.gd -->
 ### [VRKeyboard](../../scripts/GUI/vr_keyboard.gd)

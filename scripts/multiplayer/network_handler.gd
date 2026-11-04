@@ -15,6 +15,7 @@ var directory_refresh_at := 0
 var gameplay_tunnel
 var current_origin := ""
 var relay_presets: Array = []
+var relay_block_snapshot: Dictionary = {"ids": [], "endpoints": []}
 signal relay_directory_changed
 
 func get_directory_browser():
@@ -158,19 +159,30 @@ func get_relay_preferences():
 			if configured_port is int or configured_port is float: port = int(configured_port)
 		relay_preferences.migrate_legacy(address, port)
 	relay_preferences.changed.connect(_relay_policy_changed)
+	var initial_policy = relay_preferences.snapshot()
+	relay_block_snapshot = {"ids": initial_policy.blocked_ids.duplicate(), "endpoints": initial_policy.blocked_endpoints.duplicate()}
 	return relay_preferences
 
 func _relay_policy_changed():
+	var policy = relay_preferences.snapshot()
+	var newly_blocked = false
+	for id in policy.blocked_ids:
+		if not id in relay_block_snapshot.ids: newly_blocked = true
+	for endpoint in policy.blocked_endpoints:
+		if not endpoint in relay_block_snapshot.endpoints: newly_blocked = true
+	relay_block_snapshot = {"ids": policy.blocked_ids.duplicate(), "endpoints": policy.blocked_endpoints.duplicate()}
 	if directory_browser != null:
-		var policy = relay_preferences.snapshot()
 		directory_browser.set_blocks(policy.blocked_ids, policy.blocked_endpoints)
-		if lan_discovery != null: lan_discovery.model.configure({"enabled": lan_discovery.socket != null}, policy.blocked_ids)
-		if gameplay_tunnel != null:
+		if newly_blocked and lan_discovery != null: lan_discovery.model.configure({"enabled": lan_discovery.socket != null}, policy.blocked_ids)
+		if newly_blocked and gameplay_tunnel != null:
 			# Conservatively end a route on block changes until all active actor
 			# ingress provenance is carried by the origin membership protocol.
 			gameplay_tunnel.close()
 			gameplay_tunnel = null
-			if peer != null: peer.disconnected_from_relay()
+			last_session_error = "Relay block policy changed; active route ended for safety"
+			if peer != null:
+				if peer.peer != null: peer.peer.peer_disconnect_now()
+				peer.disconnected_from_relay()
 	if active_relay_entry.is_empty() or not relay_preferences.is_blocked(active_relay_entry): return
 	if peer != null:
 		if peer.peer != null: peer.peer.peer_disconnect_now()

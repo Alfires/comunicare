@@ -24,6 +24,7 @@ var discovery_sequence := 0
 var filter_text := ""
 var legacy_timed_out := false
 var local_instances: Dictionary = {}
+var connecting := false
 signal reset
 
 func _ready() -> void:
@@ -52,7 +53,7 @@ func _request_catalog() -> void:
 func _process(_delta: float) -> void:
 	if discovery_peer != NetworkHandler.peer:
 		_attach_peer()
-	if refreshing and Time.get_ticks_msec() - refresh_started > 10000:
+	if refreshing and not connecting and discovery_peer != null and Time.get_ticks_msec() - refresh_started > 10000:
 		# A request has no correlation ID: don't issue overlapping requests.
 		# Clear stale entries, but allow a later reliable response to recover.
 		status.text = "Discovery timed out; retrying public instances…"
@@ -285,11 +286,14 @@ func _on_reload_pressed() -> void:
 		return
 	if discovery_peer == null or not discovery_peer.is_connected_to_relay:
 		if NetworkHandler.has_method("ensure_relay_connected"):
+			if connecting: return
+			connecting = true
 			refreshing = true
 			refresh_started = Time.get_ticks_msec()
 			status.text = "Connecting to relay…"
 			var connected_ok: bool = await NetworkHandler.ensure_relay_connected()
 			if not is_inside_tree(): return
+			connecting = false
 			refreshing = false
 			_attach_peer()
 			if connected_ok:

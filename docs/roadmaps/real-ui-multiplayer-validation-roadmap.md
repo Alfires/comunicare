@@ -1,6 +1,16 @@
 # Real UI multiplayer investigation and acceptance roadmap
 
 **Status: investigated and planned, 2026-11-04. No production fixes in this change.**
+**Execution update:** `tests/real_ui` now permanently reproduces full-autoload live
+membership edits. The unrelated add/reorder/remove disconnect bug is fixed by
+separating new block restrictions from ordinary preference changes; active blocks
+still disconnect. Network category pointer hit tests now use the viewport final
+transform and pass at two sizes in scene-input/headless mode. Connection waiting
+is separate from directory timeout/null-peer handling. Initial headless checks pass;
+combined rendered execution has timed out and is not certified. Clean-copy import
+also exposed incompatible vendored VRM editor callback returns; only disposable
+test editor plugins are disabled. See [runner limits](../../tests/real_ui/README.md).
+Startup shell, form redesign, two-window gameplay and soak phases remain open.
 The user's report that the system does not work is not disproved by service-test
 passes. This roadmap establishes a user-visible acceptance gate for the existing
 desktop UI, startup, relay settings, LAN discovery, world browser and federation.

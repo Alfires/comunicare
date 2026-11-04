@@ -846,6 +846,10 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+Preference notifications now compare independent identity/endpoint block sets:
+ordinary add/reorder/remove does not close active federated gameplay. Newly added
+restrictions still conservatively terminate the tunnel; missing per-actor ingress
+provenance means this cannot yet be narrowed to every affected remote actor.
 `get_relay_presets` returns copied application discovery seed definitions for the
 Network panel. These are independent of saved main/fallback order and respect the
 directory client's identity/endpoint blocks before opening network connections.

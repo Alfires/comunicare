@@ -1,13 +1,19 @@
 # Safe, editable worlds and shared interaction roadmap
 
 **Status: proposal, 2026-11-04. No runtime implementation or security certification.**
+**Authoring clarification:** worlds are ordinary Godot projects, edited in Godot
+with its built-in nodes, scene instances, resources, materials and texture tools.
+Add a metadata file and manually package the world; no custom editor or mandatory
+publishing plugin. This supersedes the initial custom-editor/JSON-source proposal.
 This is the target design for replacing downloaded executable Godot worlds. It
 does not make today's loader safe. The current behavior remains documented in
 [worlds and instances](../guides/worlds-settings-and-voice.md).
 
 ## 1. Product contract and explicit interpretation
 
-- Anyone can build, preview, save, publish and update a world without writing code.
+- Anyone can create a normal Godot project and build, save and update the world in
+  the Godot editor, with full standard-material texture support and a documented
+  safe profile of built-in nodes/resources. Publication is manual for now.
   Optional scripts still run on players' devices, but only inside a restricted
   world-language interpreter, never as downloaded GDScript or native code.
 - Desktop and VR users can pick up, use, carry, pass and throw the same items.
@@ -55,7 +61,7 @@ is missing; safe policy handoff below is required, not assumed already present.
 ## 3. Architecture and trust boundaries
 
 ```text
-local editor project → validate/build → immutable world package → existing URL
+Godot project → add metadata → manually ZIP selected files → existing URL
                                                                   ↓
 catalog/URL → bounded fetch → archive/schema/asset validation → staged WorldDocument
                                                                   ↓
@@ -70,9 +76,9 @@ Proposed modules, names subject to implementation review:
 
 | Module | Responsibility |
 | --- | --- |
-| `WorldPackageReader` / `WorldValidator` | Bounded bytes to typed data; no resource execution, extraction-dependent loading or network callbacks. |
+| `WorldPackageReader` / `WorldValidator` | Bounded ZIP/TSCN/TRES/media parsing to typed data; no engine resource execution or project startup. |
 | `WorldDocument` / `WorldBuilder` | Stable IDs, validated components; construct only application-owned node types/materials. |
-| `WorldEditor` / `WorldProjectStore` | Draft operations, undo, recovery, validation and reproducible export. |
+| Godot editor / optional future author tools | Native scene/resource editing and saves; metadata examples and manual packaging instructions first, optional validation/export convenience later. |
 | `WorldScriptVM` / `WorldCapabilityBroker` | Metered interpreter and checked commands; no engine objects cross the boundary. |
 | `InteractionService` / desktop and VR adapters | Selection, grip requests, prediction, held pose, use and release. |
 | `WorldStateReplicator` | Revision-scoped commands, snapshots, sequencing and recovery. |
@@ -92,38 +98,64 @@ Replace the old executable-scene archive schema, not account/profile/friends
 storage. Three deliberately separate formats prevent saving private or transient
 state into published worlds.
 
-### 4.1 Editable source project
+### 4.1 Editable source: a normal Godot project
 
 ```text
 my-world/
-  project.json                 # source schema, world ID, title, editor preferences
-  scene/entities.json          # stable UUID entities and typed components
-  prefabs/<uuid>.json          # reusable editable assemblies
+  project.godot                # normal Godot project, author-side only
+  world.json                   # world metadata; packaged as manifest.json
+  scenes/world.tscn            # main scene made in the Godot editor
+  scenes/props/*.tscn          # reusable native scene instances
+  materials/*.tres             # built-in materials/resources
+  models/*                    # imported model sources
+  textures/*                  # textures edited/configured using Godot
+  audio/*
   logic/<uuid>.worldscript     # UTF-8 restricted language source
-  assets/<local-name>.*        # source media with licenses/provenance
   attribution.json
 ```
 
-- Human-readable, version-control-friendly JSON; no Godot scene/resource files.
-  Reject duplicate keys, invalid encodings and ambiguous numbers/IDs.
-- Atomic replace with previous-good recovery, bounded autosave journal and explicit
-  schema migrations. Preserve damaged originals and unknown newer projects;
-  never silently overwrite them. Undo is an editor operation log, not game state.
-- Local filenames are source-only. Import copies into a chosen project root;
-  documents cannot request arbitrary reads. Protect editor imports too.
-- Collaboration initially means exchanging source projects/version-control changes,
-  not concurrent editing rights for instance admins. Stable IDs support future merges.
+- Start with Godot's New Project dialog; add a Node3D world scene, meshes,
+  colliders, lights, environments and materials normally. Save/edit with Godot's
+  existing inspector, gizmos, import dock, undo and scene/resource system.
+- Support built-in nodes/resources through a versioned compatibility table, not a
+  replacement JSON hierarchy the author must maintain. Target Node/Node3D,
+  MeshInstance3D, StaticBody3D, RigidBody3D, CollisionShape3D, Area3D, Marker3D,
+  lights, WorldEnvironment, bounded animation and in-world UI, with reviewed
+  properties. Extend the table to more native types; unsupported features produce
+  actionable errors, not silent removal or unrestricted class instantiation.
+- Add application features through editor-set node metadata and `world.json`:
+  stable entity UUID, pickup/grip settings, spawn markers and restricted script
+  bindings. Reference nodes with scene-local paths resolved to UUIDs during
+  validation; paths never become permission to call arbitrary engine methods.
+- Normal Godot nested scenes, external materials and imported model placement
+  remain usable. Resolve the entire dependency graph inside the package, including
+  UID references; missing/ambiguous dependencies and cycles fail clearly. Document
+  a source-based import profile so authors need not ship their `.godot` cache.
+- The author's own local project can contain trusted tools/GDScript for authoring,
+  but that code is never automatically included or run on joining clients. Ordinary
+  Godot GDScript is not converted into safe world scripts merely by packaging it.
+- Collaboration uses ordinary Godot project files/version control. Keep source
+  backups; validators never rewrite source or overwrite newer/corrupt metadata.
+  Opening an untrusted project in Godot can execute editor tooling: joiners must
+  not open downloaded worlds as projects to validate or play them.
 
 ### 4.2 Published `.cworld` package, schema version 1
 
-Use a strictly profiled ZIP container supported by ordinary HTTP hosting. The
-extension is new; the old `main_scene` archive is **not** accepted as this format.
+Use a strictly profiled ZIP container supported by ordinary HTTP hosting. Authors
+manually ZIP the selected scene/resource/media files and metadata. `.zip` and
+`.cworld` may name the same container; validate contents, not the extension. The
+new manifest identifies the safe schema; the old executable-scene archive is not
+accepted as safe simply because its filenames look similar.
 
 ```text
 manifest.json
-scene.json
-logic/<sha256>.json             # validated typed syntax tree, never engine bytecode
-assets/<sha256>.<allowed-type>  # self-contained data only
+scenes/world.tscn               # parsed as data, NEVER loaded as a downloaded PackedScene
+scenes/props/*.tscn
+materials/*.tres                # parsed allowlisted resources/properties
+models/*
+textures/*
+audio/*
+logic/*.worldscript             # parsed/validated by the restricted language frontend
 attribution.json
 ```
 
@@ -136,10 +168,7 @@ Illustrative manifest, not a frozen wire/schema specification:
   "world_id": "4aa3a976-15cf-4d85-bd41-5677a12abcde",
   "release": "1.0.0",
   "requires": {"world_api": 1, "script_api": 1},
-  "entry": "scene.json",
-  "files": [
-    {"path": "scene.json", "sha256": "<64 lowercase hex characters>", "bytes": 1234}
-  ],
+  "main_scene": "scenes/world.tscn",
   "script_capabilities": ["entity.read", "entity.visual", "interaction.events"]
 }
 ```
@@ -148,25 +177,53 @@ Illustrative manifest, not a frozen wire/schema specification:
   `release` is a display version, not security. The revision used by joins/cache is
   SHA-256 of the **complete downloaded archive**, retaining the existing model.
   Do not put a self-referential archive hash inside the archive.
-- Define a canonical manifest serialization for optional publisher signatures
-  over manifest fields plus the complete file hash table (excluding the signature).
-  Reject duplicate/unlisted entries; signatures identify a publisher, not safe code.
-  Pinning a publisher is separate from account ownership and must warn on key changes.
-- Deterministic build order, timestamps, numeric encoding and compression settings;
-  hash table covers every non-manifest file. Rebuilds of identical input must match.
+- The minimal hand-written metadata requires format/schema/API versions, world ID,
+  release and main scene. The reader computes whole-archive and per-file hashes;
+  a generated file table or signature is not required for manual ZIP publication.
+  Reject duplicate entries/keys and invalid encoding before resolving references.
+- Future optional compiler tooling may produce canonical packages, complete file
+  tables and publisher signatures. Signatures identify publishers, not safe code;
+  they never bypass validation. Manual ZIP timestamps/order may change the revision
+  even with identical content; reproducible builds are a future tooling feature,
+  not a prerequisite for the initial workflow.
 - Entity UUIDs are stable across edits. Components are allowlisted: transform,
   bounded mesh/material, static collider, spawn, light, audio emitter, trigger,
   pickup, grip anchors, declarative UI, script binding and typed state definition.
   Validate hierarchy cycles, references, transforms and scale before construction.
-- No `.tscn`, `.scn`, `.tres`, `.res`, `.gd`, PCK, DLL/shared library, shader code,
-  arbitrary class names, NodePaths, method names or serialized engine objects.
-  Never call `load()`, `ResourceLoader` or object-enabled Variant deserialization
-  on package-selected content. Trusted application resources remain internal.
-- Initial media profile: validated self-contained GLB geometry with external URIs,
-  unknown extensions and embedded executable behavior rejected; bounded PNG/JPEG
-  textures and bounded WAV audio. Rebuild materials from approved parameters;
-  don't accept arbitrary glTF-generated trees as trusted scenes. Add formats only
-  after decoder review, test vectors and resource limits.
+- `.tscn` and `.tres` are **input syntax, not executable engine resources**. Use a
+  bounded static parser for a documented subset of Godot text serialization,
+  validating every section, type, property, reference and value before constructing
+  application-owned nodes/resources. Never feed these files to `load()`,
+  `ResourceLoader`, `PackedScene.instantiate()` or object-enabled deserialization.
+  Reject attached engine scripts, executable resources, autoloads, arbitrary signal
+  method connections and animation method tracks. Scene inheritance/instances must
+  be resolved statically and revalidated; application templates are not bypasses.
+- Do not mount PCKs or run downloaded `project.godot`. Ordinary Godot export/compile
+  produces neither a sandbox nor a safe package. Initial publication uses text
+  scenes/resources plus source media; binary `.scn`/`.res`, GDScript bytecode,
+  native libraries and custom shader code are not accepted. A future manually
+  invoked safe compiler can output a validated intermediate format; clients must
+  still validate it. No compiler is required for initial manual ZIP creation.
+- Mesh import supports bounded GLB and source dependencies under the package root;
+  external network/absolute paths and unsupported executable extensions are rejected.
+  Never trust arbitrary importer-generated nodes without reconstruction/validation.
+  Bound and review every additional media decoder before support is enabled.
+- **Full standard-material texture support is a core target**, not an albedo-only
+  prototype: albedo/alpha, normal, roughness, metallic, ambient occlusion, emission,
+  height/parallax, detail, clearcoat and other reviewed StandardMaterial3D/
+  ORMMaterial3D channels; UV1/UV2 transforms, filtering, repeat, mipmaps, channel
+  packing, transparency, culling and supported texture color-space semantics.
+  Include lightmap and environment textures, with capability/renderer diagnostics.
+  Validate material/pass chains and bound passes/layers to prevent GPU exhaustion.
+- Preserve Godot-configured texture meaning through reviewed import options and
+  source media, not arbitrary `.godot/imported` resources. Include required `.import`
+  sidecars as statically parsed settings only: allowlist options, ignore generated
+  cache destinations and never invoke package-selected importers. Target PNG/JPEG/WebP
+  for ordinary images and reviewed HDR/EXR support for environment/high-range maps;
+  add bounded compressed, layered and procedural built-in textures through the
+  compatibility table. Rasterize unsupported source formats in the author's project
+  or report them explicitly. Custom GPU programs and every possible texture plugin
+  are not implied by "full texture support"; publish a precise parity matrix.
 - No package-requested network URLs, including textures, audio, scripts or fonts.
   All dependencies are embedded and hashed. Catalog thumbnails use their own
   existing bounded fetch path and never grant scripts network access.
@@ -199,8 +256,11 @@ Illustrative manifest, not a frozen wire/schema specification:
 
 Choose a small **typed, metered interpreter** for version 1, not filtered GDScript,
 `Expression.execute()` with engine objects, or an unrestricted Lua/Python binding.
-Visual logic and text scripts compile to the same validated syntax tree. Loaders
-revalidate the tree; a compiler's output is still untrusted input.
+Authors edit restricted text scripts alongside their Godot project and bind them
+using node/world metadata. The client parses and validates them into a typed syntax
+tree; an optional future visual tool/compiler can target that same representation.
+Compiler output is still untrusted input. Standard Godot script attachments do
+not gain unrestricted client execution through this workflow.
 
 - Support variables, finite numbers, booleans, bounded strings/arrays, functions,
   conditionals, bounded loops and event callbacks. No reflection, dynamic imports,
@@ -341,22 +401,34 @@ the [current lifecycle contract](../relay-data-lifecycle.md) stays binding throu
 
 ## 9. Easy authoring, publication and safe updates
 
-The normal workflow should be: **New from template → place/import → test → publish
-file → upload to the same web host → share the same URL**.
+The initial workflow is entirely manual:
 
-- Desktop editor first: hierarchy, drag/drop placement, gizmos/snapping, inspector,
-  prefab library, spawn markers, grip preview, undo/redo, autosave and diagnostics
-  linked to the offending entity. Use shared accessible UI; VR placement/edit tools
-  follow without making VR hardware necessary to author worlds.
-- Templates include room, outdoor space and pickup playground. Visual logic covers
-  switches, doors, timers and sounds; text view exposes the same restricted language.
-  Explain budgets and denied APIs in plain language. Source files remain editable.
-- Import wizard reports material/mesh conversion, texture/physics budgets, missing
-  licenses and unsupported features. Publishing strips source paths/private editor
-  data, validates all references and builds reproducibly into a chosen local file.
-- Preview uses exactly the production validator, builder, interpreter and limits,
-  with fake participants and desktop/VR grip visualization. No editor-only bypass
-  that accidentally makes unsafe packages seem publishable.
+1. Create a new project in the supported Godot version (currently 4.7).
+2. Build a world normally using Godot nodes, scene instances, imported models,
+   materials and textures. Save the main scene and all dependencies.
+3. Add `world.json` using the documented metadata example, mark spawn/pickup/grip
+   nodes through metadata and optionally add restricted world-script files.
+4. Copy selected content into a staging folder, copy `world.json` as
+   `manifest.json`, and preserve package-relative paths. Exclude `.godot`, `.git`,
+   secrets, accounts, editor plugins and ordinary executable scripts. `project.godot`
+   stays in the author's project; the package is content, not a runnable project.
+5. Manually ZIP the staging contents with `manifest.json` at the archive root.
+   No special compiler, custom editor, plugin or upload service is mandatory.
+6. Test the package using the client's safe offline preview, then manually upload
+   it to the same hosting location and share/update the existing URL/catalog entry.
+7. To update, reopen the original project in Godot, edit/save, increment release
+   metadata, repeat packaging and test before upload. Keep source and old archives.
+
+- Supply documentation, a complete example Godot project and a metadata template
+  first. Optional Godot inspector helpers, validators and safe compiler/export
+  scripts can come later without replacing this manual workflow.
+- Native Godot Run is useful for trusted local visual work but does not demonstrate
+  client compatibility or sandbox safety. Safe preview must use exactly the
+  production parser, builder, VM, material profile and limits, reporting unsupported
+  nodes/properties/textures with original scene/resource paths.
+- Manual packaging must not depend on hidden cache files or undocumented remap
+  tables. Test a freshly copied project/package on a second machine with no author
+  import cache. Never run a packaged editor plugin to import a downloaded world.
 - Save edits as a new immutable revision. Upload the exported package using the
   existing hosting method; no automatic request for hosting credentials. Keep older
   files at immutable URLs if old pinned instances should remain joinable.
@@ -402,16 +474,16 @@ as completed implementation.
 
 | Phase | Deliverable | Exit gate |
 | --- | --- | --- |
-| 0 — contracts | Threat model, strict schemas, VM semantics, permission matrix, wire negotiation and reviewed moderation privacy decision | Malicious author/peer/admin cases mapped to controls; no hidden host/server assumption; parser-isolation decision recorded. |
-| 1 — data-only worlds | Package tooling, bounded reader, typed document/builder, safe built-in example | Hostile archive/schema/media corpus fails closed; no executable-resource loads; deterministic build; malformed input leaves current world untouched. |
-| 2 — editor and saves | Templates, entity/prefab tools, validated imports, undo/autosave/recovery, export | Beginner creates/edits/reopens/publishes a pickup room without code; interrupted saves recover; source/cache separation verified. |
-| 3 — restricted scripting | Typed language, visual logic, fuel/memory accounting, broker and diagnostics | Doors/puzzles work; filesystem/network/reflection and handle escape tests fail; infinite loops/event floods cannot freeze trusted UI. |
+| 0 — contracts | Threat model, metadata schema, Godot node/resource/texture parity matrix, VM semantics, permission matrix, wire negotiation and moderation privacy review | Supported native authoring features and rejected executable features are explicit; parser-isolation decision recorded. |
+| 1 — data-only worlds | Bounded ZIP/TSCN/TRES/media reader, typed document/builder, standard-material texture pipeline | Hostile corpus fails closed; no downloaded resource execution; representative multi-textured Godot scenes preserve reviewed properties; malformed input preserves current world. |
+| 2 — manual Godot authoring | Example Godot project, metadata template, node/grip metadata guide, manual ZIP instructions and safe preview | New ordinary Godot project can be edited/reopened, packaged and played on a clean machine without custom editor/plugin/compiler or author import cache. |
+| 3 — restricted scripting | Typed text language bound through metadata, fuel/memory accounting, broker and diagnostics | Doors/puzzles work; filesystem/network/reflection and handle escape tests fail; infinite loops/event floods cannot freeze trusted UI. |
 | 4 — ephemeral replication | Sequenced events, grip leases, late-join snapshots, bounded physics controller transfer | Multi-client loss/reorder/race/disconnect tests; no cross-instance/revision packets accepted; relay restart/cleanup retains no user/session history. |
 | 5 — complete pickup UX | Shared desktop/VR interaction, remote grips, throws, handoff and two hands | Real desktop + headset sessions see identical holders; tracking loss, comfort, collision and accessibility checks pass. |
 | 6 — roles and updates | Kick/ban-only moderation, deterministic fallback, safe policy handoff, revision notifications/new-instance update UX | Creator has no extra powers; last-admin abrupt exit tested; incomplete policy fails closed; update refusal preserves current play. |
 | 7 — rollout | Legacy conversion guidance, compatibility rejection, current documentation and security review | No normal remote-scene execution path; external hostile-content review; performance/hardware gates and remaining risks published. |
 
-Proposed isolated suites: `tests/world_format`, `tests/world_editor`,
+Proposed isolated suites: `tests/world_format`, `tests/world_authoring`,
 `tests/world_scripting`, `tests/world_replication` and `tests/world_interaction`.
 These directories do not exist as a consequence of this plan. Use disposable
 projects/accounts like the existing runners, never normal startup against real data.
@@ -422,10 +494,17 @@ Required test matrix:
   truncated files, forged sizes/hashes/signatures, unsupported schemas and NaN/Inf.
 - Malformed GLB/images/audio, external dependency references, decoder memory/time,
   excessive hierarchy/colliders/materials and attempted engine resource injection.
+- Malicious TSCN/TRES constructors, script attachments, inherited/instanced scenes,
+  UID/path collisions, signal connections and animation call tracks; reject them
+  without loading resources or starting the downloaded project.
+- Godot-created scene/material fixtures covering PBR channels, alpha, UV transforms,
+  normal/color-space handling, mipmaps, filtering, lightmaps and HDR environments;
+  compare safe-preview renders with the documented native rendering profile.
 - VM arithmetic/loop/call-depth/heap/event exhaustion, command amplification,
   stale/forged handles, capability bypass and world-UI impersonation boundaries.
 - Cross-account local-save access, corrupt save preservation, interrupted writes,
-  cache eviction during active leases and reproducible package export.
+  cache eviction during active leases, manual ZIP dependency completeness and
+  optional compiler reproducibility when that tooling is introduced.
 - Simultaneous grabs, forged senders/roles, old epochs, reused peers, stale snapshots,
   disconnect mid-transaction, divergent digests and malicious single-donor data.
 - Admin privilege escalation, creator departure, policy handoff/timeout, reconnect
@@ -439,12 +518,14 @@ Required test matrix:
 
 ## 12. Completion definition and non-goals
 
-Complete means a novice can create, safely preview, publish, edit and republish a
-world through current hosting; another user can join without enabling native world
-code; useful restricted scripts run; VR/desktop players see each other's carried
+Complete means an author can create an ordinary Godot project, use its native
+scene/material/texture tools, add metadata and manually ZIP, safely preview, publish,
+edit and republish a world through current hosting; another user can join without
+enabling native world code; useful restricted scripts run; VR/desktop players see each other's carried
 items; and the creator can leave without taking the instance or special powers with
 them. Ban continuity and failure modes must be visible, not silently weakened.
 
 Not promised: arbitrary Godot addon compatibility, general-purpose native scripting,
 perfect anti-cheat, permanent shared worlds, a new hosting platform, admin gameplay
-consoles, seamless forced updates or zero-risk execution of all possible media.
+consoles, a separate world editor, mandatory publishing automation, arbitrary custom
+shaders, seamless forced updates or zero-risk execution of all possible media.

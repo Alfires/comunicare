@@ -32,7 +32,7 @@ def main():
         remote.parent.mkdir(parents=True, exist_ok=True)
         remote.write_text('[gd_scene format=3]\n[node name="Remote" type="Node3D"]\n')
         shutil.copy2(ROOT / "tests/public_discovery/fixtures/save_data.gd", project / "save_data.gd")
-        for source in ("scripts/startup/data_loader.gd", "scripts/GUI/vr_pointer_router.gd", "scripts/GUI/animation_menue.gd", "scripts/GUI/emote_wheel.gd", "scripts/GUI/xr_emote_wheel.gd", "scripts/GUI/emote_layout_editor.gd", "scenes/GUI/animation_menue.tscn"):
+        for source in ("scripts/startup/data_loader.gd", "scripts/GUI/vr_keyboard.gd", "scripts/GUI/vr_pointer_router.gd", "scripts/GUI/animation_menue.gd", "scripts/GUI/emote_wheel.gd", "scripts/GUI/xr_emote_wheel.gd", "scripts/GUI/emote_layout_editor.gd", "scenes/GUI/animation_menue.tscn"):
             target = project / source
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / source, target)

@@ -756,6 +756,17 @@ friend-message feature from the filename.
 
 ## UI contracts
 
+<!-- module: scripts/GUI/vr_keyboard.gd -->
+### [VRKeyboard](../../scripts/GUI/vr_keyboard.gd)
+
+Viewport-local pointer keyboard. `edit` binds a weak LineEdit/TextEdit target;
+`type_text` inserts at caret respecting editable/read-only and field length;
+`backspace` deletes, `submit` emits LineEdit submission or inserts TextEdit newline,
+`close` releases target/hides. Buttons do not steal text focus. Private row builder
+and caret movement never access a global text target or persist entered content.
+The player opens it on viewport text focus and closes with the main menu; controller
+stick scrolling emits bounded wheel events only at valid panel hits.
+
 UI public calls require attached/ready nodes with their declared scene children
 and supplied services. They must not be used to bypass account or relay checks.
 Asynchronous media/import callbacks use generations/visibility guards. Removing a

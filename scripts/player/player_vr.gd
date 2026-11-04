@@ -50,6 +50,8 @@ var tracking_modifier: SkeletonModifier3D
 var tracker_roles = preload("res://scripts/assets/tracker_role_provider.gd").new()
 var tracking_calibration = preload("res://scripts/assets/tracking_calibration.gd").new()
 var rig_report: Dictionary = {}
+var virtual_keyboard: Control
+var scroll_at := {"left": 0, "right": 0}
 
 
 func _ready():
@@ -152,6 +154,10 @@ func _toggle_main_menu():
 		main_panel.viewport.set_meta("vr_menu", true)
 		main_ui = load("res://scenes/GUI/menue.tscn").instantiate()
 		main_panel.viewport.add_child(main_ui)
+		virtual_keyboard = preload("res://scripts/GUI/vr_keyboard.gd").new()
+		main_panel.viewport.add_child(virtual_keyboard)
+		main_panel.viewport.gui_focus_changed.connect(func(control):
+			if control is LineEdit or control is TextEdit: virtual_keyboard.edit(control))
 		main_panel.hide()
 	if main_panel.visible:
 		_close_main_menu()
@@ -168,6 +174,7 @@ func _close_main_menu():
 	pointer.cancel()
 	_flush_pointer_events()
 	if is_instance_valid(main_panel): main_panel.hide()
+	if is_instance_valid(virtual_keyboard): virtual_keyboard.close()
 	motion_rearm = true
 	trigger_before = {"left": false, "right": false}
 
@@ -193,6 +200,15 @@ func _update_menu_pointer():
 		trigger_before[side] = pressed
 		if hit.x >= 0:
 			main_panel.inject_input(InputEventMouseMotion.new(), hit)
+			var scroll = controller.get_vector2("primary").y
+			if absf(scroll) > 0.5 and Time.get_ticks_msec() >= scroll_at[side]:
+				scroll_at[side] = Time.get_ticks_msec() + 100
+				var event = InputEventMouseButton.new()
+				event.button_index = MOUSE_BUTTON_WHEEL_DOWN if scroll > 0 else MOUSE_BUTTON_WHEEL_UP
+				event.pressed = true
+				main_panel.inject_input(event, hit)
+				event.pressed = false
+				main_panel.inject_input(event, hit)
 	_flush_pointer_events()
 
 func _create_comfort_overlay():

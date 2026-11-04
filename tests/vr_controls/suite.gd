@@ -37,6 +37,7 @@ func run():
 	test_viewport_coordinates()
 	test_pointer_capture()
 	test_comfort_state()
+	test_text_entry()
 	print("\nRED VR controls: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -221,3 +222,24 @@ func test_comfort_state():
 	comfort.reset()
 	check(is_zero_approx(comfort.update_vignette(0.0, 0.0, 0.0, true)), "focus/session reset clears old comfort overlay state")
 	if comfort is Node: comfort.free()
+
+func test_text_entry():
+	var script = "res://scripts/GUI/vr_keyboard.gd"
+	check(ResourceLoader.exists(script), "headset menu provides a virtual keyboard")
+	if not ResourceLoader.exists(script): return
+	var keyboard = load(script).new()
+	var field = LineEdit.new()
+	root.add_child(field)
+	root.add_child(keyboard)
+	keyboard.edit(field)
+	keyboard.type_text("https://example.org/avatar.vrm")
+	check(field.text == "https://example.org/avatar.vrm", "virtual keyboard enters an avatar URL into actual LineEdit")
+	keyboard.backspace()
+	check(field.text.ends_with(".vr"), "virtual keyboard deletes at caret")
+	field.max_length = field.text.length()
+	keyboard.type_text("too long")
+	check(field.text.ends_with(".vr"), "virtual keyboard respects field length limits")
+	keyboard.close()
+	check(not keyboard.visible, "virtual keyboard closes without leaving a visible input overlay")
+	field.queue_free()
+	keyboard.queue_free()

@@ -156,8 +156,13 @@ def main():
             source = ROOT / "scripts/worlds"
             if source.is_dir():
                 shutil.copytree(source, project / "scripts/worlds", ignore=shutil.ignore_patterns("__pycache__"))
+            for folder in ("scripts/profile", "relay_protocol"):
+                shutil.copytree(ROOT / folder, project / folder)
+            (project / "scripts/multiplayer").mkdir(parents=True)
+            shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
             shutil.copy2(HERE / "suite.gd", project / "suite.gd")
             shutil.copy2(HERE / "example_suite.gd", project / "example_suite.gd")
+            shutil.copy2(HERE / "example_network_suite.gd", project / "example_network_suite.gd")
             (project / "project.godot").write_text(
                 'config_version=5\n[application]\nconfig/name="Isolated RED world contracts"\n'
                 '[rendering]\nrenderer/rendering_method="gl_compatibility"\n'
@@ -206,7 +211,13 @@ def main():
                                      capture_output=True, text=True, timeout=60, env=isolated_env)
             print(example.stdout, end="")
             print(example.stderr, end="")
-            return result_code(example)
+            status = result_code(example)
+            if status: return status
+            network = subprocess.run([godot, "--headless", "--path", directory, "--script", "res://example_network_suite.gd"],
+                                     capture_output=True, text=True, timeout=60, env=isolated_env)
+            print(network.stdout, end="")
+            print(network.stderr, end="")
+            return result_code(network)
     except (OSError, subprocess.TimeoutExpired) as error:
         print(f"Infrastructure failure: {error}")
         return 2

@@ -22,7 +22,12 @@ The runner also packages the actual editable
 native Godot in a copied author project, then runs **19 additional example-world
 assertions** through the safe builder/runtime/pickup adapter. These cover real
 floor physics/raycast collision, textures, spawn and script effects. Pickup acks
-are synthetic here; real relay routing is independently tested by animation_sync.
+are synthetic in `example_suite.gd`. A further `example_network_suite.gd` runs
+**16 real-network checks**: two ephemeral authenticated RelayPeers, an actual ENet
+relay, the same example archive instantiated into separate SubViewport World3Ds,
+and production pickup adapters. Desktop-to-VR and reverse carrying move actual
+scene objects over UDP; competing grabs, release, holder disconnect and empty
+instance cleanup are checked. Hand poses are automated, not physical XR input.
 
 Set `GODOT=/path/to/godot` if necessary. The acceptance runner returns **1** for
 assertion failures, **2** for missing prerequisites, Godot errors/crashes or timeout,

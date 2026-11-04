@@ -34,6 +34,11 @@ the production builder, checks floor physics, texture decoding, spawn, restricte
 beacon events and local/remote pickup scene movement. It also imports the original
 project separately to check native Godot compatibility. Temporary projects and
 user data are isolated. Generated archives/logs live under `/tmp/opencode`.
+The runner additionally starts two authenticated clients and a real ENet relay,
+loads separate scene/physics copies and checks both directions of networked
+carrying, exclusive ownership, release and disconnect cleanup (16 checks).
+It needs no external relay or help from another player; automated hand poses
+replace real controllers without claiming hardware/visual verification.
 
 Native Godot Run does not provide Comunicare's player or script runtime; inspect
 the scene in Godot's 3D editor. The beacon starts hidden in the source and becomes

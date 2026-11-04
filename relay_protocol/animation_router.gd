@@ -7,6 +7,9 @@ var states: Dictionary = {}
 var requests: Dictionary = {}
 var rates: Dictionary = {}
 var generations: Dictionary = {}
+var pose_supported: Dictionary = {}
+var poses: Dictionary = {}
+var pose_rates: Dictionary = {}
 
 func _send(server: Node, id: int, value: Dictionary):
 	if supported.has(id) and server.peers.has(id) and server.peers[id].get_state() == ENetPacketPeer.STATE_CONNECTED:
@@ -27,6 +30,13 @@ func handle(server: Node, sender: int, value: Dictionary):
 		_send(server, sender, {"op": "hello", "version": 2})
 		return
 	if not supported.has(sender):
+		return
+	if value.get("op") == "pose_hello" and value.get("version") == 1:
+		pose_supported[sender] = true
+		_send(server, sender, {"op": "pose_hello", "version": 1})
+		return
+	if value.get("op") == "pose":
+		_pose(server, sender, value, now)
 		return
 	# At most 16 control packets or 256 KiB per second per connection.
 	var bucket: Dictionary = rates.get(sender, {"at": now, "count": 0, "bytes": 0})
@@ -108,11 +118,33 @@ func snapshot(server: Node, recipient: int):
 	for owner in states:
 		if owner != recipient and _same(server, owner, recipient):
 			_send(server, recipient, states[owner])
+	if pose_supported.has(recipient):
+		for owner in poses:
+			if owner != recipient and _same(server, owner, recipient) and Time.get_ticks_msec() - poses[owner].at < 1000:
+				_send(server, recipient, poses[owner])
+
+func _pose(server: Node, sender: int, value: Dictionary, now: int):
+	if not pose_supported.has(sender) or not TrackingPose.valid(value): return
+	var index = server.get_user_in_session(sender)
+	if index < 0 or value.get("session_id") != server.sessions[index][0].session_id: return
+	if value.sequence <= poses.get(sender, {}).get("sequence", 0): return
+	var rate: Dictionary = pose_rates.get(sender, {"at": now, "count": 0})
+	if now - rate.at >= 1000: rate = {"at": now, "count": 0}
+	rate.count += 1
+	pose_rates[sender] = rate
+	if rate.count > 30: return
+	var clean = {"op": "pose", "version": 1, "peer_id": sender, "session_id": value.session_id,
+		"generation": generations[sender], "sequence": value.sequence, "avatar_revision": value.avatar_revision,
+		"calibration_revision": value.calibration_revision, "targets": value.targets.duplicate(true), "at": now}
+	poses[sender] = clean
+	for id in server.sessions[index][0].peers:
+		if id != sender and pose_supported.has(id): _send(server, id, clean)
 
 func leave(server: Node, sender: int):
 	var index = server.get_user_in_session(sender)
 	var session_id = server.sessions[index][0].session_id if index >= 0 else ""
 	states.erase(sender)
+	poses.erase(sender)
 	for key in requests.keys():
 		if requests[key].owner == sender or requests[key].requester == sender:
 			requests.erase(key)
@@ -125,8 +157,12 @@ func disconnect_peer(server: Node, sender: int):
 	supported.erase(sender)
 	rates.erase(sender)
 	generations.erase(sender)
+	pose_supported.erase(sender)
+	pose_rates.erase(sender)
 
 func tick():
+	for owner in poses.keys():
+		if Time.get_ticks_msec() - poses[owner].at > 1000: poses.erase(owner)
 	for key in requests.keys():
 		if requests[key].expires <= Time.get_ticks_msec():
 			requests.erase(key)

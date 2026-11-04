@@ -59,6 +59,7 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "vr.share_tracking", "category": "VR Comfort", "label": "Share live head/hand/body tracking in this instance", "description": "Sends bounded avatar-relative poses, never room meshes or tracker identifiers.", "type": "boolean", "default": true, "order": 4},
 		{"id": "vr.locomotion_mode", "category": "VR Movement", "label": "Locomotion", "type": "enum", "options": {"smooth": "Smooth", "teleport": "Point and teleport"}, "default": "smooth", "order": -1},
 		{"id": "vr.head_clip_fade", "category": "VR Comfort", "label": "Fade when head intersects world geometry", "type": "boolean", "default": true, "order": 3},
 		{"id": "vr.turn_mode", "category": "VR Movement", "label": "Turning", "type": "enum", "options": {"snap": "Snap", "smooth": "Smooth"}, "default": "snap", "order": 0},

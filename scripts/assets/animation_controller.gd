@@ -40,6 +40,8 @@ var published_sequence := -1
 var local_model_handle: Dictionary = {}
 var model_incoming: Dictionary = {}
 var model_loading: Dictionary = {}
+var remote_tracking: Dictionary = {}
+var tracking_nodes: Dictionary = {}
 
 func configure(network: Node, data_loader: Node):
 	coordinator = network
@@ -50,6 +52,7 @@ func configure(network: Node, data_loader: Node):
 func _process(delta: float):
 	if coordinator == null:
 		return
+	_update_tracking(delta)
 	if configuration != null and not local_state.is_empty() and local_state.get("configuration_owner", "") != configuration.account_owner:
 		clear()
 	if transport != coordinator.peer:
@@ -343,6 +346,17 @@ func _clear_local():
 	changed.emit()
 
 func receive(value: Dictionary):
+	if value.get("op") == "pose":
+		if not TrackingPose.valid(value) or coordinator.session_busy or value.get("session_id") != coordinator.current_session_id: return
+		var id = int(value.get("peer_id", -1))
+		if not _member(id) or not value.get("generation") is String: return
+		var previous: Dictionary = remote_tracking.get(id, {})
+		if previous.get("generation") == value.generation and value.sequence <= previous.get("sequence", 0): return
+		var clean = value.duplicate(true)
+		clean.received = Time.get_ticks_msec()
+		clean.decoded = TrackingPose.decode_targets(value.targets)
+		remote_tracking[id] = clean
+		return
 	if value.get("op") == "clock":
 		if AnimationState.integer(value.get("nonce"), 0, Time.get_ticks_msec()) and AnimationState.number(value.get("time"), 0, 9007199254740991):
 			var rtt = Time.get_ticks_msec() - value.nonce
@@ -573,6 +587,13 @@ func _receive_chunk(value: Dictionary):
 	_apply_remote(owner)
 
 func _remove_remote(id: int):
+	remote_tracking.erase(id)
+	if tracking_nodes.has(id):
+		var state: Dictionary = tracking_nodes[id]
+		if is_instance_valid(state.modifier): state.modifier.queue_free()
+		for node in state.nodes.values():
+			if is_instance_valid(node): node.queue_free()
+		tracking_nodes.erase(id)
 	remote_states.erase(id)
 	incoming.erase(id)
 	model_incoming.erase(id)
@@ -585,6 +606,8 @@ func _remove_remote(id: int):
 	assets.clear()
 
 func clear():
+	for id in tracking_nodes.keys(): _remove_remote(id)
+	remote_tracking.clear()
 	for id in remote_states.keys():
 		_remove_remote(id)
 	remote_states.clear()
@@ -611,3 +634,48 @@ func _exit_tree():
 	if is_instance_valid(xr_wheel): xr_wheel.queue_free()
 	if transport != null and transport.animation_data.is_connected(receive):
 		transport.animation_data.disconnect(receive)
+
+func _update_tracking(delta: float):
+	for id in remote_tracking.keys():
+		var value: Dictionary = remote_tracking[id]
+		if not _member(id) or Time.get_ticks_msec() - value.received > 1000:
+			if tracking_nodes.has(id):
+				if is_instance_valid(tracking_nodes[id].modifier):
+					tracking_nodes[id].modifier.set_tracking_validity({"head": false, "leftHand": false, "rightHand": false})
+					tracking_nodes[id].modifier.set_body_targets({})
+			continue
+		var remote = coordinator.get_node_or_null(str(id))
+		if remote == null or not remote.get("avatar") is Node3D: continue
+		var avatar: Node3D = remote.avatar
+		if avatar.get_meta("asset_revision", "") != value.avatar_revision: continue
+		if tracking_nodes.has(id) and (not is_instance_valid(tracking_nodes[id].avatar) or tracking_nodes[id].avatar != avatar):
+			var old: Dictionary = tracking_nodes[id]
+			if is_instance_valid(old.modifier): old.modifier.queue_free()
+			for node in old.nodes.values():
+				if is_instance_valid(node): node.queue_free()
+			tracking_nodes.erase(id)
+		if not tracking_nodes.has(id):
+			var rig = Reader.new()._skeleton(avatar)
+			if rig == null: continue
+			var nodes: Dictionary = {}
+			for role in ["head", "leftHand", "rightHand"]:
+				var node = Node3D.new()
+				remote.add_child(node)
+				nodes[role] = node
+			var modifier = preload("res://scripts/assets/avatar_tracking.gd").new()
+			rig.add_child(modifier)
+			modifier.configure(avatar.get_meta("humanoid_bones", {}), nodes.head, nodes.leftHand, nodes.rightHand)
+			tracking_nodes[id] = {"avatar": avatar, "rig": rig, "nodes": nodes, "modifier": modifier, "initialized": false}
+		var state: Dictionary = tracking_nodes[id]
+		var validity: Dictionary = {}
+		for role in state.nodes:
+			validity[role] = value.decoded.has(role)
+			if validity[role]:
+				var node: Node3D = state.nodes[role]
+				node.transform = node.transform.interpolate_with(value.decoded[role], minf(1, delta * 20)) if state.initialized else value.decoded[role]
+		state.initialized = true
+		state.modifier.set_tracking_validity(validity)
+		var body: Dictionary = {}
+		for role in ["hips", "leftFoot", "rightFoot"]:
+			if value.decoded.has(role): body[role] = state.rig.global_transform.affine_inverse() * remote.global_transform * value.decoded[role]
+		state.modifier.set_body_targets(body)

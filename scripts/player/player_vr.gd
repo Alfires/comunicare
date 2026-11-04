@@ -58,6 +58,8 @@ var teleport_held := false
 var teleport_candidate: Dictionary = {}
 var teleport_marker: MeshInstance3D
 var role_offsets: Dictionary = {}
+var tracking_sequence := 0
+var tracking_elapsed := 0.0
 
 
 func _ready():
@@ -78,6 +80,10 @@ func set_player_pos(pos: Vector3):
 	velocity = Vector3.ZERO
 
 func _process(delta: float):
+	tracking_elapsed += delta
+	if tracking_elapsed >= 0.05:
+		tracking_elapsed = 0
+		_publish_tracking()
 	_update_runtime_trackers()
 	if is_instance_valid(tracking_modifier) and is_instance_valid(skeleton):
 		var targets = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)
@@ -291,6 +297,21 @@ func _update_runtime_trackers():
 		if pose == null: continue
 		tracker_roles.update_sample(str(id), origin_node.global_transform * pose.transform,
 			pose.has_tracking_data and pose.tracking_confidence != XRPose.XR_TRACKING_CONFIDENCE_NONE, Time.get_ticks_msec())
+
+func _publish_tracking():
+	var peer = NetworkHandler.peer
+	if not focused or peer == null or not peer.tracking_supported or NetworkHandler.session_busy or NetworkHandler.current_session_id.is_empty(): return
+	if not SaveData.store.get_value("vr.share_tracking") or not is_instance_valid(vrm_model): return
+	var revision: String = vrm_model.get_meta("asset_revision", "")
+	if not InstanceState.valid_fingerprint(revision): return
+	var targets: Dictionary = {}
+	for pair in [["head", xr_camera], ["leftHand", left_controller], ["rightHand", right_controller]]:
+		if pair[1].get_is_active(): targets[pair[0]] = TrackingPose.encode_target(global_transform.affine_inverse() * pair[1].global_transform)
+	var body = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)
+	for role in body: targets[role] = TrackingPose.encode_target(global_transform.affine_inverse() * body[role])
+	tracking_sequence += 1
+	peer.send_animation({"op": "pose", "version": 1, "session_id": NetworkHandler.current_session_id,
+		"sequence": tracking_sequence, "avatar_revision": revision, "calibration_revision": 0, "targets": targets})
 
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:

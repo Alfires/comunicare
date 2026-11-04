@@ -59,6 +59,11 @@ Verification is in `tests/active_instance/run.py`: actual multi-client cleanup/r
 - Confirm remaining users' unrelated active state still works after cleanup. Run profile, discovery, Active Instance and microphone regressions, plus future friends/presence tests.
 # Animation extension (wire ID 28)
 
+Negotiated live tracker poses are bounded to current connected users and expire
+after one second. Actor, capability and pose-rate maps are removed on disconnect;
+instance leave drops pose and no snapshot/history survives. Payloads contain
+avatar-relative role targets, never tracker device identifiers or room geometry.
+
 The current negotiated animation version is 2: one resolved locomotion/emote
 state carries bounded avatar/configuration revisions. Requested model chunks and
 motion chunks are typed separately but authorized by that same active state.

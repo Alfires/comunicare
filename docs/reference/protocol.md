@@ -67,6 +67,17 @@ instance/request cannot complete the current operation.
 
 ## Resolved animation and asset delivery
 
+Tracked poses use a separate negotiated `tracking_version: 1` capability and
+`pose_hello` inside ID 28. `pose` carries version/sequence/session/avatar hash/
+calibration revision and up to six avatar-root-relative seven-number transforms
+(position xyz + quaternion xyzw). Roles: head, leftHand, rightHand, hips, leftFoot,
+rightFoot. Positions are finite within 4 m, quaternion norm checked. Relay adds
+authenticated actor/generation/time, accepts at most 30 pose packets/s and expires
+current pose after one second; sends only to opted-in capability peers in the same
+instance. Client emits at 20 Hz when sharing enabled, interpolates matching-revision
+targets and fades stale head/hand overrides. No room mesh, device ID or durable
+tracking history. This is avatar target replication, not a second animation player.
+
 Handshake advertises animation version 2; a version-2 hello enables it. Manual
 version-1 Play/Pause/Stop controls are rejected. Example builtin state:
 

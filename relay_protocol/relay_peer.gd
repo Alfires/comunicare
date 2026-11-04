@@ -19,6 +19,7 @@ var friend_service
 var social_hello_deadline := 0
 var join_requests: Dictionary = {}
 var animation_supported := false
+var tracking_supported := false
 var world_revision_supported := false
 var expected_world_revision := ""
 signal animation_data(value: Dictionary)
@@ -168,6 +169,7 @@ func connected_to_relay():
 	
 func disconnected_from_relay():
 	animation_supported = false
+	tracking_supported = false
 	world_revision_supported = false
 	expected_world_revision = ""
 	join_requests.clear()
@@ -194,6 +196,7 @@ func on_packet(data: PackedByteArray):
 				var value = AccountPacket.parse(data)
 				if value.get("op") == "hello" and value.get("version") == 2:
 					animation_supported = true
+				if value.get("op") == "pose_hello" and value.get("version") == 1: tracking_supported = true
 				animation_data.emit(value)
 		PacketInfo.PACKET_TYPE.JOIN_REQUEST:
 			var value = AccountPacket.parse(data)
@@ -300,6 +303,8 @@ func on_packet(data: PackedByteArray):
 			world_revision_supported = is_authenticated and values.get("world_revision_version") == 1
 			if is_authenticated and values.get("animation_version") == 2:
 				AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "hello", "version": 2}).sent(peer)
+				if values.get("tracking_version") == 1:
+					AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "pose_hello", "version": 1}).sent(peer)
 			if is_authenticated and friend_service != null:
 				friend_service.attach(_send_social, false)
 				if values.get("social_version") == 1:

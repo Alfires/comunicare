@@ -628,6 +628,16 @@ Moderation policy is client-owned disk state, unlike relay session metadata.
 
 ## Protocol functions
 
+<!-- module: relay_protocol/tracking_pose.gd -->
+### [TrackingPose](../../relay_protocol/tracking_pose.gd)
+
+RefCounted pure codec/schema. `valid` checks version, sequence, avatar hash,
+calibration revision, at most six allowed roles and finite bounded position/unit
+quaternion arrays. `encode_target` converts trusted Transform3D to seven numbers;
+`decode_targets` reconstructs already validated role transforms. No actor/session
+authority or hardware identity in this codec; relay derives actor and checks exact
+membership/rate. Avatar revision mismatch prevents remote application.
+
 <!-- module: relay_protocol/packet_info.gd -->
 ### [PacketInfo](../../relay_protocol/packet_info.gd)
 

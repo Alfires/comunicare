@@ -552,6 +552,19 @@ func test_network():
 	check(messages[2].filter(func(value): return value.get("op") == "state").is_empty(), "same-world different instance receives no animation")
 	var owner = int(received[0].peer_id) if not received.is_empty() else -1
 	check(owner != 254 and server.animations.states.has(owner), "relay derives actor from authenticated transport, not claimed ID")
+	check(clients[0].get("tracking_supported") == true, "authenticated peers negotiate tracked-pose capability separately from animation")
+	if clients[0].get("tracking_supported") == true:
+		var pose = {"op": "pose", "version": 1, "session_id": clients[0].current_session_id, "sequence": 1,
+			"avatar_revision": "a".repeat(64), "calibration_revision": 0, "targets": {"head": [0, 1.6, 0, 0, 0, 0, 1]}}
+		clients[0].send_animation(pose)
+		await pump(server, clients)
+		check(messages[1].filter(func(value): return value.get("op") == "pose").size() == 1, "tracked head pose reaches only exact-instance peer")
+		check(messages[2].filter(func(value): return value.get("op") == "pose").is_empty(), "another instance cannot receive tracker poses")
+		pose.sequence = 2
+		pose.targets.head[0] = 1000
+		clients[0].send_animation(pose)
+		await pump(server, clients)
+		check(messages[1].filter(func(value): return value.get("op") == "pose").size() == 1, "out-of-range tracker position is rejected at relay")
 	clients[0].send_animation(state)
 	await pump(server, clients)
 	check(messages[1].filter(func(value): return value.get("op") == "state").size() == 1, "duplicate sequence rejected")
@@ -618,6 +631,7 @@ func test_network():
 	await pump(server, clients)
 	check(not server.animations.states.has(owner) and not server.animations.supported.has(owner)
 		and not server.animations.generations.has(owner), "disconnect erases actor state, capability and generation")
+	check(not server.animations.poses.has(owner) and not server.animations.pose_supported.has(owner) and not server.animations.pose_rates.has(owner), "disconnect removes live tracker pose and capability/rate references")
 	for client in clients:
 		client.connection.destroy()
 	await pump(server, [], 0.1)

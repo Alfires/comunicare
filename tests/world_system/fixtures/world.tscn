@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Material" path="res://materials/surface.tres" id="1"]
+
+[sub_resource type="BoxMesh" id="Box"]
+material = ExtResource("1")
+
+[sub_resource type="BoxShape3D" id="Shape"]
+
+[node name="World" type="Node3D"]
+position = Vector3(0, 0, 0)
+metadata/world_entity_id = "world-root"
+
+[node name="Spawn" type="Marker3D" parent="."]
+position = Vector3(0, 1, 0)
+metadata/world_entity_id = "spawn"
+metadata/world_spawn = true
+
+[node name="Item" type="RigidBody3D" parent="."]
+metadata/world_entity_id = "item"
+metadata/world_pickup = true
+
+[node name="Mesh" type="MeshInstance3D" parent="Item"]
+mesh = SubResource("Box")
+
+[node name="Collider" type="CollisionShape3D" parent="Item"]
+shape = SubResource("Shape")

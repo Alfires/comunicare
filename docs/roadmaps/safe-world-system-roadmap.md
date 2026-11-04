@@ -1,6 +1,11 @@
 # Safe, editable worlds and shared interaction roadmap
 
 **Status: proposal, 2026-11-04. No runtime implementation or security certification.**
+**Test-first update:** opt-in [RED world contracts](../../tests/world_system/README.md)
+now exist. Initial baseline: one harness check passes, six missing-service checks
+fail and six dependent behavior groups are explicitly blocked (exit 1, no Godot
+errors). The suite proposes interfaces and contains guarded behavioral cases;
+it does not make today's loader safe or certify Terrain3D/VR functionality.
 **Authoring clarification:** worlds are ordinary Godot projects, edited in Godot
 with its built-in nodes, scene instances, resources, materials and texture tools.
 Third-party addons and custom nodes, including Terrain3D, are also part of the
@@ -579,7 +584,9 @@ as completed implementation.
 | 6 — roles and updates | Kick/ban-only moderation, deterministic fallback, safe policy handoff, revision notifications/new-instance update UX | Creator has no extra powers; last-admin abrupt exit tested; incomplete policy fails closed; update refusal preserves current play. |
 | 7 — rollout | Legacy conversion guidance, compatibility rejection, current documentation and security review | No normal remote-scene execution path; external hostile-content review; performance/hardware gates and remaining risks published. |
 
-Proposed isolated suites: `tests/world_format`, `tests/world_authoring`,
+Initial isolated contracts live in `tests/world_system`; see its README for
+executed-vs-blocked coverage and runner integrity tests. Possible later suites:
+`tests/world_format`, `tests/world_authoring`,
 `tests/world_scripting`, `tests/world_replication` and `tests/world_interaction`.
 These directories do not exist as a consequence of this plan. Use disposable
 projects/accounts like the existing runners, never normal startup against real data.

@@ -6,6 +6,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 | Roadmap | Status / authority |
 | --- | --- |
 | [Documentation system](documentation-system-roadmap.md) | Documentation/tooling delivered with explicit operating limits; current guides, function/schema reference and local Git release checks linked from docs home |
+| [Multiplayer and discovery reliability](multiplayer-and-public-discovery-reliability-roadmap.md) | Planned after current-code inspection: appearance/session correlation, bounded decoding, retryable discovery and responsibility-based module extraction |
 | [VR controls, menus, IK and FBT](vr-controls-menus-ik-fbt-roadmap.md) | Planned: planar head-relative movement, either-hand A/X main menu, snap/smooth turning, comfort settings, calibrated rig/IK and optional tracker support |
 | [Conventional Commits](conventional-commit-roadmap.md) | Historical assembly plan; current [contribution rules](../../CONTRIBUTING.md) supersede old no-push/two-type assumptions |
 | [Settings and microphone](microphone-and-settings-roadmap.md) | Implemented with hardware limitations; see tests/microphone_settings |

@@ -19,6 +19,8 @@ signal session_response(result: Dictionary)
 signal participants_changed
 var authentication_pending := false
 var authentication_deadline := 0
+var connection_in_progress := false
+signal relay_connection_finished(success: bool)
 var active_instance: Dictionary = {}
 signal active_instance_changed
 signal instance_management_finished(result: Dictionary)
@@ -70,7 +72,8 @@ func _process(_delta):
 		active_instance_changed.emit()
 	if authentication_pending and Time.get_ticks_msec() >= authentication_deadline:
 		authentication_pending = false
-		peer.authentication_error = "Account authentication timed out"
+		peer.authentication_error = "Relay connection/authentication timed out at %s:%s. Start the relay or check Network settings and UDP/firewall access." % [relay_ip, relay_port]
+		if peer.peer != null: peer.peer.peer_disconnect_now()
 		peer.authentication_finished.emit(false)
 	if not pending_operation.is_empty() and Time.get_ticks_msec() >= pending_deadline:
 		# The relay may have committed a request whose acknowledgement was lost.
@@ -85,7 +88,24 @@ func _process(_delta):
 	peer.handle_events()
 
 
-func create_peer():
+func ensure_relay_connected() -> bool:
+	if connection_in_progress: return await relay_connection_finished
+	if peer != null and peer.is_connected_to_relay and peer.is_authenticated: return true
+	return await create_peer()
+
+func create_peer() -> bool:
+	if connection_in_progress: return await relay_connection_finished
+	if peer != null and peer.is_connected_to_relay and peer.is_authenticated: return true
+	connection_in_progress = true
+	if peer != null:
+		if peer.connection != null: peer.connection.destroy()
+		peer.disconnected_from_relay()
+	var save = get_node_or_null("/root/SaveData")
+	if save != null and save.get("store") != null:
+		var address = save.store.get_value("network.relay_address")
+		var port = save.store.get_value("network.relay_port")
+		if address is String and not address.strip_edges().is_empty(): relay_ip = address.strip_edges()
+		if port is float or port is int: relay_port = int(port)
 	get_animation_controller()
 	peer = RelayPeer.new()
 	peer.session_result_guard = _accept_session_result
@@ -104,15 +124,30 @@ func create_peer():
 	peer.instance_snapshot.connect(_on_instance_snapshot)
 	peer.instance_result.connect(_on_instance_result)
 	peer.instance_evicted.connect(_on_instance_evicted)
-	peer.connect_to_relay(relay_ip,relay_port)
+	if not peer.connect_to_relay(relay_ip,relay_port):
+		last_session_error = peer.authentication_error
+		connection_in_progress = false
+		relay_connection_finished.emit(false)
+		return false
 	authentication_pending = true
 	authentication_deadline = Time.get_ticks_msec() + 15000
 	var success: bool = await peer.authentication_finished
 	authentication_pending = false
 	if not success:
 		last_session_error = peer.authentication_error
+		if last_session_error.is_empty(): last_session_error = "Relay connection failed at %s:%s. Start the relay and retry Reload." % [relay_ip, relay_port]
+		if peer.connection != null:
+			peer.connection.destroy()
+			peer.connection = null
+		peer.is_connected_to_relay = false
+		peer.is_authenticated = false
+		connection_in_progress = false
+		relay_connection_finished.emit(false)
 		return false
+	last_session_error = ""
 	_publish_profile("")
+	connection_in_progress = false
+	relay_connection_finished.emit(true)
 	return true
 
 func create_session(world_url: String = "default_wold", mode: int = PacketInfo.MODE.PUBLIC):

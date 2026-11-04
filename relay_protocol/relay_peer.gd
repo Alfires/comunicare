@@ -105,12 +105,24 @@ signal session_result(result: Dictionary)
 signal authentication_finished(success: bool)
 signal profiles_updated(session_id: String, profiles: Array)
 
-func connect_to_relay(relay_ip: String,relay_port: int):
+func connect_to_relay(relay_ip: String,relay_port: int) -> bool:
+	if relay_ip.strip_edges().is_empty() or relay_port < 1 or relay_port > 65535:
+		authentication_error = "Invalid relay address or UDP port"
+		return false
 	connection = ENetConnection.new()
 	var error: Error = connection.create_host(1)
 	if error:
-		print("Failed to connect")
+		authentication_error = "Cannot create relay transport: " + error_string(error)
+		connection = null
+		return false
 	peer = connection.connect_to_host(relay_ip,relay_port)
+	if peer == null:
+		authentication_error = "Cannot connect to relay at %s:%s" % [relay_ip, relay_port]
+		connection.destroy()
+		connection = null
+		return false
+	peer.set_timeout(5, 5000, 10000)
+	return true
 
 
 func create_session(join_mode: int,name: String,description: String , world_url: String) -> void:
@@ -139,6 +151,7 @@ func decide_join(token: String, allow: bool):
 		AccountPacket.create(PacketInfo.PACKET_TYPE.JOIN_DECISION, {"token": token, "allow": allow}).sent(peer)
 	
 func handle_events() -> void:
+	if connection == null: return
 	for token in join_requests.keys():
 		if Time.get_ticks_msec() >= join_requests[token].deadline:
 			join_requests.erase(token)
@@ -166,6 +179,8 @@ func handle_events() -> void:
 				on_packet(_peer.get_packet())
 				
 				
+		# Disconnect/auth callbacks may dispose the failed transport synchronously.
+		if connection == null: return
 		packed_event = connection.service()
 		event_type = packed_event[0]
 

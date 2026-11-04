@@ -254,6 +254,20 @@ func _on_reload_pressed() -> void:
 	if refreshing:
 		return
 	if discovery_peer == null or not discovery_peer.is_connected_to_relay:
+		if NetworkHandler.has_method("ensure_relay_connected"):
+			refreshing = true
+			refresh_started = Time.get_ticks_msec()
+			status.text = "Connecting to relay…"
+			var connected_ok: bool = await NetworkHandler.ensure_relay_connected()
+			if not is_inside_tree(): return
+			refreshing = false
+			_attach_peer()
+			if connected_ok:
+				_on_reload_pressed()
+			else:
+				status.text = NetworkHandler.last_session_error
+				_show_error(status.text)
+			return
 		status.text = "Relay disconnected"
 		_show_error(status.text)
 		return

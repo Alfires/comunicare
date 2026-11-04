@@ -151,7 +151,7 @@ func test_category_navigation():
 	check(InputMap.has_action("toggle_animation_menu") and InputMap.action_get_events("toggle_animation_menu")[0].physical_keycode == KEY_B,
 		"emote menu defaults to physical B through registry and InputMap")
 	check(scene.controls.has("input.toggle_animation_menu"), "Settings exposes rebindable emote menu control")
-	check(scene.category_buttons.keys() == ["Assets", "Audio", "Controls", "Interface", "VR Comfort", "VR Movement"],
+	check(scene.category_buttons.keys() == ["Assets", "Audio", "Controls", "Interface", "Network", "VR Comfort", "VR Movement"],
 		"left sidebar lists registry category names")
 	check(scene.category_pages.Assets.visible and not scene.category_pages.Audio.visible and not scene.category_pages.Controls.visible
 		and not scene.category_pages.Interface.visible, "only initial category page is visible")

@@ -27,8 +27,61 @@ func run():
 	test_unmatched_result()
 	test_stream_validation()
 	await test_replacement_during_prepare()
+	await test_connection_recovery()
 	print("\nRED client reliability: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
+
+func test_connection_recovery():
+	var network = root.get_node("NetworkHandler")
+	check(network.has_method("ensure_relay_connected"), "coordinator exposes retryable relay connection")
+	if not network.has_method("ensure_relay_connected"): return
+	var unavailable: Array = []
+	network.relay_ip = "127.0.0.1"
+	var reservation = ENetConnection.new()
+	reservation.create_host_bound("127.0.0.1", 0)
+	network.relay_port = reservation.get_local_port()
+	reservation.destroy()
+	_capture_connection(network, unavailable)
+	network.authentication_deadline = Time.get_ticks_msec() - 1
+	await process_frame
+	await process_frame
+	check(unavailable == [false] and not network.connection_in_progress, "unavailable relay times out without leaving reconnect latched")
+	check("127.0.0.1" in network.last_session_error and "relay" in network.last_session_error.to_lower(), "connection failure identifies endpoint and recovery instead of generic disconnected")
+	var server = load("res://scripts/multiplayer/relay.gd").new()
+	server.connection = ENetConnection.new()
+	check(server.connection.create_host_bound("127.0.0.1", 0) == OK, "connection recovery fixture binds loopback relay")
+	network.relay_ip = "127.0.0.1"
+	network.relay_port = server.connection.get_local_port()
+	var completed: Array = []
+	_capture_connection(network, completed)
+	_capture_connection(network, completed)
+	var deadline = Time.get_ticks_msec() + 5000
+	while completed.size() < 2 and Time.get_ticks_msec() < deadline:
+		server.handle_events()
+		await process_frame
+	check(completed == [true, true] and server.key_mapping.size() == 1, "concurrent reconnect requests share one authenticated connection")
+	check(network.last_session_error.is_empty(), "successful retry clears stale disconnected error")
+	network.peer.peer.peer_disconnect()
+	deadline = Time.get_ticks_msec() + 2000
+	while network.peer.is_connected_to_relay and Time.get_ticks_msec() < deadline:
+		server.handle_events()
+		await process_frame
+	completed.clear()
+	_capture_connection(network, completed)
+	deadline = Time.get_ticks_msec() + 5000
+	while completed.is_empty() and Time.get_ticks_msec() < deadline:
+		server.handle_events()
+		await process_frame
+	check(completed == [true], "disconnected startup connection can authenticate again without restarting game")
+	if network.peer != null:
+		network.peer.connection.destroy()
+		network.peer.connection = null
+		network.peer.disconnected_from_relay()
+	server.connection.destroy()
+	server.free()
+
+func _capture_connection(network: Node, completed: Array):
+	completed.append(await network.ensure_relay_connected())
 
 func test_profile_appearance():
 	var node = coordinator()

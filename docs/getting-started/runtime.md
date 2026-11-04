@@ -20,6 +20,15 @@ Client default relay endpoint is `127.0.0.1:7374`; the production relay binds
 for online features. Do not expose an experimental relay publicly without deployment
 review, transport/firewall controls and the [privacy contract](../relay-data-lifecycle.md).
 
+If World Explorer reports a disconnected relay, set **Settings → Network → Relay
+address / Relay UDP port** to the actual relay, then press **Reload** in World
+Explorer to retry without restarting. The default localhost address only works
+when a relay is running on this same computer (`godot --path . --relay`, in a
+separate process). Another computer needs the relay machine's reachable address
+and UDP port access. Failed attempts now report the endpoint and retry guidance;
+Reload shares an in-progress attempt rather than opening duplicate connections.
+Reconnecting does not silently rejoin a previous instance; choose/create one again.
+
 Normal client startup can generate an account key and migrate/write settings,
 profiles, contacts and avatar selections. Back up user data before experimenting.
 For automated verification use [isolated runners](../development/testing.md), not

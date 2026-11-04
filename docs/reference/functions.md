@@ -698,6 +698,10 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+`ensure_relay_connected` returns true for an already authenticated relay or awaits
+one retry attempt. Concurrent callers share `relay_connection_finished`; Network
+settings select the endpoint, failures close transport and clear the retry latch.
+It never automatically restores instance membership.
 ### [NetworkHandler](../../scripts/multiplayer/network_handler.gd)
 
 Client autoload. Private transition helpers correlate operation/session, stage
@@ -759,7 +763,7 @@ Moderation policy is client-owned disk state, unlike relay session metadata.
 | `send_animation` | Sends reliable AccountPacket only after authentication/capability; caller supplies sole resolved-state/supporting transport payload. |
 | `send_world` | Sends bounded caller world-item intent only after authenticated item capability negotiation. Relay derives sender and enforces instance/revision/lease scope; callers must supply current pinned content revision. |
 | `configure_moderation` | Loads bounded owner-key policy or preserves/reports corrupt/wrong-account file; no automatic fail-open approval. |
-| `connect_to_relay` | Creates one-peer ENet connection/host and initiates connection; call handle_events for completion; not authenticated immediately. |
+| `connect_to_relay` | Validates endpoint, creates one-peer ENet host and initiates connection; returns bool for transport initiation with authentication_error on failure. Call handle_events for completion; not authenticated immediately. |
 | `create_session`, `join_session` | Sends authenticated selected metadata/session/world and expected revision; no local success claim. |
 | `resolve_instance` | Sends authenticated code lookup without changing membership. |
 | `decide_join` | Sends allow/decline only for a known pending token; relay still validates current admin/support. |

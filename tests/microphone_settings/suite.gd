@@ -52,6 +52,14 @@ func run():
 	quit(1 if failed else 0)
 
 func test_default_binding():
+	var project_config = ConfigFile.new()
+	check(project_config.load("res://project.godot") == OK, "production project input configuration can be read")
+	var emote_definition: Dictionary = project_config.get_value("input", "toggle_animation_menu", {})
+	var universal_b := false
+	for event in emote_definition.get("events", []):
+		if event is InputEventKey and event.physical_keycode == KEY_B and event.device == -1:
+			universal_b = true
+	check(universal_b, "saved emote B binding accepts all keyboard devices rather than device 16")
 	var exists = InputMap.has_action("toggle_microphone")
 	check(exists, "production input map defines toggle_microphone")
 	var found_v := false

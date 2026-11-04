@@ -82,6 +82,18 @@ func move_entry(id: String, index: int) -> Dictionary:
 			return {"ok": true}
 	return _failure("Relay entry not found")
 
+func update_entry(id: String, replacement: Dictionary) -> Dictionary:
+	if write_blocked or not _valid_entry(replacement) or replacement.entry_id != id: return _failure("Invalid relay edit")
+	for index in entries.size():
+		if entries[index].entry_id != id: continue
+		var others = entries.duplicate(true)
+		others.remove_at(index)
+		if _duplicate(replacement, others): return _failure("Duplicate relay identity/endpoint")
+		entries[index] = replacement.duplicate(true)
+		changed.emit()
+		return {"ok": true}
+	return _failure("Relay entry not found")
+
 func remove_entry(id: String) -> Dictionary:
 	if write_blocked: return _failure("Relay preferences are preserved read-only")
 	for index in entries.size():

@@ -15,6 +15,7 @@ HERE = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rendered", action="store_true", help="Open a dedicated X11 test window and capture screenshots")
+    parser.add_argument("--suite", choices=["ui", "startup", "all"], default="all")
     args = parser.parse_args()
     godot = shutil.which(os.environ.get("GODOT", "godot"))
     if not godot:
@@ -44,7 +45,9 @@ def main():
     # plugin currently has 4.7 callback return errors; record, don't mask globally.
     content = re.sub(r'\[editor_plugins\]\n.*?(?=\n\[)', '[editor_plugins]\nenabled=PackedStringArray()\n', content, flags=re.S)
     config.write_text(content)
+    (project / "override.cfg").write_text('[discovery]\nworld_catalog_url=""\n')
     shutil.copy2(HERE / "suite.gd", project / "ui_suite.gd")
+    shutil.copy2(HERE / "startup_suite.gd", project / "startup_suite.gd")
     env = {**os.environ, "XDG_DATA_HOME": str(artifacts / "data"), "XDG_CONFIG_HOME": str(artifacts / "config"), "XDG_CACHE_HOME": str(artifacts / "cache")}
     command = [godot, "--path", str(project), "--rendering-method", "gl_compatibility", "--xr-mode", "off"]
     try:
@@ -54,12 +57,17 @@ def main():
             print(imported.stdout + imported.stderr)
             return 2
         display = ["--display-driver", "x11"] if args.rendered else ["--headless"]
-        result = subprocess.run([*command, *display, "--script", "res://ui_suite.gd", "--non_vr"], capture_output=True, text=True, timeout=90, env=env)
-        output = result.stdout + result.stderr
-        (artifacts / "suite.log").write_text(output)
-        print(output, end="")
-        if "ERROR:" in output or "Real UI acceptance:" not in output or result.returncode not in (0, 1): return 2
-        return result.returncode
+        status = 0
+        for suite in (["startup", "ui"] if args.suite == "all" else [args.suite]):
+            filename = "ui_suite.gd" if suite == "ui" else "startup_suite.gd"
+            marker = "Real UI acceptance:" if suite == "ui" else "Real startup acceptance:"
+            result = subprocess.run([*command, *display, "--script", "res://" + filename, "--non_vr"], capture_output=True, text=True, timeout=90, env=env)
+            output = result.stdout + result.stderr
+            (artifacts / (suite + ".log")).write_text(output)
+            print(output, end="", flush=True)
+            if "ERROR:" in output or marker not in output or result.returncode not in (0, 1): return 2
+            status = max(status, result.returncode)
+        return status
     except subprocess.TimeoutExpired as error:
         output = (error.stdout or b"").decode() + (error.stderr or b"").decode()
         (artifacts / "timeout.log").write_text(output)

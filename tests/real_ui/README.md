@@ -1,5 +1,14 @@
 # Production UI acceptance — initial roadmap execution
 
+**Next-phase update:** startup now mounts the production player/menu independently
+of relay selection, with cancellation. Legacy scalar fields are hidden, saved rows
+can be edited, TLS import has a separate port/file picker and catalog errors are
+nonmodal. Headless results: 5 startup and 22 UI assertions pass. Rendered actions
+finish but GL texture leak errors still make that runner exit 2; rendering remains
+an open gate. The disposable override disables catalog HTTP before UI startup;
+avatar acquisition is disabled explicitly to prevent external download threads
+from obscuring lifecycle tests. No avatar/asset visual guarantee is claimed.
+
 ```sh
 python3 tests/real_ui/run.py
 python3 tests/real_ui/run.py --rendered

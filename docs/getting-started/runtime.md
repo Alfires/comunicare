@@ -1,5 +1,10 @@
 # Running clients and relays
 
+Startup loads local play/menu without waiting for relay selection. Settings → Network
+shows current connection state and Retry/Cancel. Edit the saved ordered relay rows
+for future connections; obsolete scalar migration fields are hidden. TLS certificate
+import has a separate port. Catalog outages do not open blocking error dialogs.
+
 Use Godot **4.7** with the project's declared Forward Plus/Jolt configuration.
 Import the project in the editor before running it. This is early development:
 the repository's headless Compatibility tests do not certify the full GPU/XR stack.

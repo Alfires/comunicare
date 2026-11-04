@@ -83,6 +83,9 @@ fields; `endpoint` creates a canonical local endpoint block key. No DNS, sockets
 crypto trust decisions, account access or persistence occurs in these helpers.
 
 <!-- module: scripts/multiplayer/federation/relay_preferences.gd -->
+`update_entry` validates a replacement endpoint/label/identity for an existing stable
+row ID, rejects duplicates and emits a preference change without reordering rows,
+altering independent blocks or disconnecting current membership.
 ## Device-local ordered relay preferences
 
 `configure` resets store/path; `load_preferences` validates bounded schema and
@@ -140,6 +143,9 @@ clears actor/sequence/holder references; `lose_origin` suspends and clears live 
 `snapshot` copies state. It is not wired to a federated transport or proof verifier.
 
 <!-- module: scripts/multiplayer/federation/relay_preferences_panel.gd -->
+`edit_entry` loads a selected saved row into the effective endpoint edit form.
+The panel now separates TLS import port/file picking from saved relay inputs and
+provides connection status, Retry and Cancel; it does not auto-approve certificates.
 ## Relay preferences UI
 
 `configure` binds the device-local store and builds ordered controls for adding,
@@ -846,6 +852,10 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+`connect_initial_relay` owns one background startup coroutine on the stable autoload
+while the local player/menu loads immediately. `cancel_relay_connection` ends the
+current selection/auth wait without creating duplicate players or restoring old
+membership. Later Retry begins a fresh selection.
 Preference notifications now compare independent identity/endpoint block sets:
 ordinary add/reorder/remove does not close active federated gameplay. Newly added
 restrictions still conservatively terminate the tunnel; missing per-actor ingress

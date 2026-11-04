@@ -11,6 +11,15 @@ combined rendered execution has timed out and is not certified. Clean-copy impor
 also exposed incompatible vendored VRM editor callback returns; only disposable
 test editor plugins are disabled. See [runner limits](../../tests/real_ui/README.md).
 Startup shell, form redesign, two-window gameplay and soak phases remain open.
+
+**Further execution:** local startup shell now loads independently of relay selection;
+the stable coordinator owns initial auth/cancellation. A two-second production-startup
+regression passes before unavailable-endpoint timeout. Legacy fields are hidden,
+effective rows editable, TLS import has separate port/file picking, connection
+status/Retry/Cancel controls exist and catalog failure is nonmodal. Test catalog HTTP
+and avatar acquisition are explicitly disabled to keep lifecycle runs hermetic.
+Headless startup/UI checks pass; rendered actions complete but two GL texture leak
+errors remain. Two-client GUI, soak and editor-plugin compatibility gates stay open.
 The user's report that the system does not work is not disproved by service-test
 passes. This roadmap establishes a user-visible acceptance gate for the existing
 desktop UI, startup, relay settings, LAN discovery, world browser and federation.

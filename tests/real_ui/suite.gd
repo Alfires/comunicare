@@ -40,8 +40,8 @@ func screenshot(name: String):
 	# Focus/resize can suspend drawing on desktop backends. Never await a draw
 	# signal without a timeout and turn a test screenshot into an infinite hang.
 	await create_timer(0.15).timeout
-	if not root.get_texture().get_image().is_empty():
-		root.get_texture().get_image().save_png("user://" + name + ".png")
+	var image = root.get_texture().get_image()
+	if not image.is_empty(): image.save_png("user://" + name + ".png")
 
 func run():
 	root.size = Vector2i(1000, 700)
@@ -57,6 +57,7 @@ func run():
 	packed.take_over_path("res://scenes/world.tscn")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var save = root.get_node("SaveData")
+	root.get_node("DataLoader").get_asset_cache().enabled = false
 	check(save.load_acount(), "production account initializes only in disposable user directory")
 	save.store.set_value("network.lan_discovery", false)
 	var network = root.get_node("NetworkHandler")
@@ -105,6 +106,10 @@ func run():
 	for node in settings.category_pages.Network.get_children():
 		if node.get_script() != null and node.get_script().resource_path.ends_with("relay_preferences_panel.gd"): panel = node
 	check(panel != null, "real Settings Network mounts actual preferences panel")
+	check(not settings.controls.has("network.relay_address") and not settings.controls.has("network.relay_port"), "legacy migration fields are not presented as effective connection controls")
+	check(panel.has_method("edit_entry"), "Network panel provides selected-row endpoint editing")
+	browser._on_request_completed(HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray())
+	check(not menu.find_children("*", "AcceptDialog", true, false).any(func(dialog): return dialog.visible), "catalog failure remains nonmodal while local instance UI works")
 	await screenshot("network-before-edit")
 	panel.label_input.text = "Unrelated fallback"
 	panel.host_input.text = "127.0.0.1"
@@ -115,6 +120,10 @@ func run():
 		"adding unrelated relay through actual Settings preserves live federated membership")
 	var preferences = network.get_relay_preferences()
 	var added: Dictionary = preferences.snapshot().entries.back()
+	panel.edit_entry(added.entry_id)
+	panel.port_input.value = 19997
+	button(panel, "Save selected relay edit").pressed.emit()
+	check(preferences.snapshot().entries.back().port == 19997 and network.current_session_id == original, "actual endpoint edit saves effective list without disconnecting current play")
 	preferences.move_entry(added.entry_id, 0)
 	await process_frame
 	check(network.current_session_id == original, "reordering preferences preserves live federated membership")
@@ -177,6 +186,10 @@ func cleanup(network):
 		network.peer.disconnected_from_relay()
 	if network.directory_browser != null: network.directory_browser.stop()
 	if network.lan_discovery != null: network.lan_discovery.stop()
+	var actors = network.get("animation_controller")
+	if is_instance_valid(actors):
+		actors.queue_free()
+		network.animation_controller = null
 	host.connection.destroy()
 	host.connection = null
 	service.stop()
@@ -187,3 +200,4 @@ func cleanup(network):
 	if current_scene != null: current_scene.queue_free()
 	await process_frame
 	await process_frame
+	if DisplayServer.get_name() != "headless": await create_timer(0.25).timeout

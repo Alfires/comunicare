@@ -47,7 +47,9 @@ func _ready() -> void:
 		if save != null and save.get("store") != null: NetworkHandler.refresh_relay_directories()
 
 func _request_catalog() -> void:
-	if http_request.request("https://raw.githubusercontent.com/Alfires/comunicare-Officel-World-List/refs/heads/main/worlds.json") != OK:
+	var url = str(ProjectSettings.get_setting("discovery/world_catalog_url", "https://raw.githubusercontent.com/Alfires/comunicare-Officel-World-List/refs/heads/main/worlds.json"))
+	if url.is_empty(): return
+	if http_request.request(url) != OK:
 		status.text = "Catalog request could not start; public discovery still works"
 
 func _process(_delta: float) -> void:
@@ -155,12 +157,10 @@ func classify_query(text: String) -> String:
 func _on_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		status.text = "Catalog unavailable; public discovery still works"
-		_show_error(status.text)
 		return
 	var values = Model.catalog(body)
 	if not values.ok:
 		status.text = "Invalid world catalog"
-		_show_error(status.text)
 		return
 	worlds_list = values.value
 	_render_worlds()

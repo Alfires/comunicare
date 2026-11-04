@@ -7,7 +7,8 @@ var config
 
 func _ready():
 	if "--relay" in OS.get_cmdline_args() or OS.has_feature("dedicated_server"): 
-		XRServer.find_interface("OpenXR").uninitialize()
+		var xr = XRServer.find_interface("OpenXR")
+		if xr != null: xr.uninitialize()
 		get_viewport().use_xr = false
 		get_tree().change_scene_to_file("res://scenes/relay.tscn")
 	else:
@@ -16,9 +17,10 @@ func _ready():
 			push_error(SaveData.account_error)
 			load_initial_scene()
 			return
-		if await NetworkHandler.create_peer():
-			NetworkHandler.create_session()
 		call_deferred("load_initial_scene")
+		# The initial scene owns no awaited networking coroutine: it is replaced
+		# immediately. The stable autoload completes initial relay setup instead.
+		NetworkHandler.connect_initial_relay()
 
 func load_initial_scene():
 	load_player()

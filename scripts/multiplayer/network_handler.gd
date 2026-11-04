@@ -16,6 +16,23 @@ var gameplay_tunnel
 var current_origin := ""
 var relay_presets: Array = []
 var relay_block_snapshot: Dictionary = {"ids": [], "endpoints": []}
+var relay_cancelled := false
+var initial_connection_started := false
+
+func connect_initial_relay():
+	if initial_connection_started: return
+	initial_connection_started = true
+	if await create_peer():
+		if current_session_id.is_empty() and not session_busy: create_session()
+
+func cancel_relay_connection():
+	if not connection_in_progress: return
+	relay_cancelled = true
+	last_session_error = "Relay connection cancelled"
+	if authentication_pending and peer != null:
+		authentication_pending = false
+		peer.authentication_error = last_session_error
+		peer.authentication_finished.emit(false)
 signal relay_directory_changed
 
 func get_directory_browser():
@@ -306,12 +323,14 @@ func create_peer() -> bool:
 	if connection_in_progress: return await relay_connection_finished
 	if peer != null and peer.is_connected_to_relay and peer.is_authenticated: return true
 	connection_in_progress = true
+	relay_cancelled = false
 	if gameplay_tunnel != null:
 		gameplay_tunnel.close()
 		gameplay_tunnel = null
 	relay_selection_errors.clear()
 	var candidates = _relay_candidates()
 	for entry in candidates:
+		if relay_cancelled: break
 		if not str(entry.get("relay_id", "")).is_empty():
 			var browser = get_directory_browser()
 			if not browser.trusted.has(entry.relay_id):
@@ -321,10 +340,10 @@ func create_peer() -> bool:
 			var tunnel = load("res://scripts/multiplayer/federation/relay_game_tunnel.gd").new()
 			if not tunnel.start(trusted.host, int(trusted.port), trusted.certificate, entry.relay_id, relay_preferences.snapshot().blocked_ids, trusted.common_name): continue
 			var until = Time.get_ticks_msec() + 10000
-			while not tunnel.ready and tunnel.last_error.is_empty() and Time.get_ticks_msec() < until:
+			while not relay_cancelled and not tunnel.ready and tunnel.last_error.is_empty() and Time.get_ticks_msec() < until:
 				tunnel.poll()
 				await get_tree().process_frame
-			if not tunnel.ready:
+			if relay_cancelled or not tunnel.ready:
 				tunnel.close()
 				continue
 			gameplay_tunnel = tunnel
@@ -334,6 +353,7 @@ func create_peer() -> bool:
 		relay_port = gameplay_tunnel.local_port if gameplay_tunnel != null else int(entry.port)
 		active_relay_entry = entry.duplicate(true)
 		var success = await _connect_relay_candidate()
+		if relay_cancelled: break
 		var still_allowed = relay_preferences == null
 		if relay_preferences != null:
 			for current in relay_preferences.snapshot().entries:
@@ -355,7 +375,7 @@ func create_peer() -> bool:
 		# circumvent account/security policy. Capacity/unreachable may fail over.
 		if peer != null and peer.authentication_rejected: break
 	active_relay_entry.clear()
-	last_session_error = "No saved relay connected. " + "; ".join(relay_selection_errors) if not relay_selection_errors.is_empty() else "No allowed saved relays. Add or unblock one in Network settings."
+	last_session_error = "Relay connection cancelled" if relay_cancelled else ("No saved relay connected. " + "; ".join(relay_selection_errors) if not relay_selection_errors.is_empty() else "No allowed saved relays. Add or unblock one in Network settings.")
 	connection_in_progress = false
 	relay_connection_finished.emit(false)
 	return false

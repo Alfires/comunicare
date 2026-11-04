@@ -60,8 +60,8 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 func register_defaults():
 	for definition in [
 		{"id": "network.lan_discovery", "category": "Network", "label": "Discover relays on local network", "description": "Receive local multicast hints. Only explicitly certificate-trusted directories are queried; advertisements never log in or change your saved relay order. Changes take effect after restart.", "type": "boolean", "default": true, "order": 2},
-		{"id": "network.relay_address", "category": "Network", "label": "Legacy relay address (migration only)", "description": "Used once to initialize the ordered relay list below. After migration, edit the list: the top entry is the default relay.", "type": "text", "default": "127.0.0.1", "min_length": 1, "max_length": 253, "order": 0},
-		{"id": "network.relay_port", "category": "Network", "label": "Relay UDP port", "type": "number", "default": 7374.0, "min": 1.0, "max": 65535.0, "step": 1.0, "order": 1},
+		{"id": "network.relay_address", "category": "Network", "label": "Legacy relay address (migration only)", "visible": false, "type": "text", "default": "127.0.0.1", "min_length": 1, "max_length": 253, "order": 0},
+		{"id": "network.relay_port", "category": "Network", "label": "Legacy relay UDP port (migration only)", "visible": false, "type": "number", "default": 7374.0, "min": 1.0, "max": 65535.0, "step": 1.0, "order": 1},
 		{"id": "input.world_grab", "category": "Controls", "label": "Pick up / drop world item", "type": "key_binding", "action": "world_grab", "default": KEY_E, "order": 8},
 		{"id": "vr.share_tracking", "category": "VR Comfort", "label": "Share live head/hand/body tracking in this instance", "description": "Sends bounded avatar-relative poses, never room meshes or tracker identifiers.", "type": "boolean", "default": true, "order": 4},
 		{"id": "vr.locomotion_mode", "category": "VR Movement", "label": "Locomotion", "type": "enum", "options": {"smooth": "Smooth", "teleport": "Point and teleport"}, "default": "smooth", "order": -1},

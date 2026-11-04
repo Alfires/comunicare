@@ -10,6 +10,13 @@ Existing movement/animation transport remains unchanged. Current controls are in
 the [runtime guide](../getting-started/runtime.md) and
 [VR guide](../guides/vr-controls.md).
 
+**Speed parity update:** desktop and VR now both use the saved `vr.move_speed`
+walking reference (default 2 m/s), with 1.5× sprint (default 3 m/s). Existing custom
+values are preserved. Settings labels this as **Movement speed (PC and VR)**;
+there is no separate desktop fixed speed. Partial VR stick deflection remains
+slower and acceleration remains platform-specific. This supersedes the different
+PC/VR speeds in the original proposal and baseline below.
+
 The design and original baseline below are retained as implementation history,
 not a description of still-missing sprint input. Real-headset controller support,
 VR comfort, physical left/right Ctrl behavior and visual desktop/VR two-client
@@ -19,7 +26,8 @@ are not hardware or full-renderer certification.
 Verification for this implementation:
 
 - `python3 tests/microphone_settings/run.py`: 108 passed, 0 failed, no skipped groups.
-- `python3 tests/vr_controls/run.py`: 25 sprint checks and 105 existing VR checks passed.
+- `python3 tests/vr_controls/run.py`: 37 sprint checks and 105 existing VR checks passed.
+  Includes PC/full-stick VR walking and sprint parity at 0.1, 2, 3 and 5 m/s.
   Desktop physics uses a fixture that bypasses unavailable headless mouse capture;
   VR checks use synthetic XR tracker input, not a headset.
 - `python3 tests/animation_sync/run.py`: lifecycle checks passed and 164 animation/

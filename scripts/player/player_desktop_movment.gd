@@ -1,7 +1,6 @@
 extends CharacterBody3D
 
 # Movement variables
-@export var speed = 3.0
 @export var acceleration = 20.0
 @export var friction = 15.0
 @export var jump_force = 7.0
@@ -26,7 +25,7 @@ var focused := true
 var sprint = preload("res://scripts/player/sprint_policy.gd").new()
 
 func get_walk_speed() -> float:
-	return speed
+	return float(SaveData.store.get_value("vr.move_speed"))
 
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -112,7 +111,7 @@ func _physics_process(delta):
 	# Get input
 	var input_direction = Vector3(0,0,0)
 	var blocked = _movement_blocked()
-	var target_speed = sprint.target_speed(speed, Input.is_action_pressed("sprint"), blocked)
+	var target_speed = sprint.target_speed(get_walk_speed(), Input.is_action_pressed("sprint"), blocked)
 	if not blocked:
 		input_direction = Input.get_vector("left", "right", "back", "forward")
 	var forward = -global_transform.basis.z  # Camera forward direction

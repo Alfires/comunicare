@@ -46,6 +46,9 @@ to a platform file picker; native filesystem browsing varies by runtime/platform
   only: it does not extend teleport range or amplify physical room-scale motion.
   After menu/focus/tracking suppression, return the movement controls to neutral
   and release/repress the sprint click. Right click remains optional jump.
+- **Movement speed (PC and VR)** under VR Movement is shared with desktop:
+  full-stick walking/sprinting uses the same maximum speed as PC. Existing saved
+  values are preserved; partial-stick movement is still proportionally slower.
 - A/X on either hand toggles one shared main-menu viewport. Optional jump is right
   stick click and off by default; B/Y retains the separate emote wheel.
 - Controller aim/trigger operates UI, with press capture/release on drag-off/close.

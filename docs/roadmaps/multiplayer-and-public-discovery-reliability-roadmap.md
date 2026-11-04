@@ -2,6 +2,21 @@
 
 ## Status, evidence and scope
 
+**Implemented reliability slice:** verified public avatar application/deduplication
+now lives in a participant module; coordinator guards transport session acceptance
+and rejects connection replacement across preparation. Discovery uses a pure model,
+bounded catalog/summaries, quiet bounded JSON codecs and negotiated request/generation
+envelopes for retryable snapshots. Invalid movement floats/odd PCM and unknown
+packet types are dropped; local movement send cadence is bounded and desktop no
+longer integrates position in both frame and physics callbacks. Reliability suites
+are now green; historical red baselines below remain evidence of the original gaps.
+
+Still pending from the wider architectural plan: complete transaction nonce/stream
+epoch negotiation, indexed relay session/admission extraction, directory pagination/
+snapshot consistency/rate quotas, fair multi-channel/event budgeting, keyed UI
+updates and comprehensive reconnect/legacy migration policies. Passing the targeted
+regressions does not complete these separate stages or certify production load.
+
 **Test-first update:** opt-in [reliability acceptance](../../tests/multiplayer_reliability/README.md)
 now reproduces current appearance/session/staging and discovery/catalog gaps.
 Client baseline: 5 passed/5 failed; discovery: 5 passed/8 failed. Both exit 1

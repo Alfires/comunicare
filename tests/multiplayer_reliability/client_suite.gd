@@ -25,6 +25,7 @@ func coordinator():
 func run():
 	test_profile_appearance()
 	test_unmatched_result()
+	test_stream_validation()
 	await test_replacement_during_prepare()
 	print("\nRED client reliability: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
@@ -70,6 +71,20 @@ func test_unmatched_result():
 
 func capture_join(node: Node, completed: Array):
 	completed.append(await node.join_session("target", "default_wold"))
+
+func test_stream_validation():
+	var peer = RelayPeer.new()
+	peer.current_session_id = "old"
+	var poses: Array = []
+	var voices: Array = []
+	peer.player_data.connect(func(value): poses.append(value))
+	peer.voice_data.connect(func(value): voices.append(value))
+	peer.on_packet(PlayerData.create(7, Vector3(NAN, 0, 0), Vector3.ZERO).encode())
+	check(poses.is_empty(), "nonfinite movement cannot reach remote scene transforms")
+	peer.on_packet(PackedByteArray([PacketInfo.PACKET_TYPE.VOICE_DATA, 7, 1]))
+	check(voices.is_empty(), "odd PCM byte count cannot reach voice decoder")
+	peer.on_packet(PackedByteArray([255]))
+	check(true, "unknown network packet type is quietly ignored")
 
 func test_replacement_during_prepare():
 	var node = coordinator()

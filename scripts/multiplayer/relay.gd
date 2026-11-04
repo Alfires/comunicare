@@ -233,14 +233,15 @@ func on_packed(peer_id: int, data: PackedByteArray):
 				return
 			var user_session = get_user_in_session(peer_id)
 			if user_session == -1: return
+			var user_pose = PlayerData.create_from_data(data)
+			if not user_pose.position.is_finite() or not user_pose.rotation.is_finite() or user_pose.position.length() > 100000: return
 			for peer in sessions[user_session][0]["peers"]:
-				if peer != peer_id:
-					var user_pose = PlayerData.create_from_data(data)
+				if peer != peer_id and peers.has(peer) and peers[peer].get_state() == ENetPacketPeer.STATE_CONNECTED:
 					#print("data sent to: ",peers[peer])
 					PlayerData.create(peer_id,user_pose.position,user_pose.rotation).sent(peers[peer])
 		
 		PacketInfo.PACKET_TYPE.VOICE_DATA:
-			if data.size() < 2 or data.size() > 4096:
+			if data.size() < 2 or data.size() > 4096 or data.size() % 2 != 0:
 				return
 			var user_session = get_user_in_session(peer_id)
 			if user_session == -1: return
@@ -261,7 +262,7 @@ func on_packed(peer_id: int, data: PackedByteArray):
 			else: GetPublicSessions.create((get_public_session())).sent(peers[peer_id])
 			 
 		_:
-			push_error("Packed type was unknown: ",packed_type)
+			return # Unknown/unnegotiated input is not an engine exception.
 
 
 # tools 

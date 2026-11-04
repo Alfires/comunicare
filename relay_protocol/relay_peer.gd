@@ -246,10 +246,11 @@ func on_packet(data: PackedByteArray):
 	
 		PacketInfo.PACKET_TYPE.PLAYER_DATA:
 			if not current_session_id.is_empty() and data.size() == 26:
-				player_data.emit(PlayerData.create_from_data(data))
+				var pose = PlayerData.create_from_data(data)
+				if pose.position.is_finite() and pose.rotation.is_finite(): player_data.emit(pose)
 			
 		PacketInfo.PACKET_TYPE.VOICE_DATA:
-			if not current_session_id.is_empty() and data.size() >= 2 and data.size() <= 4096:
+			if not current_session_id.is_empty() and data.size() >= 2 and data.size() <= 4096 and data.size() % 2 == 0:
 				voice_data.emit(VoiceData.create_from_data(data))
 			
 		PacketInfo.PACKET_TYPE.GET_SESSION_PEERS:
@@ -328,7 +329,7 @@ func on_packet(data: PackedByteArray):
 				profiles = values.profiles
 				profiles_updated.emit(current_session_id, profiles)
 		_:
-			push_error("Packed type with index ",data[0]," unhandled!")
+			return
 
 func publish_profile(profile: Dictionary):
 	if is_authenticated:

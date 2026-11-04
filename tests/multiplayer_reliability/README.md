@@ -1,5 +1,11 @@
 # RED multiplayer and discovery reliability regressions
 
+**Implementation update:** both suites now pass; run the same commands to detect
+regressions. Added malformed-codec and invalid stream checks also execute. The red
+baseline descriptions below are historical, not current expected failures.
+No rendered-avatar, session-stream epoch or production capacity certification is
+implied; the roadmap records the larger extraction and protocol phases still open.
+
 **Explicitly requested intentionally failing tests; no production fixes.**
 
 ```sh

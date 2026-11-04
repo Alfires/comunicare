@@ -35,13 +35,13 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
 func _process(delta):
-	position += velocity * delta  # Move immediately
 	var packet = PackedByteArray()
 	packet.append_array(var_to_bytes(position))
 	# when to update data
 	elapsed_time += delta
-	if elapsed_time >= update_interval or last_state != {"position": position, "rotation": rotation}:  
+	if elapsed_time >= 0.05 and (last_state != {"position": position, "rotation": rotation} or elapsed_time >= update_interval):
 		update_player_data() 
+		last_state = {"position": position, "rotation": rotation}
 		elapsed_time = 0.0
 	
 func update_player_data():

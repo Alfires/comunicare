@@ -1,6 +1,12 @@
 # Multi-relay federation, ordered failover and LAN discovery
 
 **Status: proposal, 2026-11-04. No federation or LAN discovery implementation.**
+**Initial implementation:** ordered client preferences, structured settings panel,
+endpoint blocking and actual client failover now exist. Seven policy/data services
+and panel checks pass 81 assertions, with real coordinator fallback tested separately.
+This is not complete federation: encrypted links, server identity verification,
+live multi-relay directory connections, physical LAN discovery and cross-relay
+gameplay remain pending. See [current limits](../guides/relay-preferences.md).
 **Test-first update:** opt-in [RED acceptance contracts](../../tests/relay_federation/README.md)
 now cover proposed preferences, fallback/link policy, public directory, LAN input
 and origin-state services. Initial run: 0 passed, 6 missing-service failures and

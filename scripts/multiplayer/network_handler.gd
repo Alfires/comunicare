@@ -5,6 +5,46 @@ var player_scene = preload("res://scenes/player/remote_player.tscn")
 var players = {}
 var relay_ip := "127.0.0.1"
 var relay_port := 7374
+var relay_preferences
+var active_relay_entry: Dictionary = {}
+var relay_selection_errors: Array = []
+
+func get_relay_preferences():
+	if relay_preferences != null: return relay_preferences
+	relay_preferences = load("res://scripts/multiplayer/federation/relay_preferences.gd").new()
+	relay_preferences.configure("user://relay_preferences.json")
+	var loaded: Dictionary = relay_preferences.load_preferences()
+	if loaded.ok:
+		var save = get_node_or_null("/root/SaveData")
+		var address = relay_ip
+		var port = relay_port
+		if save != null and save.get("store") != null:
+			var configured_host = save.store.get_value("network.relay_address")
+			var configured_port = save.store.get_value("network.relay_port")
+			if configured_host is String: address = configured_host
+			if configured_port is int or configured_port is float: port = int(configured_port)
+		relay_preferences.migrate_legacy(address, port)
+	relay_preferences.changed.connect(_relay_policy_changed)
+	return relay_preferences
+
+func _relay_policy_changed():
+	if active_relay_entry.is_empty() or not relay_preferences.is_blocked(active_relay_entry): return
+	if peer != null:
+		if peer.peer != null: peer.peer.peer_disconnect_now()
+		peer.authentication_error = "Active relay was blocked locally"
+		peer.disconnected_from_relay()
+	active_relay_entry.clear()
+
+func _relay_candidates() -> Array:
+	# Isolated transport callers can still use explicit relay_ip/relay_port without
+	# causing preference persistence. Normal startup owns a real settings store.
+	var save = get_node_or_null("/root/SaveData")
+	if relay_preferences == null and save != null and save.get("store") != null: get_relay_preferences()
+	if relay_preferences == null: return [{"entry_id": "explicit", "label": "Relay", "host": relay_ip, "port": relay_port, "relay_id": ""}]
+	var candidates: Array = []
+	for entry in relay_preferences.snapshot().entries:
+		if not relay_preferences.is_blocked(entry): candidates.append(entry)
+	return candidates
 
 var id: int = -1
 var remote_ids: Array[int]
@@ -97,15 +137,46 @@ func create_peer() -> bool:
 	if connection_in_progress: return await relay_connection_finished
 	if peer != null and peer.is_connected_to_relay and peer.is_authenticated: return true
 	connection_in_progress = true
+	relay_selection_errors.clear()
+	var candidates = _relay_candidates()
+	for entry in candidates:
+		# Identity pins require a future verified server-identity handshake. Do not
+		# pretend the existing client-auth ENet connection verifies a pinned relay.
+		if not str(entry.get("relay_id", "")).is_empty():
+			relay_selection_errors.append(str(entry.label) + ": relay identity verification unavailable on legacy ENet transport")
+			continue
+		if relay_preferences != null and relay_preferences.is_blocked(entry): continue
+		relay_ip = entry.host
+		relay_port = int(entry.port)
+		active_relay_entry = entry.duplicate(true)
+		var success = await _connect_relay_candidate()
+		var still_allowed = relay_preferences == null
+		if relay_preferences != null:
+			for current in relay_preferences.snapshot().entries:
+				if current == entry and not relay_preferences.is_blocked(entry): still_allowed = true
+		if success and still_allowed:
+			connection_in_progress = false
+			relay_connection_finished.emit(true)
+			return true
+		if success and not still_allowed:
+			if peer.peer != null: peer.peer.peer_disconnect_now()
+			peer.disconnected_from_relay()
+			last_session_error = "Relay preference changed while connecting; retry with the current list"
+			break
+		relay_selection_errors.append("%s:%s — %s" % [entry.host, entry.port, last_session_error])
+		# Authentication rejection is not permission to try alternate relays to
+		# circumvent account/security policy. Capacity/unreachable may fail over.
+		if peer != null and peer.authentication_rejected: break
+	active_relay_entry.clear()
+	last_session_error = "No saved relay connected. " + "; ".join(relay_selection_errors) if not relay_selection_errors.is_empty() else "No allowed saved relays. Add or unblock one in Network settings."
+	connection_in_progress = false
+	relay_connection_finished.emit(false)
+	return false
+
+func _connect_relay_candidate() -> bool:
 	if peer != null:
 		if peer.connection != null: peer.connection.destroy()
 		peer.disconnected_from_relay()
-	var save = get_node_or_null("/root/SaveData")
-	if save != null and save.get("store") != null:
-		var address = save.store.get_value("network.relay_address")
-		var port = save.store.get_value("network.relay_port")
-		if address is String and not address.strip_edges().is_empty(): relay_ip = address.strip_edges()
-		if port is float or port is int: relay_port = int(port)
 	get_animation_controller()
 	peer = RelayPeer.new()
 	peer.session_result_guard = _accept_session_result
@@ -126,8 +197,6 @@ func create_peer() -> bool:
 	peer.instance_evicted.connect(_on_instance_evicted)
 	if not peer.connect_to_relay(relay_ip,relay_port):
 		last_session_error = peer.authentication_error
-		connection_in_progress = false
-		relay_connection_finished.emit(false)
 		return false
 	authentication_pending = true
 	authentication_deadline = Time.get_ticks_msec() + 15000
@@ -141,13 +210,9 @@ func create_peer() -> bool:
 			peer.connection = null
 		peer.is_connected_to_relay = false
 		peer.is_authenticated = false
-		connection_in_progress = false
-		relay_connection_finished.emit(false)
 		return false
 	last_session_error = ""
 	_publish_profile("")
-	connection_in_progress = false
-	relay_connection_finished.emit(true)
 	return true
 
 func create_session(world_url: String = "default_wold", mode: int = PacketInfo.MODE.PUBLIC):

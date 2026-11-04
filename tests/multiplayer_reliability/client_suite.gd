@@ -73,8 +73,40 @@ func test_connection_recovery():
 		server.handle_events()
 		await process_frame
 	check(completed == [true], "disconnected startup connection can authenticate again without restarting game")
+	# Use real ordered preferences and the actual coordinator, not only the pure
+	# selector. First endpoint times out; second authenticates with the relay.
+	network.peer.peer.peer_disconnect()
+	var old_deadline = Time.get_ticks_msec() + 2000
+	while not server.key_mapping.is_empty() and Time.get_ticks_msec() < old_deadline:
+		server.handle_events()
+		if network.peer.connection != null: network.peer.handle_events()
+		await process_frame
+	network.peer.connection.destroy()
+	network.peer.connection = null
+	network.peer.disconnected_from_relay()
+	for frame in 10:
+		server.handle_events()
+		await process_frame
+	var preferences = load("res://scripts/multiplayer/federation/relay_preferences.gd").new()
+	preferences.configure("res://relay-list-fixture.json")
+	preferences.add_entry({"entry_id": "offline", "label": "Offline first", "host": "127.0.0.1", "port": 1, "relay_id": ""})
+	preferences.add_entry({"entry_id": "live", "label": "Live second", "host": "127.0.0.1", "port": server.connection.get_local_port(), "relay_id": ""})
+	network.relay_preferences = preferences
+	completed.clear()
+	_capture_connection(network, completed)
+	network.authentication_deadline = Time.get_ticks_msec() - 1
+	deadline = Time.get_ticks_msec() + 5000
+	while completed.is_empty() and Time.get_ticks_msec() < deadline:
+		server.handle_events()
+		await process_frame
+	check(completed == [true] and network.active_relay_entry.get("entry_id") == "live", "real ordered list falls back from unavailable first relay to authenticated second")
+	if completed != [true]: print("Failover diagnostic: ", network.last_session_error)
+	check(preferences.snapshot().entries[0].entry_id == "offline", "real successful fallback preserves preferred main relay order")
+	preferences.changed.connect(network._relay_policy_changed)
+	preferences.set_endpoint_blocked("127.0.0.1", server.connection.get_local_port(), true)
+	check(not network.peer.is_connected_to_relay and network.current_session_id.is_empty(), "blocking current endpoint immediately disconnects actual client")
 	if network.peer != null:
-		network.peer.connection.destroy()
+		if network.peer.connection != null: network.peer.connection.destroy()
 		network.peer.connection = null
 		network.peer.disconnected_from_relay()
 	server.connection.destroy()

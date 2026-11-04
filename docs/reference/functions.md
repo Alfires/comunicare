@@ -1,5 +1,79 @@
 # Production function contracts
 
+<!-- module: scripts/multiplayer/federation/relay_validation.gd -->
+## Relay configuration guards
+
+Pure `failure` returns a diagnostic; `identity` checks fingerprint syntax only,
+not authenticity. `integer`, `text`, `host` and `keys` enforce bounded types and
+fields; `endpoint` creates a canonical local endpoint block key. No DNS, sockets,
+crypto trust decisions, account access or persistence occurs in these helpers.
+
+<!-- module: scripts/multiplayer/federation/relay_preferences.gd -->
+## Device-local ordered relay preferences
+
+`configure` resets store/path; `load_preferences` validates bounded schema and
+preserves corrupt files read-only. `snapshot` deep-copies entries and independent
+blocks. `add_entry`, `move_entry`, `remove_entry` mutate order without deleting blocks.
+`set_blocked`, `set_endpoint_blocked`, `is_blocked` maintain/query independent
+identity/endpoint exclusions. `save_preferences` atomically replaces a valid store;
+`migrate_legacy` initializes one old endpoint only when no list file exists.
+Changes emit synchronously; identity pins do not themselves authenticate servers.
+
+<!-- module: scripts/multiplayer/federation/relay_connection_manager.gd -->
+## Pure relay selection state machine
+
+`configure` resets bounded candidates/limits, keeping attempt serial monotonic.
+`begin_selection`, `complete_attempt`, `retry` coalesce/advance ordered attempts;
+`tick` advances expired attempts. `set_blocked` invalidates matching pending/current
+and directory policy state; `open_directory` reserves bounded secondary policy links;
+`snapshot` copies state. This module opens no actual transport sockets and is not
+the live coordinator's ENet implementation.
+
+<!-- module: scripts/multiplayer/federation/relay_route_policy.gd -->
+## Relay route policy
+
+`configure` copies user/operator blocks, epoch and hop cap. `set_user_blocked` and
+`set_operator_blocked` advance policy epoch. `authorize` checks trusted verified
+route inputs for matching epoch, identity syntax, origin/ingress endpoints, loops
+and blocked hops. It does not cryptographically verify provenance or connect relays.
+
+<!-- module: scripts/multiplayer/federation/federation_directory.gd -->
+## Public federation directory state
+
+`configure` resets bounded storage. `valid_summary` checks strict public fields;
+`ingest` validates caller-authenticated origin/path and monotonic process sequence
+before replacing scoped public summaries. `snapshot` copies them; `set_blocked`
+purges origin/transit sightings, `withdraw_origin` removes a matching boot and
+`expire` evicts TTL state. There is no network gossip or signature verifier here.
+
+<!-- module: scripts/multiplayer/federation/lan_relay_discovery.gd -->
+## LAN candidate validation
+
+`configure` resets enabled/caps/blocks; `local_address` recognizes local-address
+classes, not actual interface reachability. `observe` parses bounded source-matching
+advertisements into unverified candidates. `verified_directory` accepts a trusted
+identity verifier's summaries; `candidates` and `instances` copy state, `expire`
+purges dependencies. No multicast socket, automatic login or server verification
+is performed by this data-only module.
+
+<!-- module: scripts/multiplayer/federation/federated_instance_state.gd -->
+## Origin-scoped instance policy
+
+`configure` resets origin/item state; `admit` accepts only fresh destination-bound
+trusted verifier results and nonduplicate account actors. `apply_item` checks actor
+generation/instance and exclusive lease epoch for grab/release. `disconnect_actor`
+clears actor/sequence/holder references; `lose_origin` suspends and clears live actors;
+`snapshot` copies state. It is not wired to a federated transport or proof verifier.
+
+<!-- module: scripts/multiplayer/federation/relay_preferences_panel.gd -->
+## Relay preferences UI
+
+`configure` binds the device-local store and builds ordered controls for adding,
+making main, moving down, removing and blocking endpoints; independent block rows
+allow unblock after removal. Private callbacks validate results and persist only
+explicit user changes. Teardown disconnects store notification; no connection switch
+is caused by reordering and no account key is sent from this panel.
+
 <!-- module: relay_protocol/world_item_router.gd -->
 ## Ephemeral relay world item routing
 
@@ -698,6 +772,10 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+`get_relay_preferences` lazily loads client-local ordered entries, migrates the old
+scalar endpoint once and binds immediate endpoint-block cleanup. The live client
+iterates unpinned allowed entries on timeout/unavailability and never claims server
+identity verification from existing ENet account authentication.
 `ensure_relay_connected` returns true for an already authenticated relay or awaits
 one retry attempt. Concurrent callers share `relay_connection_finished`; Network
 settings select the endpoint, failures close transport and clear the retry latch.

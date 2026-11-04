@@ -90,6 +90,10 @@ func _render():
 		_update_value(definition.id, SaveData.store.get_value(definition.id))
 	if category_pages.has("Assets") and DataLoader.has_method("get_asset_cache"):
 		_add_cache_actions(category_pages.Assets)
+	if category_pages.has("Network") and NetworkHandler.has_method("get_relay_preferences"):
+		var panel = load("res://scripts/multiplayer/federation/relay_preferences_panel.gd").new()
+		category_pages.Network.add_child(panel)
+		panel.configure(NetworkHandler.get_relay_preferences())
 	if not category_pages.has(selected_category):
 		selected_category = "" if category_pages.is_empty() else str(category_pages.keys()[0])
 	select_category(selected_category)

@@ -29,6 +29,11 @@ and UDP port access. Failed attempts now report the endpoint and retry guidance;
 Reload shares an in-progress attempt rather than opening duplicate connections.
 Reconnecting does not silently rejoin a previous instance; choose/create one again.
 
+**Ordered-list update:** the old scalar endpoint is now migration-only. Use the
+[ordered relay list](../guides/relay-preferences.md) in Network settings after
+migration. Its top allowed entry is default and unavailable entries fall back in
+order. Live relay federation and physical LAN discovery are not implemented yet.
+
 Normal client startup can generate an account key and migrate/write settings,
 profiles, contacts and avatar selections. Back up user data before experimenting.
 For automated verification use [isolated runners](../development/testing.md), not

@@ -9,6 +9,7 @@ var is_connected_to_relay := false
 var is_authenticated := false
 var account_key: CryptoKey
 var authentication_error := ""
+var authentication_rejected := false
 var profiles: Array = []
 var current_session_id := ""
 var active_instance: Dictionary = {}
@@ -345,6 +346,7 @@ func on_packet(data: PackedByteArray):
 		PacketInfo.PACKET_TYPE.AUTH_RESULT:
 			var values = AccountPacket.parse(data)
 			is_authenticated = values.get("success", false) == true
+			authentication_rejected = not is_authenticated
 			world_revision_supported = is_authenticated and values.get("world_revision_version") == 1
 			if is_authenticated and values.get("world_items_version") == 1:
 				AccountPacket.create(PacketInfo.PACKET_TYPE.WORLD_DATA, {"op": "hello", "version": 1}).sent(peer)

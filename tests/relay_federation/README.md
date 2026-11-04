@@ -1,5 +1,11 @@
 # RED multi-relay acceptance contracts
 
+**Implementation update:** 81 service/UI assertions now pass without blocked groups
+or Godot errors. Actual coordinator fallback/endpoint blocking also has loopback
+coverage in multiplayer_reliability. The RED baseline below is historical. No
+encrypted federation transport, physical LAN discovery or cross-relay gameplay
+is implemented by this milestone; pure trusted-verifier inputs remain test boundaries.
+
 **Opt-in, intentionally failing. No runtime federation implementation is added.**
 Test-first contracts for the [multi-relay roadmap](../../docs/roadmaps/multi-relay-federation-roadmap.md).
 Normal green runners and release hooks do not invoke this suite.

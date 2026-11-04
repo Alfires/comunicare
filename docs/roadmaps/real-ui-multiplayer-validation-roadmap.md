@@ -1,5 +1,17 @@
 # Real UI multiplayer investigation and acceptance roadmap
 
+**Extended verification update:** production VRM editor-plugin imports now pass
+after four Godot 4.7 Error-return compatibility fixes. Real X11 Network input tests
+finish cleanly after removing an unnecessary original-world load from the fixture.
+Two isolated actual client processes now create/join the HTTP-served example world
+through hit-tested UI, render independent scenes and observe remote cube motion/drop
+(9 host + 10 guest assertions). A 20-minute live UI/TLS membership soak completed
+1,199 preference edit cycles with bounded route state and no membership loss.
+See [runner evidence/limits](../../tests/real_ui/README.md). This supersedes the old
+rendered timeout/plugin blocker status, **not** the entire acceptance matrix:
+full pointer trust onboarding, same-origin/mid-join faults, all DPI/size journeys,
+original-world teardown and a 20-minute two-window carrying soak remain open.
+
 **Status: investigated and planned, 2026-11-04. No production fixes in this change.**
 **Execution update:** `tests/real_ui` now permanently reproduces full-autoload live
 membership edits. The unrelated add/reorder/remove disconnect bug is fixed by

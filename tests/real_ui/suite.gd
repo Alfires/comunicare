@@ -9,6 +9,7 @@ var menu
 var browser
 var timeline: Array = []
 var elapsed := 0.0
+var soak_seconds := 0
 
 func _initialize(): call_deferred("run")
 
@@ -22,7 +23,7 @@ func _process(delta):
 	if service != null: service.poll()
 	if relay != null: relay.handle_events()
 	if host != null and host.connection != null: host.handle_events()
-	if elapsed > 75: print("UI watchdog expired"); quit(2)
+	if elapsed > 75 + soak_seconds: print("UI watchdog expired"); quit(2)
 	return false
 
 func wait_until(predicate: Callable, seconds: float = 5.0) -> bool:
@@ -37,6 +38,7 @@ func button(node: Node, title: String):
 
 func screenshot(name: String):
 	if DisplayServer.get_name() == "headless": return
+	if OS.get_environment("COMUNICARE_UI_NO_SCREENSHOTS") == "1": return
 	# Focus/resize can suspend drawing on desktop backends. Never await a draw
 	# signal without a timeout and turn a test screenshot into an infinite hang.
 	await create_timer(0.15).timeout
@@ -44,6 +46,7 @@ func screenshot(name: String):
 	if not image.is_empty(): image.save_png("user://" + name + ".png")
 
 func run():
+	soak_seconds = maxi(0, int(OS.get_environment("COMUNICARE_UI_SOAK_SECONDS")))
 	root.size = Vector2i(1000, 700)
 	# Exact built-in scene bytes still determine the hash, but renderer-independent
 	# activation uses a trusted empty shell to avoid this world's SubViewport/Jolt
@@ -53,12 +56,16 @@ func run():
 	var packed = PackedScene.new()
 	packed.pack(shell)
 	shell.free()
-	ResourceLoader.load("res://scenes/world.tscn")
 	packed.take_over_path("res://scenes/world.tscn")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var save = root.get_node("SaveData")
 	root.get_node("DataLoader").get_asset_cache().enabled = false
 	check(save.load_acount(), "production account initializes only in disposable user directory")
+	# Never publish a default internet avatar to the local host/remote actor path.
+	save.data.default_avatar = ""
+	var local_fields: Dictionary = save.profile.local.duplicate(true)
+	local_fields["profile.avatar_url"] = "http://127.0.0.1:1/no-avatar.vrm"
+	save.profile.save_profile(save.profile.get_local_fingerprint(), local_fields)
 	save.store.set_value("network.lan_discovery", false)
 	var network = root.get_node("NetworkHandler")
 	var private_key = Crypto.new().generate_rsa(2048)
@@ -130,6 +137,21 @@ func run():
 	preferences.remove_entry(added.entry_id)
 	await process_frame
 	check(network.current_session_id == original, "removing unrelated fallback preserves live federated membership")
+	if soak_seconds > 0:
+		var deadline = Time.get_ticks_msec() + soak_seconds * 1000
+		var rounds = 0
+		while Time.get_ticks_msec() < deadline:
+			preferences.add_entry({"entry_id": "soak", "label": "Soak fallback", "host": "127.0.0.1", "port": 19996, "relay_id": ""})
+			preferences.move_entry("soak", 0)
+			preferences.remove_entry("soak")
+			menu.current_tab = 2 if rounds % 2 == 0 else 3
+			await create_timer(1.0).timeout
+			if network.current_session_id != original or not network.peer.is_authenticated:
+				check(false, "soak preserved actual membership")
+				break
+			rounds += 1
+		check(network.current_session_id == original and service.tunnels.size() <= 1 and relay.sessions.size() == 1,
+			"%ss actual UI/TLS membership soak with %s add/reorder/remove cycles and bounded route state" % [soak_seconds, rounds])
 	preferences.set_blocked(service.relay_id, true)
 	await process_frame
 	check(network.current_session_id.is_empty() and not network.peer.is_connected_to_relay, "blocking active origin still disconnects immediately")
@@ -148,6 +170,7 @@ func run():
 	browser.refreshing = false
 	network.peer = old_peer
 	await screenshot("network-after-edit")
+	# Release the resource-cache override while still inside the live renderer.
 	await cleanup(network)
 	var file = FileAccess.open("user://ui-timeline.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(timeline, "  "))
@@ -179,6 +202,15 @@ func test_pointer_navigation(settings):
 		await screenshot("network-pointer-%sx%s" % [dimensions.x, dimensions.y])
 
 func cleanup(network):
+	# Hidden avatar preview viewports still allocate render targets on a real GPU.
+	# Release texture consumers before their SubViewports and flush one frame.
+	if menu != null:
+		for container in menu.find_children("*", "SubViewportContainer", true, false):
+			for viewport in container.get_children():
+				if viewport is SubViewport:
+					viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+					viewport.size = Vector2i(2, 2)
+		await process_frame
 	if menu != null: menu.queue_free()
 	if network.gameplay_tunnel != null: network.gameplay_tunnel.close(); network.gameplay_tunnel = null
 	if network.peer != null:

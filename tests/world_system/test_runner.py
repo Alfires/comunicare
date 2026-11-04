@@ -70,6 +70,16 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(RUNNER.result_code(process(0, "ERROR: load failed")), 2)
         self.assertEqual(RUNNER.result_code(process(-11)), 2)
 
+    def test_example_archive_uses_actual_author_files(self):
+        archive = self.root / "example.cworld"
+        RUNNER.package_example(archive)
+        with zipfile.ZipFile(archive) as package:
+            self.assertEqual(package.read("scenes/world.tscn"), (RUNNER.EXAMPLE / "scenes/world.tscn").read_bytes())
+            self.assertIn("textures/checker.png", package.namelist())
+            self.assertIn("logic/beacon.worldscript", package.namelist())
+            self.assertNotIn("project.godot", package.namelist())
+            self.assertFalse(any(name.endswith((".uid", ".import")) or name.startswith(".godot/") for name in package.namelist()))
+
 
 if __name__ == "__main__":
     unittest.main()

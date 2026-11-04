@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "events": {
+    "start": [
+      {"op": "command", "capability": "entity.visual", "entity": "beacon", "property": "visible", "value": true}
+    ],
+    "use": [
+      {"op": "command", "capability": "entity.visual", "entity": "beacon", "property": "visible", "value": false}
+    ]
+  }
+}

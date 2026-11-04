@@ -29,9 +29,10 @@ profile**, not every feature listed in the [roadmap](../roadmaps/safe-world-syst
 6. Reopen the original project in Godot to edit; repack and upload a new revision.
    Active instances stay pinned to old bytes. Keep old archives available for them.
 
-Built-in source examples are currently the scene/material fixtures in
-[`tests/world_system`](../../tests/world_system/README.md); a complete author
-template project and safe offline preview UI remain follow-up work.
+An editable [Simple Pickup Courtyard Godot project](../../examples/simple_world/README.md)
+is included with a textured floor, spawn, pickup cube, lighting and restricted
+beacon script. Its README explains manual packaging, and the world runner tests
+its actual source files. A player-facing safe offline preview UI remains follow-up work.
 
 ## Current profile and security boundary
 

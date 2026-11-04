@@ -1,0 +1,11 @@
+{
+  "format": "comunicare.world",
+  "schema_version": 1,
+  "world_id": "265facfe-a835-469a-bd44-36e053784b92",
+  "title": "Simple Pickup Courtyard",
+  "description": "A checkerboard floor, a pickup cube and a scripted blue beacon.",
+  "release": "1.0.0",
+  "requires": {"world_api": 1, "script_api": 1},
+  "main_scene": "scenes/world.tscn",
+  "script_capabilities": ["entity.visual"]
+}

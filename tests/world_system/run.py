@@ -15,6 +15,18 @@ import zlib
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
+EXAMPLE = ROOT / "examples/simple_world"
+
+
+def package_example(destination):
+    """ZIP the checked-in author project, never a separately invented fixture."""
+    sources = [EXAMPLE / "manifest.json"]
+    for folder in ("scenes", "materials", "textures", "logic"):
+        sources.extend(path for path in sorted((EXAMPLE / folder).rglob("*"))
+                       if path.is_file() and path.suffix not in (".uid", ".import"))
+    with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in sources:
+            archive.write(path, path.relative_to(EXAMPLE).as_posix())
 
 
 def write_packages(destination):
@@ -145,6 +157,7 @@ def main():
             if source.is_dir():
                 shutil.copytree(source, project / "scripts/worlds", ignore=shutil.ignore_patterns("__pycache__"))
             shutil.copy2(HERE / "suite.gd", project / "suite.gd")
+            shutil.copy2(HERE / "example_suite.gd", project / "example_suite.gd")
             (project / "project.godot").write_text(
                 'config_version=5\n[application]\nconfig/name="Isolated RED world contracts"\n'
                 '[rendering]\nrenderer/rendering_method="gl_compatibility"\n'
@@ -152,6 +165,27 @@ def main():
             # Import trusted production scripts first. Hostile fixtures stay out
             # of the editor import scan, and are generated only afterward.
             isolated_env = {**os.environ, "XDG_DATA_HOME": str(project / "isolated-data"), "XDG_CONFIG_HOME": str(project / "isolated-config"), "XDG_CACHE_HOME": str(project / "isolated-cache")}
+            # Verify the author's actual source project with Godot too, but never
+            # import it in-place or mix it into the consumer's resource namespace.
+            author = project / "author"
+            shutil.copytree(EXAMPLE, author, ignore=shutil.ignore_patterns(".godot", "*.uid", "*.import"))
+            (author / "native_check.gd").write_text(
+                'extends SceneTree\nfunc _initialize():\n'
+                '\tvar scene = load("res://scenes/world.tscn").instantiate()\n'
+                '\tvar material = scene.get_node("PickupCube/Mesh").mesh.material\n'
+                '\tvar valid = material.albedo_texture != null\n'
+                '\tscene.free()\n'
+                '\tprint("Native example scene/texture: ", "PASS" if valid else "FAIL")\n'
+                '\tquit(0 if valid else 1)\n'
+            )
+            for arguments in (["--editor", "--import"], ["--script", "res://native_check.gd"]):
+                native = subprocess.run([godot, "--headless", "--path", str(author), *arguments],
+                                        capture_output=True, text=True, timeout=90, env=isolated_env)
+                if native.returncode or "ERROR:" in native.stdout + native.stderr:
+                    print(native.stdout + native.stderr)
+                    return 2
+                if "--script" in arguments:
+                    print(native.stdout, end="")
             imported = subprocess.run([godot, "--headless", "--path", directory, "--editor", "--import"], capture_output=True, text=True, timeout=90, env=isolated_env)
             if imported.returncode or "ERROR:" in imported.stdout + imported.stderr:
                 print(imported.stdout + imported.stderr)
@@ -161,11 +195,18 @@ def main():
             (packages / ".gdignore").write_text("")
             revision = write_packages(packages)
             (packages / "expected_revision.txt").write_text(revision)
+            package_example(packages / "simple-world.cworld")
             result = subprocess.run([godot, "--headless", "--path", directory, "--script", "res://suite.gd"], capture_output=True, text=True, timeout=60,
                                     env=isolated_env)
             print(result.stdout, end="")
             print(result.stderr, end="")
-            return result_code(result)
+            status = result_code(result)
+            if status: return status
+            example = subprocess.run([godot, "--headless", "--path", directory, "--script", "res://example_suite.gd"],
+                                     capture_output=True, text=True, timeout=60, env=isolated_env)
+            print(example.stdout, end="")
+            print(example.stderr, end="")
+            return result_code(example)
     except (OSError, subprocess.TimeoutExpired) as error:
         print(f"Infrastructure failure: {error}")
         return 2

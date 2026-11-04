@@ -2,7 +2,7 @@
 
 **Implementation update:** initial services and safe scene reconstruction now
 pass **126 assertions**, with zero failures/blocked groups and no Godot errors.
-The three Python runner self-tests also pass. The suite remains opt-in. Historical RED
+The four Python runner self-tests also pass. The suite remains opt-in. Historical RED
 notes below describe the test-first starting point, not current missing services.
 Production DataLoader now uses the safe builder; see the authoring guide for its
 limited supported profile. Full transport/gameplay/Terrain3D implementation is not
@@ -16,6 +16,13 @@ Implements the first executable contracts for the
 python3 tests/world_system/test_runner.py  # green tests of fixture/runner integrity
 python3 tests/world_system/run.py          # RED future-feature acceptance suite
 ```
+
+The runner also packages the actual editable
+[Simple Pickup Courtyard](../../examples/simple_world/README.md), checks it with
+native Godot in a copied author project, then runs **19 additional example-world
+assertions** through the safe builder/runtime/pickup adapter. These cover real
+floor physics/raycast collision, textures, spawn and script effects. Pickup acks
+are synthetic here; real relay routing is independently tested by animation_sync.
 
 Set `GODOT=/path/to/godot` if necessary. The acceptance runner returns **1** for
 assertion failures, **2** for missing prerequisites, Godot errors/crashes or timeout,

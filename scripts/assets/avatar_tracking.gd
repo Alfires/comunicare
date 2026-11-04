@@ -107,8 +107,18 @@ func _set_target(rig: Skeleton3D, role: String, target: Node3D, position: bool):
 	current.basis = desired.basis.orthonormalized() * Basis(calibration.get(role, Quaternion.IDENTITY))
 	if position: current.origin = desired.origin
 	var local = parent_pose.affine_inverse() * current
-	rig.set_bone_pose_rotation(index, local.basis.get_rotation_quaternion())
-	if position: rig.set_bone_pose_position(index, local.origin)
+	var rest = rig.get_bone_rest(index)
+	var rotation = local.basis.get_rotation_quaternion()
+	# Conservative per-rig fallback cones prevent extreme tracker twists. These
+	# are safety bounds, not calibrated anatomical limits for every avatar.
+	var rest_rotation = rest.basis.get_rotation_quaternion()
+	var angle = rest_rotation.angle_to(rotation)
+	var limit = deg_to_rad(85 if role == "head" else 100)
+	if angle > limit: rotation = rest_rotation.slerp(rotation, limit / angle)
+	rig.set_bone_pose_rotation(index, rotation)
+	if position:
+		var maximum = clampf(rest.origin.length() * 0.5, 0.05, 0.2)
+		rig.set_bone_pose_position(index, rest.origin + (local.origin - rest.origin).limit_length(maximum))
 
 func _rotate_toward(rig: Skeleton3D, bone: int, child: int, destination: Vector3):
 	var pose = rig.get_bone_global_pose(bone)

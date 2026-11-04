@@ -27,6 +27,7 @@ headset, renderer, microphone or production-network verification.
 - [Configuration and scene wiring](reference/configuration.md)
 - [Troubleshooting](guides/troubleshooting.md)
 - [Verification](development/testing.md)
+- [VR validation status and hardware gates](development/vr-validation.md)
 - [Documentation conventions](development/documentation.md)
 - [Local Git-only releases](development/releases.md)
 - [Roadmaps and remaining work](roadmaps/README.md)

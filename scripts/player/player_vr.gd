@@ -60,6 +60,8 @@ var teleport_marker: MeshInstance3D
 var role_offsets: Dictionary = {}
 var tracking_sequence := 0
 var tracking_elapsed := 0.0
+var foot_grounding = preload("res://scripts/assets/foot_grounding.gd").new()
+var grounded_body_targets: Dictionary = {}
 
 
 func _ready():
@@ -89,6 +91,8 @@ func _process(delta: float):
 		var targets = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)
 		var body_targets: Dictionary = {}
 		for role in ["hips", "leftFoot", "rightFoot"]:
+			if role in ["leftFoot", "rightFoot"] and targets.has(role) and grounded_body_targets.has(role):
+				targets[role] = grounded_body_targets[role]
 			if targets.has(role): body_targets[role] = skeleton.global_transform.affine_inverse() * targets[role]
 		tracking_modifier.set_body_targets(body_targets)
 	var menu_action = str(SaveData.store.get_value("input.xr_main_menu_action"))
@@ -117,6 +121,10 @@ func _get_movement_input() -> Vector2:
 	return left_controller.get_vector2("primary").limit_length(1.0)
 
 func _physics_process(delta):
+	grounded_body_targets = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)
+	for role in ["leftFoot", "rightFoot"]:
+		if grounded_body_targets.has(role):
+			grounded_body_targets[role] = foot_grounding.resolve(role, grounded_body_targets[role], get_world_3d().direct_space_state, [get_rid()], collision_mask)
 	if focused and xr_camera.get_is_active(): room_scale.reconcile(self, origin_node, xr_camera)
 	var movement_input = _get_movement_input()
 	var turn_axis = right_controller.get_vector2("primary").x
@@ -315,7 +323,7 @@ func _publish_tracking():
 	var targets: Dictionary = {}
 	for pair in [["head", xr_camera], ["leftHand", left_controller], ["rightHand", right_controller]]:
 		if pair[1].get_is_active(): targets[pair[0]] = TrackingPose.encode_target(global_transform.affine_inverse() * pair[1].global_transform)
-	var body = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)
+	var body = grounded_body_targets
 	for role in body: targets[role] = TrackingPose.encode_target(global_transform.affine_inverse() * body[role])
 	tracking_sequence += 1
 	peer.send_animation({"op": "pose", "version": 1, "session_id": NetworkHandler.current_session_id,
@@ -416,6 +424,7 @@ func _avatar_configuration_changed():
 	load_vrm_model()
 
 func _exit_tree():
+	foot_grounding.clear()
 	if is_instance_valid(teleport_marker): teleport_marker.queue_free()
 	tracker_roles.clear()
 	_close_main_menu()

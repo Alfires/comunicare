@@ -215,6 +215,16 @@ disconnects store signal. Audio helper feeds only its generator, not microphone.
 
 ## Assets, rendering and emotes
 
+<!-- module: scripts/assets/foot_grounding.gd -->
+### [FootGrounding](../../scripts/assets/foot_grounding.gd)
+
+RefCounted local terrain contact policy. `resolve` requires a physics-phase direct
+space state and world-space target, tests a short vertical ray against caller mask/
+exclusions, rejects steep/missing/raised-foot contacts, aligns to surface and holds
+small jitter in collider-local space. Lifts or movement release contact; `clear`
+drops references on avatar/session teardown. Does not move camera/body or prove
+universal gait quality; target stabilization and physical boundary safety differ.
+
 <!-- module: scripts/startup/data_loader.gd -->
 ### [DataLoader](../../scripts/startup/data_loader.gd)
 

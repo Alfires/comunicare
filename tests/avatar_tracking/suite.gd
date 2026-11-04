@@ -59,6 +59,8 @@ func run():
 	test_tracking_fades()
 	test_role_calibration()
 	test_foot_stability()
+	test_head_constraints()
+	await test_ground_contact()
 	print("\nRED tracking: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -250,3 +252,50 @@ func test_foot_stability():
 	step.origin += Vector3(0.1, 0.1, 0)
 	var moved: Transform3D = solver.stable_foot_target("leftFoot", step, 1.0 / 60)
 	check(moved.origin.distance_to(first.origin) > 0.01, "deliberate foot lift releases plant instead of pinning user")
+
+func test_head_constraints():
+	var rig = fixture_rig()
+	root.add_child(rig)
+	var head = Node3D.new()
+	root.add_child(head)
+	head.position = Vector3(0, 5, 0)
+	head.rotation.y = PI
+	var tracking = load("res://scripts/assets/avatar_tracking.gd").new()
+	rig.add_child(tracking)
+	tracking.configure(fixture_map(), head, null, null)
+	tracking._process_modification()
+	var rest = rig.get_bone_rest(2)
+	check(rig.get_bone_pose_position(2).distance_to(rest.origin) <= 0.201, "bad headset height cannot stretch neck away from torso")
+	check(rest.basis.get_rotation_quaternion().angle_to(rig.get_bone_pose_rotation(2)) <= deg_to_rad(85.1), "head rotation respects bounded neck cone rather than 180-degree twist")
+	check(head.position == Vector3(0, 5, 0), "anatomical fallback never moves physical headset target")
+	rig.free()
+	head.free()
+
+func test_ground_contact():
+	var path = "res://scripts/assets/foot_grounding.gd"
+	check(ResourceLoader.exists(path), "tracked feet can resolve terrain contact instead of only target jitter")
+	if not ResourceLoader.exists(path): return
+	var ground = StaticBody3D.new()
+	var collision = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = Vector3(4, 0.2, 4)
+	collision.shape = shape
+	ground.add_child(collision)
+	ground.position.y = -0.1
+	root.add_child(ground)
+	await physics_frame
+	var solver = load(path).new()
+	var space = root.world_3d.direct_space_state
+	var foot = Transform3D(Basis.IDENTITY, Vector3(0, 0.04, 0))
+	var planted: Transform3D = solver.resolve("leftFoot", foot, space, [], 1)
+	check(absf(planted.origin.y - 0.025) < 0.005, "near-ground ankle target sits above actual ground plane")
+	var jitter = foot
+	jitter.origin.x = 0.005
+	check(solver.resolve("leftFoot", jitter, space, [], 1).origin.distance_to(planted.origin) < 0.001, "terrain plant holds horizontal sub-centimeter tracker jitter")
+	var lifted = foot
+	lifted.origin.y = 0.25
+	check(solver.resolve("leftFoot", lifted, space, [], 1).origin.is_equal_approx(lifted.origin), "deliberate raised foot releases terrain plant")
+	var outside = foot
+	outside.origin.x = 10
+	check(solver.resolve("leftFoot", outside, space, [], 1).origin.is_equal_approx(outside.origin), "missing terrain never invents a floor contact")
+	ground.queue_free()

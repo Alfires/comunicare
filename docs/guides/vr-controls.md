@@ -1,5 +1,11 @@
 # VR controls and tracking: implemented behavior
 
+Latest solver safeguards bound neck translation/head-wrist rotation and add local
+terrain-aware foot contact (surface alignment, jitter hold, lift release). The
+original avatar/camera remains independent. These conservative policies are not
+complete per-rig anatomical constraints. See [validation status](../development/vr-validation.md):
+automated checks are available, but no real-headset certification has been performed.
+
 ## Safety, teleport and expanded tracking
 
 VR Movement now selects smooth or point-and-teleport locomotion. In teleport mode,

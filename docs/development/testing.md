@@ -1,5 +1,12 @@
 # Verification
 
+Discovery's loopback regression includes creating a second instance at the same
+world URL while a remaining member keeps the first alive. It checks three distinct
+active session IDs, independent memberships/counts, all directory/UI rows and
+removal of only an emptied instance. Public browsing intentionally excludes
+private/non-public instances; the normal browser also hides the user's own row
+while retaining other instances at that URL.
+
 ## Multiplayer reliability regressions
 
 `python3 tests/multiplayer_reliability/run.py` now passes the implemented appearance,

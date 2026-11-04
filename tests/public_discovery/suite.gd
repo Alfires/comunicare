@@ -310,12 +310,42 @@ func test_loopback_relay():
 	check(not replies.is_empty() and replies.back().success and replies.back().session_id == bob_id \
 		and clients[2].session_peers.size() == 1 and clients[0].session_peers.is_empty(),
 		"real join acknowledges Bob's identity and keeps Alice in a separate room")
+	# Re-create at the SAME content URL while another member keeps the previous
+	# instance alive. URL grouping must not replace or merge either session.
+	var alice_id: String = clients[0].current_session_id
+	clients[1].create_session(PUBLIC, "Bob second", "Another instance, same content", WORLD_A)
+	await pump_relay(relay, clients)
+	var second_bob_id: String = clients[1].current_session_id
+	check(not second_bob_id.is_empty() and second_bob_id != bob_id and second_bob_id != alice_id,
+		"creating another instance of the same world allocates a distinct acknowledged session ID")
+	check(clients[2].current_session_id == bob_id and clients[2].session_peers.is_empty(),
+		"same-world creation leaves previous instance alive for its remaining member without merging membership")
+	GetPublicSessions.create([]).sent(clients[2].peer)
+	await pump_relay(relay, clients)
+	var active_ids: Array = []
+	for value in clients[2].public_session:
+		if value.world_url == WORLD_A: active_ids.append(value.session_id)
+	active_ids.sort()
+	var expected_ids: Array = [alice_id, bob_id, second_bob_id]
+	expected_ids.sort()
+	check(active_ids == expected_ids,
+		"wire discovery lists ALL three active public instances of one world, including newly created and surviving instances")
+	check(clients[2].public_session.all(func(value): return value.player_count == 1),
+		"each same-world instance reports its own participant count rather than a combined world total")
+	scene = explorer()
+	scene.load_sessions(clients[2].public_session)
+	scene.create_world_info_menue({"url": WORLD_A})
+	check(row_ids(scene) == active_ids and rows(scene).size() == 3,
+		"World Explorer renders every active public session as a separate row under one world")
+	scene.free()
 	clients[1].create_session(PacketInfo.MODE.PRIVAT, "Private Bob", "Hidden", WORLD_B)
 	await pump_relay(relay, clients)
 	GetPublicSessions.create([]).sent(clients[2].peer)
 	await pump_relay(relay, clients)
 	check(clients[2].public_session.size() == 2 and clients[2].public_session.all(func(value): return value.mode == PUBLIC),
 		"private replacement stays hidden while old public room persists with its remaining participant")
+	check(clients[2].public_session.all(func(value): return value.session_id != second_bob_id),
+		"empty same-world replacement disappears from discovery without removing the two surviving public instances")
 	for client in clients:
 		client.peer.peer_disconnect()
 	await pump_relay(relay, clients)

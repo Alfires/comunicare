@@ -1,6 +1,13 @@
 # Safe, editable worlds and shared interaction roadmap
 
 **Status: proposal, 2026-11-04. No runtime implementation or security certification.**
+**Initial implementation update:** reviewed ZIP/text parsing, scene construction,
+primitive nodes/PNG PBR materials and pure VM/lease/snapshot/role services now exist.
+DataLoader rejects legacy executable archives and stages safe packages. This is a
+limited first milestone, not the entire system: transport/player wiring, text
+scripts, Terrain3D, complete node/texture support and author UI are not complete.
+See [current authoring limits](../guides/safe-world-authoring.md); historical RED
+baseline and proposed phases below remain planning history where superseded.
 **Test-first update:** opt-in [RED world contracts](../../tests/world_system/README.md)
 now exist. Initial baseline: one harness check passes, six missing-service checks
 fail and six dependent behavior groups are explicitly blocked (exit 1, no Godot

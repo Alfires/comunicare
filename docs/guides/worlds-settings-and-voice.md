@@ -18,10 +18,13 @@ the coordinator disconnects rather than sending from the wrong world. Cache hits
 never bypass admission. New instances can pin hashes; older unpinned peers cannot
 provide the same consistency guarantee.
 
-Remote worlds are Godot scene content and can execute code. The Assets trust
-setting is an explicit risk decision, not a sandbox. Archive traversal/size checks
-alone are not proof of safe execution. Built-in `default_wold` keeps its legacy
-spelling. Do not rename wire identifiers or URLs to clean up spelling.
+Remote worlds now require the versioned `comunicare.world` format. ZIP and Godot
+text scenes/resources are parsed as data and reconstructed from reviewed built-in
+types; downloaded scenes are never loaded through ResourceLoader. Legacy executable
+worlds are rejected even if the old trust setting is enabled. This is a restricted
+initial profile, not full Godot/Terrain3D compatibility or a security certification.
+See [safe world authoring](safe-world-authoring.md) for supported content and limits.
+Built-in `default_wold` keeps its legacy spelling and application-trusted scene.
 
 Active Instance shows authoritative members/roles and acknowledged code. Admin
 edits use revisions and correlated results, not optimistic local rights. Kick,

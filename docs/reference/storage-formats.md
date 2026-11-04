@@ -82,15 +82,19 @@ and dangling groups. Layout edits persist independently of source Apply/Cancel.
 Source key is SHA-256 of `kind + "\n" + source` (query parameters significant).
 Records carry kind/hash/size/check/access times, HTTP validators, pinned and
 no-cache flags. Four concurrent jobs and 32 waiters bound acquisition; source
-limits are 64 MiB avatars, 128 MiB worlds, 16 MiB animations. World extraction
-limits are 4,096 entries and 256 MiB. Default disk budget is 4 GiB. Leases protect
+transport limits are 64 MiB avatars, 128 MiB worlds, 16 MiB animations; the safe
+world reader additionally caps archives at 64 MiB, 4,096 entries and 256 MiB expanded
+data without filesystem extraction. Default disk budget is 4 GiB. Leases protect
 active revisions independently of persistent pinned user originals.
 
 Conditional GET reuses verified bytes on 304; failed updates retain known-good
 content with stale status/backoff. no-store uses temporary bytes, not an indexed
 durable record. Clear-unused refuses active jobs and preserves leases/import pins.
-Index atomic rename is not a database-wide crash transaction. Source validation,
-trust opt-in and schema checks are not a sandbox for executable Godot scenes.
+Index atomic rename is not a database-wide crash transaction. The versioned
+safe-world reader now rejects legacy executable scene archives.
+See [safe world authoring](../guides/safe-world-authoring.md) for the initial
+ZIP/TSCN/TRES/PNG profile. The old trust preference cannot enable code execution;
+reviewed scene reconstruction is not a security certification of media decoders.
 
 ## Safe recovery procedure
 

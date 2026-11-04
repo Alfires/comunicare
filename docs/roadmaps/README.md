@@ -6,7 +6,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 | Roadmap | Status / authority |
 | --- | --- |
 | [Documentation system](documentation-system-roadmap.md) | Documentation/tooling delivered with explicit operating limits; current guides, function/schema reference and local Git release checks linked from docs home |
-| [Safe world system rewrite](safe-world-system-roadmap.md) | Planned with opt-in RED contracts in tests/world_system (missing services; dependent behaviors blocked): native Godot authoring, custom nodes/Terrain3D, full textures, manual ZIP, safe parsing/scripts and shared pickups; existing relay/URL delivery and kick/ban-only admin target retained |
+| [Safe world system rewrite](safe-world-system-roadmap.md) | Initial safe ZIP/text scene loader and pure script/lease/state/role services implemented and tested; complete native authoring/custom-node/Terrain3D, transport/player interactions, texture parity and script frontend remain pending; see current authoring limits |
 | [Multiplayer and discovery reliability](multiplayer-and-public-discovery-reliability-roadmap.md) | Planned after current-code inspection: appearance/session correlation, bounded decoding, retryable discovery and responsibility-based module extraction |
 | [VR controls, menus, IK and FBT](vr-controls-menus-ik-fbt-roadmap.md) | Planned: planar head-relative movement, either-hand A/X main menu, snap/smooth turning, comfort settings, calibrated rig/IK and optional tracker support |
 | [Conventional Commits](conventional-commit-roadmap.md) | Historical assembly plan; current [contribution rules](../../CONTRIBUTING.md) supersede old no-push/two-type assumptions |

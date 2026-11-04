@@ -362,13 +362,15 @@ func test_real_loader():
 	var zip = ZIPPacker.new()
 	zip.open(path)
 	zip.start_file("manifest.json")
-	zip.write_file('{"main_scene":"world.tscn","spawn_point":[0,1,0]}'.to_utf8_buffer())
+	zip.write_file('{"format":"comunicare.world","schema_version":1,"world_id":"fixture","release":"1","requires":{"world_api":1,"script_api":1},"main_scene":"world.tscn"}'.to_utf8_buffer())
 	zip.close_file()
 	zip.start_file("world.tscn")
 	zip.write_file('[gd_scene format=3]\n[node name="TestWorld" type="Node3D"]\n'.to_utf8_buffer())
 	zip.close_file()
 	zip.close()
 	var created_before = network.created
+	check(loader.prepare_world(path, "res://unused/").get("scene") is PackedScene,
+		"safe format stages through real DataLoader")
 	var staged: Dictionary = loader.prepare_world(path, "res://extracted/")
 	check(not staged.is_empty() and network.created == created_before and current_scene == null,
 		"real loader stages valid archive without hosting or changing scene")
@@ -378,6 +380,17 @@ func test_real_loader():
 	check(ok and current_scene != null and current_scene.name == "TestWorld" and network.created == created_before,
 		"real world activation changes scene without creating a session")
 	check(not await loader.load_world_from_url("file:///invalid"), "invalid URL fails without downloading or hosting")
+	var legacy = ZIPPacker.new()
+	legacy.open("res://legacy.cne")
+	legacy.start_file("manifest.json")
+	legacy.write_file('{"main_scene":"world.tscn"}'.to_utf8_buffer())
+	legacy.close_file()
+	legacy.start_file("world.tscn")
+	legacy.write_file('[gd_scene format=3]\n[node name="Legacy" type="Node3D"]\n'.to_utf8_buffer())
+	legacy.close_file()
+	legacy.close()
+	check(loader.prepare_world("res://legacy.cne", "res://legacy-content/").is_empty(),
+		"real loader rejects legacy executable-scene format rather than bypassing safe parser")
 	loader.free()
 
 func test_instance_submenu():

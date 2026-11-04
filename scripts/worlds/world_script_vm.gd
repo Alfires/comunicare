@@ -1,0 +1,49 @@
+extends RefCounted
+## Bounded data interpreter. No dynamic engine calls, expressions or object handles.
+const Data = preload("res://scripts/worlds/world_data.gd")
+const MAX_FUEL = 100000
+const MAX_HEAP = 8 * 1024 * 1024
+const MAX_COMMANDS = 256
+
+func run_event(operations: Variant, context: Dictionary, limits: Dictionary = {}) -> Dictionary:
+	if not Data.bounded(operations, 0, [16384]) or not Data.bounded(context, 0, [16384]):
+		return Data.failure("Script input exceeds data limits")
+	for key in limits:
+		if not key in ["fuel", "heap_bytes", "max_commands"] or not Data.integer(limits[key], 0, MAX_HEAP):
+			return Data.failure("Invalid VM limits")
+	var state = {"fuel": mini(int(limits.get("fuel", MAX_FUEL)), MAX_FUEL),
+		"heap": mini(int(limits.get("heap_bytes", MAX_HEAP)), MAX_HEAP),
+		"max_commands": mini(int(limits.get("max_commands", MAX_COMMANDS)), MAX_COMMANDS), "commands": []}
+	var error = _execute(operations, context, state, 0)
+	return Data.failure(error) if not error.is_empty() else {"ok": true, "commands": state.commands}
+
+func _execute(operations: Variant, context: Dictionary, state: Dictionary, depth: int) -> String:
+	if not operations is Array or depth > 16: return "Invalid script block or nesting depth"
+	for operation in operations:
+		state.fuel -= 1
+		if state.fuel < 0: return "Script fuel exhausted"
+		if not operation is Dictionary: return "Invalid instruction"
+		match operation.get("op", ""):
+			"repeat":
+				if not Data.keys_only(operation, ["op", "count", "body"]) or not Data.integer(operation.get("count"), 0, 2147483647): return "Invalid repeat"
+				if operation.count > state.fuel: return "Script fuel exhausted"
+				for iteration in int(operation.count):
+					state.fuel -= 1
+					var error = _execute(operation.get("body"), context, state, depth + 1)
+					if not error.is_empty(): return error
+			"allocate":
+				if not Data.keys_only(operation, ["op", "bytes"]) or not Data.integer(operation.get("bytes"), 0, MAX_HEAP): return "Invalid allocation"
+				state.heap -= int(operation.bytes)
+				if state.heap < 0: return "Script heap budget exhausted"
+			"command":
+				if not Data.keys_only(operation, ["op", "capability", "entity", "property", "value"]): return "Invalid command fields"
+				if operation.get("capability") != "entity.visual" or not "entity.visual" in context.get("capabilities", []): return "Denied script capability"
+				if not operation.get("entity") is String or not operation.entity in context.get("entities", []): return "Invalid world entity"
+				if operation.get("property") != "visible" or not operation.get("value") is bool: return "Unsupported visual property or value"
+				if state.commands.size() >= state.max_commands: return "Script command budget exhausted"
+				state.heap -= 128 + operation.entity.length()
+				if state.heap < 0: return "Script heap budget exhausted"
+				state.commands.append(operation.duplicate(true))
+			_:
+				return "Unknown script instruction"
+	return ""

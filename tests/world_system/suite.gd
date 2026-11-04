@@ -47,6 +47,7 @@ func rejected(result: Variant) -> bool:
 
 func run():
 	test_packages()
+	test_builder()
 	test_extensions()
 	test_scripts()
 	test_interaction()
@@ -64,6 +65,7 @@ func test_packages():
 	var reader = component("world_package_reader", ["inspect_package"])
 	if reader == null: return
 	var valid = inspect(reader, "valid")
+	if not ok(valid): print("Package diagnostic: ", valid)
 	check(ok(valid), "manual ZIP of native Godot scenes/materials is accepted without project, plugin or cache")
 	if ok(valid):
 		check(valid.get("revision", "") == FileAccess.get_file_as_string("res://packages/expected_revision.txt"), "revision is SHA-256 of exact archive bytes")
@@ -74,15 +76,36 @@ func test_packages():
 			check(material.get("textures", {}).get(channel, "") == "textures/pixel.png", "native material retains " + channel + " texture dependency")
 		check(material.get("uv1_scale", []) == [2.0, 3.0, 1.0], "UV tiling survives static material parsing")
 		check(is_equal_approx(float(material.get("metallic", -1)), 0.7) and is_equal_approx(float(material.get("roughness", -1)), 0.3), "PBR scalar properties survive parsing")
-	for name in ["traversal", "absolute", "backslash", "symlink", "case_collision", "duplicate_entry", "truncated", "missing_texture", "missing_instance", "unsupported_schema", "duplicate_keys", "nonfinite", "unknown_node", "external_texture", "shader", "attached_script", "method_track", "signal_method", "native_extension", "project_autoload"]:
+	for name in ["traversal", "absolute", "backslash", "symlink", "case_collision", "duplicate_entry", "truncated", "missing_texture", "missing_instance", "unsupported_schema", "duplicate_keys", "nonfinite", "unknown_node", "wrong_property_type", "bad_constructor", "resource_cycle", "huge_mesh", "bad_texture", "forged_deflate", "external_texture", "shader", "attached_script", "method_track", "signal_method", "native_extension", "project_autoload"]:
 		check(rejected(inspect(reader, name)), "reject hostile/unsupported package with diagnostic: " + name)
 	check(rejected(inspect(reader, "expanded_limit", {"max_expanded_bytes": 65536})), "expanded-size budget rejects compressed payload")
+	check(rejected(inspect(reader, "broken_deflate")), "malformed deflate fails as data rejection without engine errors")
 	check(rejected(inspect(reader, "valid", {"max_entries": 2})), "entry count budget enforced")
 	check(rejected(inspect(reader, "texture_dimensions", {"max_texture_dimension": 0})), "decoded texture dimension budget enforced")
 	for name in ["terrain_required", "terrain_missing_data", "terrain_code_url"]:
 		check(rejected(inspect(reader, name)), "default reader cannot bypass uninstalled addon requirement: " + name)
 	check(ok(inspect(reader, "valid")), "failed inspections cannot poison subsequent valid load")
 	dispose(reader)
+
+func test_builder():
+	var builder = component("world_builder", ["build_package"])
+	if builder == null: return
+	var built = builder.build_package("res://packages/valid.zip")
+	check(ok(built) and built.get("scene") is PackedScene, "safe builder produces an application-owned scene from package data")
+	if ok(built) and built.get("scene") is PackedScene:
+		var world = built.scene.instantiate()
+		var mesh = world.get_node_or_null("Item/Mesh")
+		check(world.get_script() == null and world.get_node("Item").get_script() == null, "constructed nodes have no downloaded scripts")
+		check(mesh is MeshInstance3D and mesh.mesh is BoxMesh, "Godot authored built-in mesh is reconstructed")
+		if mesh is MeshInstance3D and mesh.mesh is BoxMesh:
+			var material = mesh.mesh.material
+			check(material is StandardMaterial3D and material.albedo_texture is ImageTexture, "packaged PNG becomes textured standard material")
+			check(material is StandardMaterial3D and material.normal_enabled and material.uv1_scale.is_equal_approx(Vector3(2, 3, 1)), "runtime material retains normal map and UV tiling")
+		check(built.get("spawn_point", []) == [0.0, 1.0, 0.0], "spawn metadata resolves to authored position")
+		world.free()
+	check(rejected(builder.build_package("res://packages/attached_script.zip")), "safe builder rejects executable scene before construction")
+	check(ok(builder.build_package("res://packages/valid.zip")), "failed build preserves ability to construct valid world")
+	dispose(builder)
 
 func test_extensions():
 	var reader = component("world_extension_registry", ["validate_requirements"])
@@ -130,13 +153,14 @@ func envelope(kind: String, entity: String = "item", epoch: int = 0) -> Dictiona
 	return {"kind": kind, "session_id": "session-a", "revision": "hash-a", "generation": "ga", "entity": entity, "epoch": epoch, "sequence": 1}
 
 func test_interaction():
-	var service = component("world_interaction", ["configure", "apply", "snapshot", "disconnect"])
+	var service = component("world_interaction", ["configure", "apply", "snapshot", "disconnect_member"])
 	if service == null: return
 	service.configure({"session_id": "session-a", "revision": "hash-a", "members": {"alice": "ga", "bob": "gb"}, "items": {"item": {"pickup": true, "max_hands": 2}}})
 	var grab = envelope("grab")
 	grab.grip = "left"
 	grab.input_mode = "vr"
 	var accepted = service.apply("alice", grab)
+	if not ok(accepted): print("Grab diagnostic: ", accepted)
 	check(ok(accepted), "VR member can grab unheld object")
 	var held: Dictionary = service.snapshot().get("items", {}).get("item", {})
 	check(held.get("holder", "") == "alice" and held.get("grip", "") == "left", "snapshot carries holder and grip for remote held-item rendering")
@@ -159,7 +183,7 @@ func test_interaction():
 	desktop.epoch = int(service.snapshot().get("items", {}).get("item", {}).get("epoch", -1))
 	desktop.sequence = 2
 	check(ok(service.apply("bob", desktop)), "desktop virtual grip uses same item lease after release")
-	service.disconnect("bob", "gb")
+	service.disconnect_member("bob", "gb")
 	check(service.snapshot().get("items", {}).get("item", {}).get("holder", "") == "", "holder disconnect clears indirect object reference")
 	check(rejected(service.apply("bob", desktop)), "disconnected/reused connection cannot replay old grab")
 	dispose(service)
@@ -187,7 +211,7 @@ func test_replication():
 	dispose(state)
 
 func test_moderation():
-	var policy = component("world_instance_policy", ["configure", "authorize", "disconnect", "snapshot", "can_admit"])
+	var policy = component("world_instance_policy", ["configure", "authorize", "disconnect_member", "snapshot", "can_admit"])
 	if policy == null: return
 	policy.configure({"members": [{"id": "creator", "generation": "gc", "order": 1}, {"id": "alice", "generation": "ga", "order": 2}, {"id": "bob", "generation": "gb", "order": 3}], "admins": ["creator"], "moderated": true, "policy_ready": {"creator": true, "alice": false, "bob": true}})
 	for action in ["kick", "ban"]:
@@ -195,12 +219,12 @@ func test_moderation():
 		check(not policy.authorize("bob", "gb", action), "nonadmin may not " + action)
 	for action in ["spawn", "run_script", "force_update", "edit_world", "promote", "set_visibility"]:
 		check(not policy.authorize("creator", "gc", action), "creator/admin has no extra power: " + action)
-	policy.disconnect("creator", "gc")
+	policy.disconnect_member("creator", "gc")
 	check(policy.snapshot().get("admins", []) == ["alice"], "last-admin departure promotes earliest remaining member")
 	check(not policy.authorize("creator", "gc", "ban"), "departed creator has no retained moderation power")
 	check(not policy.can_admit(), "missing successor ban policy closes new admission")
-	policy.disconnect("alice", "ga")
+	policy.disconnect_member("alice", "ga")
 	check(policy.snapshot().get("admins", []) == ["bob"] and policy.can_admit(), "next successor with complete policy can admit")
-	policy.disconnect("bob", "gb")
+	policy.disconnect_member("bob", "gb")
 	check(policy.snapshot().get("members", []).is_empty() and policy.snapshot().get("admins", []).is_empty(), "empty instance retains no members or former admins")
 	dispose(policy)

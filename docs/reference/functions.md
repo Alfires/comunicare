@@ -1,5 +1,97 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/world_data.gd -->
+## World data guards
+
+Pure helpers: `failure` returns a diagnostic with no pending commands; `safe_path`
+checks bounded ASCII package-relative paths. `bounded` recursively checks copied
+data under depth/item budgets, `keys_only` rejects unknown fields and `integer`
+checks finite integral ranges. These do not authorize engine objects or filesystem IO.
+
+<!-- module: scripts/worlds/world_extension_registry.gd -->
+## World extension requirements
+
+`validate_requirements` checks bounded unique extension declarations, versioned
+schemas, package paths and an application-supplied installed registry. Missing or
+unknown integrations fail closed; metadata cannot request code download. It does
+not install or run Terrain3D and does not certify any supplied registry implementation.
+
+<!-- module: scripts/worlds/world_script_vm.gd -->
+## Restricted world instruction VM
+
+`run_event` interprets copied instruction data under capped fuel, heap accounting,
+nesting and command limits. Only current-entity visibility commands are implemented;
+repeat and allocation instructions exercise budgets. All failures discard pending
+commands. It does not parse a text language, touch nodes or execute engine methods.
+
+<!-- module: scripts/worlds/world_interaction.gd -->
+## World item leases
+
+`configure` resets one instance's member generations and bounded item definitions.
+`apply` validates transport-authenticated sender, scope, sequence and lease epoch
+before grab/release. `disconnect_member` clears only the matching generation and
+its indirect holder state. `snapshot` returns detached copies. Reach, pose transport,
+physics and player input wiring are not provided by this pure service.
+
+<!-- module: scripts/worlds/world_state_replicator.gd -->
+## World snapshot and event ordering
+
+`configure` resets session/revision/member scope. `accept_snapshot` checks copied
+bounded state, generations and strictly newer watermarks; `apply_event` handles
+ordered current-holder release events without replay/gaps. `snapshot` returns a
+deep copy. No network routing, donor corroboration or gameplay consensus is implied.
+
+<!-- module: scripts/worlds/world_instance_policy.gd -->
+## World instance role policy
+
+`configure` initializes trusted ordered member/admin/policy-readiness input.
+`authorize` permits only current-generation admin kick/ban; `disconnect_member`
+removes references and selects the earliest remaining fallback. `can_admit` fails
+closed on missing moderator policy, and `snapshot` copies current role state. This
+service does not replace the existing relay's enforcement or persist ban policy.
+
+<!-- module: scripts/worlds/world_text_parser.gd -->
+## Non-executing world text parser
+
+`parse_json` checks bounded JSON with duplicate-key rejection; `parse_resource`
+parses a limited Godot text grammar into section/constructor data. Both return
+diagnostics instead of constructing engine resources. Private cursor readers bound
+depth/work; caller must still validate property semantics, types and references.
+
+<!-- module: scripts/worlds/world_zip_reader.gd -->
+## Bounded world ZIP reader
+
+`read_archive` reads capped ZIP32 bytes, validates central/local paths/layout and
+size budgets, rejects duplicates/symlinks/encryption and returns checked decoded
+file buffers with archive SHA-256. Private checksum code verifies decoded bytes;
+no extraction, mount or resource execution occurs. Only stored/deflate are supported.
+
+<!-- module: scripts/worlds/world_deflate.gd -->
+## Bounded raw deflate
+
+`decode` implements stored/fixed/dynamic RFC1951 blocks under output, input and work
+limits, returning bytes or a diagnostic. Private Huffman/bit readers never call an
+engine decompressor, so malformed streams remain data failures instead of logged
+Godot errors. This portable implementation still needs large-content profiling.
+
+<!-- module: scripts/worlds/world_package_reader.gd -->
+## Safe world package inspection
+
+`inspect_package` validates metadata/API, file types, reviewed native scene/resource
+sections, typed property schemas, texture headers/checksums and resource references.
+Returns normalized document and archive hash, or a diagnostic; `last_error` describes
+local validation failures. No downloaded script or ResourceLoader call occurs.
+Initial profile is deliberately narrower than the roadmap's final feature set.
+
+<!-- module: scripts/worlds/world_builder.gd -->
+## Safe world construction
+
+`build_package` inspects an archive then reconstructs only explicit built-in node,
+primitive mesh/collider and material types, decodes bounded PNGs and packs a newly
+owned scene. It returns scene/spawn/revision/document or a diagnostic. Private caches
+avoid duplicate resources; no package class/method execution or scene loading occurs.
+Native image decode remains inside the client and is not OS sandboxed.
+
 This reference explains every named public function in production `scripts/` and
 `relay_protocol/`. Exact parameter types, defaults, return annotations and source
 locations are in the [declaration inventory](symbols.json). A module heading links

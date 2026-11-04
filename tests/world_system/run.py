@@ -62,6 +62,11 @@ def write_packages(destination):
     archive("duplicate_keys", {"manifest.json": '{"format":"comunicare.world","schema_version":1,"schema_version":999}'})
     archive("nonfinite", {"scenes/world.tscn": scene.replace("Vector3(0, 0, 0)", "Vector3(nan, 0, 0)")})
     archive("unknown_node", {"scenes/world.tscn": scene.replace('type="Node3D"', 'type="UnreviewedCustomNode"', 1)})
+    archive("wrong_property_type", {"scenes/world.tscn": scene.replace("Vector3(0, 0, 0)", '"not a vector"')})
+    archive("bad_constructor", {"scenes/world.tscn": scene.replace("Vector3(0, 0, 0)", "Vector3(0)")})
+    archive("resource_cycle", {"scenes/world.tscn": scene.replace('material = ExtResource("1")', 'material = SubResource("Box")')})
+    archive("huge_mesh", {"scenes/world.tscn": scene.replace('[sub_resource type="BoxMesh" id="Box"]', '[sub_resource type="BoxMesh" id="Box"]\nsubdivide_width = 999999')})
+    archive("bad_texture", {"textures/pixel.png": png[:33]})
     archive("missing_instance", {"scenes/world.tscn": scene.replace('path="res://materials/surface.tres"', 'path="res://missing.tres"')})
     archive("external_texture", {"materials/surface.tres": material.replace('res://textures/pixel.png', 'https://example.invalid/steal.png')})
     archive("shader", {"evil.gdshader": "shader_type spatial; void fragment() { ALBEDO = vec3(1.0); }"})
@@ -76,6 +81,26 @@ def write_packages(destination):
     archive("native_extension", {"addons/evil/evil.gdextension": '[configuration]\nentry_symbol="evil_init"\n'})
     archive("project_autoload", {"project.godot": 'config_version=5\n[autoload]\nEvil="*res://evil.gd"\n', "evil.gd": attack})
     archive("expanded_limit", {"padding.txt": "x" * (1024 * 1024)})
+    # Forge small directory/local lengths while leaving the larger compressed
+    # payload intact; limits must cap actual output, not just trust metadata.
+    archive("forged_deflate", {"padding.txt": "x" * (128 * 1024)})
+    forged = bytearray((destination / "forged_deflate.zip").read_bytes())
+    position = 0
+    while position < len(forged) - 46:
+        if forged[position:position + 4] == b"PK\x01\x02":
+            length = struct.unpack_from("<H", forged, position + 28)[0]
+            if forged[position + 46:position + 46 + length] == b"padding.txt":
+                struct.pack_into("<I", forged, position + 24, 16)
+                local = struct.unpack_from("<I", forged, position + 42)[0]
+                struct.pack_into("<I", forged, local + 22, 16)
+                break
+        position += 1
+    (destination / "forged_deflate.zip").write_bytes(forged)
+    archive("broken_deflate")
+    broken = bytearray((destination / "broken_deflate.zip").read_bytes())
+    first_data = 30 + struct.unpack_from("<H", broken, 26)[0] + struct.unpack_from("<H", broken, 28)[0]
+    broken[first_data] = 0x07  # reserved block type
+    (destination / "broken_deflate.zip").write_bytes(broken)
     archive("texture_dimensions", {"textures/pixel.png": png})  # tested with max_texture_dimension=0
     terrain = {**metadata, "extensions": [{"id": "comunicare.terrain3d", "data_schema": 1, "required": True, "data": "terrain/index.json"}]}
     archive("terrain_required", {"terrain/index.json": '{"regions":[]}'}, manifest=terrain)

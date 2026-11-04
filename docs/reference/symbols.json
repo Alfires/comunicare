@@ -4572,84 +4572,84 @@
     {
       "kind": "func",
       "name": "built_in_world_revision",
-      "line": 300,
+      "line": 273,
       "signature": "func built_in_world_revision() -> String",
       "visibility": "public"
     },
     {
       "kind": "class",
       "name": "TemporaryWorld",
-      "line": 304,
+      "line": 277,
       "signature": "class TemporaryWorld extends RefCounted",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 307,
+      "line": 280,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_validate_world_archive",
-      "line": 315,
+      "line": 288,
       "signature": "func _validate_world_archive(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_world",
-      "line": 325,
+      "line": 293,
       "signature": "func load_world(cne_word_path: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "prepare_world",
-      "line": 330,
-      "signature": "func prepare_world(archive_path: String, extract_path: String) -> Dictionary",
+      "line": 298,
+      "signature": "func prepare_world(archive_path: String, _extract_path: String) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_prepare_extracted_world",
-      "line": 335,
-      "signature": "func _prepare_extracted_world(extract_path: String) -> Dictionary",
+      "line": 305,
+      "signature": "func _prepare_extracted_world(_extract_path: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "activate_world",
-      "line": 353,
+      "line": 310,
       "signature": "func activate_world(staged: Dictionary) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_safe_archive_path",
-      "line": 366,
+      "line": 323,
       "signature": "func _safe_archive_path(path: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "extract_zip",
-      "line": 370,
+      "line": 327,
       "signature": "func extract_zip(zip_path: String, extract_to: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "load_manifest",
-      "line": 409,
+      "line": 366,
       "signature": "func load_manifest(manifest_path: String) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "create_directories_recursive",
-      "line": 423,
+      "line": 380,
       "signature": "func create_directories_recursive(path: String) -> void",
       "visibility": "public"
     }
@@ -4682,6 +4682,427 @@
       "line": 31,
       "signature": "func load_player()",
       "visibility": "public"
+    }
+  ],
+  "scripts/worlds/world_builder.gd": [
+    {
+      "kind": "func",
+      "name": "build_package",
+      "line": 9,
+      "signature": "func build_package(path: String) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_node",
+      "line": 57,
+      "signature": "func _node(type: String) -> Node",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_resource",
+      "line": 72,
+      "signature": "func _resource(type: String) -> Resource",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_external",
+      "line": 87,
+      "signature": "func _external(path: String, depth: int) -> Resource",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_value",
+      "line": 107,
+      "signature": "func _value(value: Variant, path: String, depth: int) -> Variant",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/world_data.gd": [
+    {
+      "kind": "func",
+      "name": "failure",
+      "line": 4,
+      "signature": "func failure(message: String) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "safe_path",
+      "line": 7,
+      "signature": "func safe_path(value: Variant) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "bounded",
+      "line": 20,
+      "signature": "func bounded(value: Variant, depth: int = 0, budget: Array = []) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "keys_only",
+      "line": 44,
+      "signature": "func keys_only(value: Dictionary, allowed: Array) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "integer",
+      "line": 49,
+      "signature": "func integer(value: Variant, low: int, high: int) -> bool",
+      "visibility": "public"
+    }
+  ],
+  "scripts/worlds/world_deflate.gd": [
+    {
+      "kind": "func",
+      "name": "decode",
+      "line": 14,
+      "signature": "func decode(bytes: PackedByteArray, max_bytes: int) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_bits",
+      "line": 106,
+      "signature": "func _bits(count: int) -> int",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_append",
+      "line": 117,
+      "signature": "func _append(value: int)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_tree",
+      "line": 124,
+      "signature": "func _tree(lengths: Array) -> Dictionary",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_symbol",
+      "line": 154,
+      "signature": "func _symbol(tree: Dictionary) -> int",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/world_extension_registry.gd": [
+    {
+      "kind": "func",
+      "name": "validate_requirements",
+      "line": 5,
+      "signature": "func validate_requirements(requirements: Variant, installed: Dictionary, package_paths: Array) -> Dictionary",
+      "visibility": "public"
+    }
+  ],
+  "scripts/worlds/world_instance_policy.gd": [
+    {
+      "kind": "func",
+      "name": "configure",
+      "line": 8,
+      "signature": "func configure(config: Dictionary)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_current",
+      "line": 14,
+      "signature": "func _current(id: String, generation: String) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "authorize",
+      "line": 19,
+      "signature": "func authorize(id: String, generation: String, action: String) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "disconnect_member",
+      "line": 22,
+      "signature": "func disconnect_member(id: String, generation: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "can_admit",
+      "line": 34,
+      "signature": "func can_admit() -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "snapshot",
+      "line": 41,
+      "signature": "func snapshot() -> Dictionary",
+      "visibility": "public"
+    }
+  ],
+  "scripts/worlds/world_interaction.gd": [
+    {
+      "kind": "func",
+      "name": "configure",
+      "line": 10,
+      "signature": "func configure(config: Dictionary)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "apply",
+      "line": 22,
+      "signature": "func apply(sender: String, event: Variant) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_clear_holder",
+      "line": 51,
+      "signature": "func _clear_holder(item: Dictionary)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "disconnect_member",
+      "line": 57,
+      "signature": "func disconnect_member(id: String, generation: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "snapshot",
+      "line": 64,
+      "signature": "func snapshot() -> Dictionary",
+      "visibility": "public"
+    }
+  ],
+  "scripts/worlds/world_package_reader.gd": [
+    {
+      "kind": "func",
+      "name": "inspect_package",
+      "line": 13,
+      "signature": "func inspect_package(path: String, overrides: Dictionary = {}) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_failure",
+      "line": 62,
+      "signature": "func _failure(message: String) -> Dictionary",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_bad",
+      "line": 66,
+      "signature": "func _bad(message: String) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_validate_sections",
+      "line": 70,
+      "signature": "func _validate_sections(path: String, sections: Array, files: Dictionary, document: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_properties",
+      "line": 121,
+      "signature": "func _properties(type: String, properties: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_matches_type",
+      "line": 156,
+      "signature": "func _matches_type(value: Variant, expected: int) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_value_safe",
+      "line": 172,
+      "signature": "func _value_safe(value: Variant, depth: int) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_material",
+      "line": 184,
+      "signature": "func _material(properties: Dictionary, external: Dictionary) -> Dictionary",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_validate_references",
+      "line": 195,
+      "signature": "func _validate_references(document: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_references",
+      "line": 217,
+      "signature": "func _references(value: Variant, resources: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_texture_header",
+      "line": 225,
+      "signature": "func _texture_header(bytes: PackedByteArray, extension: String, maximum: int) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_big_u32",
+      "line": 246,
+      "signature": "func _big_u32(bytes: PackedByteArray, offset: int) -> int",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/world_script_vm.gd": [
+    {
+      "kind": "func",
+      "name": "run_event",
+      "line": 8,
+      "signature": "func run_event(operations: Variant, context: Dictionary, limits: Dictionary = {}) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_execute",
+      "line": 20,
+      "signature": "func _execute(operations: Variant, context: Dictionary, state: Dictionary, depth: int) -> String",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/world_state_replicator.gd": [
+    {
+      "kind": "func",
+      "name": "configure",
+      "line": 10,
+      "signature": "func configure(session_id: String, world_revision: String, current_members: Dictionary)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_scoped",
+      "line": 17,
+      "signature": "func _scoped(sender: String, generation: Variant, value: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "accept_snapshot",
+      "line": 20,
+      "signature": "func accept_snapshot(sender: String, generation: String, value: Variant) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "apply_event",
+      "line": 35,
+      "signature": "func apply_event(sender: String, event: Variant) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "snapshot",
+      "line": 51,
+      "signature": "func snapshot() -> Dictionary",
+      "visibility": "public"
+    }
+  ],
+  "scripts/worlds/world_text_parser.gd": [
+    {
+      "kind": "func",
+      "name": "parse_json",
+      "line": 9,
+      "signature": "func parse_json(text: String) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "parse_resource",
+      "line": 16,
+      "signature": "func parse_resource(text: String) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_reset",
+      "line": 48,
+      "signature": "func _reset(text: String, json: bool)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_fail",
+      "line": 56,
+      "signature": "func _fail(message: String)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_space",
+      "line": 59,
+      "signature": "func _space()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_expect",
+      "line": 68,
+      "signature": "func _expect(token: String)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_identifier",
+      "line": 75,
+      "signature": "func _identifier(property: bool = false) -> String",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_string",
+      "line": 85,
+      "signature": "func _string() -> String",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_value",
+      "line": 104,
+      "signature": "func _value(depth: int) -> Variant",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/world_zip_reader.gd": [
+    {
+      "kind": "func",
+      "name": "read_archive",
+      "line": 5,
+      "signature": "func read_archive(path: String, limits: Dictionary) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_crc",
+      "line": 79,
+      "signature": "func _crc(bytes: PackedByteArray) -> int",
+      "visibility": "private"
     }
   ],
   "relay_protocol/account_packet.gd": [

@@ -253,9 +253,6 @@ func prepare_world_from_url(url: String, expected_revision: String = "") -> Dict
 			return {}
 		return {"scene": home, "spawn_point": [0, 1, 0], "revision": revision} if home is PackedScene else {}
 	var cache = get_asset_cache()
-	if not cache.trust_remote_worlds:
-		cache.last_error = "Remote worlds can execute code. Enable trusted world publishers in Assets settings only for URLs you trust."
-		return {}
 	var handle: Dictionary = cache.revision_handle(expected_revision) if not expected_revision.is_empty() else {}
 	if handle.is_empty():
 		handle = await cache.fetch(url, "world", _validate_world_archive)
@@ -264,37 +261,13 @@ func prepare_world_from_url(url: String, expected_revision: String = "") -> Dict
 	if not expected_revision.is_empty() and handle.hash != expected_revision:
 		cache.last_error = "The instance's pinned world revision is no longer available at this URL."
 		return {}
-	var content = cache.world_path(handle.hash)
-	if handle.get("temporary", false):
-		content = cache.directory.path_join("staging/transient-world-%s/content/" % Time.get_ticks_usec())
-	# Derived files are immutable once referenced. Each changed archive hash
-	# gets its own folder; refresh never writes into the active scene's files.
-	var staged: Dictionary
-	if FileAccess.file_exists(content + ".ready"):
-		staged = _prepare_extracted_world(content)
-	else:
-		cache._clear_directory(content.trim_suffix("/"))
-		staged = prepare_world(handle.path, content)
-		if not staged.is_empty():
-			if not cache._make_room(0):
-				staged.clear()
-				cache._clear_directory(content.trim_suffix("/"))
-				cache.last_error = "Extracted world exceeds the available cache budget."
-				return {}
-			var marker = FileAccess.open(content + ".ready", FileAccess.WRITE)
-			if marker == null:
-				return {}
-			marker.store_string(handle.hash)
-			marker.close()
+	# Never activate old extracted resource graphs or .ready markers. Rebuild
+	# application-owned nodes from the exact verified immutable archive instead.
+	var staged = prepare_world(handle.path, "")
 	if not staged.is_empty():
 		staged["asset_handle"] = handle
 		staged["revision"] = handle.hash
 		staged["source_url"] = url
-		if handle.get("temporary", false):
-			var cleanup = TemporaryWorld.new()
-			cleanup.cache = weakref(cache)
-			cleanup.path = content.get_base_dir().trim_suffix("/content")
-			staged["extraction_lease"] = cleanup
 	return staged
 
 func built_in_world_revision() -> String:
@@ -313,42 +286,26 @@ class TemporaryWorld extends RefCounted:
 					DirAccess.remove_absolute(path)
 
 func _validate_world_archive(path: String) -> bool:
-	var cache = get_asset_cache()
-	var content = cache.directory.path_join("staging/world-%s/" % Time.get_ticks_usec())
-	var staged = prepare_world(path, content)
-	var valid = not staged.is_empty()
-	staged.clear()
-	cache._clear_directory(content.trim_suffix("/"))
-	DirAccess.remove_absolute(content)
-	return valid
+	var result = preload("res://scripts/worlds/world_package_reader.gd").new().inspect_package(path)
+	if not result.ok: get_asset_cache().last_error = result.error
+	return result.ok
 
 func load_world(cne_word_path: String) -> bool:
 	var extract_path = "user://worlds/" + str(Time.get_ticks_usec()) + "/content/"
 	var staged = prepare_world(cne_word_path, extract_path)
 	return await activate_world(staged) if not staged.is_empty() else false
 
-func prepare_world(archive_path: String, extract_path: String) -> Dictionary:
-	if not extract_zip(archive_path, extract_path):
+func prepare_world(archive_path: String, _extract_path: String) -> Dictionary:
+	var result = preload("res://scripts/worlds/world_builder.gd").new().build_package(archive_path)
+	if not result.ok:
+		get_asset_cache().last_error = result.error
 		return {}
-	return _prepare_extracted_world(extract_path)
+	return result
 
-func _prepare_extracted_world(extract_path: String) -> Dictionary:
-	var manifest = load_manifest(extract_path + "manifest.json")
-	if not manifest.get("main_scene") is String or not _safe_archive_path(manifest.main_scene):
-		return {}
-	var scene_path = extract_path.path_join(manifest.main_scene)
-	if not scene_path.ends_with(".tscn") and not scene_path.ends_with(".scn"):
-		return {}
-	var scene = ResourceLoader.load(scene_path, "PackedScene", ResourceLoader.CACHE_MODE_IGNORE)
-	if not scene is PackedScene or not scene.can_instantiate():
-		return {}
-	var spawn = manifest.get("spawn_point", [0, 0, 0])
-	if not spawn is Array or spawn.size() != 3:
-		return {}
-	for coordinate in spawn:
-		if not (coordinate is float or coordinate is int) or not is_finite(float(coordinate)):
-			return {}
-	return {"scene": scene, "spawn_point": spawn}
+func _prepare_extracted_world(_extract_path: String) -> Dictionary:
+	# Compatibility entry point deliberately fails closed: unpacked legacy
+	# content has no verified safe archive/document boundary.
+	return {}
 
 func activate_world(staged: Dictionary) -> bool:
 	if not staged.get("scene") is PackedScene:

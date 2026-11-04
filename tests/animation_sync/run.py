@@ -16,7 +16,7 @@ def main():
         return 2
     with tempfile.TemporaryDirectory(prefix="comunicare-animation-", dir="/tmp/opencode") as directory:
         project = Path(directory)
-        for folder in ("scripts/assets", "scripts/profile", "relay_protocol"):
+        for folder in ("scripts/assets", "scripts/profile", "scripts/worlds", "relay_protocol"):
             shutil.copytree(ROOT / folder, project / folder)
         shutil.copytree(ROOT / "assets/animations", project / "assets/animations")
         avatar_fixture = os.environ.get("AVATAR_FIXTURE")

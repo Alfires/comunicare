@@ -80,6 +80,17 @@ saves when allowed; predelete disconnects registry. See [format](storage-formats
 
 ## Voice and player nodes
 
+<!-- module: scripts/player/vr_safety.gd -->
+### [VRSafety](../../scripts/player/vr_safety.gd)
+
+RefCounted physics policy requiring attached body/world. `clearance` tests bounded
+capsule at a floor destination excluding self; `resize_capsule` permits shrink but
+rejects ceiling-obstructed growth. `head_obstructed` queries a small head sphere
+for protective overlay. `destination` validates finite short ray, walkable normal,
+height difference and capsule space. `commit_teleport` moves body/origin around
+head floor pivot and clears velocity, never rewriting local tracked pose. Caller
+must revalidate clearance immediately before commit and cancel on focus/UI loss.
+
 <!-- module: scripts/player/vr_room_scale.gd -->
 ### [VRRoomScale](../../scripts/player/vr_room_scale.gd)
 

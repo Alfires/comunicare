@@ -44,6 +44,7 @@ func run():
 	test_text_entry()
 	test_tracking_setup()
 	await test_room_scale()
+	await test_safety_and_teleport()
 	print("\nRED VR controls: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -308,4 +309,44 @@ func test_room_scale():
 	check(body.global_position.x < 0.6, "room-scale collision body cannot follow physical head through wall")
 	check(head.global_transform.is_equal_approx(before), "blocked physical walking does not push tracked headset back artificially")
 	wall.queue_free()
+	body.queue_free()
+
+func test_safety_and_teleport():
+	var path = "res://scripts/player/vr_safety.gd"
+	check(ResourceLoader.exists(path), "VR safety validates capsule growth, head overlap and teleport clearance")
+	if not ResourceLoader.exists(path): return
+	var safety = load(path).new()
+	var body = CharacterBody3D.new()
+	var collider = CollisionShape3D.new()
+	var capsule = CapsuleShape3D.new()
+	capsule.radius = 0.2
+	capsule.height = 1.2
+	collider.shape = capsule
+	collider.position.y = 0.6
+	body.add_child(collider)
+	root.add_child(body)
+	var roof = StaticBody3D.new()
+	var roof_collision = CollisionShape3D.new()
+	var box = BoxShape3D.new()
+	box.size = Vector3(4, 0.2, 4)
+	roof_collision.shape = box
+	roof.add_child(roof_collision)
+	roof.position.y = 1.6
+	root.add_child(roof)
+	await physics_frame
+	check(not safety.resize_capsule(body, collider, 2.0) and is_equal_approx(capsule.height, 1.2), "capsule cannot grow through a low ceiling")
+	check(safety.resize_capsule(body, collider, 1.0), "capsule can shrink safely while crouching")
+	check(safety.head_obstructed(body, Vector3(0, 1.6, 0)), "head overlap with ceiling requests protective fade")
+	check(not safety.head_obstructed(body, Vector3(0, 0.8, 0)), "clear head space never requests overlap fade")
+	check(not safety.clearance(body, Vector3.ZERO, 2.0, 0.2), "teleport destination under low ceiling is rejected")
+	check(safety.clearance(body, Vector3(5, 0, 0), 2.0, 0.2), "empty teleport destination passes capsule clearance")
+	var origin = XROrigin3D.new()
+	body.add_child(origin)
+	var head = Node3D.new()
+	origin.add_child(head)
+	head.position = Vector3(0.3, 1.6, 0.2)
+	safety.commit_teleport(body, origin, head, Vector3(5, 0, 0))
+	check(Vector2(head.global_position.x, head.global_position.z).distance_to(Vector2(5, 0)) < 0.001, "teleport places physical head floor pivot at selected destination")
+	check(head.position.is_equal_approx(Vector3(0.3, 1.6, 0.2)), "teleport does not rewrite local headset tracking transform")
+	roof.queue_free()
 	body.queue_free()

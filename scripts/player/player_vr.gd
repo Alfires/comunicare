@@ -53,6 +53,10 @@ var rig_report: Dictionary = {}
 var virtual_keyboard: Control
 var scroll_at := {"left": 0, "right": 0}
 var room_scale = preload("res://scripts/player/vr_room_scale.gd").new()
+var safety = preload("res://scripts/player/vr_safety.gd").new()
+var teleport_held := false
+var teleport_candidate: Dictionary = {}
+var teleport_marker: MeshInstance3D
 
 
 func _ready():
@@ -65,6 +69,8 @@ func _ready():
 	NetworkHandler.get_animation_controller()
 	load_vrm_model()
 	_create_comfort_overlay()
+	var collision = get_node_or_null("CollisionShape3D")
+	if collision != null and collision.shape != null: collision.shape = collision.shape.duplicate()
 
 func set_player_pos(pos: Vector3):
 	position = pos
@@ -118,6 +124,13 @@ func _physics_process(delta):
 	if blocked or motion_rearm:
 		movement_input = Vector2.ZERO
 		turn_axis = 0
+	var teleport_mode = SaveData.store.get_value("vr.locomotion_mode") == "teleport"
+	if teleport_mode:
+		_update_teleport(not blocked and not motion_rearm, movement_input)
+		movement_input = Vector2.ZERO
+	else:
+		teleport_held = false
+		if is_instance_valid(teleport_marker): teleport_marker.hide()
 	movement_speed = float(SaveData.store.get_value("vr.move_speed"))
 	var desired = locomotion.desired_velocity(movement_input, xr_camera.global_basis, movement_speed, float(SaveData.store.get_value("vr.move_dead_zone")))
 	turning.dead_zone = float(SaveData.store.get_value("vr.turn_dead_zone"))
@@ -138,12 +151,42 @@ func _physics_process(delta):
 	var strength = comfort.update_vignette(Vector2(velocity.x, velocity.z).length(), rad_to_deg(yaw) / maxf(delta, 0.001), delta, SaveData.store.get_value("vr.comfort_vignette"))
 	if comfort_material != null:
 		comfort_material.set_shader_parameter("strength", strength)
-		comfort_material.set_shader_parameter("blink", 1.0 if blink_remaining > 0 else 0.0)
+		var clipped = SaveData.store.get_value("vr.head_clip_fade") and safety.head_obstructed(self, xr_camera.global_position)
+		comfort_material.set_shader_parameter("blink", 1.0 if blink_remaining > 0 or clipped else 0.0)
 	var shape_node = get_node_or_null("CollisionShape3D")
 	if shape_node != null and shape_node.shape is CapsuleShape3D:
 		var height = 1.2 if SaveData.store.get_value("vr.seated_mode") else clampf(xr_camera.position.y + 0.15, 1.0, 2.4)
-		shape_node.shape.height = height
-		shape_node.position.y = height * 0.5
+		safety.resize_capsule(self, shape_node, height)
+
+func _update_teleport(enabled: bool, stick: Vector2):
+	if not is_instance_valid(teleport_marker):
+		teleport_marker = MeshInstance3D.new()
+		var sphere = SphereMesh.new()
+		sphere.radius = 0.12
+		sphere.height = 0.04
+		teleport_marker.mesh = sphere
+		var material = StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.albedo_color = Color(0.1, 0.9, 0.6)
+		teleport_marker.material_override = material
+		get_tree().root.add_child(teleport_marker)
+	var aiming = enabled and stick.y < -0.6
+	if aiming:
+		var collision = get_node_or_null("CollisionShape3D")
+		var height: float = collision.shape.height if collision != null else 1.8
+		var radius: float = collision.shape.radius if collision != null else 0.4
+		teleport_candidate = safety.destination(self, left_controller.global_position, -left_controller.global_basis.z, height, radius)
+		teleport_marker.visible = not teleport_candidate.is_empty()
+		if teleport_marker.visible: teleport_marker.global_position = teleport_candidate.position + Vector3.UP * 0.03
+	elif teleport_held:
+		if enabled and stick.length() < 0.3 and not teleport_candidate.is_empty():
+			var collision = get_node_or_null("CollisionShape3D")
+			if collision != null and safety.clearance(self, teleport_candidate.position + Vector3.UP * 0.02, collision.shape.height, collision.shape.radius):
+				safety.commit_teleport(self, origin_node, xr_camera, teleport_candidate.position + Vector3.UP * 0.02)
+				blink_remaining = 0.1
+		teleport_candidate.clear()
+		teleport_marker.hide()
+	teleport_held = aiming
 
 func _menu_open() -> bool:
 	return is_instance_valid(main_panel) and main_panel.visible
@@ -341,6 +384,7 @@ func _avatar_configuration_changed():
 	load_vrm_model()
 
 func _exit_tree():
+	if is_instance_valid(teleport_marker): teleport_marker.queue_free()
 	tracker_roles.clear()
 	_close_main_menu()
 	if is_instance_valid(main_panel): main_panel.queue_free()

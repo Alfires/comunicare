@@ -59,6 +59,8 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "vr.locomotion_mode", "category": "VR Movement", "label": "Locomotion", "type": "enum", "options": {"smooth": "Smooth", "teleport": "Point and teleport"}, "default": "smooth", "order": -1},
+		{"id": "vr.head_clip_fade", "category": "VR Comfort", "label": "Fade when head intersects world geometry", "type": "boolean", "default": true, "order": 3},
 		{"id": "vr.turn_mode", "category": "VR Movement", "label": "Turning", "type": "enum", "options": {"snap": "Snap", "smooth": "Smooth"}, "default": "snap", "order": 0},
 		{"id": "vr.snap_angle", "category": "VR Movement", "label": "Snap angle", "type": "number", "default": 30.0, "min": 15.0, "max": 90.0, "step": 15.0, "unit": "degrees", "order": 1},
 		{"id": "vr.smooth_turn_rate", "category": "VR Movement", "label": "Smooth turn speed", "type": "number", "default": 60.0, "min": 15.0, "max": 180.0, "step": 5.0, "unit": "degrees/s", "order": 2},

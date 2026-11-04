@@ -1,3 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Generated Python bytecode (keep local, never commit)
+__pycache__/
+*.py[cod]

@@ -78,10 +78,7 @@ func _render_discovery():
 	if network.get("directory_trust") != null:
 		for entry in network.directory_trust.entries:
 			_button(trust_rows, "Remove trusted directory " + entry.relay_id.left(12), func():
-				if network.directory_trust.remove(entry.relay_id):
-					network.directory_browser.stop()
-					network.directory_browser.trusted.erase(entry.relay_id)
-					network.refresh_relay_directories()
+				network.revoke_relay_directory(entry.relay_id)
 				_render_discovery())
 
 func _button(parent: Node, title: String, callback: Callable):

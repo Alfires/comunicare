@@ -8,6 +8,19 @@ logic. Existing world hosting/downloads are unchanged.
 
 ## Operator setup
 
+The easy local provisioning command generates a new identity and ready-to-edit
+configuration without launching the game or touching account data:
+
+```sh
+python3 tools/relays/provision.py /absolute/private/my-relay --label "My relay" --lan
+```
+
+The destination must not already exist and must be outside this repository.
+Private keys are permission-restricted; failed partial output is preserved for
+inspection rather than silently regenerated. `GODOT` overrides the executable.
+The command prints the relay ID and startup command. Remove `--lan` if you do not
+want local advertisements. Add trusted neighbours to the generated `peers` list.
+
 Provision a private RSA key, X509 certificate and public key **outside the source
 repository**. Use common name `comunicare-relay` (or configure the expected name).
 Distribute the public certificate and public key through a trusted channel; never
@@ -100,6 +113,11 @@ re-signing copied data or disguising its real network relationships.
 
 ## Important remaining limitations
 
+**Scope clarification:** internet-wide/global peer discovery is deliberately out
+of scope. Use explicitly configured trusted peers and local hints; no DHT, network
+crawler, public registry, automatic global peering or NAT traversal is planned for
+this implementation. External hardware is not needed for the automated tests.
+
 - This is a **TLS/TCP tunnel for ENet**, not a low-latency datagram transport.
   Head-of-line blocking affects voice/poses; real WAN/VR load and loss testing is
   still required. Frame, queue, rate, connection, path and tunnel caps fail closed.
@@ -121,5 +139,7 @@ re-signing copied data or disguising its real network relationships.
   remain required. Passing loopback tests is not security certification.
 
 Verification: `python3 tests/relay_federation/run.py` includes 81 service/UI and
-28 actual TLS/three-relay/two-client/UDP assertions. Physical Wi-Fi multicast,
+additional actual TLS/three-relay/two-client/UDP and route/trust failure assertions.
+`python3 tools/relays/test_provision.py` verifies provisioning path safeguards.
+Physical Wi-Fi multicast,
 renderer, headset input and Internet firewall reachability are not certified.

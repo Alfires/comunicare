@@ -1,5 +1,13 @@
 # Multi-relay federation, ordered failover and LAN discovery
 
+**Scope amendment:** global internet-wide discovery/automatic trust bootstrap is
+excluded at the user's request. Configured trusted peers and bounded local LAN
+hints are the supported discovery model; do not treat worldwide DHT/crawling,
+automatic internet peer exchange or NAT traversal as completion requirements.
+Local provisioning, trust revocation, route validation and real-loopback failure
+tests can be developed without external hardware. Physical VR/Wi-Fi/IPv6 validation
+remains a deployment gate, not a prerequisite for testing these local features.
+
 **Status: proposal, 2026-11-04. No federation or LAN discovery implementation.**
 **Live network update:** TLS certificate verification, signed neighbour/origin
 directory exchange, simultaneous anonymous directory clients, configured operator

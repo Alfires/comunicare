@@ -11,9 +11,11 @@ var ready := false
 var last_error := ""
 var blocked: Array = []
 var ping_at := 0
+var route: Array = []
 
 func start(host: String, port: int, cert: X509Certificate, destination: String, blocks: Array = [], common_name: String = "comunicare-relay") -> bool:
 	close()
+	last_error = ""
 	origin = destination
 	blocked = blocks.duplicate()
 	if origin in blocked: return false
@@ -45,14 +47,11 @@ func poll():
 		if message.get("op") == "challenge": continue
 		if message.get("token") != token: continue
 		if message.get("op") == "tunnel_ready":
-			if not message.get("path") is Array or message.path.is_empty() or message.path.back() != origin: continue
-			var allowed = true
-			for id in message.path:
-				if id in blocked: allowed = false
-			if not allowed:
-				last_error = "Gameplay route contains blocked relay"
+			if not validate_route(message.get("path")):
+				last_error = "Gameplay route contains invalid, looping or blocked relay"
 				close()
 				return
+			route = message.path.duplicate()
 			ready = true
 		elif message.get("op") == "tunnel_data" and ready and remote_port > 0:
 			var bytes = _decode(message.get("bytes"))
@@ -77,6 +76,15 @@ func _decode(value: Variant) -> PackedByteArray:
 	var bytes = Marshalls.base64_to_raw(value)
 	return bytes if bytes.size() <= 1500 else PackedByteArray()
 
+func validate_route(path: Variant) -> bool:
+	var guard = preload("res://scripts/multiplayer/federation/relay_validation.gd")
+	if not path is Array or path.is_empty() or path.size() > 4 or path.back() != origin: return false
+	var seen: Dictionary = {}
+	for id in path:
+		if not guard.identity(id) or id in blocked or seen.has(id): return false
+		seen[id] = true
+	return true
+
 func close():
 	if link != null:
 		if link.connected(): link.send({"op": "tunnel_close", "token": token}); link.poll()
@@ -87,3 +95,4 @@ func close():
 	ready = false
 	remote_port = 0
 	ping_at = 0
+	route.clear()

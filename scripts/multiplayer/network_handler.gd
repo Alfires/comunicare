@@ -53,6 +53,23 @@ func trust_relay_directory(id: String, host: String, port: int, certificate_path
 	refresh_relay_directories()
 	return true
 
+func revoke_relay_directory(id: String) -> bool:
+	get_directory_browser()
+	if not directory_trust.remove(id):
+		last_session_error = directory_trust.last_error
+		return false
+	directory_browser.stop()
+	directory_browser.trusted.erase(id)
+	# Revoked trust may be an ingress for a different origin; end conservatively.
+	if gameplay_tunnel != null:
+		gameplay_tunnel.close()
+		gameplay_tunnel = null
+		if peer != null:
+			if peer.peer != null: peer.peer.peer_disconnect_now()
+			peer.disconnected_from_relay()
+	refresh_relay_directories()
+	return true
+
 func join_remote_instance(instance: Dictionary) -> bool:
 	if session_busy or connection_in_progress:
 		last_session_error = "Another connection/transition is in progress"

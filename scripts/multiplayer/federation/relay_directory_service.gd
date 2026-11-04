@@ -257,8 +257,10 @@ func _tunnel_message(record: Dictionary, message: Dictionary, now: int):
 		if tunnels.size() >= 32 or not Guard.identity(message.get("origin")) or message.origin in blocks or not message.get("path") is Array: return
 		var path: Array = message.path.duplicate()
 		if path.size() >= 4 or relay_id in path: return
+		var seen: Dictionary = {}
 		for hop in path:
-			if not Guard.identity(hop) or hop in blocks: return
+			if not Guard.identity(hop) or hop in blocks or seen.has(hop): return
+			seen[hop] = true
 		if not path.is_empty() and (not record.authenticated or path.back() != record.id): return
 		path.append(relay_id)
 		var local_token = Crypto.new().generate_random_bytes(16).hex_encode()
@@ -315,8 +317,11 @@ func _tunnel_message(record: Dictionary, message: Dictionary, now: int):
 		return
 	if message.op == "tunnel_ready" and not from_upstream:
 		if not message.get("path") is Array or message.path.size() > 4 or message.path.back() != route.origin: return
+		if message.path.slice(0, route.path.size()) != route.path: _close_tunnel(local_token); return
+		var seen: Dictionary = {}
 		for hop in message.path:
-			if hop in blocks: _close_tunnel(local_token); return
+			if not Guard.identity(hop) or hop in blocks or seen.has(hop): _close_tunnel(local_token); return
+			seen[hop] = true
 		route.path = message.path.duplicate()
 		route.ready = true
 		route.upstream.link.send({"op": "tunnel_ready", "token": route.upstream_token, "path": route.path})

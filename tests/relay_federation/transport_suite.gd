@@ -39,6 +39,8 @@ func run():
 	listener.stop()
 	await test_directory_chain()
 	await test_lan_datagram()
+	test_route_validation()
+	test_trust_and_config()
 	print("\nFederation transport: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -148,6 +150,20 @@ func test_directory_chain():
 		second.handle_events()
 		await create_timer(0.003).timeout
 	check(received.any(func(message): return message.get("op") == "item" and message.get("entity") == "cube"), "actual item ownership crosses different encrypted ingress routes")
+	# Operator blocks must tear down already established indirect gameplay,
+	# not merely hide a directory row before the next connection.
+	services[0].set_blocked(origin.relay_id, true)
+	until = Time.get_ticks_msec() + 2000
+	while Time.get_ticks_msec() < until and tunnel.ready:
+		for service in services: service.poll()
+		tunnel.poll()
+		tunnel_two.poll()
+		game_relay.handle_events()
+		player.handle_events()
+		second.handle_events()
+		await create_timer(0.003).timeout
+	check(not tunnel.ready and not tunnel.last_error.is_empty(), "operator block ends already active indirect gameplay tunnel")
+	services[0].set_blocked(origin.relay_id, false)
 	second.connection.destroy()
 	tunnel_two.close()
 	player.connection.destroy()
@@ -169,6 +185,20 @@ func test_directory_chain():
 	browser.stop()
 	services[0].set_blocked(origin.relay_id, true)
 	check(services[0].public_instances().is_empty(), "operator origin block purges indirect real-network directory sighting")
+	services[0].set_blocked(origin.relay_id, false)
+	origin.publish_at = 0
+	until = Time.get_ticks_msec() + 2000
+	while Time.get_ticks_msec() < until and services[0].public_instances().is_empty():
+		for service in services: service.poll()
+		await create_timer(0.003).timeout
+	check(not services[0].public_instances().is_empty(), "unblock permits fresh signed summaries rather than restoring cached authorization")
+	services[1].stop()
+	until = Time.get_ticks_msec() + 2000
+	while Time.get_ticks_msec() < until and not services[0].public_instances().is_empty():
+		services[0].poll()
+		services[2].poll()
+		await create_timer(0.003).timeout
+	check(services[0].public_instances().is_empty(), "middle relay link loss withdraws dependent distant directory state")
 	for service in services: service.stop()
 	check(services.all(func(service): return service.links.is_empty() and service.public_instances().is_empty()), "directory shutdown clears links and live summaries")
 
@@ -186,3 +216,48 @@ func test_lan_datagram():
 	check(receiver.model.instances().is_empty(), "actual UDP hint never creates an unverified joinable instance")
 	sender.close()
 	receiver.stop()
+
+func test_route_validation():
+	var tunnel = load("res://scripts/multiplayer/federation/relay_game_tunnel.gd").new()
+	check(tunnel.has_method("validate_route"), "gameplay tunnel exposes strict route validation")
+	if not tunnel.has_method("validate_route"): return
+	tunnel.origin = "c".repeat(64)
+	tunnel.blocked = ["b".repeat(64)]
+	check(not tunnel.validate_route(["a".repeat(64), "b".repeat(64), tunnel.origin]), "client rejects blocked transit before enabling gameplay")
+	check(not tunnel.validate_route(["a".repeat(64), "a".repeat(64), tunnel.origin]), "client rejects looped ready path")
+	check(not tunnel.validate_route(["forged", tunnel.origin]), "client rejects malformed relay identity")
+	check(not tunnel.validate_route(["a".repeat(64)]), "client rejects ready path ending at wrong origin")
+	check(tunnel.validate_route(["a".repeat(64), tunnel.origin]), "client accepts bounded unique allowed origin path")
+
+func test_trust_and_config():
+	var private_key = Crypto.new().generate_rsa(2048)
+	var cert = Crypto.new().generate_self_signed_certificate(private_key, "CN=comunicare-relay,O=Comunicare,C=DE", "20250101000000", "20350101000000")
+	private_key.save("user://operator.key")
+	private_key.save("user://operator.pub", true)
+	cert.save("user://operator.crt")
+	var trust = load("res://scripts/multiplayer/federation/relay_directory_trust.gd").new()
+	trust.path = "user://test-directory-trust.json"
+	check(trust.add_certificate("a".repeat(64), "127.0.0.1", 7375, "user://operator.crt"), "explicit local certificate import persists public trust")
+	check(not trust.add_certificate("a".repeat(64), "127.0.0.1", 7375, "user://operator.crt"), "existing relay certificate cannot be silently replaced")
+	var restored = load("res://scripts/multiplayer/federation/relay_directory_trust.gd").new()
+	restored.path = trust.path
+	check(restored.load_trust() and restored.entries.size() == 1, "certificate trust round-trips without private-key storage")
+	check(not FileAccess.get_file_as_string(trust.path).contains("PRIVATE KEY"), "client trust store never contains operator private key")
+	check(restored.remove("a".repeat(64)) and restored.entries.is_empty(), "explicit certificate removal persists revocation")
+	var file = FileAccess.open("user://broken-trust.json", FileAccess.WRITE)
+	file.store_string("{broken")
+	file.close()
+	restored.path = "user://broken-trust.json"
+	check(not restored.load_trust() and not restored.add_certificate("b".repeat(64), "127.0.0.1", 7375, "user://operator.crt"), "corrupt certificate trust fails read-only")
+	check(FileAccess.get_file_as_string(restored.path) == "{broken", "corrupt trust bytes preserved")
+	var config = {"schema": 1, "key": "user://operator.key", "certificate": "user://operator.crt", "port": 17375, "peers": [], "blocks": []}
+	file = FileAccess.open("user://operator.json", FileAccess.WRITE)
+	file.store_string(JSON.stringify(config))
+	file.close()
+	var reader = load("res://scripts/multiplayer/federation/relay_operator_config.gd").new()
+	check(reader.load_config("user://operator.json").ok, "actual generated operator key/certificate config loads")
+	config.blocks = ["not-a-relay-id"]
+	file = FileAccess.open("user://operator.json", FileAccess.WRITE)
+	file.store_string(JSON.stringify(config))
+	file.close()
+	check(not reader.load_config("user://operator.json").ok, "malformed operator block fails configuration validation")

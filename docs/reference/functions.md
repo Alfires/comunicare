@@ -37,6 +37,10 @@ endpoints. Private save atomically replaces public trust configuration; no priva
 key or advertised certificate is automatically accepted.
 
 <!-- module: scripts/multiplayer/federation/relay_game_tunnel.gd -->
+`validate_route` checks bounded unique relay IDs, destination and local blocks
+before accepting a ready path. Reusing `start` clears previous diagnostic state;
+closing clears route/session buffers. This does not prove a malicious relay's
+claimed path describes every physical network participant.
 ## Origin gameplay over verified TLS routes
 
 `start` binds a local UDP endpoint and opens a trusted TLS connection to the ingress;
@@ -833,6 +837,9 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+`revoke_relay_directory` removes persisted public certificate trust, closes directory
+links and conservatively ends active tunneled gameplay before querying remaining
+trusted directories. It does not silently approve replacement certificates.
 `get_directory_browser` lazily loads public trust and optional LAN socket;
 `refresh_relay_directories` queries bounded trusted endpoints; `get_remote_instances`
 and `get_lan_relay_candidates` expose copied public/hint state. `trust_relay_directory`

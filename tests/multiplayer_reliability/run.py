@@ -13,7 +13,7 @@ HERE = Path(__file__).resolve().parent
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--suite", choices=["client"], default="client")
+    parser.add_argument("--suite", choices=["client", "discovery", "all"], default="all")
     args = parser.parse_args()
     godot = shutil.which(os.environ.get("GODOT", "godot"))
     if not godot:
@@ -33,7 +33,7 @@ def main():
             'SaveData="*res://fixtures/save_data.gd"\n'
             'NetworkHandler="*res://scripts/multiplayer/network_handler.gd"\n'
             '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-        suites = [args.suite]
+        suites = [args.suite] if args.suite != "all" else ["client", "discovery"]
         commands = [["--editor", "--import"]]
         for suite in suites:
             shutil.copy2(HERE / (suite + "_suite.gd"), project / (suite + "_suite.gd"))

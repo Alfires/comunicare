@@ -2,6 +2,12 @@
 
 ## Status, evidence and scope
 
+**Test-first update:** opt-in [reliability acceptance](../../tests/multiplayer_reliability/README.md)
+now reproduces current appearance/session/staging and discovery/catalog gaps.
+Client baseline: 5 passed/5 failed; discovery: 5 passed/8 failed. Both exit 1
+without Godot errors. Future decoder/correlation contracts are guarded and explicitly
+not counted as executed behavior while missing. No production fixes are included.
+
 **Planning only — 2026-11-04.** This roadmap follows inspection of the current
 multiplayer/relay/wire/UI/player/startup files, rather than assuming the older
 discovery plan describes all current gaps. No runtime fixes or file splits are

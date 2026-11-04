@@ -1,5 +1,13 @@
 # Verification
 
+## Opt-in red multiplayer roadmap regressions
+
+`python3 tests/multiplayer_reliability/run.py` intentionally exits 1 until the
+multiplayer/discovery roadmap gaps are fixed (client 5/5 and discovery 5/8 initial
+pass/failure baselines). It is not invoked by normal green checks. Exit 2/Godot
+errors are infrastructure failure. See its README for fixture boundaries and
+conditional missing-component assertions; no real accounts or external hosts used.
+
 ## VR and tracking acceptance
 
 `python3 tests/vr_controls/run.py` now passes 81 assertions and

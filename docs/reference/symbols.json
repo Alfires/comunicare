@@ -2049,84 +2049,91 @@
     {
       "kind": "func",
       "name": "set_body_targets",
-      "line": 14,
+      "line": 16,
       "signature": "func set_body_targets(targets: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_calibration",
-      "line": 17,
+      "line": 19,
       "signature": "func set_calibration(data: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_tracking_validity",
-      "line": 25,
+      "line": 27,
       "signature": "func set_tracking_validity(values: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "tracking_weights",
-      "line": 28,
+      "line": 30,
       "signature": "func tracking_weights() -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 31,
+      "line": 33,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "configure",
-      "line": 35,
+      "line": 37,
       "signature": "func configure(mapping: Dictionary, head: Node3D, left: Node3D, right: Node3D)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_process_modification",
-      "line": 50,
+      "line": 53,
       "signature": "func _process_modification()",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_apply_chain",
+      "line": 62,
+      "signature": "func _apply_chain(rig: Skeleton3D, role: String, target: Node3D, bones: Array, side: String)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_tracked",
-      "line": 63,
+      "line": 90,
       "signature": "func _tracked(target: Node3D) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_role_tracked",
-      "line": 66,
+      "line": 93,
       "signature": "func _role_tracked(role: String, target: Node3D) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_set_target",
-      "line": 72,
+      "line": 99,
       "signature": "func _set_target(rig: Skeleton3D, role: String, target: Node3D, position: bool)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_rotate_toward",
-      "line": 86,
+      "line": 113,
       "signature": "func _rotate_toward(rig: Skeleton3D, bone: int, child: int, destination: Vector3)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_solve_arm",
-      "line": 97,
+      "line": 124,
       "signature": "func _solve_arm(rig: Skeleton3D, side: String, target: Node3D)",
       "visibility": "private"
     }

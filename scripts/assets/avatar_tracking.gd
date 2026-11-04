@@ -10,6 +10,8 @@ var validity: Dictionary = {}
 var weights: Dictionary = {"head": 0.0, "leftHand": 0.0, "rightHand": 0.0}
 var body_solver
 var body_targets: Dictionary = {}
+var solved_poses: Dictionary = {}
+const FADE_SECONDS = 0.2
 
 func set_body_targets(targets: Dictionary):
 	body_targets = targets.duplicate()
@@ -39,6 +41,7 @@ func configure(mapping: Dictionary, head: Node3D, left: Node3D, right: Node3D):
 	left_target = left
 	right_target = right
 	calibration.clear()
+	solved_poses.clear()
 	var rig = get_skeleton()
 	if rig == null: return
 	body_solver.configure(rig, mapping)
@@ -51,14 +54,38 @@ func _process_modification():
 	var rig = get_skeleton()
 	if rig == null: return
 	if body_solver != null: body_solver.solve(body_targets, 1.0 / 60.0)
-	weights.head = 1.0 if _role_tracked("head", head_target) else 0.0
-	if weights.head > 0: _set_target(rig, "head", head_target, true)
+	_apply_chain(rig, "head", head_target, ["head"], "")
 	for side in ["left", "right"]:
 		var target = left_target if side == "left" else right_target
-		weights[side + "Hand"] = 1.0 if _role_tracked(side + "Hand", target) else 0.0
-		if weights[side + "Hand"] == 0: continue
-		_solve_arm(rig, side, target)
-		_set_target(rig, side + "Hand", target, false)
+		_apply_chain(rig, side + "Hand", target, [side + "UpperArm", side + "LowerArm", side + "Hand"], side)
+
+func _apply_chain(rig: Skeleton3D, role: String, target: Node3D, bones: Array, side: String):
+	var active = _role_tracked(role, target)
+	# Hard removal intentionally releases ownership immediately; temporary invalid
+	# runtime samples fade the last valid solved pose without following stale targets.
+	if not is_instance_valid(target):
+		weights[role] = 0.0
+		solved_poses.erase(role)
+		return
+	var previous: float = weights.get(role, 0.0)
+	var delta = get_process_delta_time()
+	if delta <= 0: delta = 1.0 / 60.0
+	weights[role] = move_toward(previous, 1.0 if active else 0.0, minf(delta, 0.05) / FADE_SECONDS) if solved_poses.has(role) else (1.0 if active else 0.0)
+	var base: Dictionary = {}
+	for bone in bones:
+		var index = rig.find_bone(humanoid.get(bone, ""))
+		if index >= 0: base[index] = rig.get_bone_pose(index)
+	if active:
+		if not side.is_empty(): _solve_arm(rig, side, target)
+		_set_target(rig, role, target, side.is_empty())
+		var pose: Dictionary = {}
+		for index in base: pose[index] = rig.get_bone_pose(index)
+		solved_poses[role] = pose
+	for index in base:
+		var desired: Transform3D = solved_poses.get(role, {}).get(index, base[index])
+		var original: Transform3D = base[index]
+		rig.set_bone_pose_rotation(index, original.basis.get_rotation_quaternion().slerp(desired.basis.get_rotation_quaternion(), weights[role]))
+		rig.set_bone_pose_position(index, original.origin.lerp(desired.origin, weights[role]))
 
 func _tracked(target: Node3D) -> bool:
 	return is_instance_valid(target) and (not target is XRNode3D or target.get_is_active())

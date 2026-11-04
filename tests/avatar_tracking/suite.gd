@@ -56,6 +56,7 @@ func run():
 	test_calibration()
 	test_tracker_roles()
 	test_fbt_solver()
+	test_tracking_fades()
 	print("\nRED tracking: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -189,5 +190,32 @@ func test_existing_singularities():
 	if tracking.has_method("tracking_weights"):
 		var weights: Dictionary = tracking.tracking_weights()
 		check(weights.get("leftHand", -1) == 0.0, "lost hand tracker blends back to animation rather than holding stale tracking weight")
+	rig.free()
+	target.free()
+
+func test_tracking_fades():
+	var rig = fixture_rig()
+	root.add_child(rig)
+	var target = Node3D.new()
+	root.add_child(target)
+	target.position = Vector3(0.55, 1.1, -0.2)
+	var tracking = load("res://scripts/assets/avatar_tracking.gd").new()
+	rig.add_child(tracking)
+	tracking.configure(fixture_map(), null, target, null)
+	tracking._process_modification()
+	tracking.set_tracking_validity({"leftHand": false})
+	rig.reset_bone_poses()
+	tracking._process_modification()
+	var weight: float = tracking.tracking_weights().leftHand
+	check(weight > 0 and weight < 1, "temporary tracking loss fades previous solved arm instead of instant pose snap")
+	for i in 30:
+		rig.reset_bone_poses()
+		tracking._process_modification()
+	check(is_zero_approx(tracking.tracking_weights().leftHand), "tracking loss eventually returns chain completely to animation")
+	tracking.set_tracking_validity({"leftHand": true})
+	rig.reset_bone_poses()
+	tracking._process_modification()
+	weight = tracking.tracking_weights().leftHand
+	check(weight > 0 and weight < 1, "reacquired tracking fades back in rather than snapping to controller")
 	rig.free()
 	target.free()

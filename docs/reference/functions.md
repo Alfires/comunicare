@@ -380,7 +380,7 @@ from original to derivative; original remains expression target and shadow caste
 | `configure` | Main-thread binds humanoid map and independent head/hand target nodes, caching rest calibration. Must be child of skeleton before use. No camera transform mutation. |
 | `set_calibration` | Validates bounded finite local head/grip translation offsets; invalid entries ignored. Does not move headset/controllers. |
 | `set_tracking_validity` | Sets role validity booleans or timestamped validity records; aged/invalid targets stop overriding base pose. |
-| `tracking_weights` | Returns current per-chain active weights as a copy; current activation is binary, not a certified smooth loss fade. |
+| `tracking_weights` | Returns current per-chain blend weights as a copy. Temporary validity loss fades last solved pose toward animation over .2 s; reacquisition fades toward fresh target. Hard target removal releases ownership immediately. |
 | `set_body_targets` | Supplies optional pelvis/feet Transform3D targets in skeleton space; final modifier solves valid subset before head/arms. |
 
 SkeletonModifier `_process_modification` runs final head alignment and two-bone arm

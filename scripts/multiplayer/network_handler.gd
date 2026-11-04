@@ -27,6 +27,7 @@ var management_sequence := 0
 var instance_status := ""
 var snapshot_deadline := 0
 var animation_controller: Node
+var participant_registry = preload("res://scripts/multiplayer/client/participant_registry.gd").new()
 
 func get_animation_controller() -> Node:
 	if not is_instance_valid(animation_controller) or animation_controller.is_queued_for_deletion():
@@ -46,6 +47,13 @@ func _ready() -> void:
 		return
 	if SaveData.get("profile") != null:
 		SaveData.profile.profile_changed.connect(_publish_profile)
+	if peer != null: peer.session_result_guard = _accept_session_result
+
+func _accept_session_result(result: Dictionary) -> bool:
+	if not result.get("operation") is String or not result.get("session_id") is String or not result.get("success") is bool: return false
+	if not pending_operation.is_empty():
+		return result.operation == pending_operation and (pending_operation == "create" or result.session_id == pending_id)
+	return result.operation == "create" and not session_busy
 
 func _process(_delta):
 	if snapshot_deadline > 0 and Time.get_ticks_msec() >= snapshot_deadline:
@@ -80,6 +88,7 @@ func _process(_delta):
 func create_peer():
 	get_animation_controller()
 	peer = RelayPeer.new()
+	peer.session_result_guard = _accept_session_result
 	peer.account_key = SaveData.key
 	if SaveData.get("friends") != null:
 		peer.friend_service = SaveData.friends
@@ -165,11 +174,13 @@ func sync_player_voice(data: VoiceData): #PackedFloat32Array
 func join_session(session_id: String, world_url: String = "") -> bool:
 	if not _begin_transition():
 		return false
+	var connection = peer
 	var expected_revision := ""
 	if peer.world_revision_supported:
 		_start_request("resolve", session_id)
 		peer.resolve_instance(session_id)
 		var resolved: Dictionary = await session_response
+		if peer != connection: return _transition_failed("Connection changed while resolving instance")
 		if not resolved.get("success", false):
 			return _transition_failed(str(resolved.get("message", "Instance unavailable")))
 		world_url = str(resolved.get("world_url", ""))
@@ -185,6 +196,7 @@ func join_session(session_id: String, world_url: String = "") -> bool:
 			_start_request("resolve", session_id)
 			peer.resolve_instance(session_id)
 			var lookup: Dictionary = await session_response
+			if peer != connection: return _transition_failed("Connection changed while resolving instance")
 			if not lookup.get("success", false):
 				return _transition_failed(str(lookup.get("message", "Instance unavailable or access denied")))
 			world_url = str(lookup.get("world_url", ""))
@@ -200,17 +212,19 @@ func join_session(session_id: String, world_url: String = "") -> bool:
 		if DataLoader.has_method("get_asset_cache"):
 			message += ": " + DataLoader.get_asset_cache().last_error
 		return _transition_failed(message)
-	if not peer.is_connected_to_relay:
+	if peer != connection or not connection.is_connected_to_relay:
 		return _transition_failed("Relay disconnected while loading the world")
 	_start_request("join", session_id)
 	peer.expected_world_revision = expected_revision
 	peer.join_session(session_id, world_url)
 	var result: Dictionary = await session_response
+	if peer != connection: return _transition_failed("Connection changed before world activation")
 	return await _finish_transition(result, staged, world_url)
 
 func host_world(world_url: String) -> bool:
 	if not _begin_transition():
 		return false
+	var connection = peer
 	if not WorldAddress.is_valid(world_url):
 		return _transition_failed("Invalid world address")
 	var staged: Dictionary = await DataLoader.prepare_world_from_url(world_url)
@@ -219,7 +233,7 @@ func host_world(world_url: String) -> bool:
 		if DataLoader.has_method("get_asset_cache"):
 			message += ": " + DataLoader.get_asset_cache().last_error
 		return _transition_failed(message)
-	if not peer.is_connected_to_relay:
+	if peer != connection or not connection.is_connected_to_relay:
 		return _transition_failed("Relay disconnected while loading the world")
 	_start_request("create", "")
 	peer.expected_world_revision = str(staged.get("revision", "")) if peer.world_revision_supported else ""
@@ -322,6 +336,7 @@ func _on_relay_disconnected():
 	_fail_pending("Relay disconnected")
 
 func _clear_remote_players():
+	participant_registry.clear()
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
@@ -442,8 +457,5 @@ func _on_profiles_updated(session: String, profiles: Array):
 		var profile: Dictionary = SaveData.profile.remote[owner]
 		var player = get_node_or_null(str(int(profile.get("peer_id", -1))))
 		if player != null and player.get("user_name") != null:
-			player.user_name = str(profile.get("profile.username", "User"))
-			var label = player.get_node_or_null("user_name")
-			if label != null:
-				label.text = player.user_name
+			participant_registry.apply_profile(player, owner, profile)
 	participants_changed.emit()

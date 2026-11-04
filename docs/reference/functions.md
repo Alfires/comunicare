@@ -564,6 +564,14 @@ serialization stabilizes signed JSON across parse/reload.
 
 ## Client and relay
 
+<!-- module: scripts/multiplayer/client/participant_registry.gd -->
+### [ParticipantRegistry](../../scripts/multiplayer/client/participant_registry.gd)
+
+RefCounted appearance adapter. `apply_profile` accepts an already verified current
+profile/node binding, updates label and applies changed avatar URL once per node/
+fingerprint/source. Weak node records are reclaimed; `clear` resets on session
+teardown. Caller enforces active session/signature; this helper is not authorization.
+
 <!-- module: scripts/multiplayer/network_handler.gd -->
 ### [NetworkHandler](../../scripts/multiplayer/network_handler.gd)
 

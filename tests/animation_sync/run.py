@@ -25,6 +25,7 @@ def main():
         (project / "scripts/multiplayer").mkdir(parents=True)
         shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
         shutil.copy2(ROOT / "scripts/multiplayer/network_handler.gd", project / "scripts/multiplayer/network_handler.gd")
+        shutil.copytree(ROOT / "scripts/multiplayer/client", project / "scripts/multiplayer/client")
         (project / "scripts/player").mkdir(parents=True, exist_ok=True)
         for name in ("player_desktop_movment.gd", "player_vr.gd", "vr_locomotion.gd", "vr_turn_controller.gd", "vr_input_router.gd", "vr_comfort.gd", "vr_room_scale.gd", "vr_safety.gd"):
             shutil.copy2(ROOT / "scripts/player" / name, project / "scripts/player" / name)

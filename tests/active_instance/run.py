@@ -29,6 +29,7 @@ def main():
         project = Path(directory)
         sources = [
             "scripts/multiplayer/network_handler.gd",
+            "scripts/multiplayer/client/participant_registry.gd",
             "scripts/multiplayer/relay.gd",
             *[str(p.relative_to(ROOT)) for p in (ROOT / "relay_protocol").glob("*.gd")],
             *[str(p.relative_to(ROOT)) for p in (ROOT / "scripts/GUI").glob("*.gd")],

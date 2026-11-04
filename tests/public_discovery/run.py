@@ -30,6 +30,7 @@ def main():
             "scripts/GUI/xr_emote_wheel.gd",
             "scripts/multiplayer/relay.gd",
             "scripts/multiplayer/network_handler.gd",
+            "scripts/multiplayer/client/participant_registry.gd",
             "scripts/startup/data_loader.gd",
             "scripts/assets/asset_cache.gd",
             "scripts/assets/humanoid_animation.gd",

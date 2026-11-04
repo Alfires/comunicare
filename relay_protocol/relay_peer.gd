@@ -22,6 +22,7 @@ var animation_supported := false
 var tracking_supported := false
 var world_revision_supported := false
 var expected_world_revision := ""
+var session_result_guard: Callable
 signal animation_data(value: Dictionary)
 
 func send_animation(value: Dictionary):
@@ -258,6 +259,7 @@ func on_packet(data: PackedByteArray):
 			on_public_session.emit(public_session)
 		PacketInfo.PACKET_TYPE.SESSION_RESULT:
 			var result = SessionResult.create_from_data(data).result
+			if session_result_guard.is_valid() and not session_result_guard.call(result): return
 			if result.get("success", false) and result.get("operation") in ["join", "create"]:
 				join_requests.clear()
 				join_requests_changed.emit()

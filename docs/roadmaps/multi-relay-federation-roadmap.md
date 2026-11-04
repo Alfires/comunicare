@@ -1,6 +1,11 @@
 # Multi-relay federation, ordered failover and LAN discovery
 
 **Status: proposal, 2026-11-04. No federation or LAN discovery implementation.**
+**Test-first update:** opt-in [RED acceptance contracts](../../tests/relay_federation/README.md)
+now cover proposed preferences, fallback/link policy, public directory, LAN input
+and origin-state services. Initial run: 0 passed, 6 missing-service failures and
+6 explicitly blocked dependent groups, exit 1 without Godot errors. These are
+pure service contracts, not real federation/TLS/multicast integration evidence.
 This roadmap extends the existing relay, not world hosting or the world format.
 Current behavior remains documented in [runtime setup](../getting-started/runtime.md)
 and the [wire reference](../reference/protocol.md). The
@@ -328,7 +333,8 @@ not an absolute anonymity/firewall guarantee against collusion or new relay keys
 | 7 — policy/failure hardening | Immediate transitive blocks, partitions, capacity isolation and complete cleanup | A↔B↔C cannot bypass C block; holder/admin disconnect; no split-brain origin; state scans and zero durable user writes across all relays. |
 | 8 — rollout | Protocol compatibility, documentation and deployment/hardware verification | Real LAN IPv4/IPv6/Wi-Fi/VPN/NAT, packet loss/latency, desktop/VR and resource measurements; remaining trust limits published. |
 
-Proposed isolated runner `tests/relay_federation/run.py` does not exist yet. Build
+Initial isolated runner `tests/relay_federation/run.py` now exists with guarded
+pure service cases; real federation integration remains follow-up. Build
 disposable projects/accounts and real loopback relay processes, following existing
 runners; no real user stores, WAN peers or physical multicast required for baseline
 unit tests. LAN integration must separately use permitted interfaces and disclose

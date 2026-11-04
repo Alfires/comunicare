@@ -41,6 +41,8 @@ func run():
 	await test_lan_datagram()
 	test_route_validation()
 	test_trust_and_config()
+	test_presets()
+	await test_real_multicast()
 	print("\nFederation transport: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -261,3 +263,40 @@ func test_trust_and_config():
 	file.store_string(JSON.stringify(config))
 	file.close()
 	check(not reader.load_config("user://operator.json").ok, "malformed operator block fails configuration validation")
+
+func test_presets():
+	var presets = load("res://scripts/multiplayer/federation/relay_presets.gd").new()
+	check(presets.load_presets().is_empty() and presets.last_error.is_empty(), "shipped global relay preset list is intentionally empty and valid")
+	var file = FileAccess.open("user://bad-presets.json", FileAccess.WRITE)
+	file.store_string('{"schema":999,"relays":[]}')
+	file.close()
+	check(presets.load_presets("user://bad-presets.json").is_empty() and not presets.last_error.is_empty(), "unsupported preset version fails closed")
+	file = FileAccess.open("user://bad-presets.json", FileAccess.WRITE)
+	file.store_string('{"schema":1,"relays":[{"relay_id":"forged","host":"remote.invalid"}]}')
+	file.close()
+	check(presets.load_presets("user://bad-presets.json").is_empty() and not presets.last_error.is_empty(), "malformed preset cannot initiate directory trust")
+	var cert = X509Certificate.new()
+	cert.load("user://operator.crt")
+	var client = load("res://scripts/multiplayer/federation/relay_directory_client.gd").new()
+	presets.apply_to(client, [{"relay_id": "a".repeat(64), "host": "preset.invalid", "port": 7375, "certificate": cert.save_to_string(), "common_name": "comunicare-relay"}])
+	check(client.trusted.has("a".repeat(64)), "application preset can supply explicit public certificate trust without saved preference mutation")
+	client.add_trusted("local.invalid", 7375, "a".repeat(64), cert)
+	presets.apply_to(client, [{"relay_id": "a".repeat(64), "host": "preset.invalid", "port": 7375, "certificate": cert.save_to_string(), "common_name": "comunicare-relay"}])
+	check(client.trusted["a".repeat(64)].host == "local.invalid", "explicit device trust overrides shipped preset")
+
+func test_real_multicast():
+	var script = load("res://scripts/multiplayer/federation/lan_relay_transport.gd")
+	var receiver = script.new()
+	check(receiver.start(true, [], {}, 0), "local multicast test binds isolated receiver")
+	var sender = script.new()
+	var port: int = receiver.socket.get_local_port()
+	check(sender.start(true, [], {"version": 1, "relay_id": "c".repeat(64), "boot_id": "multicast-boot", "label": "Multicast relay", "host": "source", "port": 7375}, port), "LAN advertiser can coexist with receiver on same machine")
+	var until = Time.get_ticks_msec() + 1500
+	while Time.get_ticks_msec() < until and receiver.model.candidates().is_empty():
+		sender.poll()
+		receiver.poll()
+		await create_timer(0.003).timeout
+	check(receiver.model.candidates().size() == 1, "real multicast advertisement automatically discovers local relay without hardware or subnet scan")
+	if receiver.model.candidates().is_empty(): print("Multicast diagnostic: joined interfaces=", receiver.interfaces.size(), ", received=", receiver.received_packets, ", error=", receiver.last_error)
+	sender.stop()
+	receiver.stop()

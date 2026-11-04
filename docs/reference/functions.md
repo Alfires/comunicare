@@ -1,5 +1,14 @@
 # Production function contracts
 
+<!-- module: scripts/multiplayer/federation/relay_presets.gd -->
+## Shipped internet relay discovery presets
+
+`load_presets` validates a bounded versioned application JSON file and returns
+copied relay/certificate definitions, or an empty array with last_error on failure.
+The shipped list is intentionally empty. `apply_to` installs valid public certificate
+seeds into the anonymous directory client without overwriting explicit device trust
+or mutating the user's ordered ingress preferences. Presets are not global probing.
+
 <!-- module: scripts/multiplayer/federation/secure_relay_link.gd -->
 ## Certificate-verified framed TLS link
 
@@ -837,6 +846,9 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+`get_relay_presets` returns copied application discovery seed definitions for the
+Network panel. These are independent of saved main/fallback order and respect the
+directory client's identity/endpoint blocks before opening network connections.
 `revoke_relay_directory` removes persisted public certificate trust, closes directory
 links and conservatively ends active tunneled gameplay before querying remaining
 trusted directories. It does not silently approve replacement certificates.

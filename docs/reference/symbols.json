@@ -2758,21 +2758,21 @@
     {
       "kind": "func",
       "name": "start",
-      "line": 13,
+      "line": 15,
       "signature": "func start(enabled: bool, blocked: Array = [], announcement: Dictionary = {}, port: int = PORT, group: String = GROUP) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "poll",
-      "line": 31,
+      "line": 45,
       "signature": "func poll()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "stop",
-      "line": 52,
+      "line": 71,
       "signature": "func stop()",
       "visibility": "public"
     }
@@ -3264,44 +3264,60 @@
     {
       "kind": "func",
       "name": "_button",
-      "line": 84,
+      "line": 99,
       "signature": "func _button(parent: Node, title: String, callback: Callable)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_render",
-      "line": 92,
+      "line": 107,
       "signature": "func _render()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_add",
-      "line": 121,
+      "line": 136,
       "signature": "func _add()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_trust_directory",
-      "line": 126,
+      "line": 141,
       "signature": "func _trust_directory()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_commit",
-      "line": 134,
+      "line": 149,
       "signature": "func _commit(result: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 138,
+      "line": 153,
       "signature": "func _exit_tree()",
       "visibility": "private"
+    }
+  ],
+  "scripts/multiplayer/federation/relay_presets.gd": [
+    {
+      "kind": "func",
+      "name": "load_presets",
+      "line": 6,
+      "signature": "func load_presets(path: String = \"res://config/relay_presets.json\") -> Array",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "apply_to",
+      "line": 31,
+      "signature": "func apply_to(client, entries: Array)",
+      "visibility": "public"
     }
   ],
   "scripts/multiplayer/federation/relay_route_policy.gd": [
@@ -3447,364 +3463,371 @@
     {
       "kind": "signal",
       "name": "relay_directory_changed",
-      "line": 17,
+      "line": 18,
       "signature": "signal relay_directory_changed",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_directory_browser",
-      "line": 19,
+      "line": 20,
       "signature": "func get_directory_browser()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "refresh_relay_directories",
-      "line": 35,
+      "line": 39,
       "signature": "func refresh_relay_directories()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_remote_instances",
-      "line": 41,
+      "line": 45,
       "signature": "func get_remote_instances() -> Array",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_lan_relay_candidates",
-      "line": 44,
+      "line": 48,
       "signature": "func get_lan_relay_candidates() -> Array",
       "visibility": "public"
     },
     {
       "kind": "func",
+      "name": "get_relay_presets",
+      "line": 51,
+      "signature": "func get_relay_presets() -> Array",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
       "name": "trust_relay_directory",
-      "line": 47,
+      "line": 54,
       "signature": "func trust_relay_directory(id: String, host: String, port: int, certificate_path: String, common_name: String = \"comunicare-relay\") -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "revoke_relay_directory",
-      "line": 56,
+      "line": 63,
       "signature": "func revoke_relay_directory(id: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "join_remote_instance",
-      "line": 73,
+      "line": 80,
       "signature": "func join_remote_instance(instance: Dictionary) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_relay_preferences",
-      "line": 138,
+      "line": 145,
       "signature": "func get_relay_preferences()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_relay_policy_changed",
-      "line": 156,
+      "line": 163,
       "signature": "func _relay_policy_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_relay_candidates",
-      "line": 174,
+      "line": 181,
       "signature": "func _relay_candidates() -> Array",
       "visibility": "private"
     },
     {
       "kind": "signal",
       "name": "session_response",
-      "line": 194,
+      "line": 201,
       "signature": "signal session_response(result: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "participants_changed",
-      "line": 195,
+      "line": 202,
       "signature": "signal participants_changed",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "relay_connection_finished",
-      "line": 199,
+      "line": 206,
       "signature": "signal relay_connection_finished(success: bool)",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "active_instance_changed",
-      "line": 201,
+      "line": 208,
       "signature": "signal active_instance_changed",
       "visibility": "public"
     },
     {
       "kind": "signal",
       "name": "instance_management_finished",
-      "line": 202,
+      "line": 209,
       "signature": "signal instance_management_finished(result: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_animation_controller",
-      "line": 210,
+      "line": 217,
       "signature": "func get_animation_controller() -> Node",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_ready",
-      "line": 223,
+      "line": 230,
       "signature": "func _ready() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_accept_session_result",
-      "line": 230,
+      "line": 237,
       "signature": "func _accept_session_result(result: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 236,
+      "line": 243,
       "signature": "func _process(_delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "ensure_relay_connected",
-      "line": 281,
+      "line": 288,
       "signature": "func ensure_relay_connected() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "create_peer",
-      "line": 286,
+      "line": 293,
       "signature": "func create_peer() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_connect_relay_candidate",
-      "line": 344,
+      "line": 351,
       "signature": "func _connect_relay_candidate() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "create_session",
-      "line": 386,
+      "line": 393,
       "signature": "func create_session(world_url: String = \"default_wold\", mode: int = PacketInfo.MODE.PUBLIC)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_on_peer_disconnected",
-      "line": 395,
+      "line": 402,
       "signature": "func _on_peer_disconnected(peer_id)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "request_player_model",
-      "line": 406,
+      "line": 413,
       "signature": "func request_player_model()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "sync_player_avatar",
-      "line": 412,
+      "line": 419,
       "signature": "func sync_player_avatar(avatar_url: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "sync_player_data",
-      "line": 423,
+      "line": 430,
       "signature": "func sync_player_data(data: PlayerData)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "sync_player_voice",
-      "line": 433,
+      "line": 440,
       "signature": "func sync_player_voice(data: VoiceData)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "join_session",
-      "line": 442,
+      "line": 449,
       "signature": "func join_session(session_id: String, world_url: String = \"\") -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "host_world",
-      "line": 492,
+      "line": 499,
       "signature": "func host_world(world_url: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_begin_transition",
-      "line": 512,
+      "line": 519,
       "signature": "func _begin_transition() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_transition_failed",
-      "line": 525,
+      "line": 532,
       "signature": "func _transition_failed(message: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_start_request",
-      "line": 531,
+      "line": 538,
       "signature": "func _start_request(operation: String, session_id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_finish_transition",
-      "line": 536,
+      "line": 543,
       "signature": "func _finish_transition(result: Dictionary, staged: Dictionary, world_url: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_activation_failed",
-      "line": 554,
+      "line": 561,
       "signature": "func _activation_failed(message: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_session_result",
-      "line": 563,
+      "line": 570,
       "signature": "func _on_session_result(result: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_fail_pending",
-      "line": 588,
+      "line": 595,
       "signature": "func _fail_pending(message: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_relay_disconnected",
-      "line": 594,
+      "line": 601,
       "signature": "func _on_relay_disconnected()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_clear_remote_players",
-      "line": 606,
+      "line": 613,
       "signature": "func _clear_remote_players()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_join_error",
-      "line": 613,
+      "line": 620,
       "signature": "func _on_join_error(code, message) -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_connected_to_server",
-      "line": 616,
+      "line": 623,
       "signature": "func _on_connected_to_server()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "update_connected_peers",
-      "line": 620,
+      "line": 627,
       "signature": "func update_connected_peers()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_reset_instance_state",
-      "line": 636,
+      "line": 643,
       "signature": "func _reset_instance_state()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_instance_snapshot",
-      "line": 645,
+      "line": 652,
       "signature": "func _on_instance_snapshot(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "is_instance_admin",
-      "line": 659,
+      "line": 666,
       "signature": "func is_instance_admin() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "refresh_instance",
-      "line": 668,
+      "line": 675,
       "signature": "func refresh_instance()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "manage_instance",
-      "line": 676,
+      "line": 683,
       "signature": "func manage_instance(action: String, target: Dictionary = {}, changes: Dictionary = {}, expected_revision: int = -1) -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_on_instance_result",
-      "line": 693,
+      "line": 700,
       "signature": "func _on_instance_result(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_instance_evicted",
-      "line": 702,
+      "line": 709,
       "signature": "func _on_instance_evicted(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_publish_profile",
-      "line": 716,
+      "line": 723,
       "signature": "func _publish_profile(_owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_profiles_updated",
-      "line": 720,
+      "line": 727,
       "signature": "func _on_profiles_updated(session: String, profiles: Array)",
       "visibility": "private"
     }

@@ -1,5 +1,11 @@
 # Multi-relay federation, ordered failover and LAN discovery
 
+**Discovery clarification:** use working local IPv4 multicast and a shipped internet
+relay preset list (`config/relay_presets.json`, intentionally empty for now).
+Presets seed directory discovery only and never change saved main/fallback order.
+No global scanning, DHT or worldwide automatic peer search is required. Actual
+same-machine multicast is now covered by the isolated transport runner.
+
 **Scope amendment:** global internet-wide discovery/automatic trust bootstrap is
 excluded at the user's request. Configured trusted peers and bounded local LAN
 hints are the supported discovery model; do not treat worldwide DHT/crawling,

@@ -21,6 +21,7 @@ def main():
         return 2
     with tempfile.TemporaryDirectory(prefix="comunicare-network-red-", dir="/tmp/opencode") as directory:
         project = Path(directory)
+        shutil.copytree(ROOT / "config", project / "config")
         for folder in ("scripts", "relay_protocol", "themes/icons", "scenes/GUI"):
             shutil.copytree(ROOT / folder, project / folder)
         shutil.copytree(HERE / "fixtures", project / "fixtures")

@@ -49,6 +49,7 @@ def main():
         shutil.copytree(ROOT / "scripts/profile", project / "scripts/profile")
         shutil.copytree(ROOT / "scripts/worlds", project / "scripts/worlds")
         shutil.copytree(ROOT / "scripts/multiplayer/federation", project / "scripts/multiplayer/federation")
+        shutil.copytree(ROOT / "config", project / "config")
         for source in (ROOT / "scripts/assets").glob("*.gd"):
             shutil.copy2(source, project / "scripts/assets" / source.name)
         shutil.copytree(ROOT / "themes/icons", project / "themes/icons")

@@ -33,6 +33,7 @@ def main():
                 shutil.copytree(source, project / "scripts/multiplayer/federation")
             for folder in ("relay_protocol", "scripts/profile"):
                 shutil.copytree(ROOT / folder, project / folder)
+            shutil.copytree(ROOT / "config", project / "config")
             shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
             shutil.copy2(HERE / "suite.gd", project / "suite.gd")
             shutil.copy2(HERE / "transport_suite.gd", project / "transport_suite.gd")

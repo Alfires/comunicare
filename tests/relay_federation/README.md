@@ -1,5 +1,12 @@
 # RED multi-relay acceptance contracts
 
+**Discovery tests update:** the transport suite now checks actual multicast
+advertisement delivery using separate interface-bound advertiser sockets and a
+listener, plus valid-empty/invalid-version/malformed internet presets and explicit
+device-trust precedence. The shipped preset list is empty and makes no external
+network requests. Local multicast passed on this host; physical Wi-Fi/router
+compatibility remains unverified. See current runner output for updated totals.
+
 **Live transport update:** the runner now also copies the real relay/protocol and
 runs `transport_suite.gd`: 28 assertions exercise certificate-verified TLS framing,
 three live directory relays, signed multi-hop public summaries, concurrent anonymous

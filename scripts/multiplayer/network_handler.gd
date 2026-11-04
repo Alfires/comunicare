@@ -14,6 +14,7 @@ var lan_discovery
 var directory_refresh_at := 0
 var gameplay_tunnel
 var current_origin := ""
+var relay_presets: Array = []
 signal relay_directory_changed
 
 func get_directory_browser():
@@ -22,6 +23,9 @@ func get_directory_browser():
 	directory_trust = load("res://scripts/multiplayer/federation/relay_directory_trust.gd").new()
 	directory_trust.load_trust()
 	directory_trust.apply_to(directory_browser)
+	var presets = load("res://scripts/multiplayer/federation/relay_presets.gd").new()
+	relay_presets = presets.load_presets()
+	presets.apply_to(directory_browser, relay_presets)
 	directory_browser.changed.connect(func(): relay_directory_changed.emit())
 	var preferences = get_relay_preferences().snapshot()
 	directory_browser.set_blocks(preferences.blocked_ids, preferences.blocked_endpoints)
@@ -43,6 +47,9 @@ func get_remote_instances() -> Array:
 
 func get_lan_relay_candidates() -> Array:
 	return lan_discovery.model.candidates() if lan_discovery != null else []
+
+func get_relay_presets() -> Array:
+	return relay_presets.duplicate(true)
 
 func trust_relay_directory(id: String, host: String, port: int, certificate_path: String, common_name: String = "comunicare-relay") -> bool:
 	get_directory_browser()

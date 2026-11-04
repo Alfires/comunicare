@@ -65,6 +65,21 @@ func _render_discovery():
 		child.queue_free()
 	var network = get_node_or_null("/root/NetworkHandler")
 	if network == null or not network.has_method("get_lan_relay_candidates"): return
+	var heading = Label.new()
+	heading.text = "Internet relay presets (discovery only)"
+	trust_rows.add_child(heading)
+	var presets: Array = network.get_relay_presets() if network.has_method("get_relay_presets") else []
+	if presets.is_empty():
+		var empty = Label.new()
+		empty.text = "No internet relay presets configured. LAN discovery and manual entries remain available."
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		trust_rows.add_child(empty)
+	for preset in presets:
+		_button(trust_rows, "Use preset address: " + preset.label, func():
+			identity_input.text = preset.relay_id
+			host_input.text = preset.host
+			port_input.value = preset.port
+			label_input.text = preset.label)
 	for candidate in network.get_lan_relay_candidates():
 		var label = Label.new()
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

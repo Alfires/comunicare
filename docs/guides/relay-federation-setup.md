@@ -96,6 +96,17 @@ IDs. Voice/pose/animation/profile/item packets use existing origin authorization
 
 ## LAN and blocks
 
+**Discovery sources:** local discovery uses actual IPv4 multicast, with
+interface-bound senders and an independent listener so relay/client processes can
+coexist. Internet discovery uses the application-shipped
+[`config/relay_presets.json`](../../config/relay_presets.json), currently
+`{"schema":1,"relays":[]}`. No worldwide probing or DHT is performed. Future
+entries supply `relay_id`, `label`, `host`, TLS `port`, PEM `certificate` and
+`common_name`; validated presets seed certificate-trusted directory queries.
+Explicit device trust takes precedence. Presets and LAN hints never reorder or
+add to the user's saved main/fallback list. An empty preset list is a valid offline
+default, not a network error. User relay/endpoint blocks still filter preset queries.
+
 When enabled, relays advertise bounded hints to `239.255.73.74:37374`. Clients
 listen locally and list untrusted candidates in Network settings. Use a hint to fill
 the address fields, then verify/import the operator certificate. Matching trusted
@@ -103,6 +114,10 @@ directories can supply public instances; unverified ads never become joinable ro
 The current implementation is IPv4 multicast, not DNS-SD/mDNS or IPv6 discovery.
 Godot does not expose multicast TTL controls here; deployment must restrict multicast
 scope. Interface permission/firewall and multiple-process port binding vary by OS.
+The local automated test now exercises actual multicast delivery on this machine;
+that is stronger than the earlier unicast datagram check, but does not certify
+every Wi-Fi router, VLAN or platform. LAN candidates still require certificate trust
+before fetching authenticated public-instance listings.
 
 User identity/endpoint blocks suppress queried directories and origin results.
 Operator blocks reject blocked link identities and origin/transit paths, close

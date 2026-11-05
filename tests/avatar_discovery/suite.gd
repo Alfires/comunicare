@@ -211,6 +211,12 @@ func test_loopback_search():
 	check(received.has("authorization") and received.authorization == "" and received.get("cookie") == "", "server observes anonymous request without auth or cookies")
 	result = await service.search({"query": "wave", "type": "animation", "cursor": ""})
 	check(result.get("items", []).size() == 1 and result.items[0].type == "animation", "type filter reaches real HTTP provider")
+	service.configure({"id": "fixture", "base_url": base + "/null-cursor", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	result = await service.search({"query": "", "type": "all"})
+	check(result.get("next_cursor") == "", "null provider cursor means end of pagination rather than string null")
+	service.configure({"id": "fixture", "base_url": base + "?existing=1", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	result = await service.search({"query": "", "type": "all"})
+	check(not result.has("error") and result.get("request_received", {}).get("query", {}).get("existing") == ["1"], "root endpoint with query keeps existing parameter intact")
 	for endpoint in ["/bad", "/rate-limit", "/login-required"]:
 		service.configure({"id": "fixture", "base_url": base + endpoint, "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
 		result = await service.search({"query": "", "type": "all", "cursor": ""})
@@ -267,6 +273,22 @@ func test_browser():
 	browser._restore_results()
 	check(browser.card_buttons.has("osa:restore"), "Back restores existing result cards without another catalog request")
 	check(browser.services.is_empty(), "restoring results never refetches catalog metadata")
+	check(browser.has_method("_update_pagination"), "pagination owns exactly one reusable Load more control")
+	if browser.has_method("_update_pagination"):
+		browser.cursors = {"osa": "24"}
+		browser._update_pagination()
+		browser._update_pagination()
+		var buttons = browser.results.get_children().filter(func(node): return node is Button and node.text == "Load more")
+		check(buttons.size() == 1, "repeated pages do not accumulate Load more buttons")
+		browser.cursors.clear()
+		browser._update_pagination()
+		check(browser.results.get_children().filter(func(node): return node is Button and node.text == "Load more").is_empty(), "final page removes obsolete Load more action")
+	check(browser.has_method("_remember_feed_record"), "category feed cards preserve their own Back results")
+	if browser.has_method("_remember_feed_record"):
+		browser.saved_records.clear()
+		browser._remember_feed_record({"provider": "osa", "id": "feed", "title": "Feed avatar", "type": "avatar"})
+		browser._restore_results()
+		check(browser.card_buttons.has("osa:feed") and not browser.card_buttons.has("osa:restore"), "Back from feed detail never restores unrelated previous search")
 	if not browser.has_method("submit_home_search") or not browser.has_method("select_category") or not browser.has_method("get_search_state"):
 		check(false, "browser exposes Home search/category acceptance API")
 		skipped += 1

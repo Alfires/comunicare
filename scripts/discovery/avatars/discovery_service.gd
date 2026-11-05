@@ -96,9 +96,12 @@ func _json(url: String) -> Dictionary:
 func search(query: Dictionary) -> Dictionary:
 	var ticket = generation
 	if source.get("adapter", "catalog") == "catalog":
-		if source.base_url.trim_prefix("https://").trim_prefix("http://").find("/") < 0: source.base_url += "/"
-		var separator = "&" if "?" in source.base_url else "?"
-		var result = await _json(source.base_url + separator + "query=" + str(query.get("query", "")).left(200).uri_encode() + "&type=" + str(query.get("type", "all")).uri_encode() + "&cursor=" + str(query.get("cursor", "")).left(512).uri_encode())
+		var endpoint: String = source.base_url
+		var address = endpoint.get_slice("?", 0)
+		if address.trim_prefix("https://").trim_prefix("http://").find("/") < 0:
+			endpoint = address + "/" + ("?" + endpoint.get_slice("?", 1) if "?" in endpoint else "")
+		var separator = "&" if "?" in endpoint else "?"
+		var result = await _json(endpoint + separator + "query=" + str(query.get("query", "")).left(200).uri_encode() + "&type=" + str(query.get("type", "all")).uri_encode() + "&cursor=" + str(query.get("cursor", "")).left(512).uri_encode())
 		if result.has("error"): return result
 		if not result.data is Dictionary or result.data.get("schema") != 1 or not result.data.get("items") is Array or result.data.items.size() > 200: return {"error": "Unsupported catalog schema"}
 		var normalized: Array = []
@@ -118,7 +121,8 @@ func search(query: Dictionary) -> Dictionary:
 					if tag is String: record.tags.append(tag.left(80))
 			if item.get("loop") is bool: record.loop = item.loop
 			normalized.append(record)
-		return {"items": preload("res://scripts/discovery/avatars/catalog_filters.gd").new().apply(normalized, query), "next_cursor": str(result.data.get("next_cursor", "")).left(512), "request_received": result.data.get("request_received", {}), "scope": "Advanced filters apply to this fetched provider page"}
+		var next = result.data.get("next_cursor", "")
+		return {"items": preload("res://scripts/discovery/avatars/catalog_filters.gd").new().apply(normalized, query), "next_cursor": next.left(512) if next is String else "", "request_received": result.data.get("request_received", {}), "scope": "Advanced filters apply to this fetched provider page"}
 	var key: String = source.id
 	if catalogs.has(key) and catalogs[key] is Dictionary and Time.get_ticks_msec() - catalogs[key].at > CATALOG_TTL_MSEC: catalogs.erase(key)
 	if not catalogs.has(key):

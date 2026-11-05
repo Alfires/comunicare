@@ -20,6 +20,8 @@ var preview: Control
 var conversion_thread: Thread
 var catalog_cache: Dictionary = {}
 var seen_results: Dictionary = {}
+var pagination_button: Button
+var pagination_loading := false
 var editor_open := false
 var filter_controls: Dictionary = {}
 var preferences_writable := true
@@ -187,6 +189,8 @@ func _refresh_sources():
 		source_filter.set_item_metadata(source_filter.item_count - 1, id)
 
 func _clear():
+	pagination_loading = false
+	pagination_button = null
 	thumbnail_queue.clear()
 	card_buttons.clear()
 	if is_instance_valid(preview):
@@ -240,6 +244,9 @@ func _home_feeds():
 	_cancel_pending()
 	generation += 1
 	var ticket = generation
+	saved_records.clear()
+	cursors.clear()
+	seen_results.clear()
 	_clear()
 	status.text = "Loading public category sections…"
 	for id in registry.sources:
@@ -262,12 +269,29 @@ func _home_feeds():
 		for item in response.get("items", []).slice(0, 6):
 			var record: Dictionary = item.duplicate(true)
 			record.provider = id
-			_card(record)
+			_remember_feed_record(record)
 	status.text = "Category samples from enabled public catalogs; select Search to filter everything."
+
+func _remember_feed_record(record: Dictionary):
+	var key = str(record.get("provider", "")) + ":" + str(record.get("id", ""))
+	if seen_results.has(key): return
+	seen_results[key] = true
+	saved_records.append(record.duplicate(true))
+	_card(record)
+
+func _update_pagination():
+	if is_instance_valid(pagination_button):
+		if pagination_button.get_parent() == results: results.remove_child(pagination_button)
+		pagination_button.queue_free()
+	pagination_button = null
+	if cursors.values().any(func(cursor): return cursor is String and not cursor.is_empty()):
+		pagination_button = _button(results, "Load more", func(): _search(true))
 
 func _search(more: bool):
 	if not is_instance_valid(results): return
+	if more and pagination_loading: return
 	if not more: state.query = search_box.text.left(200)
+	if is_instance_valid(pagination_button): pagination_button.disabled = true
 	_cancel_pending()
 	generation += 1
 	var ticket = generation
@@ -277,6 +301,7 @@ func _search(more: bool):
 		cursors.clear()
 		seen_results.clear()
 		_clear()
+	pagination_loading = true
 	status.text = "Searching… (compatibility is checked on import, not guessed from listings)"
 	var selected = str(source_filter.get_selected_metadata())
 	var count := 0
@@ -313,7 +338,8 @@ func _search(more: bool):
 			saved_records.append(record)
 			_card(record)
 	status.text = "%s results on this page. Search covers fetched public catalogs; provider ranking, not global popularity. %s" % [count, "\n".join(errors)]
-	if cursors.values().any(func(cursor): return not str(cursor).is_empty()): _button(results, "Load more", func(): _search(true))
+	pagination_loading = false
+	_update_pagination()
 
 func _details(record: Dictionary):
 	saved_scroll = scroll_container.scroll_vertical
@@ -346,7 +372,7 @@ func _restore_results():
 	generation += 1
 	_clear()
 	for record in saved_records: _card(record)
-	if cursors.values().any(func(cursor): return not str(cursor).is_empty()): _button(results, "Load more", func(): _search(true))
+	_update_pagination()
 	_restore_focus.call_deferred()
 
 func _restore_focus():

@@ -42,7 +42,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             ]
             if query.get("type", ["all"])[0] != "all":
                 items = [item for item in items if item["type"] == query["type"][0]]
-            body = json.dumps({"schema": 1, "items": items, "next_cursor": "page-2",
+            body = json.dumps({"schema": 1, "items": items, "next_cursor": None if url.path == "/null-cursor" else "page-2",
                 "request_received": {"authorization": self.headers.get("Authorization", ""),
                                      "cookie": self.headers.get("Cookie", ""),
                                      "query": query}}).encode()

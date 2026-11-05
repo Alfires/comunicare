@@ -1,0 +1,51 @@
+extends SceneTree
+var failed := 0
+func _initialize(): call_deferred("run")
+func check(ok: bool, title: String):
+	print("PASS: " if ok else "FAIL: ", title)
+	if not ok: failed += 1
+func run():
+	var network = root.get_node("NetworkHandler")
+	check(network.has_method("get_avatar_visibility"), "client visibility owner exists")
+	if not network.has_method("get_avatar_visibility"):
+		quit(1)
+		return
+	var service = network.get_avatar_visibility()
+	service.set_scope("session-a", "self")
+	check(service.set_hidden("session-a", "alice", true), "hide another authenticated identity")
+	check(service.is_hidden("alice") and not service.is_hidden("bob"), "same avatar users have independent identity policy")
+	check(not service.set_hidden("session-a", "self", true), "cannot hide self")
+	check(not service.set_hidden("old-session", "bob", true), "stale session callback rejected")
+	service.set_scope("session-a", "self")
+	check(service.is_hidden("alice"), "same session scope preserves reconnect preference")
+	var remote = load("res://scripts/player/remote_player.gd").new()
+	var nameplate = Label3D.new()
+	remote.add_child(nameplate)
+	var other = load("res://scripts/player/remote_player.gd").new()
+	var shared_mesh = BoxMesh.new()
+	var other_model = MeshInstance3D.new()
+	other_model.mesh = shared_mesh
+	other.attach_avatar(other_model)
+	var first = Node3D.new()
+	var mesh = MeshInstance3D.new()
+	mesh.mesh = shared_mesh
+	first.add_child(mesh)
+	remote.attach_avatar(first)
+	remote.set_avatar_hidden(true)
+	check(not first.visible, "hide existing avatar only")
+	check(other_model.visible and other_model.mesh == mesh.mesh, "shared mesh remains visible for another player")
+	check(nameplate.visible, "nameplate outside avatar remains enabled")
+	var second = Node3D.new()
+	remote.attach_avatar(second)
+	check(not second.visible, "replacement model stays hidden before attachment")
+	remote.set_avatar_hidden(false)
+	check(second.visible, "show reveals newest model")
+	remote.free()
+	other.free()
+	service.set_scope("session-b", "self")
+	check(not service.is_hidden("alice"), "different instance clears local preferences")
+	service.set_hidden("session-b", "alice", true)
+	service.set_scope("session-b", "different-account")
+	check(not service.is_hidden("alice"), "account switch clears local preferences")
+	print("Visibility failures: ", failed)
+	quit(1 if failed else 0)

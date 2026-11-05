@@ -1,5 +1,17 @@
 # Accounts, profiles, friends and presence
 
+## Hide one player's avatar locally
+
+In **Active Instance**, use **Hide avatar** beside another player's entry. Only
+your client hides that player's model; voice, nameplates, profiles, collision and
+instance access are unchanged. Other players using the same model remain visible.
+Avatar changes stay hidden; **Show avatar** reveals the latest model. Downloads
+and animation processing are not blocked.
+
+The choice lasts for the current session, including that player's reconnect.
+Leaving/switching sessions, relay disconnect or account change clears it. This is
+not a persistent user block, mute or admin action.
+
 ## Account identity and recovery
 
 The private account key is the identity owner, not the display name or relay peer

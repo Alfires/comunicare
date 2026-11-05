@@ -54,6 +54,9 @@ def main():
         shutil.copytree(HERE / "fixtures", project / "fixtures")
         shutil.copy2(HERE / "suite.gd", project / "suite.gd")
         shutil.copy2(HERE / "display_suite.gd", project / "display_suite.gd")
+        shutil.copy2(HERE / "visibility_suite.gd", project / "visibility_suite.gd")
+        (project / "scripts/player").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / "scripts/player/remote_player.gd", project / "scripts/player/remote_player.gd")
         (project / "project.godot").write_text(
             'config_version=5\n[application]\nconfig/name="Active Instance contracts"\n'
             '[autoload]\nSaveData="*res://fixtures/save_data.gd"\n'
@@ -67,6 +70,7 @@ def main():
                 args.artifacts.mkdir(parents=True, exist_ok=True)
                 commands.append(["--audio-driver", "Dummy", "--script", "res://display_suite.gd", "--", str(args.artifacts.resolve())])
             else:
+                commands.append(["--headless", "--script", "res://visibility_suite.gd"])
                 commands.append(["--headless", "--script", "res://suite.gd"])
             for arguments in commands:
                 result = subprocess.run(

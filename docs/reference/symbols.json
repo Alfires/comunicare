@@ -998,70 +998,70 @@
     {
       "kind": "func",
       "name": "_remove_row",
-      "line": 209,
+      "line": 216,
       "signature": "func _remove_row(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_render_requests",
-      "line": 215,
+      "line": 222,
       "signature": "func _render_requests()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_begin_edit",
-      "line": 241,
+      "line": 248,
       "signature": "func _begin_edit()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_cancel_edit",
-      "line": 253,
+      "line": 260,
       "signature": "func _cancel_edit()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_save_edit",
-      "line": 259,
+      "line": 266,
       "signature": "func _save_edit()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_management_finished",
-      "line": 269,
+      "line": 276,
       "signature": "func _management_finished(result: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_ask_moderation",
-      "line": 274,
+      "line": 281,
       "signature": "func _ask_moderation(action: String, target: Dictionary, title: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_confirm_moderation",
-      "line": 281,
+      "line": 288,
       "signature": "func _confirm_moderation()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "open_profile",
-      "line": 285,
+      "line": 292,
       "signature": "func open_profile(owner: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_on_copy_pressed",
-      "line": 295,
+      "line": 302,
       "signature": "func _on_copy_pressed()",
       "visibility": "private"
     }
@@ -1621,42 +1621,42 @@
     {
       "kind": "func",
       "name": "_store_remote_model",
-      "line": 534,
+      "line": 537,
       "signature": "func _store_remote_model(id: int, request: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_receive_chunk",
-      "line": 548,
+      "line": 551,
       "signature": "func _receive_chunk(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_remove_remote",
-      "line": 599,
+      "line": 602,
       "signature": "func _remove_remote(id: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "clear",
-      "line": 618,
+      "line": 621,
       "signature": "func clear()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 641,
+      "line": 644,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_tracking",
-      "line": 648,
+      "line": 651,
       "signature": "func _update_tracking(delta: float)",
       "visibility": "private"
     }
@@ -2206,6 +2206,36 @@
       "line": 134,
       "signature": "func _solve_arm(rig: Skeleton3D, side: String, target: Node3D)",
       "visibility": "private"
+    }
+  ],
+  "scripts/assets/avatar_visibility.gd": [
+    {
+      "kind": "signal",
+      "name": "changed",
+      "line": 3,
+      "signature": "signal changed",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_scope",
+      "line": 8,
+      "signature": "func set_scope(next_session: String, next_account: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "is_hidden",
+      "line": 15,
+      "signature": "func is_hidden(owner: String) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_hidden",
+      "line": 18,
+      "signature": "func set_hidden(expected_session: String, owner: String, value: bool) -> bool",
+      "visibility": "public"
     }
   ],
   "scripts/assets/default_animations.gd": [
@@ -3847,64 +3877,85 @@
     },
     {
       "kind": "func",
+      "name": "get_avatar_visibility",
+      "line": 682,
+      "signature": "func get_avatar_visibility()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_player_avatar_hidden",
+      "line": 687,
+      "signature": "func set_player_avatar_hidden(session: String, owner: String, hidden: bool)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_apply_avatar_visibility",
+      "line": 696,
+      "signature": "func _apply_avatar_visibility()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_reset_instance_state",
-      "line": 679,
+      "line": 703,
       "signature": "func _reset_instance_state()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_instance_snapshot",
-      "line": 688,
+      "line": 713,
       "signature": "func _on_instance_snapshot(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "is_instance_admin",
-      "line": 702,
+      "line": 728,
       "signature": "func is_instance_admin() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "refresh_instance",
-      "line": 711,
+      "line": 737,
       "signature": "func refresh_instance()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "manage_instance",
-      "line": 719,
+      "line": 745,
       "signature": "func manage_instance(action: String, target: Dictionary = {}, changes: Dictionary = {}, expected_revision: int = -1) -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_on_instance_result",
-      "line": 736,
+      "line": 762,
       "signature": "func _on_instance_result(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_instance_evicted",
-      "line": 745,
+      "line": 771,
       "signature": "func _on_instance_evicted(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_publish_profile",
-      "line": 759,
+      "line": 785,
       "signature": "func _publish_profile(_owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_profiles_updated",
-      "line": 763,
+      "line": 789,
       "signature": "func _on_profiles_updated(session: String, profiles: Array)",
       "visibility": "private"
     }
@@ -4545,50 +4596,64 @@
   "scripts/player/remote_player.gd": [
     {
       "kind": "func",
+      "name": "set_avatar_hidden",
+      "line": 12,
+      "signature": "func set_avatar_hidden(value: bool)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "attach_avatar",
+      "line": 16,
+      "signature": "func attach_avatar(model: Node3D)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
       "name": "_ready",
-      "line": 15,
+      "line": 30,
       "signature": "func _ready() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_setting_changed",
-      "line": 25,
+      "line": 40,
       "signature": "func _setting_changed(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 29,
+      "line": 44,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_player_model",
-      "line": 37,
+      "line": 52,
       "signature": "func load_player_model(model_url: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 59,
+      "line": 69,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_setup_playback",
-      "line": 64,
+      "line": 74,
       "signature": "func _setup_playback() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_play_audio",
-      "line": 74,
+      "line": 84,
       "signature": "func _play_audio(samples: PackedFloat32Array) -> void",
       "visibility": "private"
     }
@@ -4597,14 +4662,14 @@
     {
       "kind": "func",
       "name": "suppress",
-      "line": 6,
+      "line": 7,
       "signature": "func suppress()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "target_speed",
-      "line": 9,
+      "line": 10,
       "signature": "func target_speed(walk_speed: float, pressed: bool, blocked: bool) -> float",
       "visibility": "public"
     }

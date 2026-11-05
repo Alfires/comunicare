@@ -7,6 +7,21 @@ var audio_stream = AudioStreamGenerator.new()
 var avatar: Node = null
 var avatar_generation := 0
 var avatar_url := ""
+var avatar_hidden := false
+
+func set_avatar_hidden(value: bool):
+	avatar_hidden = value
+	if is_instance_valid(avatar): avatar.visible = not value
+
+func attach_avatar(model: Node3D):
+	# Apply before tree attachment: async model changes cannot flash visible.
+	model.visible = not avatar_hidden
+	if is_instance_valid(avatar):
+		remove_child(avatar)
+		avatar.queue_free()
+	avatar = model
+	avatar.name = "avatar"
+	add_child(avatar)
 var buffer_threshold = 3
 var audio_buffers = []
 
@@ -44,12 +59,7 @@ func load_player_model(model_url: String):
 	if ticket != avatar_generation or not is_inside_tree():
 		result.queue_free()
 		return
-	if is_instance_valid(avatar):
-		remove_child(avatar)
-		avatar.queue_free()
-	avatar = result
-	avatar.name = "avatar"
-	add_child(avatar)
+	attach_avatar(result)
 	await get_tree().process_frame
 	# username shoud be there 
 	user_name_label.text = user_name

@@ -674,9 +674,34 @@ func update_connected_peers():
 			player.name = str(peer_id)
 			player.user_name = str(peer_id)
 			add_child(player)
+	_apply_avatar_visibility()
 	participants_changed.emit()
 
+var avatar_visibility = preload("res://scripts/assets/avatar_visibility.gd").new()
+
+func get_avatar_visibility():
+	var owner = SaveData.profile.get_local_fingerprint() if SaveData.get("profile") != null else ""
+	avatar_visibility.set_scope(current_session_id, owner)
+	return avatar_visibility
+
+func set_player_avatar_hidden(session: String, owner: String, hidden: bool):
+	if session_busy or session != current_session_id: return
+	for member in active_instance.get("members", []):
+		if member.fingerprint == owner:
+			if get_avatar_visibility().set_hidden(session, owner, hidden):
+				_apply_avatar_visibility()
+				participants_changed.emit()
+			return
+
+func _apply_avatar_visibility():
+	var service = get_avatar_visibility()
+	for member in active_instance.get("members", []):
+		var remote = get_node_or_null(str(member.peer_id))
+		if remote != null and remote.has_method("set_avatar_hidden"):
+			remote.set_avatar_hidden(service.is_hidden(member.fingerprint))
+
 func _reset_instance_state():
+	avatar_visibility.set_scope("", "")
 	if is_instance_valid(animation_controller):
 		animation_controller.clear()
 	active_instance.clear()
@@ -694,6 +719,7 @@ func _on_instance_snapshot(value: Dictionary):
 	if not active_instance.is_empty() and value.revision <= active_instance.revision:
 		return
 	active_instance = value.duplicate(true)
+	_apply_avatar_visibility()
 	snapshot_deadline = 0
 	instance_status = ""
 	active_instance_changed.emit()

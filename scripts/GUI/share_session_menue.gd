@@ -176,7 +176,8 @@ func _render():
 		retained[owner] = true
 		var profile: Dictionary = SaveData.profile.get_profile(owner) if SaveData.get("profile") != null else {}
 		var title = str(profile.get("profile.username", "Profile loading — " + owner.left(8)))
-		var signature = [title, member.role, member.peer_id, admin, busy]
+		var avatar_hidden = NetworkHandler.get_avatar_visibility().is_hidden(owner)
+		var signature = [title, member.role, member.peer_id, admin, busy, avatar_hidden]
 		if rows.has(owner) and rows[owner].get_meta("signature") == signature:
 			continue
 		if rows.has(owner):
@@ -195,6 +196,12 @@ func _render():
 		var badge = Label.new()
 		badge.text = ("You · " if owner == local_owner else "") + ("Admin" if member.role == "admin" else "Member")
 		hb.add_child(badge)
+		if owner != local_owner:
+			var avatar_button = _button(hb, "Show avatar" if avatar_hidden else "Hide avatar",
+				NetworkHandler.set_player_avatar_hidden.bind(session, owner, not avatar_hidden))
+			avatar_button.name = "AvatarVisibility"
+			avatar_button.tooltip_text = "Only hides this player's avatar on your device. Voice and other players are unaffected."
+			avatar_button.disabled = NetworkHandler.session_busy
 		if admin and owner != local_owner:
 			for action in ["Kick", "Ban", "Make admin"]:
 				if action == "Make admin" and member.role == "admin":

@@ -510,6 +510,20 @@ disconnects store signal. Audio helper feeds only its generator, not microphone.
 | Functions | Contract |
 | --- | --- |
 | `load_player_model` | Await URL model, keep old avatar on failure, discard stale/detached completion, attach independent tree and update label. Never reuse a live model node across peers. |
+| `set_avatar_hidden` | Sets this remote node's local avatar visibility only, leaving root/nameplate/voice untouched. |
+| `attach_avatar` | Applies current hidden state before tree attachment, retires previous model and sets the compatible avatar reference. Used by URL and transferred-model paths. |
+
+<!-- module: scripts/assets/avatar_visibility.gd -->
+### [Avatar visibility](../../scripts/assets/avatar_visibility.gd)
+
+Client-owned RefCounted; never serialized or transmitted. Coordinator validates
+current membership and resolves fingerprints to remote nodes before applying.
+
+| Functions | Contract |
+| --- | --- |
+| `set_scope` | Clears preferences when acknowledged session/account scope changes; unchanged scope preserves reconnect choices. |
+| `is_hidden` | Queries the identity-keyed local hidden set, not asset URLs/hashes. |
+| `set_hidden` | Requires matching nonempty session and non-self identity; changes local policy and emits changed. Coordinator rejects stale/departed targets before calling. |
 
 ## Assets, rendering and emotes
 
@@ -917,6 +931,8 @@ children; animation service lives under DataLoader, not that cleanup list.
 | Functions | Contract |
 | --- | --- |
 | `get_animation_controller` | Returns one attached/recovered nonretiring service when inside tree; replaces queued-deletion instance. Borrowed service, caller must not free it casually. |
+| `get_avatar_visibility` | Returns client-local visibility policy synchronized to current session/account scope. |
+| `set_player_avatar_hidden` | Validates nonbusy matching session/current roster target, updates local identity policy and remote avatar only, then refreshes rows; sends no packet. |
 | `create_peer` | Await key-authenticated relay connection; configures client moderation path/signals, publishes local profile on success; bool. Writes moderation directory client-side. |
 | `create_session` | Sends authenticated create with selected mode/world/name and builtin hash where supported; result arrives asynchronously. Not immediate membership success. |
 | `request_player_model`, `sync_player_avatar` | Legacy RPC model URL request/response adapters; sender-derived lookup. Current custom ENet/profile and typed asset flow should not be confused with a second authoritative animation stream. |

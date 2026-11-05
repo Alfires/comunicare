@@ -2,8 +2,14 @@
 
 ## Status and requested behavior
 
-**Planned — 2026-11-05.** No avatar-hiding feature is implemented by this
-document. This extends the [Active Instance roadmap](active-instance-roadmap.md)
+**Implemented with manual gates — 2026-11-05.** The client-local visibility service,
+roster controls and centralized profile/custom model attachment are implemented.
+Headless tests cover identity scope, same-resource independence, replacement
+visibility and real roster toggle behavior. Rendered flash/shadow/mirror checks,
+independent-client visual behavior and headset usability remain manual gates.
+The design below is retained as implementation history and verification scope.
+
+This extends the [Active Instance roadmap](active-instance-roadmap.md)
 with a local presentation preference, not a moderation or access-control action.
 
 Add a **Hide avatar / Show avatar** control beside each other player's entry in

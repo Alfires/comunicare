@@ -192,6 +192,15 @@ func test_coordinator_and_connected_menu():
 	var bob_row = row(scene, bob)
 	check(bob_row != null, "live authoritative roster creates Bob's row")
 	if bob_row != null:
+		var hide_avatar = button(bob_row, "Hide avatar")
+		check(hide_avatar != null, "remote roster row offers client-only Hide avatar")
+		if hide_avatar != null:
+			hide_avatar.pressed.emit()
+			check(network.get_avatar_visibility().is_hidden(bob), "roster hide applies identity policy")
+			check(button(row(scene, bob), "Show avatar") != null, "roster immediately reflects hidden state")
+			button(row(scene, bob), "Show avatar").pressed.emit()
+			check(not network.get_avatar_visibility().is_hidden(bob), "roster Show avatar reverses local hide")
+			bob_row = row(scene, bob)
 		for action in ["Kick", "Ban", "Make admin"]:
 			check(button(bob_row, action) != null and not button(bob_row, action).disabled,
 				"admin sees enabled " + action + " beside eligible member")

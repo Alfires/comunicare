@@ -526,9 +526,12 @@ func _prepare_remote_model(id: int, state: Dictionary):
 	model.set_meta("asset_lease", handle.lease)
 	model.set_meta("asset_revision", handle.hash)
 	if remote.get("avatar_generation") != null: remote.avatar_generation += 1
-	if is_instance_valid(remote.avatar): remote.avatar.queue_free()
-	remote.avatar = model
-	remote.add_child(model)
+	if remote.has_method("attach_avatar"):
+		remote.attach_avatar(model)
+	else:
+		if is_instance_valid(remote.avatar): remote.avatar.queue_free()
+		remote.avatar = model
+		remote.add_child(model)
 	_apply_remote(id)
 
 func _store_remote_model(id: int, request: Dictionary):

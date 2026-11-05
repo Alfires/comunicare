@@ -4,6 +4,12 @@ extends Control
 signal emote_selected(id: String)
 signal closed
 signal navigated
+signal mirror_size_changed(dimensions: Vector2)
+var size_popup := false
+var size_axis := 0
+var size_values := Vector2(1, 1.5)
+var size_dragging := false
+var pointer_direction := Vector2.ZERO
 var layout
 var catalog: Dictionary = {}
 var group := "root"
@@ -28,6 +34,8 @@ func _ready():
 	refresh()
 
 func open(wheel_layout, actions: Dictionary, mouse: bool = true):
+	size_popup = false
+	size_dragging = false
 	layout = wheel_layout
 	catalog = actions
 	group = "root"
@@ -69,6 +77,11 @@ func refresh():
 	queue_redraw()
 
 func select_direction(direction: Vector2):
+	pointer_direction = direction
+	if size_popup:
+		if size_dragging: _drag_size(direction)
+		queue_redraw()
+		return
 	var length = direction.length()
 	if length < inner or length > 1.25:
 		hovered = -1
@@ -91,7 +104,7 @@ func activate_sector(index: int) -> bool:
 	match entry.type:
 		"emote":
 			emote_selected.emit(entry.id)
-			return true
+			return not visible
 		"group":
 			history.append({"group": group, "page": page, "sector": index})
 			group = entry.id
@@ -104,6 +117,11 @@ func activate_sector(index: int) -> bool:
 	return false
 
 func back():
+	if size_popup:
+		size_popup = false
+		size_dragging = false
+		refresh()
+		return
 	if history.is_empty():
 		dismiss()
 	else:
@@ -116,6 +134,8 @@ func back():
 		navigated.emit()
 
 func dismiss():
+	size_popup = false
+	size_dragging = false
 	hide()
 	_restore_input()
 	closed.emit()
@@ -137,6 +157,17 @@ func _notification(what):
 		dismiss()
 
 func _gui_input(event: InputEvent):
+	if size_popup:
+		if event is InputEventMouseMotion:
+			select_direction((event.position - size * 0.5) / radius())
+		elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			pointer_direction = (event.position - size * 0.5) / radius()
+			size_pointer(event.pressed)
+		elif event.is_action_pressed("ui_cancel"): back()
+		elif event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
+			size_axis = 1 - size_axis; queue_redraw()
+		accept_event()
+		return
 	if event is InputEventMouseMotion:
 		select_direction((event.position - size * 0.5) / radius())
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -162,6 +193,9 @@ func _unhandled_input(event: InputEvent):
 		get_viewport().set_input_as_handled()
 
 func _draw():
+	if size_popup:
+		_draw_size_popup()
+		return
 	var center = size * 0.5
 	var outer = radius()
 	var font = ThemeDB.fallback_font
@@ -197,3 +231,52 @@ func _draw():
 	if not message.is_empty():
 		# Error text stays in the center rather than adding navigation widgets.
 		draw_string(font, center + Vector2(-outer * 0.8, outer * 0.15), message.left(60), HORIZONTAL_ALIGNMENT_LEFT, outer * 1.6, 12, Color("ffcc88"))
+
+func open_size_popup(dimensions: Vector2):
+	size_values = dimensions
+	size_popup = true
+	size_dragging = false
+	size_axis = 0
+	queue_redraw()
+
+func set_size_angle(fraction: float):
+	if not is_finite(fraction): return
+	var low = 0.4 if size_axis == 0 else 0.6
+	var high = 3.0 if size_axis == 0 else 4.5
+	size_values[size_axis] = snappedf(lerpf(low, high, clampf(fraction, 0, 1)), 0.01)
+	mirror_size_changed.emit(size_values)
+	queue_redraw()
+
+func _drag_size(direction: Vector2):
+	if not direction.is_finite() or direction.length() < 0.25: return
+	var angle = wrapf(direction.angle() + PI * 0.5, 0, TAU)
+	set_size_angle(angle / TAU)
+
+func size_pointer(pressed: bool):
+	if not pressed:
+		size_dragging = false
+		return
+	if pointer_direction.length() < 0.28:
+		back()
+	elif pointer_direction.y > 0.9:
+		size_axis = 0 if pointer_direction.x < 0 else 1
+		queue_redraw()
+	else:
+		size_dragging = true
+		_drag_size(pointer_direction)
+
+func _draw_size_popup():
+	var center = size * 0.5
+	var outer = radius() * 0.8
+	var font = ThemeDB.fallback_font
+	draw_circle(center, radius(), Color(0.04, 0.09, 0.13, 0.97))
+	draw_arc(center, outer, -PI * 0.5, PI * 1.5, 96, Color("446478"), 10, true)
+	var fraction = inverse_lerp(0.4 if size_axis == 0 else 0.6, 3.0 if size_axis == 0 else 4.5, size_values[size_axis])
+	var knob = center + Vector2.from_angle(-PI * 0.5 + fraction * TAU) * outer
+	draw_circle(knob, 16, Color("62d7e5"))
+	var label = "%s: %.2f m" % ["Width X" if size_axis == 0 else "Height Y", size_values[size_axis]]
+	draw_string(font, center + Vector2(-outer * 0.7, -30), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 22)
+	draw_string(font, center + Vector2(-outer * 0.65, 4), "Drag around the ring", HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
+	draw_string(font, center + Vector2(-35, 35), "Back", HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+	draw_string(font, center + Vector2(-outer * 0.6, radius() * 0.96), "Width X", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE if size_axis == 0 else Color.GRAY)
+	draw_string(font, center + Vector2(outer * 0.2, radius() * 0.96), "Height Y", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE if size_axis == 1 else Color.GRAY)

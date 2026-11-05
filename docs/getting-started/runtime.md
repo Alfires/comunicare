@@ -2,18 +2,23 @@
 
 ## Local mirror
 
-Open **Emotes → Mirror → Show / hide mirror**. The subgroup also offers **Larger**,
-**Smaller** and **Move in front**. The floating planar mirror renders your local
+Open **Emotes → Mirror → Show / hide mirror**. The subgroup also offers **Resize
+mirror** and **Move in front**. The floating planar mirror renders your local
 world/avatar using a separate reflection camera and is never sent to other clients.
 It has no physics bodies, collision or gravity. On desktop, aim at its blue handle
 and press your world-grab key (E by default); press again to release. In VR, squeeze
 grip close to the blue handle, move it, then release grip. Mirror interaction takes
 priority over ordinary pickups only at the handle. Session cleanup removes it.
 
-Use **Width X + / −** and **Height Y + / −** in the Mirror subgroup to resize each
-axis independently. Exact values are available in **Settings → Interface → Mirror
+**Resize mirror** opens a circular drag popup inside the wheel. Choose **Width X**
+or **Height Y** at the bottom and drag the handle around the ring clockwise to
+increase that dimension. In VR, point and hold the trigger to drag. Release keeps
+the popup open; center Back returns to the Mirror subgroup. Mirror controls and
+Return to movement keep the wheel open; starting an emote dismisses it. Explicit
+Back/Cancel, menu-toggle and focus-loss closing remain available.
+Exact values are available in **Settings → Interface → Mirror
 width (X) / Mirror height (Y)**, saved for the next mirror. Width is bounded to
-0.4–3 m; height to 0.6–4.5 m. Uniform Larger/Smaller remains available.
+0.4–3 m; height to 0.6–4.5 m. Size changes update the mirror live and are saved.
 
 **Settings → Interface → Mirror reflection quality** selects **Low (384px)**,
 **Medium (768px, default)** or **High (1536px)** on the longest texture edge.

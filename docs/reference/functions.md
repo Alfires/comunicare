@@ -404,12 +404,16 @@ code, including its limits, rather than promises from old roadmaps.
 Owner: startup scene. `_ready` selects dedicated relay or account/authentication
 client flow. Failure does not regenerate a corrupt account. Player survives world
 scene changes under root; do not automate this flow against real user storage.
+On startup re-entry an existing `player` group member is reused without reloading
+the account or restarting relay selection. `_initialize_xr` handles desktop opt-out,
+OpenXR initialization and viewport/vsync setup; isolated tests override only this
+private hardware boundary, not production scene selection.
 
 | Functions | Contract |
 | --- | --- |
-| `load_initial_scene` | Creates the local player then requests built-in world scene change; deferred startup caller owns order. Not a multiplayer admission shortcut. |
+| `load_initial_scene` | Reuses or creates the local player then requests built-in world scene change; deferred startup caller owns order. Not a multiplayer admission shortcut. |
 | `instantiate_player` | Loads the supplied scene and stores an instantiated player; trusted internal scene path required. Does not attach it itself. |
-| `load_player` | Attempts XR unless forced desktop, configures viewport/vsync, selects supported player scene and defers root attachment. Requires engine XR services/display; no headless hardware guarantee. |
+| `load_player` | Reuses an existing player group member; otherwise attempts XR unless forced desktop, configures viewport/vsync, selects supported player scene and defers root attachment. Requires engine XR services/display; no headless hardware guarantee. |
 
 <!-- module: scripts/settings/save_data.gd -->
 `use_temporary_identity` switches at most once per process to a generated memory-only
@@ -1400,7 +1404,10 @@ No footer paging buttons, network calls or model importing.
 | `radius` | Computes viewport-adapted wheel radius; pure UI sizing. |
 | `refresh` | Repairs current group/page after layout changes, builds sectors, disables unavailable actions and clears hover. |
 | `select_direction` | Selects sector from normalized 2D direction with dead zone/hysteresis; no activation. |
-| `activate_sector` | Ignores inert/disabled entries; emits action ID or navigates group/page with reset highlight. bool indicates emote selection, not successful avatar playback. |
+| `activate_sector` | Ignores inert/disabled entries; emits action ID or navigates group/page. Returns true only if the action handler dismissed the wheel; local mirror tools do not dismiss it. |
+| `open_size_popup` | Opens an in-wheel circular size popup with copied dimensions and X axis initially selected; no avatar playback or input-ownership handoff. |
+| `set_size_angle` | Maps finite normalized turn fraction to bounded selected-axis metres, emits mirror_size_changed and redraws without closing. |
+| `size_pointer` | Starts/ends ring drag, selects X/Y at the bottom or returns via center Back; shared by desktop mouse and XR trigger. |
 | `back` | Restores parent page/focus or dismisses root; no animation side effects. |
 | `dismiss` | Hides, restores prior input/focus once and emits closed; safe with later exit cleanup. |
 

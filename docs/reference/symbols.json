@@ -485,101 +485,143 @@
       "visibility": "public"
     },
     {
+      "kind": "signal",
+      "name": "mirror_size_changed",
+      "line": 7,
+      "signature": "signal mirror_size_changed(dimensions: Vector2)",
+      "visibility": "public"
+    },
+    {
       "kind": "func",
       "name": "_ready",
-      "line": 21,
+      "line": 27,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "open",
-      "line": 30,
+      "line": 36,
       "signature": "func open(wheel_layout, actions: Dictionary, mouse: bool = true)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "radius",
-      "line": 52,
+      "line": 60,
       "signature": "func radius() -> float",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "refresh",
-      "line": 55,
+      "line": 63,
       "signature": "func refresh()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "select_direction",
-      "line": 71,
+      "line": 79,
       "signature": "func select_direction(direction: Vector2)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "activate_sector",
-      "line": 85,
+      "line": 98,
       "signature": "func activate_sector(index: int) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "back",
-      "line": 106,
+      "line": 119,
       "signature": "func back()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "dismiss",
-      "line": 118,
+      "line": 136,
       "signature": "func dismiss()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_restore_input",
-      "line": 123,
+      "line": 143,
       "signature": "func _restore_input()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 132,
+      "line": 152,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 135,
+      "line": 155,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_gui_input",
-      "line": 139,
+      "line": 159,
       "signature": "func _gui_input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_unhandled_input",
-      "line": 159,
+      "line": 190,
       "signature": "func _unhandled_input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_draw",
-      "line": 164,
+      "line": 195,
       "signature": "func _draw()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "open_size_popup",
+      "line": 235,
+      "signature": "func open_size_popup(dimensions: Vector2)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_size_angle",
+      "line": 242,
+      "signature": "func set_size_angle(fraction: float)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_drag_size",
+      "line": 250,
+      "signature": "func _drag_size(direction: Vector2)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "size_pointer",
+      "line": 255,
+      "signature": "func size_pointer(pressed: bool)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_draw_size_popup",
+      "line": 268,
+      "signature": "func _draw_size_popup()",
       "visibility": "private"
     }
   ],
@@ -1642,7 +1684,7 @@
     {
       "kind": "func",
       "name": "_notification",
-      "line": 95,
+      "line": 102,
       "signature": "func _notification(what)",
       "visibility": "private"
     }
@@ -1727,6 +1769,13 @@
     },
     {
       "kind": "func",
+      "name": "_mirror_size_changed",
+      "line": 195,
+      "signature": "func _mirror_size_changed(dimensions: Vector2)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "emote_catalog",
       "line": 201,
       "signature": "func emote_catalog() -> Dictionary",
@@ -1784,126 +1833,126 @@
     {
       "kind": "func",
       "name": "open_xr_menu",
-      "line": 307,
+      "line": 309,
       "signature": "func open_xr_menu(hand: XRController3D, camera: XRCamera3D, hold: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 318,
+      "line": 320,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_local_model",
-      "line": 330,
+      "line": 332,
       "signature": "func _local_model() -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_new_animator",
-      "line": 338,
+      "line": 340,
       "signature": "func _new_animator(model: Node3D) -> Node",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_dispose_animator",
-      "line": 344,
+      "line": 346,
       "signature": "func _dispose_animator(animator: Node)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_play_resolved",
-      "line": 351,
+      "line": 353,
       "signature": "func _play_resolved(clip: Dictionary, builtin: String, handle: Dictionary, clip_index: int, looping: bool, speed: float, share: bool) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_clear_local",
-      "line": 384,
+      "line": 386,
       "signature": "func _clear_local()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "receive",
-      "line": 393,
+      "line": 395,
       "signature": "func receive(value: Dictionary)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_member",
-      "line": 454,
+      "line": 456,
       "signature": "func _member(id: int) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_apply_remote",
-      "line": 457,
+      "line": 459,
       "signature": "func _apply_remote(id: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_send_chunk",
-      "line": 526,
+      "line": 528,
       "signature": "func _send_chunk()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_prepare_remote_model",
-      "line": 544,
+      "line": 546,
       "signature": "func _prepare_remote_model(id: int, state: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_store_remote_model",
-      "line": 577,
+      "line": 579,
       "signature": "func _store_remote_model(id: int, request: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_receive_chunk",
-      "line": 591,
+      "line": 593,
       "signature": "func _receive_chunk(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_remove_remote",
-      "line": 642,
+      "line": 644,
       "signature": "func _remove_remote(id: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "clear",
-      "line": 661,
+      "line": 663,
       "signature": "func clear()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 686,
+      "line": 688,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_tracking",
-      "line": 693,
+      "line": 695,
       "signature": "func _update_tracking(delta: float)",
       "visibility": "private"
     }

@@ -71,6 +71,14 @@ func _process(_delta: float):
 		needs_rearm = false
 	var pressed = hand.is_button_pressed(action)
 	var trigger = hand.is_button_pressed("trigger_click")
+	if wheel.size_popup:
+		holding = false
+		if trigger and not previous_trigger: wheel.size_pointer(true)
+		elif not trigger and previous_trigger: wheel.size_pointer(false)
+		if pressed and not previous_pressed: wheel.back()
+		previous_pressed = pressed
+		previous_trigger = trigger
+		return
 	if not holding and pressed and not previous_pressed:
 		wheel.back()
 		previous_pressed = pressed
@@ -80,9 +88,8 @@ func _process(_delta: float):
 		if needs_rearm: holding = false
 		elif wheel.hovered < 0: wheel.back()
 		else:
-			var kind = wheel.entries[wheel.hovered].type
 			wheel.activate_sector(wheel.hovered)
-			if kind in ["group", "next", "previous"]:
+			if wheel.visible:
 				holding = false
 				needs_rearm = false # Next trigger press is a fresh confirmation.
 	elif not holding and trigger and not previous_trigger:

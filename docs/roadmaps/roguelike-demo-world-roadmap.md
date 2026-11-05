@@ -472,8 +472,15 @@ safe capabilities explicitly; never fall back to executable world downloads.
 
 ## 6. Verification and definition of done
 
-Add `python3 tests/roguelike_demo/run.py` as an isolated runner following repository
-fixture conventions; this command is **planned and does not exist yet**. Cover
+The isolated [foundation suite](../../tests/roguelike_demo/README.md) now runs with
+`python3 tests/roguelike_demo/run.py`; its runner checks use
+`python3 tests/roguelike_demo/test_runner.py`. It exercises actual local storage,
+VM permissions and runtime dispatch for four station entities, not gameplay/UI.
+Initial verified result: 51 Godot assertions and four Python tests pass. These
+counts include fixture setup assertions and are not game acceptance coverage.
+Malformed-JSON engine error handling remains an explicitly documented limitation.
+
+Extend this suite as real game implementations arrive. Cover
 seed reproducibility/connectivity, encounter ordering, cooldowns and duplicate hits,
 reward uniqueness/stack caps, death/victory, restart, pause/menu suppression and
 cleanup during world transition. Include long-frame and repeated-entry cases.
@@ -493,7 +500,8 @@ Run existing relevant suites after inspecting their current prerequisites:
 `tests/world_system`, `tests/public_discovery`, `tests/active_instance`,
 `tests/welcome_island`, `tests/vr_controls` and `tests/microphone_settings`.
 Use each directory's documented runner; record skips and infrastructure errors.
-No Godot suite was run for this documentation-only proposal.
+The foundation suite was run in isolation; full existing regressions and the game,
+rendered UI, navigation, enemy behavior and headset gates remain unverified.
 
 Manual release checklist:
 

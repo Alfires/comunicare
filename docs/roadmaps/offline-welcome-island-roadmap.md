@@ -2,8 +2,9 @@
 
 ## Status and goal
 
-**Planned — 2026-11-05.** No island, asset downloads or Credits UI are delivered
-by this roadmap. This file is the **shared design overview**; implementation is
+**In progress — 2026-11-05.** Part 01's isolated startup tests and player-reuse fix
+are implemented with manual gates. No island, asset downloads or Credits UI are
+delivered yet. This file is the **shared design overview**; implementation is
 split into [14 small test-first roadmaps](welcome-island/README.md), whose index
 owns dependency order and per-part status. Replace the built-in default blockout with an original,
 hand-assembled floating island: **a good home first**, where players can naturally
@@ -388,7 +389,8 @@ snapshots or include unrelated player, animation or user changes.
 The parts cover offline foundation, asset provenance, Credits, island layout,
 recovery/revisions, local interactions, pond/dock, ship, house/side spaces, room
 lighting, kitchen, optional Help, landscape/rendering and final release acceptance.
-All remain planned; splitting the documents does not implement tests or features.
+Part 01 is implemented with manual gates; parts 02–14 remain planned. See the
+index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline
 from bundled content, it is one big island with the spawn in the middle, the pond

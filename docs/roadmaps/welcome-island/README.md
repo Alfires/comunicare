@@ -1,6 +1,7 @@
 # Welcome island: small test-first roadmaps
 
-**Planned — 2026-11-05.** No implementation or tests are delivered by these plans.
+**In progress — 2026-11-05.** Part 01's runner/startup fix is implemented with
+manual headset/lifecycle gates; parts 02–14 remain planned.
 The [shared design overview](../offline-welcome-island-roadmap.md) owns the home-first
 requirements, ASCII concepts, asset candidates and compatibility boundaries.
 This index and the small roadmaps below replace its original five broad milestones.
@@ -26,18 +27,18 @@ automated structural/behavior tests. A written checklist alone is not an executa
 test, and headless passing tests are not proof of rendering or headset comfort.
 Any unfinished manual gate remains explicitly open; it is not a release-ready part.
 
-Proposed test area: `tests/welcome_island/`, with a disposable-project runner and
-focused suites added incrementally. This path does not exist as a delivered suite
-yet. Inspect current production dependencies and existing runner conventions first;
+Delivered test area: [`tests/welcome_island/`](../../../tests/welcome_island/README.md),
+with a disposable-project runner and desktop/XR/account groups. Extend focused
+suites incrementally. Inspect current production dependencies and runner conventions first;
 never run against real accounts or launch normal startup against real user data.
 
 ## Parts and dependency order
 
-All parts are **planned**; none is marked implemented or verified.
+Part 01 is **implemented with manual gates**; all other parts remain **planned**.
 
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
-| [01](01-offline-foundation-roadmap.md) | Isolated tests and offline startup/home lifecycle | None |
+| [01](01-offline-foundation-roadmap.md) | Implemented: isolated startup tests and persistent-player reuse; actual headset and legacy panel lifecycle gates open | None |
 | [02](02-asset-provenance-roadmap.md) | Free asset manifest, license validation and acquisition | 01 |
 | [03](03-credits-roadmap.md) | Offline Settings → Credits | 02 |
 | [04](04-island-layout-roadmap.md) | One-island graybox, middle spawn and dry routes | 01 |

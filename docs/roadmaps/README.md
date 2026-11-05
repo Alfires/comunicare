@@ -5,6 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
+| [Roguelike demo world](roguelike-demo-world-roadmap.md) | Proposed: optional bundled solo/offline dungeon, short seeded runs, basic combat/loot and audited CC0 stylized assets; downloadable gameplay and co-op deferred behind safe-world capabilities |
 | [Offline welcome island: design](offline-welcome-island-roadmap.md) / [14 test-first parts](welcome-island/README.md) | Parts 01–06 delivered with limits: foundation/assets/Credits, graybox/recovery/revisions and offline pickup/activation. Rendered recovery/exported-PCK checks pass; actual headset/standalone export/final art/performance gates open; parts 07–14 planned |
 | [Public avatar and animation discovery](public-avatar-discovery-roadmap.md) | Browser/catalog/import, thumbnail cards, advanced filters/TTL, animation preview, custom PKCE and Linux keyring support implemented; real-provider OAuth, keyring/preview visual checks and headset gates remain open |
 | [Client-only per-player avatar visibility](client-avatar-visibility-roadmap.md) | Implemented with manual gates: beside-row Hide/Show, session/fingerprint policy, replacement-model enforcement and same-resource independence; rendered mirror/shadow and headset checks remain open |

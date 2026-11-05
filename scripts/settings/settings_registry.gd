@@ -59,6 +59,7 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "interface.hover_color", "category": "Interface", "label": "Selectable item highlight color", "type": "enum", "options": {"cyan": "Cyan", "yellow": "Yellow", "green": "Green", "magenta": "Magenta", "white": "White"}, "default": "cyan", "order": 8},
 		{"id": "interface.mirror_quality", "category": "Interface", "label": "Mirror reflection quality", "description": "Local mirror resolution: Low 384px, Medium 768px, High 1536px on the longest edge. Higher quality uses more GPU time.", "type": "enum", "options": {"low": "Low", "medium": "Medium", "high": "High"}, "default": "medium", "order": 5},
 		{"id": "interface.mirror_width", "category": "Interface", "label": "Mirror width (X)", "type": "number", "default": 1.0, "min": 0.4, "max": 3.0, "step": 0.1, "unit": "m", "order": 6},
 		{"id": "interface.mirror_height", "category": "Interface", "label": "Mirror height (Y)", "type": "number", "default": 1.5, "min": 0.6, "max": 4.5, "step": 0.1, "unit": "m", "order": 7},

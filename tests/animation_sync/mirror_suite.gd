@@ -5,6 +5,9 @@ func check(ok: bool, title: String):
 	print("PASS: " if ok else "FAIL: ", title)
 	if not ok: failed += 1
 func run():
+	var robot = preload("res://scripts/assets/default_robot.gd").create()
+	check(robot != null and not robot.get_meta("humanoid_bones", {}).is_empty(), "bundled default robot has humanoid bone mapping without network")
+	robot.free()
 	var path = "res://scripts/assets/local_mirror.gd"
 	check(ResourceLoader.exists(path), "local mirror component exists")
 	if not ResourceLoader.exists(path): quit(1); return

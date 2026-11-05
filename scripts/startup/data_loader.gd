@@ -24,6 +24,7 @@ func get_world_pickups() -> Node:
 	return world_pickups
 
 func _ready():
+	add_child(preload("res://scripts/assets/interaction_highlight.gd").new())
 	get_tree().node_added.connect(_configure_avatar_camera)
 
 func _configure_avatar_camera(node: Node):
@@ -74,6 +75,8 @@ func _cache_setting_changed(id: String, value: Variant):
 			if value == false: stop_world_scripts()
 
 func load_vrm_from_url(url: String, force: bool = false):
+	if url in [preload("res://scripts/assets/default_robot.gd").URL, preload("res://scripts/assets/default_robot.gd").LEGACY]:
+		return preload("res://scripts/assets/default_robot.gd").create()
 	var cache = get_asset_cache()
 	var handle: Dictionary = await cache.fetch(url, "avatar", _validate_avatar, force)
 	if handle.is_empty():

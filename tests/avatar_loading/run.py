@@ -16,6 +16,7 @@ def main():
         return 2
     with tempfile.TemporaryDirectory(prefix="comunicare-avatar-", dir="/tmp/opencode") as directory:
         project = Path(directory)
+        shutil.copytree(ROOT / "assets/avatars", project / "assets/avatars")
         shutil.copytree(ROOT / "scripts/worlds", project / "scripts/worlds")
         for source in ["scripts/startup/data_loader.gd", "scripts/assets/asset_cache.gd", "relay_protocol/world_address.gd"]:
             target = project / source

@@ -1,5 +1,21 @@
 # Production function contracts
 
+<!-- module: scripts/assets/default_robot.gd -->
+## Bundled default robot
+
+`create` instantiates and normalizes the locally shipped robot, installs humanoid
+mapping/content revision and prepares first-person geometry. Default and legacy
+default URLs are resolved by DataLoader before external acquisition; other URLs
+retain normal validation/import. No script/account/profile migration is performed.
+
+<!-- module: scripts/assets/interaction_highlight.gd -->
+## Local interaction hover overlay
+
+Private process selects nearby unheld pickup candidates using desktop grip/VR
+hand anchors, and bounded mirror surface proximity, with wall/focus/menu checks.
+It adds instance-only transparent mesh overlays, removes stale overlays and reads
+the registry color live. No shared material edits, physics bodies or wire packets.
+
 <!-- module: scripts/GUI/circular_value_control.gd -->
 ## Reusable circular numeric control
 

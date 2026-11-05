@@ -1,5 +1,17 @@
 # Running clients and relays
 
+## Local default avatar and interaction hints
+
+The default avatar is the bundled RobotExpressive robot, loaded without a network
+request. The previous shipped Alicia default URL resolves to this local robot as
+well; custom avatar selections are preserved. Loading/blocked stand-ins still
+use their status indicators independently of this normal default avatar.
+
+Nearby selectable pickup items and the local mirror receive a translucent local
+hover overlay on desktop/VR. **Settings → Interface → Selectable item highlight
+color** offers cyan, yellow, green, magenta and white. Hints are suppressed during
+menus/blocked input and do not grant item ownership or alter network state.
+
 ## Local mirror
 
 Open **Emotes → Mirror → Show / hide mirror**. The subgroup also offers separate

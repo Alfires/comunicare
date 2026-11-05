@@ -19,6 +19,7 @@ def main():
         for folder in ("scripts/assets", "scripts/profile", "scripts/worlds", "relay_protocol"):
             shutil.copytree(ROOT / folder, project / folder)
         shutil.copytree(ROOT / "assets/animations", project / "assets/animations")
+        shutil.copytree(ROOT / "assets/avatars", project / "assets/avatars")
         avatar_fixture = os.environ.get("AVATAR_FIXTURE")
         if avatar_fixture:
             shutil.copy2(avatar_fixture, project / "real-avatar.vrm")

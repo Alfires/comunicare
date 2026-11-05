@@ -2,9 +2,9 @@ extends Node
 
 var data = {
 	"username": "User",
-	"avatar_url": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
+	"avatar_url": "https://comunicare.invalid/builtin/robot.vrm",
 	"temp_world_file_save_path": "user://wolds/temp.cne",
-	"default_avatar": "https://raw.githubusercontent.com/V-Sekai/godot-vrm/refs/heads/master/vrm_samples/AliciaSolid_vrm-0.51.vrm",
+	"default_avatar": "https://comunicare.invalid/builtin/robot.vrm",
 	"default_wold": "LocalWold"
 }
 var key = CryptoKey.new()

@@ -137,6 +137,12 @@ func _input(event: InputEvent):
 	if not visible: return
 	var save = get_node_or_null("/root/SaveData")
 	if save != null and save.get("voice") != null and save.voice.input_blocked: release(held_grip); return
+	var loader = get_node_or_null("/root/DataLoader")
+	if held_grip != "virtual" and loader != null:
+		var pickups = loader.get_world_pickups()
+		if pickups.held_by_local("virtual"): return
+		for player in get_tree().get_nodes_in_group("player"):
+			if player.get("world_grip") is Node3D and not pickups.nearest_available(player.world_grip, 1.5).is_empty(): return
 	if event.is_action_pressed("world_grab") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if held_grip == "virtual":
 			release("virtual")

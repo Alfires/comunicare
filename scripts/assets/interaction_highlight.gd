@@ -8,9 +8,11 @@ func _ready():
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.albedo_color = Color(0.2, 0.8, 1, 0.35)
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.cull_mode = BaseMaterial3D.CULL_BACK
+	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	material.no_depth_test = false
 
-func _process(_delta):
+func _physics_process(_delta):
 	var save = get_node_or_null("/root/SaveData")
 	if save == null or save.get("store") == null: return
 	var colors = {"cyan": Color(0.2, 0.8, 1, 0.35), "yellow": Color(1, 0.85, 0.1, 0.35), "green": Color(0.2, 1, 0.3, 0.35), "magenta": Color(1, 0.2, 0.8, 0.35), "white": Color(1, 1, 1, 0.35)}
@@ -27,18 +29,12 @@ func _process(_delta):
 		var anchors: Array = []
 		if player.get("left_controller") is XRController3D:
 			for hand in [player.left_controller, player.right_controller]:
-				if hand.get_is_active(): anchors.append([hand.global_position, 0.3])
+				if hand.get_is_active(): anchors.append([hand.global_position, 0.3, hand])
 		elif Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and player.get("world_grip") is Node3D:
-			anchors.append([player.world_grip.global_position, 1.5])
+			anchors.append([player.world_grip.global_position, 1.5, player.world_grip])
 		for entry in anchors:
-			var best: Node3D
-			var distance: float = entry[1]
-			for id in pickup.items:
-				var item = pickup.items[id].get_ref()
-				if not item is Node3D or pickup.states.get(id, {}).get("holder", -1) != -1: continue
-				var separation: float = item.global_position.distance_to(entry[0])
-				if separation < distance and _clear_path(player, entry[0], item.global_position, item): best = item; distance = separation
-			if best != null: targets.append(best)
+			var selected: String = pickup.nearest_available(entry[2], entry[1])
+			if not selected.is_empty(): targets.append(pickup.items[selected].get_ref())
 		var controller = network.get_animation_controller()
 		var mirror = controller.get("local_mirror") if controller != null else null
 		if is_instance_valid(mirror) and mirror.visible:
@@ -46,10 +42,14 @@ func _process(_delta):
 				var local: Vector3 = mirror.to_local(entry[0])
 				var nearest = Vector3(clampf(local.x, -mirror.dimensions.x / 2, mirror.dimensions.x / 2), clampf(local.y, -mirror.dimensions.y / 2, mirror.dimensions.y / 2), 0)
 				if mirror.to_global(nearest).distance_to(entry[0]) < entry[1] and _clear_path(player, entry[0], mirror.to_global(nearest)): targets.append(mirror)
+	show_targets(targets)
+
+func show_targets(targets: Array):
 	for target in overlays.keys():
 		if not is_instance_valid(target) or not target in targets:
-			for overlay in overlays[target]:
-				if is_instance_valid(overlay): overlay.queue_free()
+			for entry in overlays[target]:
+				var mesh = entry.mesh.get_ref()
+				if is_instance_valid(mesh) and mesh.material_overlay == material: mesh.material_overlay = entry.previous
 			overlays.erase(target)
 	for target in targets:
 		if overlays.has(target): continue
@@ -57,16 +57,12 @@ func _process(_delta):
 		if target is MeshInstance3D: meshes.append(target)
 		var created: Array = []
 		for mesh in meshes:
-			if mesh.get_meta("interaction_overlay", false): continue
-			var overlay = MeshInstance3D.new()
-			overlay.mesh = mesh.mesh
-			overlay.material_override = material
-			overlay.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			overlay.set_meta("interaction_overlay", true)
-			mesh.add_child(overlay)
-			overlay.scale = Vector3.ONE * 1.005
-			created.append(overlay)
+			created.append({"mesh": weakref(mesh), "previous": mesh.material_overlay})
+			mesh.material_overlay = material
 		overlays[target] = created
+
+func _exit_tree():
+	show_targets([])
 
 func _clear_path(player: Node3D, start: Vector3, end: Vector3, target: Node3D = null) -> bool:
 	var ray = PhysicsRayQueryParameters3D.create(start, start.lerp(end, 0.98))

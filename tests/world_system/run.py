@@ -162,6 +162,8 @@ def main():
             shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
             shutil.copy2(HERE / "suite.gd", project / "suite.gd")
             shutil.copy2(HERE / "example_suite.gd", project / "example_suite.gd")
+            (project / "scripts/assets").mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / "scripts/assets/interaction_highlight.gd", project / "scripts/assets/interaction_highlight.gd")
             shutil.copy2(HERE / "example_network_suite.gd", project / "example_network_suite.gd")
             (project / "project.godot").write_text(
                 'config_version=5\n[application]\nconfig/name="Isolated RED world contracts"\n'

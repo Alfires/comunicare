@@ -65,7 +65,26 @@ func run():
 	var hand = Node3D.new()
 	world.add_child(hand)
 	hand.position = cube.position + Vector3(0, 0.1, 0)
+	var hover = load("res://scripts/assets/interaction_highlight.gd").new()
+	world.add_child(hover)
+	check(hover.has_method("show_targets"), "hover rendering has a testable non-input presentation boundary")
+	if hover.has_method("show_targets"):
+		var mesh = cube.find_children("*", "MeshInstance3D", true, false)[0]
+		var previous = StandardMaterial3D.new()
+		mesh.material_overlay = previous
+		var count = cube.find_children("*", "MeshInstance3D", true, false).size()
+		for frame in 5: hover.show_targets([cube])
+		check(cube.find_children("*", "MeshInstance3D", true, false).size() == count, "hover never duplicates mesh geometry or changes pickup tree")
+		check(mesh.material_overlay != previous and not mesh.material_overlay is ShaderMaterial, "hover uses stable material overlay rather than scaled coplanar mesh")
+		check(adapter.nearest_available(hand, 1.5) == "pickup-cube", "hover and pickup share identical reachable-target selection")
+		hover.show_targets([])
+		check(mesh.material_overlay == previous, "hover exit restores preexisting overlay")
 	check(adapter.request_grab("pickup-cube", "virtual", hand), "example desktop virtual hand requests nearby cube")
+	if hover.has_method("show_targets"):
+		hover.show_targets([cube])
+		check(adapter.grab_nearest(hand, "virtual", 1.5), "highlighted object remains grabbable via production nearest selection")
+		hover.show_targets([])
+	hover.queue_free()
 	var accepted = {"op": "item", "session_id": "example-instance", "revision": built.revision, "entity": "pickup-cube", "holder": 1, "generation": "local", "grip": "virtual", "epoch": 1, "sequence": 1, "position": [], "rotation": []}
 	adapter.receive(accepted)
 	hand.position = Vector3(0.5, 1.2, 1)

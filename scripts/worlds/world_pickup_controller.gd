@@ -81,6 +81,13 @@ func request_grab(id: String, grip: String, anchor: Node3D) -> bool:
 	if not items.has(id) or not grip in ["left", "right", "virtual"] or not is_instance_valid(anchor): return false
 	var item = items[id].get_ref()
 	if not item is Node3D or not item.is_inside_tree() or not anchor.is_inside_tree() or item.global_position.distance_to(anchor.global_position) > 2.0: return false
+	if not _unobstructed(anchor, item): return false
+	if states.get(id, {}).get("holder", -1) != -1: return false
+	anchors[grip] = weakref(anchor)
+	local_sequence += 1
+	return _send({"op": "grab", "entity": id, "grip": grip, "epoch": states.get(id, {}).get("epoch", 0), "sequence": local_sequence})
+
+func _unobstructed(anchor: Node3D, item: Node3D) -> bool:
 	var query = PhysicsRayQueryParameters3D.create(anchor.global_position, item.global_position)
 	var exclusions: Array[RID] = []
 	var ancestor: Node = anchor
@@ -89,23 +96,24 @@ func request_grab(id: String, grip: String, anchor: Node3D) -> bool:
 		ancestor = ancestor.get_parent()
 	query.exclude = exclusions
 	var hit = anchor.get_world_3d().direct_space_state.intersect_ray(query)
-	if not hit.is_empty() and hit.collider != item and not item.is_ancestor_of(hit.collider): return false
-	if states.get(id, {}).get("holder", -1) != -1: return false
-	anchors[grip] = weakref(anchor)
-	local_sequence += 1
-	return _send({"op": "grab", "entity": id, "grip": grip, "epoch": states.get(id, {}).get("epoch", 0), "sequence": local_sequence})
+	return hit.is_empty() or hit.collider == item or item.is_ancestor_of(hit.collider)
 
 func grab_nearest(anchor: Node3D, grip: String, max_distance: float = 0.3) -> bool:
+	var selected = nearest_available(anchor, max_distance)
+	return request_grab(selected, grip, anchor) if not selected.is_empty() else false
+
+func nearest_available(anchor: Node3D, max_distance: float = 0.3) -> String:
+	if not is_instance_valid(anchor) or not anchor.is_inside_tree(): return ""
 	var selected = ""
 	var distance = clampf(max_distance, 0.05, 2.0)
 	for id in items:
 		var item = items[id].get_ref()
 		if not item is Node3D or states.get(id, {}).get("holder", -1) != -1: continue
 		var separation = item.global_position.distance_to(anchor.global_position)
-		if separation < distance:
+		if separation < distance and _unobstructed(anchor, item):
 			selected = id
 			distance = separation
-	return request_grab(selected, grip, anchor) if not selected.is_empty() else false
+	return selected
 
 func release_grip(grip: String) -> bool:
 	if peer == null: return false

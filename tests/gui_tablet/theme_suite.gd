@@ -334,6 +334,10 @@ func test_hard_coded_styling():
 			check(false, "custom-drawn script exists: " + path)
 			continue
 		check(color_literal.search(text) == null, path.get_file() + " has no hard-coded colors")
+		# xr_emote_wheel draws nothing itself; it hosts emote_wheel.gd in a SubViewport.
+		if path.ends_with("xr_emote_wheel.gd"):
+			check(text.contains("emote_wheel.gd"), "xr_emote_wheel.gd reuses the themed desktop wheel (wiring check)")
+			continue
 		check(text.contains("get_theme_color") and (text.contains("NOTIFICATION_THEME_CHANGED") or path.ends_with("circular_value_control.gd")),
 			path.get_file() + " reads theme colors and redraws on theme change (wiring check)")
 

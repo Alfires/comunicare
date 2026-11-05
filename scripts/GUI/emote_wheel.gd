@@ -153,6 +153,8 @@ func _exit_tree():
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and visible:
 		dismiss()
+	elif what == NOTIFICATION_THEME_CHANGED:
+		queue_redraw()
 
 func _gui_input(event: InputEvent):
 	if size_popup:
@@ -196,8 +198,13 @@ func _draw():
 		return
 	var center = size * 0.5
 	var outer = radius()
-	var font = ThemeDB.fallback_font
+	var font = get_theme_default_font()
 	var font_size = clampi(int(outer / 13), 12, 19)
+	var segment = get_theme_color("segment", "EmoteWheel")
+	var segment_hover = get_theme_color("segment_hover", "EmoteWheel")
+	var segment_disabled = get_theme_color("segment_disabled", "EmoteWheel")
+	var label_color = get_theme_color("label", "EmoteWheel")
+	var label_disabled = get_theme_color("label_disabled", "EmoteWheel")
 	for i in 8:
 		var polygon = PackedVector2Array()
 		var start = -PI * 0.5 + i * PI / 4 - PI / 8 + 0.018
@@ -208,27 +215,31 @@ func _draw():
 			polygon.append(center + Vector2.from_angle(lerpf(start, end, step / 12.0)) * outer * inner)
 		var entry: Dictionary = entries[i] if entries.size() == 8 else {"type": "empty", "name": ""}
 		var disabled = entry.get("disabled", false) or entry.type in ["empty", "indicator"]
-		var color = Color("203444") if disabled else Color("244f65")
-		if i == hovered and not disabled: color = Color("278d9e")
+		var color = segment_disabled if disabled else segment
+		if i == hovered and not disabled: color = segment_hover
 		draw_colored_polygon(polygon, color)
 		var text: String = entry.name
-		if entry.type == "group": text = "▸ " + text
 		var location = center + Vector2.from_angle(-PI * 0.5 + i * PI / 4) * outer * 0.65
+		if entry.type == "group":
+			# Groups get a drawn chevron below the label instead of a glyph.
+			var tip = location + Vector2(0, font_size * 1.4)
+			draw_polyline(PackedVector2Array([tip + Vector2(-5, -3), tip + Vector2(0, 2), tip + Vector2(5, -3)]),
+				label_disabled if disabled else label_color, 2.0, true)
 		var lines = text.split("\n")
 		for line_index in lines.size():
 			var line: String = lines[line_index].left(22)
 			var width = font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 			draw_string(font, location + Vector2(-width * 0.5, (line_index - (lines.size() - 1) * 0.5) * (font_size + 2)), line,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color("8397a2") if disabled else Color.WHITE)
+				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, label_disabled if disabled else label_color)
 	var title = "Emotes" if layout == null else str(layout.groups[group].name)
 	var label = title.left(16) + "\n" + ("Cancel" if history.is_empty() else "Back")
 	var lines = label.split("\n")
 	for i in lines.size():
 		var width = font.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
-		draw_string(font, center + Vector2(-width * 0.5, (i - 0.5) * (font_size + 4)), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+		draw_string(font, center + Vector2(-width * 0.5, (i - 0.5) * (font_size + 4)), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, label_color)
 	if not message.is_empty():
 		# Error text stays in the center rather than adding navigation widgets.
-		draw_string(font, center + Vector2(-outer * 0.8, outer * 0.15), message.left(60), HORIZONTAL_ALIGNMENT_LEFT, outer * 1.6, 12, Color("ffcc88"))
+		draw_string(font, center + Vector2(-outer * 0.8, outer * 0.15), message.left(60), HORIZONTAL_ALIGNMENT_LEFT, outer * 1.6, 12, get_theme_color("message", "EmoteWheel"))
 
 func open_value_popup(title: String, value: float, low: float, high: float, step: float, unit: String, changed: Callable):
 	value_dial.configure(title, value, low, high, step, unit, changed)

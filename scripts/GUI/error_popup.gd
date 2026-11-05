@@ -2,6 +2,7 @@ extends Control
 
 var message_label: Label
 var accept_button: Button
+var shade: ColorRect
 var previous_focus: WeakRef
 
 static func show_error(parent: Node, message: String) -> Control:
@@ -18,8 +19,8 @@ func _ready():
 	z_index = 100
 	set_meta("blocks_global_shortcuts", true)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var shade = ColorRect.new()
-	shade.color = Color(0, 0, 0, 0.65)
+	shade = ColorRect.new()
+	shade.color = get_theme_color("shade", "ErrorPopup")
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(shade)
@@ -28,17 +29,14 @@ func _ready():
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(280, 0)
+	panel.theme_type_variation = "Card"
+	panel.custom_minimum_size = Vector2(320, 0)
 	center.add_child(panel)
-	var margin = MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 16)
-	panel.add_child(margin)
 	var column = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	margin.add_child(column)
+	panel.add_child(column)
 	var title = Label.new()
-	title.text = "Error"
+	title.text = "Something went wrong"
+	title.theme_type_variation = "HeaderLabel"
 	column.add_child(title)
 	message_label = Label.new()
 	message_label.custom_minimum_size.x = 240
@@ -46,10 +44,16 @@ func _ready():
 	column.add_child(message_label)
 	accept_button = Button.new()
 	accept_button.text = "OK"
-	accept_button.custom_minimum_size.y = 44
+	accept_button.theme_type_variation = "PrimaryButton"
+	accept_button.custom_minimum_size.y = 48
+	accept_button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	accept_button.pressed.connect(dismiss)
 	column.add_child(accept_button)
 	hide()
+
+func _notification(what: int):
+	if what == NOTIFICATION_THEME_CHANGED and shade != null:
+		shade.color = get_theme_color("shade", "ErrorPopup")
 
 func present(message: String):
 	if not visible:

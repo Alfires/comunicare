@@ -3,7 +3,9 @@
 ## Status and goal
 
 **Planned — 2026-11-05.** No island, asset downloads or Credits UI are delivered
-by this roadmap. Replace the built-in default blockout with an original,
+by this roadmap. This file is the **shared design overview**; implementation is
+split into [14 small test-first roadmaps](welcome-island/README.md), whose index
+owns dependency order and per-part status. Replace the built-in default blockout with an original,
 hand-assembled floating island: **a good home first**, where players can naturally
 discover Comunicare through things they choose to do. It must feel worth returning
 to, not like a tutorial level that has served its purpose after one visit.
@@ -370,122 +372,23 @@ desktop/headset hardware before increasing detail. Record headset refresh rate
 and meet its frame budget (for example 11.1 ms at 90 Hz); do not infer XR readiness
 from headless checks. Reduce foliage overdraw/shadows first if the budget fails.
 
-## Delivery milestones and verification
+## Delivery plan and completion
 
-Each checkbox is a coherent, independently verified future implementation part.
-Use Conventional Commits and the repository's ordinary Git publication rules.
-For bug fixes, first reproduce the failure with a test. Do not commit unrelated
-existing player, animation or test changes along with island work.
+The original five broad milestones are **superseded** by the
+[small-roadmap index](welcome-island/README.md). Use that index for execution
+order, prerequisites, mandatory test-first rules and status; this overview retains
+the design contract rather than a competing implementation checklist.
 
-### 1. Offline integration and graybox
+Every small roadmap starts with **writing executable tests and running them before
+building its feature**. Define manual visual/XR procedures at that same first step.
+Then implement, rerun tests and perform required manual checks. New integration
+bugs need reproducing tests before fixes too. Do not publish failing intermediate
+snapshots or include unrelated player, animation or user changes.
 
-- [ ] Add an isolated welcome-world test runner with disposable user data; reproduce
-  blocked/offline startup, spawn or reset failures before fixing them.
-- [ ] Keep `scenes/world.tscn` as the compatible entry point and preserve its UID;
-  split authored content into focused island subscenes/resources as needed.
-- [ ] Block out the original island, center spawn, paths, shelter and safe edges.
-  Test capsule clearance, slopes, desktop movement and VR teleport surfaces.
-- [ ] Keep one continuous landmass with the spawn in its middle; graybox the pond,
-  sealed pond bed, dry perimeter route, dock and ship turning clearance.
-- [ ] Graybox left-side lounging/picnic spaces and the right-side house/garden;
-  validate the house rooms, accessible entry, beds, counter reach and clear exits.
-- [ ] Share a spawn/reset contract across direct startup, DataLoader activation
-  and fall recovery; preserve root-level player lifetime, XR tracking offsets and
-  cleared movement velocity. Reset items to their own homes, not the player's head.
-- [ ] Make the built-in revision include relevant shipped dependency changes with
-  deterministic local packaging/manifest generation; retain revision mismatch checks.
-
-**Gate:** with networking unavailable, island and menu are usable without waiting
-for relay timeout; repeated falls/returns do not duplicate players or leave props
-moving, and `default_wold` still resolves through DataLoader.
-
-### 2. Asset spike and Credits foundation
-
-- [ ] Acquire a minimal cleared tree, rock, ground material, table and sky set;
-  inspect imports, scale, normals, foliage alpha, license files and redistribution.
-- [ ] Select a free cleared ship hull and individual dock components; record exact
-  sources/licenses and test suitable scale, collision proxies and water material.
-- [ ] Select cleared modular house parts, lounge seating, beds, kitchen fixtures
-  and at least eight individual movable kitchen objects; record an exact inventory
-  with sources, licenses, runtime variants and Credits entries before bundling.
-- [ ] Establish original terrain authoring/export steps, asset provenance manifest,
-  source/license storage and reduced runtime variants. No opaque imported map.
-- [ ] Implement the read-only Credits page and manifest/license consistency tests.
-
-**Gate:** reproduce the small sample scene from documented sources/conversions;
-Credits and full notices work offline in desktop UI and the VR viewport.
-
-### 3. Everyday interactions and optional help
-
-- [ ] Spike existing `world_pickup_controller.gd`/runtime integration before choosing
-  a shared local adapter or validated built-in document. Reuse behavior where safe;
-  do not weaken downloaded-world validation or add relay dependencies for offline use.
-- [ ] Deliver pickup/drop/reset props plus an activatable lamp switch, including
-  aim feedback, reach limits, collision, cancellation and bounded velocities.
-- [ ] Deliver offline ship boarding, player steering, stopping, safe disembarking,
-  rider support and return-to-dock/reset. Test pond/shore collision, lost focus,
-  scene exit and VR comfort; do not substitute a decorative animated ship.
-- [ ] Deliver the house lounge and beds, three independently adjustable lighting
-  zones, working faucet/storage/hob controls and at least eight pickupable kitchen
-  objects. Verify bounded controls, stable placement, door clearance and reset.
-- [ ] Add opt-in device/binding-aware Help, minimal contextual action hints and
-  show/hide controls through real menus. Verify remapping and focus suppression;
-  do not add tutorial stations, task tracking or an ordered introduction.
-- [ ] Keep help visibility and lamp state local. If this same built-in
-  scene is joined online, either use existing authorized synchronized ownership
-  or indicate local-only object behavior in contextual/menu information, not
-  oversized world signs; never imply unimplemented sync.
-
-**Gate:** a new desktop user and a seated VR user can try every required action
-without internet, enabling the microphone, changing preferences or completing
-earlier tasks. Reset recovers all props, including lost/held objects, and safely
-returns the ship and rider to the dock. The ship is optional to try, not optional
-to implement. House controls and kitchen belongings are also required working
-features, not scenery-only substitutes.
-
-### 4. Hand-assembled landscape and lighting pass
-
-- [ ] Replace the graybox with our own terrain and individual asset placements;
-  compose the grove, underside, roots, overlooks and quiet destinations.
-- [ ] Add consistent PBR materials, shadows, restrained ambience and the cozy
-  shelter. Test sunlight/shade and lamp-on/off behavior with moving belongings;
-  keep technical comparison displays out of the finished environment.
-- [ ] Finish the pond banks, bed, dock and ship materials; verify waterline,
-  reflections and hull contact in both XR eyes without costly required effects.
-- [ ] Finish the left/right spaces and hand-assembled house interior; verify cozy
-  composition, natural prop placement, light spill and kitchen effects in both
-  XR eyes without increasing dynamic-light/physics costs beyond measured budgets.
-- [ ] Optimize vegetation, collision, LODs and lighting against measured budgets;
-  retain a readable lower-cost configuration and accessible traversal routes.
-
-**Gate:** rendered views from spawn, grove, shelter and overlook show a coherent
-home island, not a kit demo or tutorial campus. With every hint hidden, each area
-still makes sense and feels worth visiting. Manual desktop and headset walkthroughs confirm
-readable hints, comfortable reach/locomotion, safe recovery and stable performance.
-
-### 5. Regression and release acceptance
-
-- [ ] Automate scene/load dependencies, spawn clearance, repeated scene changes,
-  fall/item reset, interaction cleanup, hint rebinding and Credits completeness.
-- [ ] Add ship control/reset/lifecycle tests, invalid disembark rejection, shoreline
-  containment and safe pond recovery. Manually verify moving rider stability and
-  comfortable boarding/steering on desktop and an actual headset.
-- [ ] Test house light bounds/zones, appliance state changes and cleanup, safe
-  door/drawer limits, kitchen pickup/drop/reset and bed exit. Manually verify seated
-  reach, room/teleport clearance, held-prop stability and actual light response.
-- [ ] Run relevant isolated suites: microphone/settings, active instance, public
-  discovery, safe worlds, VR controls and real UI; inspect their current runners
-  and prerequisites first. Report failures/skips without claiming full coverage.
-- [ ] Check offline launch with blocked relay/DNS in a disposable profile and no
-  asset cache; check corrupt-account handling without touching real accounts.
-- [ ] Check entering/leaving an online instance and returning home: player/UI
-  survive correctly, local props cannot affect another instance, and session
-  identifiers/admission/acknowledged transition behavior remain unchanged.
-- [ ] Record hardware-specific renderer/XR results and screenshots; document
-  remaining limitations. Update current user guides and this roadmap's index status.
-- [ ] Playtest free exploration without enabling Help: users can choose their own
-  activities and identify places they would revisit. Reject a layout that reads
-  as a sequence of lessons, even if all technical interaction tests pass.
+The parts cover offline foundation, asset provenance, Credits, island layout,
+recovery/revisions, local interactions, pond/dock, ship, house/side spaces, room
+lighting, kitchen, optional Help, landscape/rendering and final release acceptance.
+All remain planned; splitting the documents does not implement tests or features.
 
 **Done means:** the old default blockout is replaced, the island works offline
 from bundled content, it is one big island with the spawn in the middle, the pond

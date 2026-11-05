@@ -465,9 +465,9 @@ func _apply_remote(id: int):
 		return
 	if value.get("kind") == "locomotion" and value.get("role") in ["strafe_left", "strafe_right"]:
 		clip = strafe_pose(clip)
-	if not value.loop and AnimationState.playhead(value, now()) >= value.duration:
-		if is_instance_valid(remote_animators.get(id)): remote_animators[id].stop()
-		return
+	# Finished one-shots (including static neutral) retain their authored final
+	# pose. stop() applies RESET and would leave a stationary peer in T-pose on
+	# the next periodic snapshot. A subsequent state owns the next transition.
 	if value.get("mask") == "tracked_head_hands":
 		clip = tracking_mask(clip)
 		if clip.tracks.is_empty(): return

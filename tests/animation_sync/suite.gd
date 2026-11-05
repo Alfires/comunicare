@@ -582,6 +582,30 @@ func test_controller(parsed: Dictionary):
 	controller.receive(neutral)
 	check(not controller.incoming.has(7), "newly joined standing player never requests nonexistent remote animation size")
 	check(controller.remote_animators.has(7), "standing remote player gets built-in neutral animation without downloadable payload")
+	var completed_standing = neutral.duplicate(true)
+	completed_standing.loop = false
+	completed_standing.offset = 1.0
+	completed_standing.sequence = 5
+	controller.receive(completed_standing)
+	check(controller.remote_animators[7].descriptor.get("sequence") == 5,
+		"completed nonlooping standing state retains authored pose instead of resetting remote rig to T-pose")
+	var standing_animator = controller.remote_animators[7]
+	standing_animator.player.advance(2.0)
+	controller.receive(completed_standing)
+	check(standing_animator.descriptor.get("sequence") == 5 and standing_animator.player.has_animation("motion/clip"),
+		"repeated expired standing snapshots keep the animation layer instead of applying RESET")
+	var replacement = Node3D.new()
+	replacement.add_child(skeleton.duplicate())
+	replacement.set_meta("humanoid_bones", remote.avatar.get_meta("humanoid_bones").duplicate())
+	remote.remove_child(remote.avatar)
+	remote.avatar.free()
+	remote.avatar = replacement
+	remote.add_child(replacement)
+	controller.receive(completed_standing)
+	check(controller.remote_animators[7].avatar == replacement and controller.remote_animators[7].descriptor.get("sequence") == 5,
+		"late-loaded replacement avatar receives completed standing pose instead of remaining in T-pose")
+	neutral.sequence = 6
+	controller.receive(neutral)
 	var animator = controller.remote_animators[7]
 	check(animator.has_method("synchronize"), "animation drift supports continuous correction without periodic playhead jumps")
 	if animator.has_method("synchronize"):

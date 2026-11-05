@@ -24,6 +24,11 @@ seek. Synthetic tests are not a visual Internet-latency or headset certification
 
 ## Authored animation receiver coverage
 
+Completed non-looping states (notably neutral standing) keep their authored final
+pose across periodic snapshots and late avatar replacement. The regression was
+reproduced failing: the receiver previously called animator `stop()`, applying
+RESET and returning a stationary remote player to T-pose after its clip expired.
+
 The production receiver is exercised with every protocol built-in, including
 `neutral`, with both full and tracked-head/hands masks and no custom asset fields.
 The standing-player join regression reproduced a `Dictionary.size` error before

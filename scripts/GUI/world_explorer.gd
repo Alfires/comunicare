@@ -29,6 +29,13 @@ signal reset
 var local_map_picker: FileDialog
 
 func _ready() -> void:
+	var edit_local = Button.new()
+	edit_local.text = "Edit local project…"
+	edit_local.custom_minimum_size.y = 44
+	edit_local.pressed.connect(func():
+		var editor = load("res://scenes/GUI/map_editor.tscn").instantiate()
+		add_child(editor))
+	$VBoxContainer/HBoxContainer.add_child(edit_local)
 	local_map_picker = FileDialog.new()
 	local_map_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	local_map_picker.access = FileDialog.ACCESS_FILESYSTEM

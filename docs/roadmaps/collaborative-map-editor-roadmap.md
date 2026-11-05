@@ -3,6 +3,12 @@
 Status: **proposal, not implemented**. Multiplayer editing, project synchronization
 and project recovery described here are not current runtime features.
 
+Initial implementation update: local JSON editor/save/export panel and service
+primitives now exist; 36 service contracts pass. See
+[current limits](../../scripts/editor/README.md). Authenticated editing transport,
+friend invitations, visual gizmos and actual playtest launches remain unimplemented.
+The roadmap is not complete and no remote editing access is enabled.
+
 Test-first update: opt-in [editor acceptance contracts](../../tests/map_editor/README.md)
 exist with a verified absent-editor baseline of 0 passed, 7 failed, 7 dependent
 groups blocked, exit 1 without engine errors. These proposed service seams do not

@@ -2126,14 +2126,14 @@
     {
       "kind": "func",
       "name": "set_state",
-      "line": 33,
+      "line": 38,
       "signature": "func set_state(blocked: bool, failed: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 39,
+      "line": 44,
       "signature": "func _process(delta: float)",
       "visibility": "private"
     }
@@ -4141,77 +4141,77 @@
     {
       "kind": "func",
       "name": "authenticate_peer",
-      "line": 545,
+      "line": 549,
       "signature": "func authenticate_peer(peer_id: int, verified_public_key: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_cancel_candidate_admissions",
-      "line": 552,
+      "line": 556,
       "signature": "func _cancel_candidate_admissions(candidate: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_begin_admission",
-      "line": 557,
+      "line": 561,
       "signature": "func _begin_admission(candidate: int, session: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_session_access",
-      "line": 578,
+      "line": 582,
       "signature": "func _session_access(candidate: int, session: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_join_decision",
-      "line": 592,
+      "line": 596,
       "signature": "func _join_decision(actor: int, value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_admission_reply",
-      "line": 608,
+      "line": 612,
       "signature": "func _admission_reply(actor: int, value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_finish_admission",
-      "line": 625,
+      "line": 629,
       "signature": "func _finish_admission(token: String, allow: bool, message: String = \"\")",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_expire_admissions",
-      "line": 650,
+      "line": 654,
       "signature": "func _expire_admissions()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "publish_profile",
-      "line": 655,
+      "line": 659,
       "signature": "func publish_profile(peer_id: int, fields: Dictionary) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_profiles_for_peer",
-      "line": 678,
+      "line": 682,
       "signature": "func get_profiles_for_peer(peer_id: int) -> Array",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_send_profiles",
-      "line": 692,
+      "line": 696,
       "signature": "func _send_profiles(peer_id: int)",
       "visibility": "private"
     }
@@ -5221,35 +5221,35 @@
     {
       "kind": "func",
       "name": "issue_challenge",
-      "line": 8,
+      "line": 9,
       "signature": "func issue_challenge(connection_id: int, public_key: String) -> PackedByteArray",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "verify_response",
-      "line": 18,
+      "line": 19,
       "signature": "func verify_response(connection_id: int, signature: PackedByteArray) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "get_identity",
-      "line": 38,
+      "line": 42,
       "signature": "func get_identity(connection_id: int) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "expire_challenges",
-      "line": 41,
+      "line": 45,
       "signature": "func expire_challenges()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "disconnect_peer",
-      "line": 44,
+      "line": 48,
       "signature": "func disconnect_peer(connection_id: int)",
       "visibility": "public"
     }

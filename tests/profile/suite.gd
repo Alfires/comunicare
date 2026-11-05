@@ -415,6 +415,9 @@ func test_profile_wire():
 	clients.append(duplicate)
 	await pump(relay, clients)
 	check(not duplicate.is_authenticated, "second simultaneous connection with same key is rejected")
+	check("same account" in duplicate.authentication_error.to_lower() and "separate" in duplicate.authentication_error.to_lower(),
+		"second-window authentication rejection explains shared account and separate local identities")
+	check(clients[0].is_authenticated and clients[0].is_connected_to_relay, "duplicate launch cannot disconnect first account session")
 	clients[1].join_session(clients[2].current_session_id)
 	await pump(relay, clients)
 	check(clients[0].profiles.size() == 1 and clients[1].profiles.size() == 2,

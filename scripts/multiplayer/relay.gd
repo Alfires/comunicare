@@ -539,8 +539,12 @@ func _handle_auth(peer_id: int, type: int, values: Dictionary):
 			and authenticator.verify_response(peer_id, Marshalls.base64_to_raw(values.signature))
 		if success:
 			authenticate_peer(peer_id, authenticator.get_identity(peer_id).public_key)
+		var code = "" if success else authenticator.last_rejection
+		var message = "" if success else "Invalid, expired or replayed authentication signature"
+		if code == "account_already_connected":
+			message = "The same account is already connected to this relay in another game window. Use separate local identities for simultaneous clients (tools/clients/launch.py), or close the first window before retrying."
 		AccountPacket.create(PacketInfo.PACKET_TYPE.AUTH_RESULT,
-			{"success": success, "social_version": 1, "animation_version": 2, "tracking_version": 1, "world_revision_version": 1, "directory_version": 1, "world_items_version": 1, "message": "" if success else "Invalid, expired, replayed signature or account already connected"}).sent(peers[peer_id])
+			{"success": success, "code": code, "social_version": 1, "animation_version": 2, "tracking_version": 1, "world_revision_version": 1, "directory_version": 1, "world_items_version": 1, "message": message}).sent(peers[peer_id])
 
 func authenticate_peer(peer_id: int, verified_public_key: String):
 	# Internal trust boundary; wire handlers call this only after proof verification.

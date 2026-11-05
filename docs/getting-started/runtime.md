@@ -1,5 +1,26 @@
 # Running clients and relays
 
+## Two local game windows
+
+Two ordinary launches share `user://user.key`. The relay intentionally rejects a
+second live connection for the **same account**, preventing ambiguous account
+membership, moderation and profile ownership. This is not a failed UDP connection.
+The rejection now explicitly explains the shared account rather than reporting a
+generic signature/connection failure. The first window stays connected.
+
+For simultaneous local testing with separate temporary identities:
+
+```sh
+python3 tools/clients/launch.py --count 2 --relay 127.0.0.1 --port 7374
+```
+
+Start a relay separately first. Each client gets independent account/settings/cache
+roots under `/tmp/opencode`; microphone starts muted. Closing the launcher removes
+those temporary identities. It never overwrites or copies your real account key.
+Use `--vr` to allow runtime XR initialization instead of forced desktop mode.
+This launcher is for Linux/XDG development; it does not claim Windows/macOS user-data
+isolation. Two different people/devices should use their own normal account stores.
+
 Startup loads local play/menu without waiting for relay selection. Settings → Network
 shows current connection state and Retry/Cancel. Edit the saved ordered relay rows
 for future connections; obsolete scalar migration fields are hidden. TLS certificate

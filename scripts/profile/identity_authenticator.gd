@@ -3,6 +3,7 @@ extends RefCounted
 const Identity = preload("res://scripts/profile/profile_identity.gd")
 var challenges: Dictionary = {}
 var identities: Dictionary = {}
+var last_rejection := ""
 const CHALLENGE_LIFETIME_MS = 10000
 
 func issue_challenge(connection_id: int, public_key: String) -> PackedByteArray:
@@ -16,6 +17,7 @@ func issue_challenge(connection_id: int, public_key: String) -> PackedByteArray:
 	return bytes
 
 func verify_response(connection_id: int, signature: PackedByteArray) -> bool:
+	last_rejection = "invalid_authentication"
 	if not challenges.has(connection_id):
 		return false
 	var challenge: Dictionary = challenges[connection_id]
@@ -31,8 +33,10 @@ func verify_response(connection_id: int, signature: PackedByteArray) -> bool:
 	var fingerprint = Identity.fingerprint(challenge.public_key)
 	for identity in identities.values():
 		if identity.fingerprint == fingerprint:
+			last_rejection = "account_already_connected"
 			return false # One live connection per account on this relay.
 	identities[connection_id] = {"public_key": challenge.public_key, "fingerprint": fingerprint}
+	last_rejection = ""
 	return true
 
 func get_identity(connection_id: int) -> Dictionary:

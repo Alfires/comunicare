@@ -808,6 +808,10 @@ keys are protocol contracts. Signature verification is not content-host trust.
 | `verify_profile` | Validates exact normalization, canonical key, bounded revision/signature and crypto; bool; no mutation or trust grant beyond signer identity. |
 
 <!-- module: scripts/profile/identity_authenticator.gd -->
+`verify_response` exposes a last_rejection code distinguishing a cryptographically
+valid duplicate-account connection from invalid/expired/replayed proof. The one-live-
+account rule is preserved; the relay returns actionable second-window guidance and
+does not disconnect the already authenticated account.
 ### [IdentityAuthenticator](../../scripts/profile/identity_authenticator.gd)
 
 Relay-owned RefCounted transient challenge/identity maps. No disk writes. Private

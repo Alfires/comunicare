@@ -6,6 +6,12 @@ select avatar/animation filters. Search also has provider, format and ordering
 filters, with explicit Load more. Search is over fetched public catalogs, not a
 global server-side index or popularity ranking.
 
+Result cards now have bounded PNG/JPEG thumbnails, license/compatibility/sharing/
+loop filters and tag search. Advanced filters for custom APIs apply only to each
+fetched page. Built-in catalogs and thumbnail caches expire after five minutes.
+Back from Details restores fetched cards, scroll and selected-card focus without
+another catalog request. Unknown compatibility is never presented as verified.
+
 Opening the browser makes no external requests. Submit a search/category or
 select **Load category recommendations** to contact enabled sources. Providers
 receive your IP and search terms. Built-in providers never receive credentials:
@@ -35,6 +41,12 @@ The public VRMA clips contain hip translation. Use **Import animation in-place
 preserves rotations, validates the result and records the adaptation in provenance.
 It does not change the original online file or relax the standard importer.
 
+**Preview animation on a separate copy of my avatar (in-place)** downloads the
+motion and plays it on an independent avatar in the preview viewport. Conversion
+removes translation only for this explicit in-place action. The equipped model,
+configuration and instance animation stream are untouched. A compatible local
+avatar must be available. Close Details to dispose the preview.
+
 Import supports self-contained VRM/GLB avatars up to 64 MiB and compatible GLB/VRMA
 animations up to 16 MiB. FBX/Unity packages/ZIPs are not supported. Built-in licenses
 were checked as CC0; custom source claims remain your responsibility. Currently
@@ -49,14 +61,27 @@ The API must implement the schema below; a URL alone does not integrate arbitrar
 websites. Sources can be enabled/disabled, tested, edited or removed. Updating an
 endpoint clears its credential. **Sign out / clear credential** removes the secret.
 
-Credentials are **memory-only** and are cleared on browser close/account change;
-there is no plaintext token persistence, OAuth, password-form automation or OS
-credential-store integration. Source endpoints/preferences are saved separately
+Credentials default to **memory-only** and clear on browser close/account change.
+On Linux, `secret-tool` with an unlocked Secret Service enables explicit **Remember
+credential in OS keyring** and **Restore from OS keyring** actions. Secrets use the
+helper's standard input, not command-line arguments. Failure/other platforms keep
+memory-only behavior; there is no plaintext fallback. Sign out, Remove and changing
+endpoint request deletion of the old keyring entry. Locked/unavailable keyrings
+may prevent deletion; remove stale entries in the OS keyring manager if needed.
+Source endpoints/preferences are saved separately
 per local account at `user://avatars/<fingerprint>.discovery.json`. Authenticated
 requests are restricted to the exact endpoint origin; cross-origin redirects and
 credential-bearing download URLs are rejected. Private asset URLs/headers are not
 written to the ordinary asset cache or applied source descriptors: validated bytes
 are imported through a temporary local file. The relay never handles discovery.
+
+Custom sources can select **OAuth** and specify HTTPS authorization/token URLs,
+public client ID and scopes. **OAuth sign in** opens the system browser with PKCE
+S256/random state and a temporary localhost callback. Callback Host, port/path,
+state, three-minute expiry and one-use codes are checked; HTTPS code exchange
+uses no redirects or client secret. Providers must support public native clients
+and dynamic loopback ports. No embedded login pages, refresh-token storage or
+automatic token refresh is provided; sign in again when a token expires.
 
 Requests use GET with `query`, `type` (`all`, `avatar`, `animation`) and `cursor`.
 Example response:
@@ -85,10 +110,17 @@ followed, never forwarding custom credentials to a different origin.
 
 ## Current limitations
 
-This is the first browser slice: text result cards (no downloaded thumbnails),
-explicit category-feed loading, type/format/provider/title filters only. Advanced
-license/tag/compatibility filters, automatic TTL/revalidation, persisted scroll/
-focus restoration, animation preview playback and OAuth remain roadmap work.
-Authenticated assets can be validated/imported, but direct authenticated preview
-is disabled. Real headset layout/keyboard usability, full renderer previews and
-independent-client sharing still need manual validation.
+Category feeds require explicit loading. PNG/JPEG thumbnails are bounded to 2 MiB
+and 2048×2048 before decode, then resized to 256px; GIF/WebP thumbnails use an empty
+slot. Metadata refresh failure does not yet retain expired stale catalogs.
+Authenticated model preview is disabled (animation previews use scoped downloads).
+Real OAuth-provider registration/login, keyring behavior on each desktop, headset
+keyboard/layout, visual animation previews and independent-client sharing still
+need manual verification. Windowed automated contracts do not certify XR hardware.
+
+Verification: `python3 tests/avatar_discovery/run.py` and the windowed
+`--display` mode run synthetic contracts without external providers. Explicit
+`KEYRING_TEST=1` enables a synthetic OS-keyring store/lookup/delete test; it is not
+part of the isolated default suite. On this development desktop the store failed
+because Secret Service is unavailable (`The name is not activatable`), so no
+successful keyring round-trip is claimed. Real OAuth login also remains unverified.

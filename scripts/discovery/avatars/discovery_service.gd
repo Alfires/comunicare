@@ -10,6 +10,7 @@ var requests: Array = []
 var policy = Policy.new()
 var catalogs: Dictionary = {}
 var retry_at: Dictionary = {}
+const CATALOG_TTL_MSEC = 300000
 
 func configure(value: Dictionary, transport_options: Dictionary = {}):
 	cancel()
@@ -106,9 +107,15 @@ func search(query: Dictionary) -> Dictionary:
 				if item.get(field, "") is String: record[field] = item.get(field, "").left(4096 if field.ends_with("url") else 200)
 			record.compatibility = "unknown" # A remote catalog can never self-certify importer validation.
 			record.redistribution = item.get("redistribution", false) == true
+			record.tags = []
+			if item.get("tags") is Array:
+				for tag in item.tags.slice(0, 20):
+					if tag is String: record.tags.append(tag.left(80))
+			if item.get("loop") is bool: record.loop = item.loop
 			normalized.append(record)
-		return {"items": normalized, "next_cursor": str(result.data.get("next_cursor", "")).left(512), "request_received": result.data.get("request_received", {})}
+		return {"items": preload("res://scripts/discovery/avatars/catalog_filters.gd").new().apply(normalized, query), "next_cursor": str(result.data.get("next_cursor", "")).left(512), "request_received": result.data.get("request_received", {}), "scope": "Advanced filters apply to this fetched provider page"}
 	var key: String = source.id
+	if catalogs.has(key) and catalogs[key] is Dictionary and Time.get_ticks_msec() - catalogs[key].at > CATALOG_TTL_MSEC: catalogs.erase(key)
 	if not catalogs.has(key):
 		var result = await _json(source.base_url)
 		if result.has("error"): return result
@@ -126,15 +133,9 @@ func search(query: Dictionary) -> Dictionary:
 				if not path.begins_with("animations/") or ".." in path or not path.ends_with(".vrma"): continue
 				records.append({"id": path, "title": path.get_file().get_basename(), "type": "animation", "format": "vrma", "author": str(item.get("creator", "")).left(200), "license": "CC0-1.0", "redistribution": true, "compatibility": "unknown", "download_url": VOX + path, "page_url": item.get("source", ""), "sha256": item.get("sha256", ""), "category": "emotes"})
 		if ticket != generation: return {"error": "Cancelled"}
-		catalogs[key] = records.slice(0, 1000)
-	var filtered: Array = []
-	for record in catalogs[key]:
-		if query.get("type", "all") != "all" and record.type != query.type: continue
-		if query.get("format", "all") != "all" and record.format != query.format: continue
-		var term = str(query.get("query", "")).to_lower()
-		if not term.is_empty() and not term in str(record.title).to_lower(): continue
-		filtered.append(record.duplicate(true))
-	if query.get("sort") == "title": filtered.sort_custom(func(a, b): return a.title.naturalnocasecmp_to(b.title) < 0)
+		catalogs[key] = {"records": records.slice(0, 1000), "at": Time.get_ticks_msec()}
+	var cached = catalogs[key].records if catalogs[key] is Dictionary else catalogs[key]
+	var filtered: Array = preload("res://scripts/discovery/avatars/catalog_filters.gd").new().apply(cached, query)
 	var start = maxi(0, int(query.get("cursor", "0")))
 	return {"items": filtered.slice(start, start + 24), "next_cursor": str(start + 24) if start + 24 < filtered.size() else "", "scope": "Search over fetched public catalog"}
 

@@ -6,7 +6,7 @@
 `origin` normalizes scheme/authority. `valid_url` accepts bounded HTTPS without
 embedded credentials/token queries; explicit test transport permits loopback HTTP.
 `prepare_request` returns URL/headers or empty; built-ins never inherit secrets,
-custom bearer/API-key headers require the configured exact origin.
+custom bearer/API-key/OAuth bearer headers require the configured exact origin.
 
 <!-- module: scripts/discovery/avatars/source_registry.gd -->
 ## Avatar discovery sources
@@ -15,7 +15,8 @@ custom bearer/API-key headers require the configured exact origin.
 the catalog adapter. `set_credentials` stores custom-only secrets in memory;
 `get_credentials` copies them. `remove_source` clears source and secret;
 `export_configuration` returns nonsecret preferences. `clear_credentials` drops
-all memory secrets. No OS credential store or OAuth implementation is implied.
+all memory secrets. OAuth endpoint/public-client config may persist but session
+verifiers and credentials never enter preferences; separate services handle login/store.
 
 <!-- module: scripts/discovery/avatars/import_policy.gd -->
 ## Discovery import gate
@@ -32,7 +33,41 @@ generations, cancels HTTP and releases awaiters. `request_bytes` awaits bounded
 requests, HTTPS redirects, origin/rate checks and no-store detection; returns
 bytes or redacted error. `search` normalizes custom schema-1 catalogs or anonymous
 OSA/VoxAvatar manifests and pages/filters fetched records. Metadata cache lasts
-for the browser session, without TTL revalidation. Teardown cancels pending work.
+for five minutes in the open browser, then revalidates; custom advanced filters
+apply to the fetched page. Teardown cancels pending work.
+
+<!-- module: scripts/discovery/avatars/catalog_filters.gd -->
+## Catalog filters
+
+`apply` returns filtered copies using type/format/query/author/tags/category,
+license/compatibility/redistribution/loop metadata and optional title ordering.
+Unknown metadata never matches verified compatibility or a known loop flag.
+
+<!-- module: scripts/discovery/avatars/thumbnail_cache.gd -->
+## Bounded thumbnails
+
+`decode` validates PNG/JPEG header dimensions and compressed bytes before native
+decode, then caps rendered textures at 256px. Unsupported formats return null.
+`get_texture` expires five-minute entries; `store` retains at most 64 textures.
+No file persistence or authentication headers are involved in thumbnail fetches.
+
+<!-- module: scripts/discovery/avatars/oauth_session.gd -->
+## Custom-provider OAuth PKCE
+
+`begin` validates public-client configuration and loopback callback, creates
+cryptographic state/verifier and returns authorization URL with S256 challenge.
+`accept_callback` requires exact callback/state, expiry, single use and a code;
+returns form exchange fields without performing HTTP. `clear` drops session secrets.
+The browser owns loopback Host checks, external browser and HTTPS token exchange.
+
+<!-- module: scripts/discovery/avatars/credential_store.gd -->
+## Linux Secret Service credential storage
+
+`available` reports helper/platform availability, not whether the keyring is
+unlocked. `perform` awaits a bounded worker/helper store/lookup/clear operation,
+scoped to application/local-account/source/origin, with secret on standard input.
+Unavailable/failed calls return false; never plaintext fallback. Teardown joins
+worker. Actual Secret Service round-trip is an opt-in manual environment gate.
 
 <!-- module: scripts/discovery/avatars/animation_conversion.gd -->
 ## Explicit in-place animation conversion

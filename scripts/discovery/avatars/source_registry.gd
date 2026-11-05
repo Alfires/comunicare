@@ -9,10 +9,16 @@ func add_source(value: Dictionary) -> bool:
 	if not id is String or id.is_empty() or id.length() > 80 or sources.has(id): return false
 	if value.get("kind") not in ["builtin", "custom"] or not policy.valid_url(str(value.get("base_url", ""))): return false
 	var auth = value.get("auth", "none")
-	if auth not in ["none", "bearer", "api_key"] or (value.kind == "builtin" and auth != "none"): return false
+	if auth not in ["none", "bearer", "api_key", "oauth"] or (value.kind == "builtin" and auth != "none"): return false
 	if value.kind == "custom" and value.get("adapter", "catalog") != "catalog": return false
 	sources[id] = {"id": id, "kind": value.kind, "base_url": value.base_url, "auth": auth,
 		"name": str(value.get("name", id)).left(100), "adapter": str(value.get("adapter", "catalog")), "enabled": value.get("enabled", true) == true}
+	if auth == "oauth":
+		var config = value.get("oauth", {})
+		if not config is Dictionary or not policy.valid_url(str(config.get("authorization_url", ""))) or not policy.valid_url(str(config.get("token_url", ""))) or str(config.get("client_id", "")).is_empty():
+			sources.erase(id)
+			return false
+		sources[id].oauth = {"authorization_url": config.authorization_url, "token_url": config.token_url, "client_id": str(config.client_id).left(256), "scope": str(config.get("scope", "")).left(512)}
 	return true
 
 func set_credentials(id: String, value: Dictionary) -> bool:

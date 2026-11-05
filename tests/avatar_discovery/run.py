@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Avatar discovery contracts; disposable files, loopback API by default."""
 import http.server
+import argparse
 import json
 import os
 from pathlib import Path
@@ -53,6 +54,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--display", action="store_true", help="Run browser contracts with a real window (no headset)")
+    args = parser.parse_args()
     godot = shutil.which(os.environ.get("GODOT", "godot"))
     if not godot:
         print("Godot required (override with GODOT)")
@@ -80,16 +84,18 @@ def main():
                 shutil.copy2(os.environ["ANIMATION_FIXTURE"], project / "sample.vrma")
             if os.environ.get("LIVE_DISCOVERY") == "1":
                 (project / "live-opt-in.txt").write_text("explicit external API verification")
+            if os.environ.get("KEYRING_TEST") == "1":
+                (project / "keyring-opt-in.txt").write_text("explicit synthetic OS keyring roundtrip")
             (project / "home_scene.txt").write_text((ROOT / "scenes/GUI/home_menue.tscn").read_text())
             (project / "port.txt").write_text(str(server.server_port))
             (project / "project.godot").write_text(
                 'config_version=5\n[application]\nconfig/name="Avatar discovery RED contracts"\n'
                 '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-            for args in (["--editor", "--import"], ["--script", "res://suite.gd"]):
-                result = subprocess.run([godot, "--headless", "--path", directory, *args],
+            for command in (["--headless", "--editor", "--import"], ([] if args.display else ["--headless"]) + ["--script", "res://suite.gd"]):
+                result = subprocess.run([godot, "--path", directory, *command],
                                         capture_output=True, text=True, timeout=60)
                 output = result.stdout + result.stderr
-                if "--script" in args or result.returncode or "ERROR:" in output:
+                if "--script" in command or result.returncode or "ERROR:" in output:
                     print(output, end="")
                 if "ERROR:" in output:
                     return 2

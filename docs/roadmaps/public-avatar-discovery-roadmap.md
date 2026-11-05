@@ -9,14 +9,27 @@ avatar preview and explicit import-to-draft are implemented. An animations-only
 CC0 source and explicit worker-based in-place VRMA adaptation are available.
 Current instructions and exact limitations: [browser guide](../guides/avatar-browser.md).
 
+**Follow-up implementation:** bounded PNG/JPEG thumbnail cards, advanced metadata
+filters, five-minute built-in catalog/thumbnail TTL, fetched-result scroll/focus
+restoration, isolated in-place animation previews, custom OAuth PKCE loopback
+login and opt-in Linux Secret Service credential storage are now implemented.
+Real-provider OAuth, OS-keyring/manual animation-preview and headset usability
+gates remain open; no hardware certification is claimed.
+
+Follow-up verification: discovery **77 passed** in both headless and windowed
+contracts, with zero failed/skipped groups; profile/settings regressions pass.
+Explicit synthetic keyring integration attempt failed to store because the desktop
+Secret Service is unavailable (`The name is not activatable`); memory-only fallback
+is retained. No successful real-keyring or real OAuth-provider sign-in is claimed.
+
 Live production-network checks fetched both catalogs and downloaded models/motions
 anonymously. A Polygonal Mind VRM imported successfully; a real VRMA required
 translation removal before the rotation-only importer accepted it. This does not
 certify every catalog item, live ratings or renderer/headset quality.
 
-Remaining roadmap work includes thumbnail cards, advanced filters, metadata TTL,
-full navigation/scroll restoration, animation previews, OAuth/OS credential store,
-and broader race/redirect/import UI and headset validation. The original design
+Remaining work includes broader race/redirect/import UI testing, stale-on-refresh
+metadata, additional thumbnail formats, non-Linux secure stores, token refresh,
+real-provider registration and headset validation. The original design
 below remains the target, not a claim that every milestone has been delivered.
 
 Verification for this slice: discovery core passes 46 checks without external

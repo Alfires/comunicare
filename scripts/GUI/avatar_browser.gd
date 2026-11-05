@@ -23,6 +23,22 @@ var seen_results: Dictionary = {}
 var editor_open := false
 var filter_controls: Dictionary = {}
 var preferences_writable := true
+var thumbnail_cache = preload("res://scripts/discovery/avatars/thumbnail_cache.gd").new()
+var scroll_container: ScrollContainer
+var saved_records: Array = []
+var saved_scroll := 0
+var return_record := ""
+var card_buttons: Dictionary = {}
+var thumbnail_queue: Array = []
+var thumbnails_active := 0
+var credential_store: Node
+var oauth_listener: TCPServer
+var oauth_peer: StreamPeerTCP
+var oauth_buffer := ""
+var oauth_id := ""
+var oauth_config: Dictionary = {}
+var oauth = preload("res://scripts/discovery/avatars/oauth_session.gd").new()
+var oauth_exchange: HTTPRequest
 
 func _button(parent: Node, title: String, action: Callable) -> Button:
 	var button = Button.new()
@@ -33,6 +49,8 @@ func _button(parent: Node, title: String, action: Callable) -> Button:
 	return button
 
 func _ready():
+	credential_store = preload("res://scripts/discovery/avatars/credential_store.gd").new()
+	add_child(credential_store)
 	set_meta("blocks_global_shortcuts", true)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for value in [
@@ -61,6 +79,7 @@ func _ready():
 	_button(sidebar, "Search", func(): state.tab = "search"; _search(false))
 	_button(sidebar, "Sources", _sources)
 	var scroll = ScrollContainer.new()
+	scroll_container = scroll
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
 	content = VBoxContainer.new()
@@ -74,12 +93,17 @@ func _ready():
 	_button(content, "Search", func(): submit_home_search(search_box.text))
 	var filters = HFlowContainer.new()
 	content.add_child(filters)
-	for definition in [["type", ["all", "avatar", "animation"]], ["format", ["all", "vrm", "vrma", "glb"]], ["sort", ["provider", "title"]]]:
+	for definition in [["type", ["all", "avatar", "animation"]], ["format", ["all", "vrm", "vrma", "glb"]], ["sort", ["provider", "title"]], ["license", ["all", "CC0", "attribution", "unknown"]], ["compatibility", ["all", "unknown", "verified", "incompatible"]], ["shareable", ["all", "yes"]], ["loop", ["all", "yes", "no"]]]:
 		var selector = OptionButton.new()
 		for item in definition[1]: selector.add_item(item)
 		selector.item_selected.connect(func(index): state[definition[0]] = definition[1][index]; _search(false))
 		filter_controls[definition[0]] = selector
 		filters.add_child(selector)
+	var tag_field = LineEdit.new()
+	tag_field.placeholder_text = "Filter tags (fetched metadata)"
+	tag_field.max_length = 80
+	tag_field.text_submitted.connect(func(text): state.tag = text; _search(false))
+	content.add_child(tag_field)
 	source_filter = OptionButton.new()
 	source_filter.item_selected.connect(func(_index): _search(false))
 	filters.add_child(source_filter)
@@ -100,6 +124,8 @@ func _refresh_sources():
 		source_filter.set_item_metadata(source_filter.item_count - 1, id)
 
 func _clear():
+	thumbnail_queue.clear()
+	card_buttons.clear()
 	if is_instance_valid(preview):
 		preview.queue_free()
 	preview = null
@@ -166,7 +192,7 @@ func _home_feeds():
 		for item in response.get("items", []).slice(0, 6):
 			var record: Dictionary = item.duplicate(true)
 			record.provider = id
-			_button(results, str(record.get("title", "Asset")).left(100), _details.bind(record))
+			_card(record)
 	status.text = "Category samples from enabled public catalogs; select Search to filter everything."
 
 func _search(more: bool):
@@ -176,6 +202,7 @@ func _search(more: bool):
 	var ticket = generation
 	state.tab = "search"
 	if not more:
+		saved_records.clear()
 		cursors.clear()
 		seen_results.clear()
 		_clear()
@@ -211,11 +238,14 @@ func _search(more: bool):
 			var record = item.duplicate(true)
 			record.provider = id
 			count += 1
-			_button(results, str(record.get("title", "Asset")).left(100) + " · " + str(record.get("type", "unknown")) + " · " + source.name, _details.bind(record))
+			saved_records.append(record)
+			_card(record)
 	status.text = "%s results on this page. Search covers fetched public catalogs; provider ranking, not global popularity. %s" % [count, "\n".join(errors)]
 	if cursors.values().any(func(cursor): return not str(cursor).is_empty()): _button(results, "Load more", func(): _search(true))
 
 func _details(record: Dictionary):
+	saved_scroll = scroll_container.scroll_vertical
+	return_record = str(record.get("provider", "")) + ":" + str(record.get("id", ""))
 	_cancel_pending()
 	generation += 1
 	_clear()
@@ -230,10 +260,129 @@ func _details(record: Dictionary):
 		if record.get("type") == "avatar": _button(results, "Preview model (external download)", _preview_record.bind(record))
 		_button(results, "Download, validate and review in Avatar configuration", _import_record.bind(record))
 		if record.get("type") == "animation":
+			_button(results, "Preview animation on a separate copy of my avatar (in-place)", _preview_animation.bind(record))
 			var converted = record.duplicate(true)
 			converted.in_place = true
 			_button(results, "Import animation in-place (remove translation tracks)", _import_record.bind(converted))
-	_button(results, "Back to results", func(): _search(false))
+	_button(results, "Back to results", _restore_results)
+
+func _restore_results():
+	_cancel_pending()
+	generation += 1
+	_clear()
+	for record in saved_records: _card(record)
+	if cursors.values().any(func(cursor): return not str(cursor).is_empty()): _button(results, "Load more", func(): _search(true))
+	_restore_focus.call_deferred()
+
+func _restore_focus():
+	if not is_inside_tree(): return
+	scroll_container.scroll_vertical = saved_scroll
+	if card_buttons.has(return_record): card_buttons[return_record].grab_focus()
+
+func _card(record: Dictionary):
+	var row = HBoxContainer.new()
+	results.add_child(row)
+	var image = TextureRect.new()
+	image.custom_minimum_size = Vector2(80, 80)
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	row.add_child(image)
+	var title = str(record.get("title", "Asset")).left(100) + " · " + str(record.get("type", ""))
+	var button = _button(row, title, _details.bind(record))
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var key = str(record.get("provider", "")) + ":" + str(record.get("id", ""))
+	card_buttons[key] = button
+	image.texture = thumbnail_cache.get_texture(key)
+	if image.texture == null and not str(record.get("thumbnail_url", "")).is_empty():
+		thumbnail_queue.append({"record": record, "target": weakref(image), "key": key, "generation": generation})
+		_pump_thumbnails()
+
+func _pump_thumbnails():
+	while thumbnails_active < 2 and not thumbnail_queue.is_empty():
+		_load_thumbnail(thumbnail_queue.pop_front())
+
+func _load_thumbnail(job: Dictionary):
+	if job.generation != generation: return
+	thumbnails_active += 1
+	var service = Service.new()
+	add_child(service)
+	services.append(service)
+	# Thumbnails are deliberately anonymous, even for authenticated custom sources.
+	service.configure({"id": "thumbnail", "kind": "builtin", "auth": "none", "base_url": job.record.thumbnail_url})
+	var response: Dictionary = await service.request_bytes(job.record.thumbnail_url, 2 * 1024 * 1024)
+	services.erase(service)
+	service.queue_free()
+	thumbnails_active -= 1
+	var target = job.target.get_ref()
+	if job.generation == generation and is_instance_valid(target) and response.has("bytes"):
+		var texture = thumbnail_cache.decode(response.bytes)
+		target.texture = texture
+		if not response.get("no_store", false): thumbnail_cache.store(job.key, texture)
+	_pump_thumbnails()
+
+func _preview_animation(record: Dictionary):
+	var loader = get_node_or_null("/root/DataLoader")
+	if loader == null: return
+	var ticket = generation
+	var service = Service.new()
+	add_child(service)
+	services.append(service)
+	service.configure(registry.sources[record.provider])
+	service.credentials = registry.get_credentials(record.provider)
+	status.text = "Downloading motion for isolated in-place preview…"
+	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 16 * 1024 * 1024)
+	services.erase(service)
+	service.queue_free()
+	if ticket != generation: return
+	if response.has("error"):
+		status.text = response.error
+		return
+	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
+	var bytes: PackedByteArray = response.bytes
+	var clip = reader.read_bytes(bytes)
+	if clip.is_empty():
+		var converted: PackedByteArray = await _convert_animation(bytes)
+		if ticket != generation: return
+		if not converted.is_empty(): clip = reader.read_bytes(converted)
+	if clip.is_empty():
+		status.text = "This animation cannot be previewed by the humanoid importer."
+		return
+	var configuration = loader.get_avatar_configuration()
+	var model = await configuration.load_model(get_node("/root/SaveData").data.avatar_url)
+	if ticket != generation:
+		if model != null: model.free()
+		return
+	if model == null:
+		status.text = "A compatible local avatar is required for animation preview."
+		return
+	if is_instance_valid(preview): preview.queue_free()
+	preview = load("res://scenes/GUI/avatar_preview.tscn").instantiate()
+	preview.custom_minimum_size = Vector2(240, 320)
+	results.add_child(preview)
+	preview.loader = func(_url): return model
+	preview.set_source("browser-animation-preview")
+	await preview.load_preview()
+	preview.loader = Callable()
+	if ticket != generation or not is_instance_valid(preview) or not is_instance_valid(preview.model): return
+	var animator = load("res://scripts/assets/avatar_animator.gd").new()
+	preview.model.add_child(animator)
+	# Safe preview tree disables imported processing; reenable only our new layer.
+	animator.process_mode = Node.PROCESS_MODE_ALWAYS
+	animator.attach(preview.model)
+	if not animator.play_clip(clip.clips[0], true): status.text = animator.last_error
+
+func _convert_animation(bytes: PackedByteArray) -> PackedByteArray:
+	if conversion_thread != null: return PackedByteArray()
+	var converter = preload("res://scripts/discovery/avatars/animation_conversion.gd").new()
+	conversion_thread = Thread.new()
+	if conversion_thread.start(converter.convert.bind(bytes)) != OK:
+		conversion_thread = null
+		return PackedByteArray()
+	while conversion_thread.is_alive(): await get_tree().process_frame
+	var converted: PackedByteArray = conversion_thread.wait_to_finish()
+	conversion_thread = null
+	return converted
 
 func _preview_record(record: Dictionary):
 	var source: Dictionary = registry.sources[record.provider]
@@ -370,11 +519,15 @@ func _sources():
 	_cancel_pending()
 	generation += 1
 	_clear()
-	status.text = "Custom API: schema-1 JSON catalog/search endpoint. Credentials are memory-only for this browser; no OAuth/password automation. Only contact endpoints you trust."
+	status.text = "Custom schema-1 API sources. Built-ins stay anonymous. Optional custom PKCE login uses your system browser; remember tokens only via the OS secret service."
 	for id in registry.sources.keys():
 		var source: Dictionary = registry.sources[id]
 		_button(results, ("Disable " if source.enabled else "Enable ") + source.name, func(): registry.sources[id].enabled = not registry.sources[id].enabled; _persist_sources(); _sources())
 		if source.kind == "custom":
+			if source.auth == "oauth": _button(results, "OAuth sign in: " + source.name, _start_oauth.bind(id))
+			_button(results, "Remember credential in OS keyring: " + source.name, _remember_credential.bind(id))
+			_button(results, "Restore from OS keyring: " + source.name, _restore_credential.bind(id))
+			_button(results, "Forget OS keyring credential: " + source.name, _forget_credential.bind(id))
 			var rename_field = LineEdit.new()
 			rename_field.text = source.base_url
 			rename_field.placeholder_text = "Edit endpoint (clears credential)"
@@ -383,6 +536,8 @@ func _sources():
 				var updated = source.duplicate()
 				updated.base_url = rename_field.text.strip_edges()
 				if not registry.policy.valid_url(updated.base_url): return
+				_cancel_pending()
+				await credential_store.perform("clear", account_owner, id, registry.policy.origin(source.base_url))
 				registry.remove_source(id)
 				registry.add_source(updated)
 				_persist_sources(); _refresh_sources(); _sources())
@@ -392,8 +547,11 @@ func _sources():
 			results.add_child(credential)
 			_button(results, "Set credential / sign in: " + source.name, func(): registry.set_credentials(id, {"token": credential.text}); credential.clear())
 			_button(results, "Test connection: " + source.name, func(): source_filter.select(registry.sources.keys().find(id) + 1); _search(false))
-			_button(results, "Sign out / clear credential: " + source.name, func(): registry.secrets.erase(id); _sources())
-			_button(results, "Remove " + source.name, func(): registry.remove_source(id); _persist_sources(); _refresh_sources(); _sources())
+			_button(results, "Sign out / clear credential: " + source.name, func(): _forget_credential(id))
+			_button(results, "Remove " + source.name, func():
+				_cancel_pending()
+				await credential_store.perform("clear", account_owner, id, registry.policy.origin(source.base_url))
+				registry.remove_source(id); _persist_sources(); _refresh_sources(); _sources())
 	var name_field = LineEdit.new()
 	name_field.placeholder_text = "Custom source name"
 	results.add_child(name_field)
@@ -402,24 +560,36 @@ func _sources():
 	endpoint.max_length = 4096
 	results.add_child(endpoint)
 	var auth = OptionButton.new()
-	for mode in ["none", "bearer", "api_key"]: auth.add_item(mode)
+	for mode in ["none", "bearer", "api_key", "oauth"]: auth.add_item(mode)
 	results.add_child(auth)
 	var token = LineEdit.new()
 	token.placeholder_text = "Optional provider token (memory only)"
 	token.secret = true
 	results.add_child(token)
+	var oauth_fields: Array = []
+	for placeholder in ["OAuth authorization HTTPS URL (optional)", "OAuth token HTTPS URL (optional)", "OAuth public client ID (no secret)", "OAuth scopes"]:
+		var field = LineEdit.new()
+		field.placeholder_text = placeholder
+		results.add_child(field)
+		oauth_fields.append(field)
 	_button(results, "Confirm endpoint and add custom API", func():
 		var id = "custom-" + str(Time.get_ticks_usec())
-		if registry.add_source({"id": id, "kind": "custom", "name": name_field.text, "base_url": endpoint.text.strip_edges(), "auth": auth.get_item_text(auth.selected)}):
+		if registry.add_source({"id": id, "kind": "custom", "name": name_field.text, "base_url": endpoint.text.strip_edges(), "auth": auth.get_item_text(auth.selected), "oauth": {"authorization_url": oauth_fields[0].text.strip_edges(), "token_url": oauth_fields[1].text.strip_edges(), "client_id": oauth_fields[2].text, "scope": oauth_fields[3].text}}):
 			if auth.selected != 0: registry.set_credentials(id, {"token": token.text, "memory_only": true})
 			_persist_sources(); _refresh_sources(); _sources()
 		else: status.text = "Invalid HTTPS endpoint or unsupported source configuration.")
 
 func _cancel_pending():
+	_cancel_oauth()
+	if is_instance_valid(oauth_exchange):
+		oauth_exchange.cancel_request()
+		oauth_exchange.request_completed.emit(HTTPRequest.RESULT_REQUEST_FAILED, 0, PackedStringArray(), PackedByteArray())
+		oauth_exchange = null
 	for service in services.duplicate():
 		if is_instance_valid(service): service.cancel()
 
 func _process(_delta):
+	_poll_oauth()
 	var save = get_node_or_null("/root/SaveData")
 	if save != null and save.get("profile") != null and save.profile.get_local_fingerprint() != account_owner:
 		_cancel_pending()
@@ -433,3 +603,99 @@ func _exit_tree():
 	generation += 1
 	registry.clear_credentials()
 	_cancel_pending()
+
+func _remember_credential(id: String):
+	var source: Dictionary = registry.sources[id]
+	if registry.get_credentials(id).get("token", "").is_empty():
+		status.text = "Sign in or set a provider credential before remembering it."
+		return
+	var result: Dictionary = await credential_store.perform("store", account_owner, id, registry.policy.origin(source.base_url), str(registry.get_credentials(id).get("token", "")))
+	status.text = "Stored in OS keyring." if result.get("ok") else "OS keyring unavailable/locked; credential remains memory-only."
+
+func _restore_credential(id: String):
+	var source: Dictionary = registry.sources[id].duplicate(true)
+	var result: Dictionary = await credential_store.perform("lookup", account_owner, id, registry.policy.origin(source.base_url))
+	if registry.sources.has(id) and registry.sources[id].base_url == source.base_url and result.get("ok"):
+		registry.set_credentials(id, {"token": result.get("token", "")})
+	status.text = "Keyring lookup finished; secrets are never written to source preferences."
+
+func _forget_credential(id: String):
+	var source: Dictionary = registry.sources[id]
+	registry.secrets.erase(id)
+	_cancel_pending()
+	generation += 1
+	await credential_store.perform("clear", account_owner, id, registry.policy.origin(source.base_url))
+	status.text = "Credential cleared from memory; keyring removal requested."
+
+func _cancel_oauth():
+	oauth.clear()
+	oauth_id = ""
+	if oauth_listener != null: oauth_listener.stop()
+	oauth_listener = null
+	if oauth_peer != null: oauth_peer.disconnect_from_host()
+	oauth_peer = null
+	oauth_buffer = ""
+
+func _start_oauth(id: String):
+	_cancel_pending()
+	oauth_listener = TCPServer.new()
+	if oauth_listener.listen(0, "127.0.0.1") != OK:
+		status.text = "Cannot open OAuth loopback callback."
+		_cancel_oauth()
+		return
+	oauth_config = registry.sources[id].oauth.duplicate()
+	oauth_config.redirect_uri = "http://127.0.0.1:" + str(oauth_listener.get_local_port()) + "/callback"
+	var url = oauth.begin(oauth_config)
+	if url.is_empty(): _cancel_oauth(); return
+	oauth_id = id
+	OS.shell_open(url)
+	status.text = "Complete custom-provider sign in in your system browser. The callback expires in three minutes."
+
+func _poll_oauth():
+	if oauth_listener == null: return
+	if Time.get_ticks_msec() > oauth.expires: _cancel_oauth(); return
+	if oauth_peer == null and oauth_listener.is_connection_available(): oauth_peer = oauth_listener.take_connection()
+	if oauth_peer == null: return
+	oauth_peer.poll()
+	if oauth_peer.get_available_bytes() > 0:
+		oauth_buffer += oauth_peer.get_utf8_string(mini(8192, oauth_peer.get_available_bytes()))
+	if oauth_buffer.length() > 8192: _cancel_oauth(); return
+	if not "\r\n\r\n" in oauth_buffer: return
+	var request_line = oauth_buffer.get_slice("\r\n", 0).split(" ")
+	var fields := {}
+	var expected_host = oauth_config.redirect_uri.trim_prefix("http://").get_slice("/", 0)
+	var host := ""
+	for header in oauth_buffer.split("\r\n"):
+		if header.to_lower().begins_with("host:"): host = header.substr(5).strip_edges()
+	if host == expected_host and request_line.size() == 3 and request_line[0] == "GET" and request_line[1].begins_with("/callback?"):
+		fields = oauth.accept_callback(oauth_config.redirect_uri.get_slice("/callback", 0) + request_line[1], oauth_config)
+	var body = "Return to Comunicare to check sign in."
+	oauth_peer.put_data(("HTTP/1.1 200 OK\r\nContent-Length: %s\r\nConnection: close\r\n\r\n" % body.length() + body).to_utf8_buffer())
+	var id = oauth_id
+	_cancel_oauth()
+	if not fields.is_empty(): _exchange_oauth(id, fields)
+
+func _exchange_oauth(id: String, fields: Dictionary):
+	if not registry.sources.has(id): return
+	var ticket = generation
+	var request = HTTPRequest.new()
+	oauth_exchange = request
+	request.timeout = 20
+	request.body_size_limit = 16384
+	request.max_redirects = 0
+	add_child(request)
+	var values: Array[String] = []
+	for key in fields: values.append(str(key).uri_encode() + "=" + str(fields[key]).uri_encode())
+	if request.request(registry.sources[id].oauth.token_url, ["Content-Type: application/x-www-form-urlencoded"], HTTPClient.METHOD_POST, "&".join(values)) != OK:
+		request.queue_free()
+		return
+	var response = await request.request_completed
+	request.queue_free()
+	oauth_exchange = null
+	if ticket != generation or not registry.sources.has(id): return
+	var parser = JSON.new()
+	if response[0] == HTTPRequest.RESULT_SUCCESS and response[1] == 200 and parser.parse(response[3].get_string_from_utf8()) == OK and parser.data is Dictionary:
+		if str(parser.data.get("token_type", "Bearer")).to_lower() == "bearer" and registry.set_credentials(id, {"token": parser.data.get("access_token", "")}):
+			status.text = "Signed in. Token is memory-only unless you explicitly remember it in the OS keyring."
+			return
+	status.text = "OAuth exchange failed. No credential was saved."

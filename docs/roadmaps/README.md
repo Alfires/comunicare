@@ -5,7 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
-| [Public avatar and animation discovery](public-avatar-discovery-roadmap.md) | Initial Home/Search browser, anonymous CC0 avatar and animation catalogs, memory-only custom bearer/API-key sources and import-to-draft implemented; thumbnails, advanced filters, OAuth and rendered/headset gates remain open |
+| [Public avatar and animation discovery](public-avatar-discovery-roadmap.md) | Browser/catalog/import, thumbnail cards, advanced filters/TTL, animation preview, custom PKCE and Linux keyring support implemented; real-provider OAuth, keyring/preview visual checks and headset gates remain open |
 | [Client-only per-player avatar visibility](client-avatar-visibility-roadmap.md) | Implemented with manual gates: beside-row Hide/Show, session/fingerprint policy, replacement-model enforcement and same-resource independence; rendered mirror/shadow and headset checks remain open |
 | [Desktop and VR sprinting](sprinting-roadmap.md) | Implemented with manual gates: hold left joystick click in VR or Ctrl on desktop for 1.5× horizontal speed; rebindable Ctrl, suppression/rearming and relative walk/run selection; hardware comfort and visual two-client validation remain open |
 | [Documentation system](documentation-system-roadmap.md) | Documentation/tooling delivered with explicit operating limits; current guides, function/schema reference and local Git release checks linked from docs home |

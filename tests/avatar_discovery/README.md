@@ -1,5 +1,14 @@
 # Public avatar discovery acceptance tests
 
+Follow-up coverage includes advanced filters, bounded PNG decoding, texture TTL,
+catalog TTL revalidation, actual thumbnail-card controls and result restoration,
+PKCE S256/state/port/replay/expiry checks, and custom-vs-built-in OAuth policy.
+`--display` runs these contracts in a real window (not a headset).
+`KEYRING_TEST=1` is an explicit nonisolated synthetic Secret Service round-trip;
+the development environment failed its store because no Secret Service is active.
+Normal tests never read/write the user's OS keyring. Real login/animation-preview
+visual behavior and headset usability remain separate manual gates.
+
 **Implementation update:** core contracts now run against production components,
 not guarded missing APIs. Optional `ANIMATION_FIXTURE=/path/to/permitted.vrma`
 checks explicit in-place adaptation through the production importer. Live network

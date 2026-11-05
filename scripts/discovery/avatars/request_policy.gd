@@ -19,7 +19,7 @@ func prepare_request(source: Dictionary, target_url: String, credentials: Dictio
 		if origin(target_url) != origin(str(source.get("base_url", ""))): return {}
 		var token = str(credentials.get("token", ""))
 		if token.is_empty() or token.length() > 4096 or "\n" in token or "\r" in token: return {}
-		if source.auth == "bearer": headers.append("Authorization: Bearer " + token)
+		if source.auth in ["bearer", "oauth"]: headers.append("Authorization: Bearer " + token)
 		elif source.auth == "api_key": headers.append("X-API-Key: " + token)
 		else: return {}
 	return {"url": target_url, "headers": headers}

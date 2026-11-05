@@ -62,6 +62,11 @@ def write_packages(destination):
                 output.writestr(key, value)
 
     archive("valid")
+    mesh_scene = scene.replace('[gd_scene load_steps=4 format=3]', '[gd_scene load_steps=5 format=3]\n[ext_resource type="ArrayMesh" path="res://models/triangle.worldmesh" id="mesh"]')
+    mesh_scene = mesh_scene.replace('mesh = SubResource("Box")', 'mesh = ExtResource("mesh")')
+    mesh = {"schema": 1, "vertices": [[0, 0, 0], [1, 0, 0], [0, 1, 0]], "indices": [0, 1, 2], "uv": [[0, 0], [1, 0], [0, 1]]}
+    archive("static_model", {"scenes/world.tscn": mesh_scene, "models/triangle.worldmesh": json.dumps(mesh)})
+    archive("static_model_bad_index", {"scenes/world.tscn": mesh_scene, "models/triangle.worldmesh": json.dumps({**mesh, "indices": [0, 1, 999]})})
     binding = scene.replace('metadata/world_entity_id = "item"', 'metadata/world_entity_id = "item"\nmetadata/world_script = "logic/item.worldscript"')
     program = {"version": 1, "events": {"start": [{"op": "command", "capability": "entity.visual", "entity": "item", "property": "visible", "value": False}], "use": [{"op": "command", "capability": "entity.visual", "entity": "item", "property": "visible", "value": True}]}}
     script_metadata = {**metadata, "script_capabilities": ["entity.visual"]}

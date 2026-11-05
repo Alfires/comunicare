@@ -86,6 +86,10 @@ func _resource(type: String) -> Resource:
 
 func _external(path: String, depth: int) -> Resource:
 	if cache.has(path): return cache[path]
+	if document.get("meshes", {}).has(path):
+		var mesh = preload("res://scripts/worlds/world_static_mesh.gd").build(document.meshes[path])
+		cache[path] = mesh
+		return mesh
 	if document.textures.has(path):
 		var image = Image.new()
 		if image.load_png_from_buffer(document.textures[path]) != OK:

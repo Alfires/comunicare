@@ -11,9 +11,11 @@ var world: WeakRef
 var tick_elapsed := 0.0
 var last_error := ""
 var local_store: RefCounted
+var checkpoint: WeakRef
 
 func configure(root_node: Node, document: Dictionary) -> Dictionary:
 	stop_scripts()
+	checkpoint = null
 	entities.clear()
 	bindings.clear()
 	programs = document.get("programs", {}).duplicate(true)
@@ -49,6 +51,10 @@ func dispatch(event: String, entity: String) -> Dictionary:
 	commands = result.commands
 	# Resolve the whole transaction before mutating any scene state.
 	for command in commands:
+		if command.op == "checkpoint":
+			var marker = entities.get(command.entity)
+			if marker == null or not marker.get_ref() is Marker3D: return Data.failure("Checkpoint must target a world marker")
+			continue
 		if command.op in ["save_set", "save_add", "save_delete"]:
 			if local_store == null: return Data.failure("Local storage unavailable")
 			if command.op == "save_set": saved[command.key] = command.get("value")
@@ -65,7 +71,14 @@ func dispatch(event: String, entity: String) -> Dictionary:
 	if saved != (local_store.values if local_store != null else {}) and not local_store.commit(saved): return Data.failure("Local save failed or exceeded quota")
 	for command in commands:
 		if command.op == "command": entities[command.entity].get_ref().visible = command.value
+		elif command.op == "checkpoint": checkpoint = entities[command.entity]
 	return {"ok": true, "commands": commands.size()}
+
+func respawn_local_player(player: Node3D) -> bool:
+	# Trusted callers only. Scripts can select a marker but cannot move players.
+	if not enabled or checkpoint == null or not checkpoint.get_ref() is Marker3D or not player.has_method("set_player_pos"): return false
+	player.set_player_pos(checkpoint.get_ref().global_position)
+	return true
 
 func stop_scripts():
 	enabled = false

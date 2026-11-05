@@ -33,14 +33,24 @@ func inspect_package(path: String, overrides: Dictionary = {}) -> Dictionary:
 		return _failure("Unsupported world/script API")
 	if not manifest.get("script_capabilities", []) is Array: return _failure("Invalid script capabilities")
 	for capability in manifest.get("script_capabilities", []):
-		if not capability in ["entity.read", "entity.visual", "interaction.events", "storage.local"]: return _failure("Forbidden script capability")
+		if not capability in ["entity.read", "entity.visual", "interaction.events", "storage.local", "player.checkpoint"]: return _failure("Forbidden script capability")
 	var extensions = Extensions.new().validate_requirements(manifest.get("extensions", []), {}, files.keys())
 	if not extensions.ok: return extensions
-	var document = {"entities": {}, "materials": {}, "scenes": {}, "textures": {}, "manifest": manifest, "resources": {}, "programs": {}}
+	var document = {"entities": {}, "materials": {}, "scenes": {}, "textures": {}, "meshes": {}, "manifest": manifest, "resources": {}, "programs": {}}
+	var mesh_vertices := 0
+	var mesh_indices := 0
 	var decoded_texture_bytes = 0
 	for name in files:
 		var extension: String = name.get_extension().to_lower()
 		match extension:
+			"worldmesh":
+				if files[name].size() > 16 * 1024 * 1024: return _failure("Static mesh file budget exceeded")
+				var mesh_data = Text.new().parse_json(files[name].get_string_from_utf8())
+				if not mesh_data.ok or not preload("res://scripts/worlds/world_static_mesh.gd").valid(mesh_data.value): return _failure("Invalid static mesh: " + name)
+				mesh_vertices += mesh_data.value.vertices.size()
+				mesh_indices += mesh_data.value.indices.size()
+				if mesh_vertices > 200000 or mesh_indices > 600000: return _failure("Aggregate static geometry budget exceeded")
+				document.meshes[name] = mesh_data.value
 			"tscn", "tres":
 				var result = Text.new().parse_resource(files[name].get_string_from_utf8())
 				if not result.ok: return _failure(name + ": " + result.error)
@@ -101,7 +111,7 @@ func _validate_sections(path: String, sections: Array, files: Dictionary, docume
 					or not attrs.get("path") is String or not attrs.path.begins_with("res://"):
 					return _bad("Invalid external resource")
 				var relative: String = attrs.path.trim_prefix("res://")
-				if not Data.safe_path(relative) or not files.has(relative) or not attrs.get("type") in ["Material", "StandardMaterial3D", "ORMMaterial3D", "Texture2D", "PackedScene"]:
+				if not Data.safe_path(relative) or not files.has(relative) or not attrs.get("type") in ["Material", "StandardMaterial3D", "ORMMaterial3D", "Texture2D", "PackedScene", "ArrayMesh"]:
 					return _bad("Missing or unsupported resource: " + relative)
 				ext[attrs.id] = relative
 			"sub_resource", "resource":
@@ -222,6 +232,7 @@ func _validate_references(document: Dictionary) -> bool:
 					else:
 						var target: String = resources.external[value.args[0]]
 						if document.textures.has(target): target_type = "Texture2D"
+						elif document.meshes.has(target): target_type = "ArrayMesh"
 						elif document.scenes.has(target): target_type = str(document.scenes[target][0].attributes.get("type", "PackedScene"))
 					if key in ["material", "material_override"] and not target_type in ["StandardMaterial3D", "ORMMaterial3D"]: return _bad("Material reference has wrong type")
 					if key == "mesh" and not target_type.ends_with("Mesh"): return _bad("Mesh reference has wrong type")

@@ -58,6 +58,32 @@ func rejected(result: Variant) -> bool:
 	return result is Dictionary and result.get("ok", true) == false and result.get("error", "") is String and not result.get("error", "").is_empty()
 
 func run():
+	var geometry = load("res://scripts/worlds/world_builder.gd").new().build_package("res://packages/static_model.zip")
+	check(geometry.ok, "downloaded static geometry builds through bounded data-only mesh format")
+	if geometry.ok:
+		var model_world = geometry.scene.instantiate()
+		var imported_mesh := false
+		for node in model_world.find_children("*", "MeshInstance3D", true, false):
+			if node.mesh is ArrayMesh: imported_mesh = node.mesh.get_surface_count() == 1
+		check(imported_mesh, "package reconstruction installs actual ArrayMesh geometry")
+		model_world.free()
+	check(not load("res://scripts/worlds/world_builder.gd").new().build_package("res://packages/static_model_bad_index.zip").ok, "invalid downloaded triangle indices rejected before engine mesh construction")
+	var guarded_vm = load("res://scripts/worlds/world_script_vm.gd").new()
+	check(not guarded_vm.run_event([{"op": "if_saved", "key": "level", "equals": 999, "then": [{"op": "unsafe_hidden"}]}], {"capabilities": ["storage.local"]}).ok, "inactive progress branches cannot hide forbidden instructions")
+	check(guarded_vm.run_event([{"op": "checkpoint", "entity": "spawn"}], {"capabilities": ["player.checkpoint"], "entities": ["spawn"]}).ok, "declared checkpoint instruction accepts scoped entity")
+	check(not guarded_vm.run_event([{"op": "checkpoint", "entity": "spawn"}], {"entities": ["spawn"]}).ok, "checkpoint capability fails closed")
+	var checkpoint_world = Node3D.new()
+	var checkpoint_marker = Marker3D.new()
+	checkpoint_marker.name = "Checkpoint"
+	checkpoint_world.add_child(checkpoint_marker)
+	root.add_child(checkpoint_world)
+	var checkpoint_runtime = load("res://scripts/worlds/world_runtime.gd").new()
+	checkpoint_runtime.configure(checkpoint_world, {"manifest": {"script_capabilities": ["player.checkpoint"]}, "entities": {"spawn": {"path": "Checkpoint", "script": "checkpoint"}}, "programs": {"checkpoint": {"events": {"use": [{"op": "checkpoint", "entity": "spawn"}]}}}})
+	check(checkpoint_runtime.dispatch("use", "spawn").ok and checkpoint_runtime.checkpoint.get_ref() == checkpoint_marker, "checkpoint runtime resolves only scoped marker")
+	checkpoint_runtime.stop_scripts()
+	check(not checkpoint_runtime.respawn_local_player(checkpoint_world), "disabled world scripts cannot respawn players")
+	checkpoint_runtime.free()
+	checkpoint_world.free()
 	var store = load("res://scripts/worlds/world_local_store.gd").new()
 	check(store.configure("test-owner", "https://example.test/progress", false, "res://local-saves"), "local world storage configures isolated account and URL")
 	check(store.commit({"level": 3, "xp": 120}), "small local progress commits")

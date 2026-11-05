@@ -12,23 +12,30 @@ The proposed presentation is detailed, high-quality **3D dark fantasy**, not a
 low-poly art style, compatible with Comunicare's desktop
 and VR players, rather than a separate 2D game or a driving world.
 
-Working title: **Ember Crypt**. Deliver a polished, playable 5–10 minute solo demo
+Working title: **Ember Crypt**. Deliver a polished, playable 20–30 minute solo demo
 in a new optional world. Keep the welcome island and `default_wold` unchanged.
 This is a small action roguelike, not a traditional turn-based roguelike.
+**Expanded-map revision:** the original six-room/5–10 minute scope is superseded
+by a connected explorable landscape and crypt, working enemy encounters and
+distributed leveling menus. This remains a roadmap, not delivered gameplay.
 
 ## 1. Playable scope
 
-- Enter a safe entrance room, choose **Start run**, explore a small dungeon,
+- Enter a safe camp, choose **Start run**, explore a connected field, ruins and crypt,
   defeat enemies, choose upgrades, defeat a guardian and reach the exit.
 - One biome, one weapon (a short-range magical bolt), one healing pickup,
   two ordinary enemy types and one guardian using readable variants of their attacks.
-- A run has an entrance, three combat rooms, a reward room and a guardian/exit
-  room. Randomly choose compatible hand-authored modules and their connections;
-  do not begin with unrestricted procedural geometry.
-- Use a deterministic seed for layout, enemy placement and reward offers.
+- Build a real map with landmarks, intersecting paths, optional exploration and
+  unlockable shortcuts—not a corridor of repeated combat rooms. Include at least
+  twelve named playable areas, eight ordinary encounters across outdoor/indoor
+  routes, three safe stops beyond spawn, and a final guardian encounter.
+- Keep the hand-authored landscape and major landmarks coherent. Use seeded
+  encounter compositions, reward offers, optional route gates and compatible crypt
+  module variants; do not generate arbitrary terrain or disconnect key locations.
+- Use a deterministic seed for encounter variants, crypt modules and reward offers.
   **Retry seed** reproduces the starting conditions; **New run** chooses a new
   seed. Runtime decisions still affect outcomes.
-- Defeating a combat room unlocks its exit and offers one of three distinct
+- Completing a required encounter advances its gate objective; run level-ups offer one of three distinct
   upgrades: increased damage, shorter attack cooldown or increased maximum health.
   Cap stacking; keep offers meaningful and avoid an inventory/equipment system.
 - Health reaches zero → stop combat → show run summary → retry or return.
@@ -44,50 +51,64 @@ This is a small action roguelike, not a traditional turn-based roguelike.
 
 ### Top-down map concept
 
-One example six-room seed, not a fixed map for every run. North is up; rooms and
-corridors are schematic, not to scale. The entrance/spawn layout stays stable;
-the three combat modules, their connections and encounter dressing vary by seed.
+One continuous overworld connected through a walkable crypt entrance to an
+underground wing. North is up; this is schematic, not to scale. Dotted links are
+unlockable shortcuts, not required jumps or teleports. Major landmarks stay fixed;
+seeded variants change encounters, selected routes and crypt modules.
 
 ```text
                               NORTH ^
-                 +------------------------------+
-                 | GUARDIAN HALL                |
-                 | pillars    G     sealed exit X|
-                 |        clear arena           |
-                 +--------------D---------------+
-                                |
-                 +--------------D---------------+
-                 | COMBAT 3: burial chamber     |
-                 | E       cover             E  |
-                 +--------------D---------------+
-                                |
- +----------------------+       |       +----------------------+
- | COMBAT 1: old armory  |       |       | REWARD: quiet shrine |
- | E    cover       E   |       |       | H  chest / upgrades  |
- +----------D-----------+       |       +-----------D----------+
-            |                   |                   |
-            +----------+--------+-------------------+
-                       |
-           +-----------D----------------+
-           | COMBAT 2: ruined gallery   |
-           | E   pillars / clear lane E |
-           +-----------D----------------+
-                       |
-           +-----------D----------------+
-           | SAFE ENTRANCE              |
-           |                            |
-           | C   S    L       Start run |
-           | Credits  leveling menu     |
-           |        Return home         |
-           +----------------------------+
+ OVERWORLD
+ [Old watchtower E]---[Ruined village E]---[Chapel refuge L H]
+         |                    |                       |
+ [Woodland trail E]    [Stone bridge E]----[Crypt forecourt E]
+         |                    |                       |
+ [Wayside shrine L H]--[OPEN FIELD E E]                 D
+         |             /      |      \                 |
+ [Farm ruins E]--------/ [Stream ford] \        UNDERGROUND
+         |                    |        \       [Crypt entry L H]
+         +------[South road]---+         |              |
+                      |                 |      [Burial galleries E]
+             [SAFE CAMP S C L H]         |         /          \
+             Start run / Return home    | [Ossuary E]--[Old armory E]
+                      :                 |         \          /
+                      :.................:      [Sealed antechamber]
+                   unlock return shortcut             |
+                                               [Guardian G -> X]
 ```
 
-`S` = player spawn; `C` = interactive asset-credits menu beside spawn;
-`L` = player progression/leveling menu; `D` = doorway; `E` = enemy group;
-`G` = guardian; `H` = healing; `X` = victory exit. Combat 3's door requires all
-three ordinary encounters cleared; the optional reward shrine is a safe detour.
-Keep corridors wide for comfortable movement and place enemies behind encounter
-boundaries so the entrance, credits and progression menus are always safe.
+`S` = spawn; `C` = asset-creator Credits beside spawn; `L` = a separate physical
+leveling-menu location; `H` = bounded healing; `D` = crypt entrance;
+`E` = working encounter/patrol location; `G` = guardian; `X` = victory exit.
+The three non-spawn safe stops are the wayside shrine, chapel and crypt entry.
+Lines are traversable routes; stream banks/cliffs are terrain boundaries, not
+invisible arena walls. Keep enemies out of safe stops and the camp.
+
+### Map structure, field and exploration
+
+- Start with an approximately **300 × 250 m overworld**, plus a compact crypt wing;
+  tune distances to movement speed and the 20–30 minute run target. At least twelve
+  named areas above must be physically distinct playable spaces, not signposts.
+- The **open field** is an approximately 100 × 80 m playable meadow with detailed
+  grass, uneven but walkable ground, rocks, broken fences, a stream edge and long
+  views toward the village/watchtower. Provide a clear main trail plus flanking
+  routes, cover and two enemy patrol territories. It is not a decorative backdrop.
+- Build two overworld loops (farm/shrine/woodland and field/bridge/village), optional
+  watchtower/armory rewards and a clearly recognizable crypt objective. Use authored
+  elevation, ruins and sightlines to make navigation legible without forced UI.
+- Define three objective encounters (watchtower, village, forecourt); clearing all
+  opens the crypt. Clearing burial galleries and either ossuary or armory opens
+  the guardian antechamber. Other encounters offer XP/exploration, not mandatory
+  full-map extermination. Expose gate requirements in the map/objective panel.
+- Unlock return shortcuts from the far side without bypassing objective checks.
+  Cleared encounters stay cleared for that run; no enemies respawn on menu use,
+  backtracking or crossing a sector boundary. Retry/new run resets the map state.
+- Use sector culling/activation for the larger environment, preserving encounter
+  state across activation. Test bridge/ford/crypt navigation seams and avoid falls,
+  required jumps, invisible blockers and long empty walks between encounters.
+- Add a world-owned **Map & objectives** page accessible from the paused menu and
+  every leveling station: landmarks, discovered routes, current location, safe
+  stops and gate status. It is navigation, not a teleport or a mandatory minimap.
 
 ### Controls and comfort
 
@@ -170,7 +191,7 @@ and `if_saved`; do not invent unimplemented read/write APIs in world scripts.
 - Run HP, temporary upgrades, active projectiles/enemies and world-node references
   are not permanent progression. Mid-run resume is deferred; say so in the menu.
   Retry starts a clean run, retaining saved player progress. Grant lifetime XP at
-  completed-room checkpoints, not repeatedly when the reward menu is reopened.
+  completed-encounter checkpoints, not repeatedly when the reward menu is reopened.
 - Commit XP, level, unlock and duplicate-award marker together. Coalesce pending
   changes within the service's **one write per second** limit; never save each
   frame/tick or retry a `save_add` blindly. Show pending/unsaved state and flush
@@ -214,8 +235,9 @@ both desktop and VR presentations; never duplicate leveling rules in UI callback
 
 #### Expanded leveling menu collection
 
-Make the progression interaction beside spawn a **Leveling** hub with distinct
-pages, not one overloaded panel. In-run pages are accessible from a compact
+Make progression interactions at spawn **and three additional safe stops** open
+the same **Leveling** hub with distinct pages, not one overloaded panel.
+In-run pages are also accessible from a compact
 progression button while paused; entrance-only actions stay disabled during a run.
 Use the same visual language, Back navigation and desktop/VR controls throughout.
 
@@ -251,6 +273,32 @@ multi-level XP gains, double confirmations, repeated navigation, cosmetic equip
 and relaunch, reset cancel/confirm, missing cosmetic IDs, and saving errors across
 all pages. Review the full flow in desktop and headset views, not just screenshots
 of individual panels. Include these pages in parts 05–06's implementation gates.
+
+#### Distributed menus and safe stations
+
+Place physical interactive menus at **camp, wayside shrine, chapel refuge and
+crypt entry** (the four `L` markers). Each must be reachable, readable and usable
+on desktop/VR, not an inactive prop pointing players back to spawn. All expose
+overview, stats, upgrades, run build, milestones, cosmetics, XP and Map & objectives.
+The current run's level-up choices can be resolved at any station or the paused
+menu; no compulsory trek back to camp to spend a pending choice.
+
+Keep Start/New run and destructive progression reset at camp; other stations show
+those actions as unavailable with a reason. Return home remains available through
+normal app UI everywhere. Healing has a once-per-stop-per-run allowance rather
+than refilling every time a menu is opened. Stations are safe landmarks, not
+automatic mid-run save/resume points (that feature remains deferred).
+
+All four stations bind one run/progression/save model: choosing an upgrade,
+equipping a cosmetic or saving XP at one is reflected at the next. No duplicated
+XP, independent station saves or menu-triggered enemy resets. Opening a station
+pauses the solo simulation and suppresses attacks; closing restores prior state.
+Enemy leashes and projectile collision must prevent attacks entering safe areas,
+and block player damage fired from inside them so they cannot be used to farm
+enemies without risk.
+Keep creator Credits beside spawn as requested, with an optional Credits link at
+the other stations using the same manifest. Test sequential visits to all four
+stations, interrupted interaction, repeated healing and sector unload/reload.
 
 ### 2.3. Asset-creator credits beside spawn
 
@@ -321,8 +369,10 @@ do not make the demo depend on unlicensed placeholder music.
   props outside the movement corridor and exclude them from expensive collision.
 - No required glow/bloom to read attacks. Bound real-time shadow lights, particles,
   transparent effects and concurrent enemies; prefer static lighting where verified.
-- Provisional scene budgets: at most six active enemies and two shadow-casting local
-  lights per active room. Start with 2K PBR maps, using 4K only for justified hero
+- Provisional scene budgets: at most six simultaneously engaged enemies across
+  adjacent active sectors, including field patrols, and two shadow-casting local
+  lights per combat area. Do not evade this cap by splitting one battle into sectors.
+  Start with 2K PBR maps, using 4K only for justified hero
   surfaces; author LODs and bound decoded texture/mesh memory. Replace the previous
   50 MiB art cap with measured download/VRAM/frame-time budgets from the reference
   room; do not promise high-detail assets fit the old low-poly payload budget.
@@ -365,10 +415,40 @@ and cooldowns are run-local values. Use stable entity IDs to reject repeated dam
 or reward events; delete references when an encounter ends or the world unloads.
 Bound frame delta handling, spawn counts, projectiles and seed-generation attempts.
 
-Simple enemy states: idle → approach/aim → telegraph → attack → recover; damage
-can lead to hit reaction or death. Use a small fixed-room navigation solution
-first, with tests for obstacles and unreachable targets. Animation events must
-not accidentally apply damage twice or remain active after death/unload.
+### Working enemies, not animated decorations
+
+Deliver functional melee sentries, ranged casters and the guardian in actual
+packaged play. Each has health, detection rules, collision, navigation, attack
+cooldowns, damage reception, death, XP ownership and reset/cleanup behavior.
+
+| Enemy | Required behavior | Playable proof |
+| --- | --- | --- |
+| **Melee sentry** | Patrol a bounded route, detect player with sight/range, chase around cover, telegraph a close strike, recover and leash back if pursuit is lost | Can reach and damage the player legitimately, miss when avoided, receive damage and die once |
+| **Ranged caster** | Patrol/guard, acquire line of sight, keep a bounded preferred distance, aim then fire a visible projectile, reposition if blocked | Shots collide with terrain, cannot hit through walls or safe-zone boundaries, and stop after death |
+| **Crypt guardian** | Guard arena; alternate a telegraphed close attack and projectile pattern with clear recovery windows | Fight is winnable; no unavoidable arrival hit; death opens exit and grants final rewards exactly once |
+
+State flow: patrol/idle → detect → chase/reposition → telegraph → attack → recover;
+lose target → return; hit/death can interrupt appropriately. Separate detection,
+navigation, attack eligibility and animation so playing a clip is never mistaken
+for implementing combat. Do not rely on social-avatar collision for hit detection.
+
+Use reviewed navigation/gameplay APIs across field terrain, bridge, woodland,
+ruins and crypt seams. Budget path queries, cap chase distance and provide an
+unreachable-target timeout; enemies must not walk through walls, hover over slopes
+or remain stuck attacking from behind cover. Validate melee reach/line of sight
+at the damage moment and sweep projectiles to prevent long-frame tunneling.
+
+Retain stable enemy/encounter IDs across sector deactivation. Dead enemies remain
+dead within the run, removed projectiles cannot hit later, and revisiting a patrol
+cannot farm duplicate clear rewards. Freeze AI, cooldowns and damaging effects
+under solo menu pause; clear target references on death, player exit and unload.
+
+**Enemy acceptance:** an unaided player encounters patrols in the field, is
+detected/chased/attacked, evades or uses cover, kills enemies, earns XP once and
+completes the guardian fight. Test sight occlusion, loss/leash, blocked paths,
+safe-zone attacks in both directions, damage cadence, projectile bounds, sector
+reactivation, pause/death interruption and replay reset. Record rendered desktop
+and headset evidence; static models or isolated AI unit tests do not satisfy this gate.
 
 ## 5. Small, verified milestones
 
@@ -380,11 +460,11 @@ explicit rather than treating headless tests as proof of visual quality.
 | --- | --- | --- |
 | 01 — Updated API/integration contract | Verify safe package model/rig/animation, gameplay, UI and storage APIs; selection, input and lifecycle | Required capabilities exercised through an actual package; save isolation and safe transitions; gaps reported explicitly |
 | 02 — High-quality art/animation spike | Audit detailed environment and rigged-enemy sources; finish one PBR room and spawn-side Credits/menu sample | No low-poly final assets; creator/license manifest complete; packaged rig/clips/UI work; desktop review and explicit headset gate |
-| 03 — Graybox run | Seeded six-room graph, collision, spawn, doors and exit, initially without enemies | Fixed-seed determinism; many seeds produce connected traversable layouts; no overlap, inaccessible exit or unbounded retry |
-| 04 — Combat/animation slice | Attack, health, melee enemy, readable telegraphs and fitting movement/attack/hit/death clips | No wall hits, duplicate/late damage or animation sliding; interruption, pause and desktop/VR checks |
-| 05 — Run leveling/custom menus | Ranged enemy, XP/HUD, queued upgrade cards, healing, pause and retry | Choices granted once, input captured/restored, no softlocks; run upgrades reset independently of player progress |
+| 03 — Real-map graybox | Connected field/ruins/crypt, twelve-plus named areas, loops, gates, shortcuts and four safe stations; seeded encounter/module variants | Every route and objective traversable across seeds, field is playable, no softlocks; map/objective panel agrees with geometry |
+| 04 — Working enemy/animation slice | Player attack/health, melee patrol and ranged caster in field and ruins, navigation, detection, damage, death and XP | Player can fight and evade real enemies; cover, leashes, safe zones, adjacent-sector caps, interruption/pause and desktop/VR checks |
+| 05 — Distributed leveling/custom menus | XP/HUD, upgrade cards, healing, map and all leveling pages at camp/shrine/chapel/crypt entry | All four stations work and share state; no duplicate choices/healing, input restored; no return-to-spawn requirement |
 | 06 — Local player progression | Lifetime XP/levels, cosmetics, progression/summary menus, versioned saves and confirmed reset | Relaunch, owner/URL isolation, throttling, duplicate awards, migration, corruption and disk-failure tests |
-| 07 — Guardian/art polish | Guardian, detailed room assets, sound, full animation roles and completed spawn Credits | Full short run; all creators credited offline beside spawn; quality and desktop/headset budgets reviewed |
+| 07 — Full-map guardian/art polish | Functional guardian, detailed field/vegetation/ruins/crypt, sound, animation roles and spawn Credits | Full 20–30 minute route and optional exploration; actual enemy fight/XP/exit verified; creator credits and outdoor/indoor frame budgets reviewed |
 | 08 — Safe package/release | Publishable package, cached offline entry, return-home recovery and regressions | Clean client validates package; cached play network-disabled; no save, input, animation or scene leaks |
 
 **Dependency order:** 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08. Resolve missing
@@ -403,6 +483,11 @@ identities, relaunch and confirmed reset. Verify packaged menu actions and anima
 bindings, interrupted attacks and paused timelines. Check that every shipped asset
 has a creator/license entry in the offline spawn-side Credits menu, and that this
 menu works before starting a run without triggering combat or progression.
+Add route/gate reachability and sector-state tests for the expanded map, field
+patrol navigation/occlusion and real damage/death/reward behavior. Verify all four
+menu locations share state, healing is bounded and safe zones prevent combat
+exploits in both directions. Inspect vegetation, long outdoor sightlines and
+simultaneous adjacent-sector enemies under the actual renderer.
 
 Run existing relevant suites after inspecting their current prerequisites:
 `tests/world_system`, `tests/public_discovery`, `tests/active_instance`,
@@ -413,6 +498,9 @@ No Godot suite was run for this documentation-only proposal.
 Manual release checklist:
 
 - [ ] A new desktop player can start, understand, win/lose and replay without developer tools.
+- [ ] A connected twelve-plus-area map includes a playable field, loops, optional routes and a crypt—not just a few rooms.
+- [ ] Field/ruin patrols detect, navigate, attack, take damage and die; the guardian fight and exit work.
+- [ ] All four physical leveling stations work and share progression without duplicate XP/healing.
 - [ ] Different seeds vary layouts/rewards; retrying one reproduces initial conditions.
 - [ ] Real headset validates aim, UI distance, movement comfort, scale and frame timing.
 - [ ] Finished art is coherent and actual asset license/provenance/Credits are complete.
@@ -430,7 +518,9 @@ Manual release checklist:
 More biomes, weapons, large progression trees, mid-run resume, cloud saves and co-op
 are separate proposals. Safe downloadable packaging, small local progression,
 custom leveling menus, fitting animations and spawn-side creator Credits are in
-scope, not deferred. Prioritize a finished
-room and satisfying core combat over a larger dungeon. Record delivered milestones
+scope, not deferred. The connected map, playable field, working enemies and
+distributed menus are also required; the reference-room spike is only a quality
+prototype, not a replacement for that map. Build and verify it in coherent parts
+rather than adding empty acreage. Record delivered milestones
 here and update the [roadmap index](README.md); planned features must not be
 described as current application behavior.

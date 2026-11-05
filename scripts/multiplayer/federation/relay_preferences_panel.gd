@@ -109,6 +109,9 @@ func _update_connection_status():
 	elif network.get("peer") != null and network.peer.is_authenticated: state = "Authenticated"
 	var endpoint = "%s:%s" % [str(network.get("relay_ip")), str(network.get("relay_port"))]
 	current_status.text = "%s — current transport %s\n%s" % [state, endpoint, str(network.get("last_session_error"))]
+	var save = get_node_or_null("/root/SaveData")
+	if save != null and save.get("temporary_identity") == true:
+		current_status.text += "\nTemporary window identity — not your saved account; contacts and progress are not persisted."
 
 func _render_discovery():
 	for child in trust_rows.get_children():

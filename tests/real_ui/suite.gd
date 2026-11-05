@@ -77,7 +77,7 @@ func run():
 	check(relay.connection.create_host_bound("127.0.0.1", 0) == OK, "real UI fixture starts ENet origin")
 	service.set_gameplay_port(relay.connection.get_local_port())
 	host = RelayPeer.new()
-	host.account_key = Crypto.new().generate_rsa(2048)
+	host.account_key = save.key
 	host.connect_to_relay("127.0.0.1", relay.connection.get_local_port())
 	check(await wait_until(func(): return host.is_authenticated), "real host account authenticates")
 	host.expected_world_revision = root.get_node("DataLoader").built_in_world_revision()
@@ -106,6 +106,16 @@ func run():
 	check(await wait_until(func(): return network.current_session_id == host.current_session_id and not network.session_busy), "signal-level real Join callback activates acknowledged instance through actual coordinator")
 	var original = network.current_session_id
 	check(relay.sessions[0][0].peers.size() == 2, "origin sees both admitted accounts after UI join")
+	check(save.get("temporary_identity") == true and network.peer.account_key.save_to_string(true) != host.account_key.save_to_string(true), "duplicate saved identity automatically retries with distinct temporary window key")
+	var original_key = CryptoKey.new()
+	check(original_key.load(save.key_path) == OK and original_key.save_to_string(true) == host.account_key.save_to_string(true), "temporary window never overwrites original saved private key")
+	check(save.profile.get_local_fingerprint() != load("res://scripts/profile/profile_identity.gd").fingerprint(host.account_key.save_to_string(true)), "temporary window profile ownership belongs only to new key")
+	check(host.is_authenticated and host.is_connected_to_relay and host.current_session_id == network.current_session_id, "first saved-account window stays connected beside temporary second window")
+	var temporary_owner = save.profile.get_local_fingerprint()
+	check(save.profile.memory_only and save.friends.memory_only and save.friends.state.contacts.is_empty(), "temporary identity has memory-only profile and fresh contacts")
+	check(not FileAccess.file_exists("user://profiles/" + temporary_owner + ".cfg") and not FileAccess.file_exists("user://friends/" + temporary_owner + ".cfg"), "temporary account creates no durable profile/contact store")
+	var retained_key = save.key.save_to_string(true)
+	check(not save.use_temporary_identity() and save.key.save_to_string(true) == retained_key, "temporary identity cannot rotate repeatedly after another authentication denial")
 	var joined_peer = network.peer
 	var same_summary: Dictionary = directory.instances()[0].duplicate(true)
 	check(await network.join_remote_instance(same_summary), "same-origin rejoin succeeds without duplicate-account authentication")

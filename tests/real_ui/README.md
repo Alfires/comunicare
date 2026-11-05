@@ -1,5 +1,15 @@
 # Production UI acceptance — initial roadmap execution
 
+## Duplicate-window identity fallback
+
+The UI relay host now deliberately uses the same saved key as the production client.
+The coordinator must handle the relay's explicit duplicate-account response with
+one temporary memory-only identity, while the first account stays admitted. Tests
+verify distinct fingerprints, unchanged original key bytes, fresh memory-only
+profile/contacts, absence of durable temporary account stores and no repeated key
+rotation. Low-level RelayPeer still rejects duplicate accounts; only the application
+coordinator applies this narrowly scoped second-window behavior.
+
 ## VR emulator gate
 
 ```sh

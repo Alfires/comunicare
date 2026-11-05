@@ -22,6 +22,7 @@ var self_profile: Dictionary = {}
 var outbox_cursor := 0
 var terminal_cursor := 0
 var refreshing := false
+var memory_only := false
 
 func notifications_allowed() -> bool:
 	return state.get("preferred_status", "online") != "do_not_disturb"
@@ -133,6 +134,12 @@ func _commit(next: Dictionary) -> bool:
 	next.revision = int(state.revision) + 1
 	if JSON.stringify(next).length() > 7 * 1024 * 1024 or not _valid_store(next):
 		return _error("Invalid friends data or storage limit reached")
+	if memory_only:
+		state = next
+		last_error = ""
+		changed.emit()
+		remote_profiles_changed.emit()
+		return true
 	var signature = Marshalls.raw_to_base64(Crypto.new().sign(HashingContext.HASH_SHA256, Identity.digest(_store_bytes(next)), key))
 	var file = FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	if file == null:

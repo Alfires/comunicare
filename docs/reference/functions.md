@@ -310,6 +310,10 @@ scene changes under root; do not automate this flow against real user storage.
 | `load_player` | Attempts XR unless forced desktop, configures viewport/vsync, selects supported player scene and defers root attachment. Requires engine XR services/display; no headless hardware guarantee. |
 
 <!-- module: scripts/settings/save_data.gd -->
+`use_temporary_identity` switches at most once per process to a generated memory-only
+key/profile/contact owner after explicit duplicate-account rejection. It never saves
+the private key or changes key_path, never imports original contacts/permissions,
+and returns false on repeated rotation. Profile editing remains new-key-owned.
 ### [SaveData](../../scripts/settings/save_data.gd)
 
 Owner: autoload. `_init` creates registry/store/voice/profile services; `_ready`
@@ -903,6 +907,10 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+Explicit duplicate-account auth alone can invoke SaveData's one-time temporary
+identity fallback and send a fresh AUTH_HELLO on the unauthenticated connection.
+Temporary moderation uses an empty persistence path; other auth failures do not
+rotate identity. Reconnects retain the process's temporary identity.
 Remote joins targeting the already-authenticated current origin now reuse the
 existing transport via ordinary acknowledged join, preventing duplicate-account
 authentication races and duplicate membership. A retired/disconnected transport

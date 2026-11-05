@@ -2,11 +2,15 @@
 
 ## Two local game windows
 
-Two ordinary launches share `user://user.key`. The relay intentionally rejects a
-second live connection for the **same account**, preventing ambiguous account
-membership, moderation and profile ownership. This is not a failed UDP connection.
-The rejection now explicitly explains the shared account rather than reporting a
-generic signature/connection failure. The first window stays connected.
+Two ordinary launches share `user://user.key`. The relay still rejects a second
+connection for the same account, but the production client now handles the explicit
+`account_already_connected` response by generating **one temporary in-memory key**
+and retrying authentication. The second window connects as a different temporary
+player; the first stays connected. The saved key is never overwritten. Profile,
+contacts and moderation for the temporary identity are memory-only and do not
+inherit the saved account's permissions or relationships. Network settings labels
+the temporary window. Closing it discards the identity; generic authentication
+failure or bans never trigger automatic repeated key rotation.
 
 For simultaneous local testing with separate temporary identities:
 

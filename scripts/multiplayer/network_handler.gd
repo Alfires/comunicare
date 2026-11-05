@@ -395,8 +395,11 @@ func _connect_relay_candidate() -> bool:
 	if SaveData.get("friends") != null:
 		peer.friend_service = SaveData.friends
 	var owner = preload("res://scripts/profile/profile_identity.gd").fingerprint(SaveData.key.save_to_string(true))
-	DirAccess.make_dir_recursive_absolute("user://moderation")
-	peer.configure_moderation("user://moderation/".path_join(owner + ".cfg"))
+	if SaveData.get("temporary_identity") == true:
+		peer.configure_moderation("")
+	else:
+		DirAccess.make_dir_recursive_absolute("user://moderation")
+		peer.configure_moderation("user://moderation/".path_join(owner + ".cfg"))
 	peer.player_data.connect(sync_player_data)
 	peer.on_session_peers_update.connect(update_connected_peers)
 	peer.voice_data.connect(sync_player_voice)
@@ -413,6 +416,20 @@ func _connect_relay_candidate() -> bool:
 	authentication_deadline = Time.get_ticks_msec() + 15000
 	var success: bool = await peer.authentication_finished
 	authentication_pending = false
+	if not success:
+		if peer.authentication_code == "account_already_connected" and SaveData.has_method("use_temporary_identity") and SaveData.use_temporary_identity():
+			# Same socket has not authenticated yet; retry a fresh proof with a new
+			# memory-only key. Never replace user.key or inherit account-owned policy.
+			peer.account_key = SaveData.key
+			peer.friend_service = SaveData.friends
+			peer.configure_moderation("")
+			peer.authentication_rejected = false
+			peer.authentication_code = ""
+			authentication_pending = true
+			authentication_deadline = Time.get_ticks_msec() + 15000
+			AccountPacket.create(PacketInfo.PACKET_TYPE.AUTH_HELLO, {"public_key": SaveData.key.save_to_string(true)}).sent(peer.peer)
+			success = await peer.authentication_finished
+			authentication_pending = false
 	if not success:
 		last_session_error = peer.authentication_error
 		if last_session_error.is_empty(): last_session_error = "Relay connection failed at %s:%s. Start the relay and retry Reload." % [relay_ip, relay_port]

@@ -9,6 +9,7 @@ var remote: Dictionary = {}
 var config_path := "user://profile.cfg"
 var last_error := ""
 var seen_revisions: Dictionary = {}
+var memory_only := false
 
 func configure(key: CryptoKey, path: String):
 	private_key = key
@@ -48,6 +49,11 @@ func save_profile(owner: String, fields: Dictionary) -> bool:
 	next.public_key = local.public_key
 	next.revision = int(local.get("revision", 0)) + 1
 	_sign(next)
+	if memory_only:
+		local = next
+		last_error = ""
+		profile_changed.emit(owner)
+		return true
 	var config = ConfigFile.new()
 	# Never overwrite corrupt data or an unrelated account's profile.
 	if FileAccess.file_exists(config_path):

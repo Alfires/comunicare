@@ -16,7 +16,29 @@ var voice = preload("res://scripts/player/voice_controller.gd").new()
 var profile = preload("res://scripts/profile/profile_service.gd").new()
 var friends = preload("res://scripts/profile/friend_service.gd").new()
 var account_error := ""
+var temporary_identity := false
 signal account_ready
+
+func use_temporary_identity() -> bool:
+	if temporary_identity: return false # Never rotate repeatedly to bypass policy.
+	var temporary_key = Crypto.new().generate_rsa(2048)
+	if temporary_key == null:
+		account_error = "Cannot generate temporary window identity"
+		return false
+	key = temporary_key
+	temporary_identity = true
+	profile.configure(key, "")
+	profile.memory_only = true
+	var fields = preload("res://scripts/profile/profile_identity.gd").defaults()
+	fields["profile.username"] = "Temporary player"
+	fields["profile.avatar_url"] = data.avatar_url
+	profile.save_profile(profile.get_local_fingerprint(), fields)
+	friends.configure(key, "")
+	friends.memory_only = true
+	friends.self_profile = profile.get_profile(profile.get_local_fingerprint())
+	account_error = "Second window is using a temporary identity; saved account and contacts are unchanged."
+	account_ready.emit()
+	return true
 
 func _init():
 	registry.register_defaults()

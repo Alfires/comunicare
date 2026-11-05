@@ -32,6 +32,38 @@ URL content for an already pinned instance.
 
 ## Storage and release failures
 
+### Asset-cache index trailing-data repair
+
+Close **all Comunicare clients** before repair. The standalone Python script
+detects a complete, valid schema-1 cache index followed by junk and automatically
+removes only that trailing junk. It preserves every record and first writes an
+exact, content-hashed `.bak` of the original beside the index; replacement uses a
+unique temporary file and atomic rename. It does not edit keys, settings,
+profiles, avatar configuration or model blobs, and does not run automatically at
+game startup.
+
+```sh
+python3 tools/repair_asset_cache.py --dry-run
+python3 tools/repair_asset_cache.py
+```
+
+The default path is the Linux Comunicare user cache (honoring `XDG_DATA_HOME`).
+For another installation/platform, pass the actual index path:
+
+```sh
+python3 tools/repair_asset_cache.py /path/to/asset_cache/index.json
+```
+
+Healthy files are untouched. Truncated/unparseable JSON, duplicate keys, invalid
+records, future schemas, symlinks and unreadable/oversized files are refused,
+not silently reset. A detected concurrent change aborts replacement; keep clients
+closed because a standalone repair cannot lock out an application that does not
+cooperate with locking. Backups can contain cache metadata; keep them private.
+Restart the client after repair to clear its in-memory read-only cache state.
+This repairs the diagnosed trailing-data failure, not every possible storage or
+model-import error. Isolated regression tests:
+`python3 tools/test_repair_asset_cache.py`.
+
 Back up originals before recovery; wrong-owner/signature/future-version errors
 must not be suppressed through destructive reset. Cache cleanup is separate from
 account recovery. Release journal recovery is separate again: inspect repository

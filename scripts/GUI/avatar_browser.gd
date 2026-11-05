@@ -41,6 +41,43 @@ var oauth = preload("res://scripts/discovery/avatars/oauth_session.gd").new()
 var oauth_exchange: HTTPRequest
 var transport_options: Dictionary = {} # Isolated test seam; production remains HTTPS-only.
 var advanced_filters: Control
+var applying_avatar := false
+var loading_popup: AcceptDialog
+var loading_label: Label
+var loading_bar: ProgressBar
+
+func _loading_progress(value: float, message: String):
+	if not is_instance_valid(loading_popup): return
+	loading_bar.value = value
+	loading_label.text = "%s\n%d%%" % [message, int(value)]
+
+func _apply_avatar(record: Dictionary):
+	if applying_avatar or editor_open: return
+	if is_instance_valid(loading_popup): loading_popup.queue_free()
+	applying_avatar = true
+	loading_popup = AcceptDialog.new()
+	loading_popup.title = "Loading avatar"
+	loading_popup.exclusive = true
+	loading_popup.get_ok_button().hide()
+	loading_popup.close_requested.connect(func(): pass)
+	var layout = VBoxContainer.new()
+	loading_popup.add_child(layout)
+	loading_label = Label.new()
+	layout.add_child(loading_label)
+	loading_bar = ProgressBar.new()
+	loading_bar.custom_minimum_size = Vector2(320, 28)
+	loading_bar.show_percentage = false
+	layout.add_child(loading_bar)
+	add_child(loading_popup)
+	loading_popup.popup_centered(Vector2i(360, 150))
+	_loading_progress(0, "Loading avatar…")
+	await _import_record(record, true)
+	applying_avatar = false
+	if not is_instance_valid(loading_popup): return
+	loading_popup.get_ok_button().show()
+	loading_popup.confirmed.connect(loading_popup.queue_free)
+	loading_popup.close_requested.connect(loading_popup.queue_free)
+	if loading_bar.value < 100: loading_label.text = "Could not apply avatar.\n" + status.text
 
 func _button(parent: Node, title: String, action: Callable) -> Button:
 	var button = Button.new()
@@ -287,7 +324,8 @@ func _details(record: Dictionary):
 	if preload("res://scripts/discovery/avatars/request_policy.gd").new().valid_url(page): _button(results, "Open source page", func(): OS.shell_open(page))
 	if ImportPolicy.new().evaluate(record).can_import:
 		if record.get("type") == "avatar": _button(results, "1. Preview avatar", _preview_record.bind(record))
-		var import_button = _button(results, "2. Review & equip avatar" if record.get("type") == "avatar" else "Add animation to my library", _import_record.bind(record))
+		var action = _apply_avatar.bind(record) if record.get("type") == "avatar" else _import_record.bind(record)
+		var import_button = _button(results, "Apply avatar" if record.get("type") == "avatar" else "Add animation to my library", action)
 		import_button.disabled = not ImportPolicy.new().evaluate(record).share
 		if import_button.disabled: import_button.tooltip_text = "Equipping requires reviewed redistribution permission. Preview is still available."
 		if record.get("type") == "animation":
@@ -465,9 +503,9 @@ func _preview_record(record: Dictionary):
 	preview.set_source("browser-preview")
 	await preview.load_preview()
 	if ticket == generation and is_instance_valid(preview) and is_instance_valid(preview.model):
-		status.text = "Preview ready. Download and review the model, then Apply to equip."
+		status.text = "Preview ready. Click Apply avatar to download, validate and equip."
 
-func _import_record(record: Dictionary):
+func _import_record(record: Dictionary, equip: bool = false):
 	if editor_open: return
 	var loader = get_node_or_null("/root/DataLoader")
 	var save = get_node_or_null("/root/SaveData")
@@ -483,6 +521,10 @@ func _import_record(record: Dictionary):
 	service.configure(registry.sources[record.provider])
 	service.options = transport_options.duplicate()
 	service.credentials = registry.get_credentials(record.provider)
+	if equip:
+		service.download_progress.connect(func(received, total):
+			if total > 0: _loading_progress(clampf(float(received) / total, 0, 1) * 70, "Downloading avatar…")
+			else: _loading_progress(0, "Downloading avatar… (%d KiB)" % (received / 1024)))
 	status.text = "Downloading and validating; your equipped avatar is unchanged…"
 	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 64 * 1024 * 1024 if record.type == "avatar" else 16 * 1024 * 1024)
 	services.erase(service)
@@ -527,6 +569,7 @@ func _import_record(record: Dictionary):
 	file.store_buffer(bytes)
 	file.close()
 	var configuration = loader.get_avatar_configuration()
+	if equip: _loading_progress(75, "Validating avatar…")
 	var imported: Dictionary = await configuration.import_source(path, record.type == "avatar", true)
 	DirAccess.remove_absolute(path)
 	if ticket != generation or not is_inside_tree() or save.profile.get_local_fingerprint() != account_owner: return
@@ -537,6 +580,13 @@ func _import_record(record: Dictionary):
 	# Provider/private URLs are not persisted in source config or cache records.
 	imported.provenance = {"provider": record.provider, "id": str(record.get("id", "")).left(200), "license": record.license, "author": str(record.get("author", "")).left(200)}
 	if record.get("in_place", false): imported.provenance.conversion = "Removed translation tracks; retained humanoid rotations"
+	if equip:
+		_loading_progress(90, "Applying avatar…")
+		if await configuration.apply(imported, configuration.sources.duplicate(true)):
+			status.text = "Avatar applied: " + imported.name
+			_loading_progress(100, "Avatar applied!")
+		else: status.text = configuration.last_error
+		return
 	var editor = load("res://scenes/GUI/animation_menue.tscn").instantiate()
 	add_child(editor)
 	editor_open = true

@@ -2,6 +2,14 @@
 
 ## Avatar preview and Apply integration
 
+Avatar details now provide a single **Apply avatar** action. The modal reports
+download progress over 0–70% when Content-Length is available (otherwise byte
+count), then validation at 75%, commit at 90%, and completion at 100%. These are
+overall workflow stages, not a precise importer percentage. Failure keeps the
+current model and shows the error with a dismiss button. Animation imports still
+open the source editor. Integration tests assert one-click Apply completes without
+opening the editor in headless and rendered modes.
+
 Browser usability regressions assert collapsed advanced filters, typed search,
 digest mismatch rejection during preview, visible review/Apply controls and a
 missing-cache error that preserves the current model. The browser has a direct

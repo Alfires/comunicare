@@ -27,6 +27,11 @@ func run():
 	await browser._preview_record(record)
 	check(browser.preview != null and is_instance_valid(browser.preview.model), "catalog avatar loads in production browser preview: " + browser.status.text)
 	check(loader.get_avatar_configuration().model.is_empty(), "preview never equips model")
+	await browser._apply_avatar(record)
+	check(not loader.get_avatar_configuration().model.is_empty() and browser.loading_bar.value == 100 and not browser.editor_open,
+		"single Apply action validates and equips avatar with completed progress popup and no editor")
+	browser.loading_popup.queue_free()
+	await process_frame
 	var wrong = record.duplicate(true)
 	wrong.sha256 = "f".repeat(64)
 	await browser._preview_record(wrong)

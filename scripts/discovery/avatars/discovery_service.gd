@@ -1,4 +1,9 @@
 extends Node
+signal download_progress(received: int, total: int)
+
+func _process(_delta: float):
+	for request in requests:
+		if is_instance_valid(request): download_progress.emit(request.get_downloaded_bytes(), request.get_body_size())
 const Policy = preload("res://scripts/discovery/avatars/request_policy.gd")
 const OSA = "https://raw.githubusercontent.com/ToxSam/open-source-avatars/main/data/"
 const VOX = "https://raw.githubusercontent.com/SanHsien/voxavatar/main/public/assets/"

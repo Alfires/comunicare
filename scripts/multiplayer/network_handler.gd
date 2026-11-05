@@ -486,8 +486,8 @@ func sync_player_data(data: PlayerData):#,rotation: Vector3):
 	# Server relays to all others
 	var player_node = find_child(str(data.id), false, false)
 	if player_node:
-		player_node.position = data.position
-		player_node.rotation = data.rotation
+		if player_node.has_method("receive_motion"):
+			player_node.receive_motion(data.position, data.rotation)
 
 # player voice
 func sync_player_voice(data: VoiceData): #PackedFloat32Array

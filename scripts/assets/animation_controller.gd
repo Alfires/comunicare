@@ -78,6 +78,13 @@ func _process(delta: float):
 	for id in remote_states.keys():
 		if not _member(id):
 			_remove_remote(id)
+		elif is_instance_valid(remote_animators.get(id)):
+			var state: Dictionary = remote_states[id]
+			var animator = remote_animators[id]
+			if animator.descriptor.get("generation") == state.generation and animator.descriptor.get("sequence") == state.sequence:
+				animator.synchronize(AnimationState.playhead(state, now()), state.speed, state.loop, state.duration)
+	if not local_state.is_empty() and is_instance_valid(local_animator):
+		local_animator.synchronize(AnimationState.playhead(local_state, now()), local_state.speed, local_state.loop, local_state.duration)
 	clock_elapsed += delta
 	snapshot_elapsed += delta
 	transfer_elapsed += delta
@@ -89,11 +96,6 @@ func _process(delta: float):
 		_send({"op": "snapshot"})
 		for id in remote_states:
 			_apply_remote(id)
-		# Keyframes repair drift after clock estimation changes, including self.
-		if not local_state.is_empty() and is_instance_valid(local_animator) and is_instance_valid(local_animator.player):
-			var target = AnimationState.playhead(local_state, now())
-			if absf(local_animator.player.current_animation_position - target) > 0.1:
-				local_animator.player.seek(target, true)
 	if transfer_elapsed >= 0.07 and not outgoing.is_empty():
 		transfer_elapsed = 0
 		_send_chunk()
@@ -477,8 +479,7 @@ func _apply_remote(id: int):
 		remote_animators[id] = animator
 	var position = AnimationState.playhead(value, now())
 	if animator.descriptor.get("generation") == value.generation and animator.descriptor.get("sequence") == value.sequence:
-		if absf(animator.player.current_animation_position - position) > 0.1:
-			animator.player.seek(position, true)
+		animator.synchronize(position, value.speed, value.loop, value.duration)
 		return
 	clip = clip.duplicate(true)
 	clip.motion_role = str(value.get("role", "")) if value.get("kind") == "locomotion" else ""

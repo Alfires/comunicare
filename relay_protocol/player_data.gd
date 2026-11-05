@@ -8,7 +8,7 @@ var rotation: Vector3
 static func create(_id: int, _position: Vector3, _rotation: Vector3) -> PlayerData:
 	var info: PlayerData = PlayerData.new()
 	info.packet_type = PACKET_TYPE.PLAYER_DATA
-	info.flag = ENetPacketPeer.FLAG_UNSEQUENCED
+	info.flag = 0 # Unreliable, but sequenced: late poses must not rewind movement.
 	info.id = _id
 	info.position = _position
 	info.rotation = _rotation

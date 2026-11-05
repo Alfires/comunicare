@@ -61,6 +61,7 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	test_remote_motion()
 	await test_walk_to_standing()
 	var standing_source = Defaults.clip("neutral")
 	check(standing_source.get("standing_legs") == "A_TPose", "standing uses aligned reference legs instead of wide staggered idle legs")
@@ -492,6 +493,41 @@ func test_ui(bytes: PackedByteArray):
 	menu.queue_free()
 	await process_frame
 
+func test_remote_motion():
+	check(PlayerData.create(1, Vector3.ZERO, Vector3.ZERO).flag == 0,
+		"movement uses sequenced unreliable delivery rather than reordered unsequenced packets")
+	if not ResourceLoader.exists("res://scripts/player/remote_motion.gd"):
+		check(false, "remote movement has a buffered interpolation policy")
+		return
+	var motion = load("res://scripts/player/remote_motion.gd").new()
+	motion.push(Vector3.ZERO, Vector3(0, deg_to_rad(179), 0), 0.0)
+	motion.push(Vector3(0.5, 0, 0), Vector3(0, deg_to_rad(-179), 0), 0.05)
+	motion.push(Vector3(1, 0, 0), Vector3(0, deg_to_rad(-177), 0), 0.10)
+	var middle = motion.sample(0.125)
+	check(is_equal_approx(middle.origin.x, 0.25), "20 Hz movement interpolates between packets rather than snapping to latest")
+	check(absf(middle.basis.get_euler().y) > 3.0, "rotation interpolates across wrap using shortest quaternion arc")
+	var next = motion.sample(0.135)
+	check(next.origin.x > middle.origin.x and next.origin.x - middle.origin.x < 0.2,
+		"remote movement advances smoothly between network arrivals")
+	check(motion.sample(2.0).origin.x <= 2.01, "packet loss extrapolation is bounded and stops instead of drifting indefinitely")
+	motion.push(Vector3(30, 0, 0), Vector3.ZERO, 2.0)
+	check(is_equal_approx(motion.sample(2.0).origin.x, 30), "teleport resets old movement samples immediately")
+	motion.push(Vector3(INF, 0, 0), Vector3.ZERO, 2.1)
+	check(motion.sample(2.1).origin.is_finite(), "invalid movement cannot poison interpolation")
+	var jitter = load("res://scripts/player/remote_motion.gd").new()
+	var previous := 0.0
+	var largest_step := 0.0
+	for frame in 120:
+		var time = frame / 60.0
+		# Alternate 33/67 ms packet spacing with one missing update.
+		if frame % 6 in [0, 2] and frame != 60:
+			jitter.push(Vector3(time * 3.0, 0, 0), Vector3.ZERO, time)
+		var pose = jitter.sample(time)
+		largest_step = maxf(largest_step, absf(pose.origin.x - previous))
+		previous = pose.origin.x
+	check(largest_step < 0.11, "jittery arrivals and a dropped packet remain smooth at render-frame cadence")
+	check(jitter.samples.size() <= 32, "movement history remains bounded")
+
 func test_controller(parsed: Dictionary):
 	var network = Coordinator.new()
 	network.peer = RelayPeer.new()
@@ -546,6 +582,13 @@ func test_controller(parsed: Dictionary):
 	controller.receive(neutral)
 	check(not controller.incoming.has(7), "newly joined standing player never requests nonexistent remote animation size")
 	check(controller.remote_animators.has(7), "standing remote player gets built-in neutral animation without downloadable payload")
+	var animator = controller.remote_animators[7]
+	check(animator.has_method("synchronize"), "animation drift supports continuous correction without periodic playhead jumps")
+	if animator.has_method("synchronize"):
+		animator.player.seek(0.95, true)
+		animator.synchronize(0.05, 1.0, true, 1.0)
+		check(is_equal_approx(animator.player.current_animation_position, 0.95), "loop-boundary drift correction never jumps to the other end of the clip")
+		check(animator.player.speed_scale > 1.0 and animator.player.speed_scale <= 1.1, "small animation drift catches up using bounded playback speed")
 	for builtin in AnimationState.BUILTINS:
 		for mask in ["full", "tracked_head_hands"]:
 			var state = neutral.duplicate(true)

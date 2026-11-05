@@ -570,6 +570,18 @@ disconnects store signal. Audio helper feeds only its generator, not microphone.
 | `attach_avatar` | Applies current hidden state before tree attachment, retires previous model and sets the compatible avatar reference. Used by URL and transferred-model paths. |
 | `begin_avatar_loading` | Enables bundled local stand-in and downloading status, hiding the previous model. A local block takes precedence. |
 | `avatar_load_failed` | Keeps stand-in with unavailable status on reported import failure; does not reveal an old model. |
+| `receive_motion` | Queues finite instance-local transforms in remote motion history; first pose applies immediately, subsequent poses render through interpolation in `_process`. |
+
+<!-- module: scripts/player/remote_motion.gd -->
+### [Remote motion](../../scripts/player/remote_motion.gd)
+
+Per-remote-node memory-only history; no persistent identity data. Existing movement
+packet layout is unchanged. PlayerData uses sequenced unreliable ENet delivery.
+
+| Functions | Contract |
+| --- | --- |
+| `push` | Accepts finite position/Euler rotation and monotonic arrival seconds. Rejects older arrivals; bounds history to 32 samples and resets on jumps over 8 m. |
+| `sample` | Returns interpolated transform 100 ms behind arrivals with shortest-arc rotation; extrapolates position for at most 100 ms, then holds. First pose/teleport applies immediately. Empty history returns identity. |
 
 <!-- module: scripts/assets/avatar_placeholder.gd -->
 ### [Avatar placeholder](../../scripts/assets/avatar_placeholder.gd)
@@ -716,6 +728,7 @@ authority. Shared local/remote renderer; it is not a separate network player.
 | `play_clip` | Binds validated clip, preserves visible pose for transition, installs bounded current/reset libraries, seeks requested phase and starts; bool with last_error on binding failure. Uses 0.55 s for tagged jump→neutral standing transitions, otherwise 0.22 s. The controller tags local/remote resolved roles without mutating cached source clips. Does not move camera/body. |
 | `stop` | Clears fade, applies owned RESET, stops and clears descriptor; immediate lifecycle reset, not an emote network command. |
 | `set_paused` | Internal renderer pause/resume primitive; not exposed as manual protocol/UI control. Requires attached player. |
+| `synchronize` | Corrects phase using playback-speed adjustment bounded to ±10%, with shortest cyclic error for loops. Seeks only for errors above 0.5 s. No-op for stopped/unattached players. |
 
 <!-- module: scripts/assets/animation_controller.gd -->
 ### [AnimationController](../../scripts/assets/animation_controller.gd)

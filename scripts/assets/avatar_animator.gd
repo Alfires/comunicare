@@ -28,6 +28,18 @@ func attach(model: Node3D):
 	library.add_animation("RESET", Animation.new())
 	player.add_animation_library("", library)
 
+func synchronize(target: float, speed: float, looping: bool, duration: float):
+	if not is_instance_valid(player) or not player.is_playing(): return
+	var error = target - player.current_animation_position
+	if looping: error = fposmod(error + duration * 0.5, duration) - duration * 0.5
+	# Only a major discontinuity warrants a seek. Ordinary drift is corrected
+	# continuously, including across looping clip boundaries.
+	if absf(error) > 0.5:
+		player.seek(target, true)
+		player.speed_scale = speed
+	else:
+		player.speed_scale = speed * (1.0 + clampf(error * 0.5, -0.1, 0.1))
+
 func play_clip(clip: Dictionary, looping: bool = true, speed: float = 1.0, offset: float = 0.0) -> bool:
 	if not is_instance_valid(avatar) or not is_instance_valid(player):
 		return false

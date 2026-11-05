@@ -12,6 +12,16 @@ var avatar_loading := true
 var avatar_failed := false
 var placeholder: Node3D
 var avatar_status: Label3D
+var remote_motion = preload("res://scripts/player/remote_motion.gd").new()
+
+func receive_motion(new_position: Vector3, new_rotation: Vector3):
+	var initial = remote_motion.samples.is_empty()
+	remote_motion.push(new_position, new_rotation, Time.get_ticks_usec() * 0.000001)
+	if initial: transform = remote_motion.sample(Time.get_ticks_usec() * 0.000001)
+
+func _process(_delta: float):
+	if not remote_motion.samples.is_empty():
+		transform = remote_motion.sample(Time.get_ticks_usec() * 0.000001)
 
 func _ensure_placeholder():
 	if is_instance_valid(placeholder): return

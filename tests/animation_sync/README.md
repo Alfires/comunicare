@@ -8,7 +8,21 @@ The optional real-avatar group covers combined skinned geometry. Rendering,
 mirror/shadow appearance and physical tracking calibration still need manual XR
 checks; headless pose assertions do not validate their visual quality.
 
-## Authored default animation regressions
+## Remote movement and playback smoothing
+
+The suite simulates 20 Hz motion, uneven arrival spacing and a dropped update,
+checks frame-by-frame intermediate positions, shortest-arc rotation, bounded
+extrapolation, teleports and invalid poses. Movement remains wire-compatible but
+uses sequenced unreliable delivery. Rendering uses a 100 ms arrival-time buffer,
+trading a small fixed display delay for smooth movement; no clock synchronization
+or sender timestamp is added to the legacy movement packet. Extrapolation stops
+after 100 ms rather than predicting disconnected players indefinitely.
+
+Animation phase correction is continuous and loop-aware, with bounded playback
+speed adjustment instead of repeated small seeks. Large discontinuities still
+seek. Synthetic tests are not a visual Internet-latency or headset certification.
+
+## Authored animation receiver coverage
 
 The production receiver is exercised with every protocol built-in, including
 `neutral`, with both full and tracked-head/hands masks and no custom asset fields.

@@ -58,6 +58,7 @@ def main():
         shutil.copy2(HERE / "visibility_suite.gd", project / "visibility_suite.gd")
         (project / "scripts/player").mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / "scripts/player/remote_player.gd", project / "scripts/player/remote_player.gd")
+        shutil.copy2(ROOT / "scripts/player/remote_motion.gd", project / "scripts/player/remote_motion.gd")
         (project / "project.godot").write_text(
             'config_version=5\n[application]\nconfig/name="Active Instance contracts"\n'
             '[autoload]\nSaveData="*res://fixtures/save_data.gd"\n'

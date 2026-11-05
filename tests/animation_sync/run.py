@@ -28,6 +28,7 @@ def main():
         shutil.copytree(ROOT / "scripts/multiplayer/client", project / "scripts/multiplayer/client")
         shutil.copytree(ROOT / "scripts/multiplayer/federation", project / "scripts/multiplayer/federation")
         (project / "scripts/player").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / "scripts/player/remote_motion.gd", project / "scripts/player/remote_motion.gd")
         for name in ("player_desktop_movment.gd", "player_vr.gd", "sprint_policy.gd", "air_control.gd", "vr_locomotion.gd", "vr_turn_controller.gd", "vr_input_router.gd", "vr_comfort.gd", "vr_room_scale.gd", "vr_safety.gd"):
             shutil.copy2(ROOT / "scripts/player" / name, project / "scripts/player" / name)
         remote = project / "scenes/player/remote_player.tscn"

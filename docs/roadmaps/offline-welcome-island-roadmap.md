@@ -4,12 +4,13 @@
 
 **Planned — 2026-11-05.** No island, asset downloads or Credits UI are delivered
 by this roadmap. Replace the built-in default blockout with an original,
-hand-assembled floating island: a welcoming introduction to Comunicare that is
-also a pleasant place to relax after the introduction is over.
+hand-assembled floating island: **a good home first**, where players can naturally
+discover Comunicare through things they choose to do. It must feel worth returning
+to, not like a tutorial level that has served its purpose after one visit.
 
 The island must work without a relay, internet connection or downloaded content.
-It should teach movement and basic game features through optional, usable
-activities rather than a mandatory tutorial corridor. Aim for believable natural
+Learning movement and basic game features is a side effect of exploring and using
+the home, not the map's visible theme. Aim for believable natural
 materials and lighting within a deliberately fantastical floating-island setting.
 
 ### Non-negotiable requirements
@@ -24,7 +25,13 @@ materials and lighting within a deliberately fantastical floating-island setting
   free premade assets. **Do not import a complete island, environment demo or
   large scene preset as the map.** An asset pack is a parts library, not a layout.
 - Include actual interactive objects, not only signs describing interactions.
-- Demonstrate lighting and material response without sacrificing VR comfort.
+- No generic tutorial stations, floating control billboards, numbered objectives,
+  material test displays or forced sightseeing route. No visible debug primitives
+  or stock feature-showcase scenery in the finished home.
+- Give players freedom to wander, ride, play with objects or simply stay still;
+  no task order, completion score or prompts that keep asking them to progress.
+- Show lighting and material quality through the home itself, without a labeled
+  tech-demo area or sacrificing VR comfort.
 - Bundle all required runtime content; no first-launch asset fetch or web tutorial.
 - Add **Settings → Credits**, including every mandatory asset attribution and
   optionally acknowledging CC0 contributors too. Use the correctly spelled UI
@@ -75,7 +82,7 @@ No required jumping, narrow balance obstacles or lethal edge challenges.
                .-----------------------------------.
            .--'       T   T   QUIET GROVE   T       '--.
          .'       T      bench       T       T          '.
-        /    shaded overlook ---- loop path ---- shelter  \
+         /    shaded overlook ---- garden path -- shelter  \
        /          |                    |        + lamp     \
       |           |                    |                    |
       |    T      +-------------+------+          T         |
@@ -83,9 +90,9 @@ No required jumping, narrow balance obstacles or lethal edge challenges.
       |                    [ SPAWN ]                        |
       |                  ISLAND MIDDLE                      |
       |                         |                           |
-      |   interaction garden ---+---- path ---- dock         |
-      |    table / props        |               H ~~~~~~~   |
-       \     T              return path        ~ H  /|  ~  /
+       |   picnic garden --------+---- path ---- dock         |
+       |    table / lantern      |               H ~~~~~~~   |
+        \     T               meadow path       ~ H  /|  ~  /
         \         T                           ~   /_|   ~ /
          '.              T                     ~ \___/ ~.'
            '--.             grassy bank          ~~~~~.-'
@@ -118,6 +125,9 @@ These sketches show composition, not construction measurements. The pond is a
 recess in the upper surface with a sealed bed; it does not divide the island or
 drain into space. All land destinations connect by broad dry paths. The ship
 stays inside the pond, and no secondary island is needed for a destination.
+Names such as “spawn” label this design document only: the finished clearing has
+no giant spawn marker or tutorial signage. Paths branch and reconnect for casual
+wandering; their arrangement must not imply an ordered course to complete.
 
 The diagram is a planning aid, not a premade layout to download. Sculpt/model
 the base ourselves; place individual rocks to break up the cliffs and underside,
@@ -127,10 +137,10 @@ soil, roots and stone. Avoid obvious repeated boulder piles as the whole island.
 
 | Place | Purpose and content | Completion condition |
 | --- | --- | --- |
-| Central clearing | Level, unobstructed spawn; landmark tree beside, not on, the spawn; small welcome sign and choices to explore, show hints or open menu | Player can immediately move or ignore the tutorial; view is not blocked by foliage or UI |
-| Movement loop | Broad curved path, gentle slope, optional low steps with an accessible bypass; hints for looking, walking, turning, optional sprint and VR teleport | Both desktop and supported VR locomotion modes can complete the loop without jumping |
-| Interaction garden | Stable table, movable objects, reset control and a switch-operated lamp | Player can pick up, move, drop, activate and reset with visible feedback while offline |
-| Lighting alcove | Small shaded timber/stone shelter with a warm lamp, rough wood, stone and a restrained metal object | Sun/shade, contact shadows, roughness and reflections are visibly distinct, including with the lamp off |
+| Central clearing | Level, unobstructed middle spawn framed by meadow and a nearby landmark tree; views toward several equally inviting places | Player immediately chooses any direction or stays; no sign, checklist or UI wall dominates arrival |
+| Garden paths and meadow | Broad branching paths, gentle slopes, optional low steps with accessible bypasses and open grass to wander off-path | Desktop and supported VR locomotion can reach every destination without jumping or following a prescribed route |
+| Picnic garden | Stable table, a few believable movable belongings and a lantern; recovery available through contextual/menu actions | Objects feel useful for hanging out or free play, not like a row of interaction exercises; pickup/drop/reset works offline |
+| Cozy shelter | Timber/stone nook with warm switchable lighting, weathered wood and ordinary metal fittings | A place to linger; sunlight, shade and material response look good without labeled swatches, test spheres or comparison instructions |
 | Pond and dock | Landscaped pond, shallow readable shoreline, accessible dock and small player-operated ship | Player can board, steer around the pond, stop, return and disembark on desktop and VR without networking |
 | Grove and overlook | Trees, rocks, benches, quiet wind/birds and a broad protected view of clouds/underside | A usable relaxing destination with no task marker, timer or forced narration |
 
@@ -154,40 +164,50 @@ interaction is optional and must not forcibly move a VR headset.
 - Keep the rider supported without sliding or physics jitter. In VR, boarding
   requires confirmation, preserves tracked head offsets and uses a brief comfort
   transition; never force head rotation, roll or camera bob. Offer immediate stop
-  and return-to-dock. Riding is optional and never gates onboarding completion.
+  and return-to-dock. Riding is optional; there is no onboarding completion gate.
 - Disembark only to a validated clear shore/dock location, not into water, trees
   or the void. Falling into the pond safely returns the player to the bank/dock;
   a menu escape/reset works even if the ship is stranded or overturned.
 - Reset restores the ship at its berth, clears motion/input and safely releases
   any rider. Scene changes and menu/focus loss must cancel control appropriately.
-- Use restrained water reflections, shore contact and ripples as part of the
-  lighting showcase; preserve visibility and a low-cost non-SSR fallback in VR.
+- Use restrained water reflections, shore contact and ripples to make the pond
+  feel believable; preserve visibility and a low-cost non-SSR fallback in VR.
 - Offline ship operation must not require a relay lease. In online home sessions,
   clearly mark it local-only unless authorized synchronized rider/vehicle ownership
   is implemented and verified; do not introduce a vehicle protocol in this plan.
 
-## Optional onboarding and interaction design
+## Home-first freedom and unobtrusive learning
 
-1. **Arrive:** “Welcome. Explore at your own pace.” Show a short hint for opening
-   the real menu. Offer hide/replay hints; never require completing tasks to play.
-2. **Move:** nearby prompts demonstrate look, move and turn. Read current saved
-   bindings and XR mode/profile; do not bake keys/controller icons into textures.
-   Show sprint only where supported and teleport instructions only in that mode.
-3. **Try objects:** provide at least two lightweight, bounded physical props
-   (for example a wooden block and small stone), clear target surfaces and a
-   reset button. Keep physics away from spawn and the cliff edge.
-4. **Try light:** activate a fixed lamp switch, then compare its warm illumination
-   on rough/reflective surfaces. The lamp must actually change illumination, not
-   just its emissive appearance. Bound brightness and avoid flashing/strobing.
-5. **Find game features:** optional station opens existing Settings, avatar/emote
-   and world/instance menus where available. Explain that meeting people needs
-   a connection; mark unavailable network actions clearly. Never simulate a
-   successful join, friendship or remote player in an offline tutorial.
-6. **Try the ship (optional):** follow the dry path to the dock, board, steer a
-   short loop and return. Explain stop/disembark/reset before moving; users who
-   prefer not to ride can enjoy the pond from the bank.
-7. **Stay:** dismiss hints and enjoy the grove. No forced transfer to an online
-   world, automatic microphone enable or completion telemetry.
+The following are independent possibilities, **not tutorial steps**. All are
+available immediately, in any order, and none is a task to finish.
+
+- **Arrive and choose:** an uncluttered view from the middle offers the grove,
+  shelter, picnic garden and pond as natural destinations. No welcome modal,
+  quest marker, arrows, forced camera turn or automatic tour.
+- **Wander or do nothing:** the terrain naturally provides walking, turning and
+  teleport opportunities without a movement practice zone. Open grass and
+  branching paths allow improvisation; resting is as valid as exploring.
+- **Make the space feel lived in:** place at least two movable everyday objects
+  such as a wooden cup and a small game piece among believable belongings, not
+  numbered blocks on pedestals. Let users move and play with them without a
+  target arrangement, score or “correct” result. Keep physics away from spawn
+  and the cliff edge; make recovery available without a prominent reset kiosk.
+- **Enjoy the shelter:** a normal switch or lantern control changes actual light,
+  not just emissive appearance. Warm light on the table and fittings showcases
+  quality naturally; never ask users to compare roughness swatches. Bound
+  brightness and avoid flashing/strobing.
+- **Use the pond as they like:** board and steer freely, remain at the dock or
+  enjoy the bank. No prescribed loop, checkpoint, lap time or ship lesson. On
+  deliberate boarding, make stop/disembark/return controls readily available.
+- **Find help when wanted:** keep Settings, avatar/emote and world/instance access
+  in the existing menu rather than feature-demonstration stations in the garden.
+  Offer a clearly discoverable Help/Controls entry with current bindings. A single
+  dismissible menu-key hint may appear on first arrival; no repeating reminders.
+  Explain offline restrictions in the relevant menu, never through fake successful
+  joins, friendships or remote players.
+- **Come home again:** no forced online transfer, automatic microphone enable,
+  completion telemetry or “tutorial finished” state. The full island remains a
+  useful place to return to after learning the controls.
 
 Desktop and VR must share interaction semantics: aim/highlight, activate,
 pick up/drop, cancel and reset. Reuse existing binding/settings owners. Resolve
@@ -195,11 +215,16 @@ actual VR controller support during the first interaction spike, and only show
 controls that work. Local interaction is required even without authentication;
 network ownership/lease messages must not be required for offline props.
 
-Hints should be short, readable at comfortable distance and non-color-only.
-Support seated reach and desktop aiming; suppress world interaction while menus
-capture input. Keep onboarding state session-local initially, with hide/replay
-available; persistent progress would need a separately reviewed registry-owned
-preference, not writes into account/profile/friend files.
+Contextual affordances should be short, readable at comfortable distance and
+non-color-only. Show only the action for an intentionally aimed/reached object,
+not labels over everything nearby; allow these hints to be hidden. Extended
+movement/feature explanations are opt-in through Help, not proximity-triggered
+lessons. Resolve text/icons from current bindings and XR mode/profile rather
+than baking defaults into scenery. Support seated reach and desktop aiming;
+suppress world interaction while menus capture input. Keep help visibility
+session-local initially, with show/hide available; persistent preferences would
+need a separately reviewed registry-owned setting, not writes into account,
+profile or friend files. Do not track tutorial progress.
 
 ## Free asset research and licensing gate
 
@@ -307,7 +332,7 @@ moving, and `default_wold` still resolves through DataLoader.
 **Gate:** reproduce the small sample scene from documented sources/conversions;
 Credits and full notices work offline in desktop UI and the VR viewport.
 
-### 3. Real interactions and gentle onboarding
+### 3. Everyday interactions and optional help
 
 - [ ] Spike existing `world_pickup_controller.gd`/runtime integration before choosing
   a shared local adapter or validated built-in document. Reuse behavior where safe;
@@ -317,11 +342,13 @@ Credits and full notices work offline in desktop UI and the VR viewport.
 - [ ] Deliver offline ship boarding, player steering, stopping, safe disembarking,
   rider support and return-to-dock/reset. Test pond/shore collision, lost focus,
   scene exit and VR comfort; do not substitute a decorative animated ship.
-- [ ] Add optional device/binding-aware hints, replay/hide controls and links to
-  real menus. Verify remapping and menu/focus suppression.
-- [ ] Keep tutorial progress and lamp demonstrations local. If this same built-in
+- [ ] Add opt-in device/binding-aware Help, minimal contextual action hints and
+  show/hide controls through real menus. Verify remapping and focus suppression;
+  do not add tutorial stations, task tracking or an ordered introduction.
+- [ ] Keep help visibility and lamp state local. If this same built-in
   scene is joined online, either use existing authorized synchronized ownership
-  or explicitly label demo objects local-only; never imply unimplemented sync.
+  or indicate local-only object behavior in contextual/menu information, not
+  oversized world signs; never imply unimplemented sync.
 
 **Gate:** a new desktop user and a seated VR user can try every required action
 without internet, enabling the microphone, changing preferences or completing
@@ -333,15 +360,17 @@ to implement.
 
 - [ ] Replace the graybox with our own terrain and individual asset placements;
   compose the grove, underside, roots, overlooks and quiet destinations.
-- [ ] Add consistent PBR materials, shadows, restrained ambience and the lighting
-  alcove. Test sunlight/shade and lamp-on/off comparisons with moving props.
+- [ ] Add consistent PBR materials, shadows, restrained ambience and the cozy
+  shelter. Test sunlight/shade and lamp-on/off behavior with moving belongings;
+  keep technical comparison displays out of the finished environment.
 - [ ] Finish the pond banks, bed, dock and ship materials; verify waterline,
   reflections and hull contact in both XR eyes without costly required effects.
 - [ ] Optimize vegetation, collision, LODs and lighting against measured budgets;
   retain a readable lower-cost configuration and accessible traversal routes.
 
-**Gate:** rendered views from spawn, grove, alcove and overlook show a coherent
-floating island, not a kit demo. Manual desktop and headset walkthroughs confirm
+**Gate:** rendered views from spawn, grove, shelter and overlook show a coherent
+home island, not a kit demo or tutorial campus. With every hint hidden, each area
+still makes sense and feels worth visiting. Manual desktop and headset walkthroughs confirm
 readable hints, comfortable reach/locomotion, safe recovery and stable performance.
 
 ### 5. Regression and release acceptance
@@ -361,11 +390,15 @@ readable hints, comfortable reach/locomotion, safe recovery and stable performan
   identifiers/admission/acknowledged transition behavior remain unchanged.
 - [ ] Record hardware-specific renderer/XR results and screenshots; document
   remaining limitations. Update current user guides and this roadmap's index status.
+- [ ] Playtest free exploration without enabling Help: users can choose their own
+  activities and identify places they would revisit. Reject a layout that reads
+  as a sequence of lessons, even if all technical interaction tests pass.
 
 **Done means:** the old default blockout is replaced, the island works offline
 from bundled content, it is one big island with the spawn in the middle, the pond
 has a working player-steered ship, spawn/recovery are reliable, all required
-interactions work on desktop/VR, tutorials are optional, Credits is complete,
+interactions work on desktop/VR, help is optional and unobtrusive, the island is
+an enjoyable reusable home without tutorial signage or task progression, Credits is complete,
 and measured visual/performance gates pass. A screenshot or headless test alone
 does not satisfy this release gate.
 

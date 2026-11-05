@@ -1,5 +1,9 @@
 # RED VR controls acceptance tests
 
+Desktop camera regressions additionally check render-frame translation between
+physics positions, immediate pitch retention and teleport history reset. These
+are deterministic transform assertions, not a visual blur/performance measurement.
+
 **Implementation update:** this suite now passes **81 assertions**, exit 0, after
 movement/turn/input/settings/pointer/comfort implementation. The red-baseline notes
 below are historical. Physical XR visuals, virtual keyboard, scroll, full room-scale

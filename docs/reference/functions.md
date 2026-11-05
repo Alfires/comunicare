@@ -589,14 +589,16 @@ availability is outside headless packet tests.
 ### [Desktop player](../../scripts/player/player_desktop_movment.gd)
 
 Root-owned CharacterBody; ready subscribes profile/config and loads avatar.
-Physics handles input/collision; process sends position. Mouse input owns camera
+Physics handles input/collision; process sends position and interpolates camera
+translation between the last two physics positions without smoothing mouse look.
+This is not motion blur or global/XR interpolation. Mouse input owns camera
 pitch/yaw; animation never parents camera to a bone. Generation checks reject
 stale loads. Camera forward clearance and rest-eye calibration are local only.
 
 | Functions | Contract |
 | --- | --- |
 | `update_player_data` | Sends current transform only with connected acknowledged session and no transition; does not grant membership. |
-| `set_player_pos` | Sets local body position, used after world activation; caller provides valid spawn. |
+| `set_player_pos` | Sets local body position, clears velocity and resets camera interpolation history, used after world activation; caller provides valid spawn. |
 | `load_player_model` | Awaited profile/config model acquisition; skips unchanged key, protects latest generation and swaps only successful result. Attaches local first-person view, calibrates camera from rest geometry. |
 | `get_walk_speed` | Returns the shared registry-backed `vr.move_speed` for desktop walking and automatic walk/run classification, identical to VR's unboosted reference. Physics applies the shared held-sprint multiplier to horizontal target speed only; focus/UI/rebind/session suppression requires release before sprint can resume. |
 

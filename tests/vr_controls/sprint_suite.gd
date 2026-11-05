@@ -52,6 +52,21 @@ func desktop_checks():
 	camera.name = "Camera3D"
 	player.add_child(camera)
 	root.add_child(player)
+	check(player.has_method("_update_camera_position"), "desktop camera interpolates physics translation at render cadence")
+	if player.has_method("_update_camera_position"):
+		player.camera_rest_position = Vector3(0, 1.6, 0)
+		player.camera_previous_position = Vector3.ZERO
+		player.camera_current_position = Vector3(1, 0, 0)
+		player.position = Vector3(1, 0, 0)
+		player.camera_motion_ready = true
+		player._update_camera_position(0.5)
+		check(camera.global_position.is_equal_approx(Vector3(0.5, 1.6, 0)), "rendered camera sits between physics positions without visual stepping")
+		camera.rotation.x = 0.3
+		player._update_camera_position(0.75)
+		check(is_equal_approx(camera.rotation.x, 0.3), "camera smoothing never delays mouse-look rotation")
+		player.set_player_pos(Vector3(20, 0, 0))
+		player._update_camera_position(0.5)
+		check(camera.global_position.is_equal_approx(Vector3(20, 1.6, 0)), "teleport clears camera history without dragging through previous world")
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Input.action_press("forward")
 	Input.action_press("sprint")

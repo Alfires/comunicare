@@ -22,6 +22,10 @@ var avatar_generation := 0
 var avatar_url := ""
 var world_grip: Node3D
 var focused := true
+var camera_rest_position := Vector3.ZERO
+var camera_previous_position := Vector3.ZERO
+var camera_current_position := Vector3.ZERO
+var camera_motion_ready := false
 var sprint = preload("res://scripts/player/sprint_policy.gd").new()
 var air_control = preload("res://scripts/player/air_control.gd").new()
 
@@ -36,6 +40,8 @@ func _notification(what):
 		focused = true
 
 func _ready() -> void:
+	camera_rest_position = camera.position
+	_reset_camera_motion()
 	world_grip = Node3D.new()
 	world_grip.name = "WorldItemGrip"
 	camera.add_child(world_grip)
@@ -52,8 +58,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
 func _process(delta):
-	var packet = PackedByteArray()
-	packet.append_array(var_to_bytes(position))
+	_update_camera_position(Engine.get_physics_interpolation_fraction())
 	# when to update data
 	elapsed_time += delta
 	if elapsed_time >= 0.05 and (last_state != {"position": position, "rotation": rotation} or elapsed_time >= update_interval):
@@ -70,6 +75,20 @@ func update_player_data():
 
 func set_player_pos(pos: Vector3):
 	position = pos
+	velocity = Vector3.ZERO
+	_reset_camera_motion()
+
+func _reset_camera_motion():
+	camera_previous_position = global_position
+	camera_current_position = global_position
+	camera_motion_ready = true
+	if is_instance_valid(camera): _update_camera_position(1.0)
+
+func _update_camera_position(fraction: float):
+	if not is_instance_valid(camera) or not camera_motion_ready: return
+	var rendered = camera_previous_position.lerp(camera_current_position, clampf(fraction, 0, 1))
+	# Only translate; body yaw and camera pitch remain immediate mouse input.
+	camera.position = camera_rest_position + global_basis.inverse() * (rendered - global_position)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
@@ -142,7 +161,10 @@ func _physics_process(delta):
 		velocity.y = jump_force
 	
 	# Move the character
+	if not camera_motion_ready: _reset_camera_motion()
+	camera_previous_position = global_position
 	move_and_slide()
+	camera_current_position = global_position
 
 
 func load_player_model():
@@ -182,6 +204,8 @@ func load_player_model():
 		if eye_bone_idx >= 0:
 			camera.position = vrm_model.transform * skeleton.transform * skeleton.get_bone_global_rest(eye_bone_idx).origin
 			camera.position += Vector3.FORWARD * first_person_forward_offset
+	camera_rest_position = camera.position
+	_reset_camera_motion()
 
 
 func _find_eye_bone() -> int:

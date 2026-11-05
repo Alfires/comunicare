@@ -4955,126 +4955,140 @@
     {
       "kind": "func",
       "name": "get_walk_speed",
-      "line": 28,
+      "line": 32,
       "signature": "func get_walk_speed() -> float",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 31,
+      "line": 35,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_ready",
-      "line": 38,
+      "line": 42,
       "signature": "func _ready() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_process",
-      "line": 54,
+      "line": 60,
       "signature": "func _process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "update_player_data",
-      "line": 64,
+      "line": 69,
       "signature": "func update_player_data()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_player_pos",
-      "line": 71,
+      "line": 76,
       "signature": "func set_player_pos(pos: Vector3)",
       "visibility": "public"
     },
     {
       "kind": "func",
+      "name": "_reset_camera_motion",
+      "line": 81,
+      "signature": "func _reset_camera_motion()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_update_camera_position",
+      "line": 87,
+      "signature": "func _update_camera_position(fraction: float)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_input",
-      "line": 74,
+      "line": 93,
       "signature": "func _input(event: InputEvent) -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_unhandled_input",
-      "line": 96,
+      "line": 115,
       "signature": "func _unhandled_input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_movement_blocked",
-      "line": 107,
+      "line": 126,
       "signature": "func _movement_blocked() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_movement_grounded",
-      "line": 111,
+      "line": 130,
       "signature": "func _movement_grounded() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_physics_process",
-      "line": 114,
+      "line": 133,
       "signature": "func _physics_process(delta)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_player_model",
-      "line": 148,
+      "line": 170,
       "signature": "func load_player_model()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_find_eye_bone",
-      "line": 187,
+      "line": 211,
       "signature": "func _find_eye_bone() -> int",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_calculate_head_offset",
-      "line": 197,
+      "line": 221,
       "signature": "func _calculate_head_offset() -> Vector3",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_profile_changed",
-      "line": 229,
+      "line": 253,
       "signature": "func _profile_changed(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 233,
+      "line": 257,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_avatar_configuration_changed",
-      "line": 238,
+      "line": 262,
       "signature": "func _avatar_configuration_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 241,
+      "line": 265,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }

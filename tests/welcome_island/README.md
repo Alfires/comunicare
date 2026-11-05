@@ -1,5 +1,29 @@
 # Welcome island startup contracts
 
+## Part 07 pond/dock — 2026-11-05
+
+`python3 tests/welcome_island/run_layout.py --pond --rendered` checks the sealed
+bed, bounded water, dry perimeter, accessible physical dock, twelve-metre clear
+ship turning reserve, actual water-trigger recovery, repeated non-looping bank
+returns and blocked-bank fallback. Production VR destination queries explicitly
+reject water areas marked `teleport_disabled`. The suite initially failed on the
+missing pond before production changes; 16 rendered checks now pass. Layout 30,
+recovery 22, startup 68 and VR/sprint 106 + 63 assertions also pass; isolated Linux
+debug export and eight-entry provenance validation pass.
+
+The dock is our own assembled timber deck/planks/posts using the previously cleared
+Weathered Planks CC0 maps; no newly downloaded models or environment presets. Water
+uses one opaque standard-material surface, no SSR, refraction or depth-reading
+shader. It is a deliberately inexpensive visual baseline, not final water realism.
+The bed stays part of the original continuous island. Ship is not implemented here.
+The picnic pickup blocks were moved beside the route after layout regressions
+showed they obstructed its walking corridor.
+
+Manual view: camera `(4,8,38)` toward `(23,-0.5,23)`, screenshot
+`/tmp/opencode/island-pond.png`; inspect bank contact, dock-to-bank continuity and
+readable water edge without SSR. Actual-headset two-eye water/shore and dock
+traversal checks remain open; rendered Compatibility is not XR validation.
+
 ## Follow-up: carry obstruction and standalone export — 2026-11-05
 
 Two new assertions reproduced held objects crossing a wall and dropping on its

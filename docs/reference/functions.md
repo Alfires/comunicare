@@ -1,5 +1,16 @@
 # Production function contracts
 
+## Pond and dock safety additions
+
+`recover_from_pond` on the trusted built-in world defers player-only recovery,
+checks standing clearance at the bank, cancels local grips and resets stopped
+players at the bank or center fallback. `_recover_pond_player` never overwrites
+tracked local head transforms. Layout `_build_pond` constructs the bounded standard
+water surface, trigger volume and timber dock with shared cleared textures.
+VR safety destination rays include areas and reject `teleport_disabled` targets;
+the water surface is not a walkable body. Final XR water rendering is unverified.
+
+
 Local pickup `_local_carry_clear` sweeps held collision shapes against original
 world masks and checks destination overlaps before accepting a hand transform.
 Blocked/nonfinite hand updates keep the last clear pose; release restores physics

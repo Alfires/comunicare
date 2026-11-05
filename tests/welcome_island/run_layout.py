@@ -15,12 +15,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rendered', action='store_true')
     parser.add_argument('--recovery', action='store_true', help='Run focused spawn/recovery contracts')
+    parser.add_argument('--pond', action='store_true', help='Run pond/dock physics contracts')
     args = parser.parse_args()
     godot = shutil.which(os.environ.get('GODOT', 'godot'))
     if not godot: return 2
     with tempfile.TemporaryDirectory(prefix='island-layout-', dir='/tmp/opencode') as directory:
         project = Path(directory)
-        for name in ['scenes/world.tscn', 'scenes/world.gd', 'scripts/worlds/world_pickup_controller.gd', 'scripts/worlds/world_data.gd']:
+        for name in ['scenes/world.tscn', 'scenes/world.gd', 'scripts/worlds/world_pickup_controller.gd', 'scripts/worlds/world_data.gd', 'scripts/player/vr_safety.gd']:
             target = project / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)
@@ -36,7 +37,7 @@ def main():
             target = project / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)
-        shutil.copy2(HERE / ('recovery_suite.gd' if args.recovery else 'layout_suite.gd'), project / 'suite.gd')
+        shutil.copy2(HERE / ('pond_suite.gd' if args.pond else 'recovery_suite.gd' if args.recovery else 'layout_suite.gd'), project / 'suite.gd')
         (project / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="Island layout contracts"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
         env = {**os.environ, 'XDG_DATA_HOME': str(project / 'data'), 'XDG_CONFIG_HOME': str(project / 'config'), 'XDG_CACHE_HOME': str(project / 'cache'), 'ISLAND_LAYOUT_RENDERED': '1' if args.rendered else '0'}
         try:

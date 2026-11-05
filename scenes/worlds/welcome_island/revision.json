@@ -34,11 +34,11 @@
     "assets/welcome_island/textures/weathered_planks/weathered_planks_diff_1k.jpg": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
     "assets/welcome_island/textures/weathered_planks/weathered_planks_nor_gl_1k.jpg": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
     "assets/welcome_island/textures/weathered_planks/weathered_planks_rough_1k.jpg": "a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3",
-    "scenes/world.gd": "e4609fa715c879c422130b92104dc4ff4853dcc91d74b4f77e6abbc79e33ba4d",
+    "scenes/world.gd": "18eefece247ba170f00762f6d4b0e0f725ed5a411ce40a5ddccddbf937387263",
     "scenes/world.tscn": "a631d68e4aeac5e5865883a5dec2b1c57542d1f0979570909970c737874a2e65",
     "scenes/worlds/welcome_island/layout.tscn": "5e41b2fec15f9cff0a95fe60d9c2651f13c4a997c6f0720d4ab77429e5c2a838",
     "scripts/worlds/welcome_island/home_contract.gd": "7d27de848676fb27c9a3487020dae418bcbb82035908e2150fc2571ab13631a6",
-    "scripts/worlds/welcome_island/layout.gd": "7453e6b0a6aef7f9d2c338a95baa3fc7ed4521f6aba0af8c392d93f86a2563ff",
+    "scripts/worlds/welcome_island/layout.gd": "43ac124947fff3c5e75b57284bab37b69768b273a5c498188c1af0ed72ee8fd2",
     "scripts/worlds/world_data.gd": "49237f4c25f6a5fecab622a5d09e144af0b06de8c7ecbe7f7763b46c25c15b16",
     "scripts/worlds/world_pickup_controller.gd": "a485e2fda9f945f4aca4778c68da25f0f5cc9cfa966e6458f4417d4d9b206c45"
   }

@@ -1,13 +1,21 @@
 extends RefCounted
 ## Physics queries exclude the local body; never rewrite a tracked local pose.
+var clearance_shape := CapsuleShape3D.new()
+var clearance_query := PhysicsShapeQueryParameters3D.new()
+var head_shape := SphereShape3D.new()
+var head_query := PhysicsShapeQueryParameters3D.new()
+
+func _init():
+	head_shape.radius = 0.1
+	head_query.shape = head_shape
+	clearance_query.shape = clearance_shape
 
 func clearance(body: CharacterBody3D, floor_position: Vector3, height: float, radius: float) -> bool:
 	if not floor_position.is_finite() or not is_finite(height) or not is_finite(radius): return false
-	var shape = CapsuleShape3D.new()
+	var shape = clearance_shape
 	shape.radius = clampf(radius - 0.005, 0.05, 0.8)
 	shape.height = maxf(shape.radius * 2, height - 0.01)
-	var query = PhysicsShapeQueryParameters3D.new()
-	query.shape = shape
+	var query = clearance_query
 	query.transform = Transform3D(Basis.IDENTITY, floor_position + Vector3.UP * height * 0.5)
 	query.collision_mask = body.collision_mask
 	query.exclude = [body.get_rid()]
@@ -27,10 +35,7 @@ func resize_capsule(body: CharacterBody3D, node: CollisionShape3D, height: float
 
 func head_obstructed(body: CharacterBody3D, position: Vector3) -> bool:
 	if not position.is_finite(): return true
-	var sphere = SphereShape3D.new()
-	sphere.radius = 0.1
-	var query = PhysicsShapeQueryParameters3D.new()
-	query.shape = sphere
+	var query = head_query
 	query.transform.origin = position
 	query.collision_mask = body.collision_mask
 	query.exclude = [body.get_rid()]

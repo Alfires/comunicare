@@ -3,6 +3,24 @@ const Home = preload("res://scripts/worlds/welcome_island/home_contract.gd")
 var recoverable_homes: Dictionary = {}
 var local_pickups: Node
 
+func recover_from_pond(body: Node3D):
+	if not is_instance_valid(body) or not body.is_in_group("player"): return
+	call_deferred("_recover_pond_player", weakref(body))
+
+func _recover_pond_player(reference: WeakRef):
+	var player = reference.get_ref()
+	if not is_instance_valid(player): return
+	var shape = CapsuleShape3D.new()
+	shape.radius = 0.35
+	shape.height = 1.9
+	var query = PhysicsShapeQueryParameters3D.new()
+	query.shape = shape
+	query.transform.origin = Vector3(9, 1.05, 23)
+	if player is CollisionObject3D: query.exclude = [player.get_rid()]
+	if is_instance_valid(local_pickups): local_pickups.cancel_local_input()
+	var clear = get_world_3d().direct_space_state.intersect_shape(query).is_empty()
+	Home.reset_player(player, Vector3(9, 1, 23) if clear else Home.SPAWN)
+
 func _ready():
 	# Direct startup and scene re-entry share DataLoader's built-in spawn contract.
 	call_deferred("_spawn_players")
@@ -19,7 +37,7 @@ func _setup_local_objects():
 		var item = RigidBody3D.new()
 		item.name = "GardenBelonging" + str(index)
 		add_child(item)
-		item.position = Vector3(-24 + index * 0.7, 0.4, 17)
+		item.position = Vector3(-27 + index * 0.7, 0.4, 17)
 		var mesh = MeshInstance3D.new()
 		var box = BoxMesh.new()
 		box.size = Vector3(0.25, 0.2, 0.25)

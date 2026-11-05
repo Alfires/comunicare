@@ -1,5 +1,27 @@
 # Welcome island startup contracts
 
+## Part 10 adjustable room lighting — 2026-11-05
+
+`run_layout.py --lighting --rendered` initially failed on the missing owner, then
+passes 29 checks: three independent actual-light zones, on/off, 10–100% brightness,
+warm/neutral selection, nonfinite/out-of-range/unknown-zone rejection, real control
+signals and reset on home reload. Controls are in the shared Settings → Controls
+page, with 44-pixel targets for desktop/VR pointers. State stays local; no settings
+store, global renderer preferences or microphone state is written. UI input capture
+uses existing settings/menu suppression; hardware pointer input is not simulated
+by invoking widget signals.
+
+Three nonshadowed OmniLight zones replace the single static fill. Each has a 7 m
+range and bounded 0–2 energy. No strobe, real-time GI or extra shadow maps are added.
+Warm/neutral are two documented palettes, not a calibrated Kelvin control. Rendered
+off/dim/bright screenshots at `/tmp/opencode/island-lighting-*.png` inspected on
+X11/Compatibility/Intel UHD 630; bright shows genuine light on beds, timber and
+lounge. Runner reports draw/primitive/process metrics for the rendered fixture;
+these are not isolated light GPU cost or a headset frame-budget certification.
+House clearance 24 and existing settings 112 checks pass. Actual headset reach,
+both-eye reflection/spill and whole-map GPU profiling remain open. No physical
+wall-mounted dimmer or persistent home lighting preference is promised here.
+
 ## Part 09 house/side spaces — 2026-11-05
 
 `run_layout.py --house --rendered` initially failed on the missing house. It now

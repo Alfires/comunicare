@@ -9,7 +9,8 @@ recovery and dependency revisions with manual/export gates. Part 06 adds local
 pickup/activation and rendered recovery/exported-PCK verification. Part 07 delivers
 the pond/dock with synthetic safety checks; part 08 adds constrained local ship
 operation with manual XR/UI gates. Part 09 adds the initial furnished house and
-side spaces; parts 10–14 remain planned.
+side spaces; part 10 adds adjustable local room lighting with XR/performance gates.
+Parts 11–14 remain planned.
 The [shared design overview](../offline-welcome-island-roadmap.md) owns the home-first
 requirements, ASCII concepts, asset candidates and compatibility boundaries.
 This index and the small roadmaps below replace its original five broad milestones.
@@ -48,7 +49,8 @@ part 04 is **implemented graybox with manual VR gates**; part 05 is **implemente
 with manual/export gates**; part 06 is **implemented with manual interaction/headset
 gates**; part 07 is **implemented with manual headset/final-water gates**;
 part 08 is **implemented with manual XR/UI gates**; part 09 is **implemented initial
-furnished structure with manual XR/art gates**; parts 10–14 remain **planned**.
+furnished structure with manual XR/art gates**; part 10 is **implemented with manual
+XR/performance gates**; parts 11–14 remain **planned**.
 
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
@@ -61,7 +63,7 @@ furnished structure with manual XR/art gates**; parts 10–14 remain **planned**
 | [07](07-pond-dock-roadmap.md) | Implemented: pond, timber dock and safe water recovery; two-eye/headset checks open | 02, 04, 05 |
 | [08](08-working-ship-roadmap.md) | Implemented: constrained local board/steer/stop/reset ship; actual headset/UI comfort gates open | 06, 07 |
 | [09](09-house-spaces-roadmap.md) | Initial furnished house/lounge/two beds/side hangouts implemented; optional rest action and manual XR/art gates open | 02, 04, 06 |
-| [10](10-room-lighting-roadmap.md) | Adjustable house lighting | 06, 09 |
+| [10](10-room-lighting-roadmap.md) | Three independent local zones with shared UI implemented; manual XR/GPU profiling open | 06, 09 |
 | [11](11-kitchen-roadmap.md) | Working kitchen and pickupable kitchenware | 06, 09 |
 | [12](12-optional-help-roadmap.md) | Minimal contextual actions and opt-in Help | 06; final text after 08–11 |
 | [13](13-landscape-rendering-roadmap.md) | Hand-built landscape, atmosphere and optimization | 02, 07–11 |

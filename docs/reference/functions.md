@@ -1,5 +1,16 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/welcome_island/room_lighting.gd -->
+## Local home room lighting
+
+`set_zone` validates named zone, finite brightness 0.1–1.0 and warm/neutral palette;
+applies enabled state to actual light energy (0–2), updates client-local state and
+emits `zone_changed`, returning false without mutation on invalid input.
+`make_controls` creates on/off, brightness and palette controls for the shared
+Settings page, with no persistence/global preference writes. Private ready creates
+three nonshadowed 7 m OmniLight zones and session defaults. State is discarded with
+the house; no network replication, physical dimmer or real-headset certification.
+
 <!-- module: scripts/worlds/welcome_island/house_spaces.gd -->
 ## Built-in house and furnishing assembly
 

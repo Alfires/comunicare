@@ -99,6 +99,8 @@ func _render():
 		local_notice.text = "Home objects are local to this client; changes are not synchronized with other players."
 		local_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		category_pages.Controls.add_child(local_notice)
+		for lighting in get_tree().get_nodes_in_group("home_lighting"):
+			category_pages.Controls.add_child(lighting.make_controls())
 		for ship in get_tree().get_nodes_in_group("home_ship"):
 			var board = Button.new()
 			board.text = "Board pond boat (near dock)…"

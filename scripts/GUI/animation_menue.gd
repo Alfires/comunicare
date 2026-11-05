@@ -142,7 +142,7 @@ func _import_source(source: String, is_model: bool, share_allowed: bool):
 	_render()
 
 func import_animation_files(paths: PackedStringArray):
-	if busy or batch_importing: return
+	if busy or batch_importing or paths.is_empty(): return
 	var share_allowed = permission.button_pressed
 	batch_importing = true
 	apply_button.disabled = true

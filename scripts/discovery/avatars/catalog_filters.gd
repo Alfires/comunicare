@@ -19,7 +19,7 @@ func apply(records: Array, query: Dictionary) -> Array:
 		var license_name = str(record.get("license", ""))
 		if license_filter == "CC0" and license_name not in ["CC0", "CC0-1.0", "CC0 1.0 Universal"]: continue
 		if license_filter == "attribution" and not license_name.begins_with("CC-BY"): continue
-		if license_filter == "unknown" and not license_name in ["", "Unknown"]: continue
+		if license_filter == "unknown" and not license_name.strip_edges().to_lower() in ["", "unknown"]: continue
 		if query.get("compatibility", "all") != "all" and record.get("compatibility", "unknown") != query.compatibility: continue
 		if query.get("shareable", "all") == "yes" and not record.get("redistribution", false): continue
 		if query.get("loop", "all") != "all":

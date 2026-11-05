@@ -75,6 +75,7 @@ func test_advanced_filters():
 	check(filters.apply(records, {"compatibility": "verified"}).is_empty(), "unknown assets never match verified filter")
 	check(filters.apply(records, {"category": "emotes", "loop": "yes"}).size() == 1, "animation category and loop filters combine")
 	check(filters.apply(records, {"shareable": "yes"}).size() == 1, "redistribution filter is independent of download availability")
+	check(filters.apply([{"id": "unknown", "license": "unknown"}], {"license": "unknown"}).size() == 1, "unknown license filter accepts lowercase provider label")
 	check(filters.apply(records, {"tag": "rob"}).is_empty(), "tag filter matches whole tags rather than substrings")
 	var misleading = records[0].duplicate(true)
 	misleading.license = "CC0-not-actually-a-license"
@@ -157,6 +158,9 @@ func test_sources():
 func test_requests():
 	var policy = component("request_policy", ["prepare_request"])
 	if policy == null: return
+	for invalid in ["https://example.test\t/path", "https://example.test:abc/catalog", "https://example.test:70000/catalog", "https://:443/catalog"]:
+		check(not policy.valid_url(invalid), "malformed/control-character API endpoint rejected")
+	check(policy.valid_url("https://example.test:8443/catalog") and policy.valid_url("https://[::1]:443/catalog"), "valid explicit ports and bracketed IPv6 remain supported")
 	var builtin = {"id": "public", "kind": "builtin", "base_url": "https://public.example.test", "auth": "none"}
 	var custom = {"id": "private", "kind": "custom", "base_url": "https://private.example.test", "auth": "bearer"}
 	var secret = {"token": "synthetic-secret"}
@@ -249,9 +253,15 @@ func test_browser():
 	var state: Dictionary = browser.get_search_state()
 	check(state.get("tab") == "search" and state.get("query") == "robot dance", "Home submit switches to Search with exact query")
 	check(state.get("cursor", "") == "", "new Home search resets pagination")
+	browser.state.tag = "unrelated-tag"
+	browser.tag_field.text = "unrelated-tag"
+	browser.state.loop = "yes"
+	browser.state.compatibility = "verified"
 	browser.select_category("robots")
 	state = browser.get_search_state()
 	check(state.get("tab") == "search" and state.get("category") == "robots", "Home category opens filtered Search")
+	check(state.get("tag", "") == "" and state.get("loop", "all") == "all" and state.get("compatibility", "all") == "all", "category navigation clears incompatible stale filters")
+	check(browser.tag_field.text.is_empty() and browser.filter_controls.loop.selected == 0, "category filter reset is visible in controls as well as query state")
 	browser.free()
 
 func test_live_sources():

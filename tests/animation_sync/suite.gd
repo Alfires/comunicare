@@ -549,6 +549,8 @@ func test_ui(bytes: PackedByteArray):
 		second_file.store_buffer(pack(document.json, document.binary))
 		second_file.close()
 		batch_menu.permission.set_pressed_no_signal(true)
+		await batch_menu.import_animation_files(PackedStringArray())
+		check(batch_menu.permission.button_pressed, "empty file selection does not consume redistribution consent")
 		await batch_menu.import_animation_files(PackedStringArray(["res://motion.vrma", "res://second-motion.vrma"]))
 		check(batch_menu.draft_sources.size() == 2 and batch_menu.draft_sources.all(func(source): return source.share), "explicit batch redistribution consent applies consistently to every selected animation")
 		check(not batch_menu.permission.button_pressed and not batch_menu.busy, "batch clears consent and busy state after all files complete")

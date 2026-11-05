@@ -23,6 +23,7 @@ var seen_results: Dictionary = {}
 var editor_open := false
 var filter_controls: Dictionary = {}
 var preferences_writable := true
+var tag_field: LineEdit
 var thumbnail_cache = preload("res://scripts/discovery/avatars/thumbnail_cache.gd").new()
 var scroll_container: ScrollContainer
 var saved_records: Array = []
@@ -161,7 +162,7 @@ func _ready():
 		field.add_child(label)
 		field.add_child(selector)
 		filters.add_child(field)
-	var tag_field = LineEdit.new()
+	tag_field = LineEdit.new()
 	tag_field.placeholder_text = "Filter tags (fetched metadata)"
 	tag_field.max_length = 80
 	tag_field.text_submitted.connect(func(text): state.tag = text; _search(false))
@@ -215,6 +216,11 @@ func submit_home_search(query: String):
 	_search(false)
 
 func select_category(category: String):
+	for key in ["license", "compatibility", "shareable", "loop"]:
+		state[key] = "all"
+		if filter_controls.has(key): filter_controls[key].select(0)
+	state.tag = ""
+	if is_instance_valid(tag_field): tag_field.clear()
 	state.tab = "search"
 	state.category = category
 	state.query = "robot" if category.to_lower() == "robots" else ""

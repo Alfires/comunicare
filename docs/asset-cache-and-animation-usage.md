@@ -1,5 +1,25 @@
 # Avatar sources, automatic motion and emote wheel
 
+## Add an emote: quick path
+
+1. Find an animation in **Home → Avatar Browser**, or add a file/URL in your
+   **User → Avatar** source editor.
+2. Review permission/validation and press **Apply**. Until Apply, the equipped
+   avatar and library remain unchanged.
+3. New non-locomotion clips appear automatically in **Emotes → Imported emotes**,
+   even if you already customized your wheel. Existing groups are preserved.
+4. The **Organize emotes** panel opens after successful Apply. Choose a group,
+   type part of an emote name in **Find an emote**, then click **Add to this group**.
+   Already-present shortcuts are marked and disabled. Double-click a subgroup
+   in the current entries list to enter it; use the group selector to jump elsewhere.
+5. Press **Done**, then open the wheel with B or Home → Emotes to play.
+
+You can reopen the organizer with **Organize emotes / wheel shortcuts** in the
+Avatar source editor. Layout edits save immediately; removing a shortcut does not
+delete its animation. Removed imported shortcuts stay removed across restore;
+they remain available in the searchable library to add again. Basic locomotion
+clips stay automatic and are not added as manual wheel emotes.
+
 Standing now combines the authored relaxed upper-body standing pose with aligned
 reference hips/legs/feet, removing the pack's wide staggered idle stance. Feet
 remain at the avatar's natural hip-width spacing rather than being forced to

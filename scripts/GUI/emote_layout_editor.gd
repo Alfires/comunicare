@@ -10,6 +10,8 @@ var entries: ItemList
 var name_input: LineEdit
 var status: Label
 var initial_owner := ""
+var library_rows: VBoxContainer
+var library_query := ""
 
 func _process(_delta: float):
 	if configuration != null and configuration.account_owner != initial_owner:
@@ -24,8 +26,12 @@ func _ready():
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(box)
 	var title = Label.new()
-	title.text = "Customize emote wheel • nested groups"
+	title.text = "Organize emotes"
 	box.add_child(title)
+	var help = Label.new()
+	help.text = "1. Choose a wheel group.  2. Find an emote below.  3. Add it.\nChanges save immediately. Removing a shortcut keeps the animation in your library."
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(help)
 	group_choice = OptionButton.new()
 	group_choice.item_selected.connect(func(index): group = str(group_choice.get_item_metadata(index)); _render())
 	box.add_child(group_choice)
@@ -42,13 +48,19 @@ func _ready():
 	entries = ItemList.new()
 	entries.custom_minimum_size.y = 140
 	entries.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	entries.item_activated.connect(func(index):
+		var entry = configuration.layout.groups[group].entries[index]
+		if entry.type == "group": group = entry.id; _render())
 	box.add_child(entries)
+	var search = LineEdit.new()
+	search.placeholder_text = "Find an emote in your library…"
+	search.text_changed.connect(filter_library)
+	box.add_child(search)
+	library_rows = VBoxContainer.new()
+	box.add_child(library_rows)
 	actions = OptionButton.new()
+	actions.visible = false # Retained compatibility seam; direct add rows are primary.
 	box.add_child(actions)
-	_button(box, "Add action to group", func():
-		if actions.selected >= 0:
-			configuration.layout.add_emote(group, str(actions.get_item_metadata(actions.selected)), actions.get_item_text(actions.selected))
-		_render())
 	_button(box, "Move selected up", func(): _move(-1))
 	_button(box, "Move selected down", func(): _move(1))
 	destination = OptionButton.new()
@@ -83,9 +95,10 @@ func configure(service):
 func _button(parent: Node, text: String, action: Callable):
 	var button = Button.new()
 	button.text = text
-	button.custom_minimum_size.y = 36
+	button.custom_minimum_size.y = 44
 	button.pressed.connect(action)
 	parent.add_child(button)
+	return button
 
 func _render():
 	if configuration == null or not is_node_ready(): return
@@ -110,6 +123,35 @@ func _render():
 	actions.add_item("Return to movement")
 	actions.set_item_metadata(actions.item_count - 1, "__cancel_emote__")
 	status.text = layout.last_error
+	_render_library()
+
+func filter_library(query: String):
+	library_query = query.left(200).to_lower()
+	_render_library()
+
+func _render_library():
+	if configuration == null or library_rows == null: return
+	for child in library_rows.get_children():
+		library_rows.remove_child(child)
+		child.queue_free()
+	var ids = configuration.emotes.keys()
+	ids.sort_custom(func(a, b): return configuration.emotes[a].name.naturalnocasecmp_to(configuration.emotes[b].name) < 0)
+	for id in ids:
+		var emote: Dictionary = configuration.emotes[id]
+		if not library_query.is_empty() and not library_query in str(emote.name).to_lower(): continue
+		var row = HBoxContainer.new()
+		library_rows.add_child(row)
+		var label = Label.new()
+		label.text = str(emote.name)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var added = configuration.layout.groups[group].entries.any(func(entry): return entry.type == "emote" and entry.id == id)
+		var button = _button(row, "Already in group" if added else "Add to this group", func():
+			if configuration.layout.add_emote(group, id, str(emote.name)):
+				_render()
+			else: status.text = configuration.layout.last_error)
+		button.disabled = added or not configuration.layout.writable
 
 func _move(delta: int):
 	var selected = entries.get_selected_items()

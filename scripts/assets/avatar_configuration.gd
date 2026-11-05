@@ -129,17 +129,28 @@ func _restore():
 			if not parsed.is_empty(): _merge_source(model, handle, parsed)
 	for item in restored:
 		_merge_source(item.source, item.handle, item.parsed)
-	# Missing user layout entries stay available for assignment, not silently
-	# truncated to eight. A fresh layout exposes imports in an Imports group.
-	if layout.path != "" and not FileAccess.file_exists(layout.path):
+	# Always surface newly applied emotes, even after the wheel was customized.
+	# Existing placements are preserved and never duplicated across groups.
+	if layout.writable:
+		var assigned := {}
+		var seen_ids: Array = layout.groups.get("imports", {}).get("known_ids", []).duplicate()
+		for group in layout.groups.values():
+			for entry in group.entries:
+				if entry.type == "emote": assigned[entry.id] = true
 		var imported: Array = []
 		for id in emotes:
-			if not id.begins_with("builtin:"):
+			if not id.begins_with("builtin:") and not assigned.has(id) and not id in seen_ids:
 				imported.append({"type": "emote", "id": id, "name": emotes[id].name.left(128)})
 		if not imported.is_empty():
 			var candidate = layout.groups.duplicate(true)
-			candidate["imports"] = {"name": "Imported actions", "entries": imported}
-			candidate.root.entries.append({"type": "group", "id": "imports", "name": "Imported actions"})
+			if not candidate.has("imports"):
+				candidate["imports"] = {"name": "Imported emotes", "entries": []}
+			candidate.imports.entries.append_array(imported)
+			for id in emotes:
+				if not id.begins_with("builtin:") and not id in seen_ids: seen_ids.append(id)
+			candidate.imports.known_ids = seen_ids
+			if not candidate.root.entries.any(func(entry): return entry.type == "group" and entry.id == "imports"):
+				candidate.root.entries.append({"type": "group", "id": "imports", "name": candidate.imports.name})
 			layout.commit(candidate)
 	changed.emit()
 

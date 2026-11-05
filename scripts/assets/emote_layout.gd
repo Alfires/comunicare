@@ -50,6 +50,10 @@ static func valid(value: Variant) -> bool:
 			or group.name.length() > 80 or not group.get("entries") is Array:
 			return false
 		total += group.entries.size()
+		if group.has("known_ids"):
+			if not group.known_ids is Array or group.known_ids.size() > MAX_ENTRIES: return false
+			for known in group.known_ids:
+				if not known is String or known.length() > 256: return false
 		if total > MAX_ENTRIES:
 			return false
 		for entry in group.entries:

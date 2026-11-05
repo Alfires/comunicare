@@ -81,7 +81,7 @@ func _ready():
 		_render())
 	rows = VBoxContainer.new()
 	layout.add_child(rows)
-	_button(layout, "Customize emote groups and wheel", func():
+	_button(layout, "Organize emotes / wheel shortcuts", func():
 		var editor = preload("res://scripts/GUI/emote_layout_editor.gd").new()
 		add_child(editor)
 		editor.configure(configuration))
@@ -142,7 +142,7 @@ func add_source(source: String, is_model: bool):
 			if entry.hash == result.hash: duplicate = true
 		if not duplicate: draft_sources.append(result)
 	permission.set_pressed_no_signal(false)
-	status.text = "Source ready. Apply to equip; Cancel leaves the current avatar unchanged."
+	status.text = "Ready to add. Press Apply; new emotes will appear in the Imported emotes wheel group. Cancel leaves your setup unchanged."
 	_render()
 
 func apply():
@@ -157,6 +157,10 @@ func apply():
 	busy = false
 	apply_button.disabled = false
 	status.text = "Applied. Basic movement animations are automatic; press B or Home → Emotes for other actions." if saved else configuration.last_error
+	if saved and not configuration.emotes.is_empty():
+		var organizer = preload("res://scripts/GUI/emote_layout_editor.gd").new()
+		add_child(organizer)
+		organizer.configure(configuration)
 
 func _exit_tree():
 	generation += 1

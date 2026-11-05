@@ -227,6 +227,8 @@ func test_browser():
 	browser._card({"provider": "osa", "id": "local-fixture", "title": "Fixture", "type": "avatar"})
 	check(browser.results.get_child_count() == before + 1 and browser.card_buttons.has("osa:local-fixture"), "real result card provides thumbnail slot and focusable action")
 	check(browser.registry.sources.has("vox") and browser.registry.sources.vox.adapter == "vox", "built-in animations-only catalog is available separately")
+	for id in ["osa-r2", "osa-r3"]:
+		check(browser.registry.sources.has(id), "additional avatar catalog is enabled by default: " + id)
 	check(browser.registry.sources.values().all(func(item): return item.auth == "none"), "all built-in adapters are anonymous")
 	check(browser.services.is_empty(), "opening browser does not start unconsented network requests")
 	browser.saved_records = [{"provider": "osa", "id": "restore", "title": "Restored", "type": "avatar"}]
@@ -253,6 +255,8 @@ func test_live_sources():
 	root.add_child(service)
 	for source in [
 		{"id": "osa", "kind": "builtin", "auth": "none", "adapter": "osa", "base_url": service.OSA + "avatars/100avatars-r1.json"},
+		{"id": "osa-r2", "kind": "builtin", "auth": "none", "adapter": "osa", "base_url": service.OSA + "avatars/100avatars-r2.json"},
+		{"id": "osa-r3", "kind": "builtin", "auth": "none", "adapter": "osa", "base_url": service.OSA + "avatars/100avatars-r3.json"},
 		{"id": "vox", "kind": "builtin", "auth": "none", "adapter": "vox", "base_url": service.VOX + "manifest.json"}]:
 		service.configure(source)
 		var result: Dictionary = await service.search({"query": "", "type": "all"})

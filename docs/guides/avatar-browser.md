@@ -16,7 +16,8 @@ Opening the browser makes no external requests. Submit a search/category or
 select **Load category recommendations** to contact enabled sources. Providers
 receive your IP and search terms. Built-in providers never receive credentials:
 
-- **100Avatars R1:** Polygonal Mind's 100 CC0 VRM avatars via Open Source Avatars'
+- **100Avatars R1, R2 and R3:** three separate default catalogs, 100 CC0 VRM avatars
+  each (300 total), by Polygonal Mind via Open Source Avatars'
   public JSON catalog. Model downloads are hosted on Arweave.
 - **Public CC0 VRMA manifest:** VoxAvatar's public manifest of 13 CC0 animations,
   with creator/source links and expected SHA-256 digests. This is an animations-only
@@ -24,6 +25,10 @@ receive your IP and search terms. Built-in providers never receive credentials:
 
 These endpoints were live-tested on 2026-11-05 without authentication. Catalogs
 can change or go offline. Listing compatibility remains unknown until actual import.
+R2/R3 sample downloads returned valid binary VRM with embedded CC0 metadata.
+These are additional catalogs from the same provider, not independent API services.
+Other researched IPFS-backed collections were not enabled because sample downloads
+returned HTTP 403 in this environment; public metadata alone is not enough.
 
 ## Download and add animations or avatars
 

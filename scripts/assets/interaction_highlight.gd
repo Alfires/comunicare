@@ -33,12 +33,20 @@ func _physics_process(_delta):
 		elif Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and player.get("world_grip") is Node3D:
 			anchors.append([player.world_grip.global_position, 1.5, player.world_grip])
 		for entry in anchors:
+			var grip = "virtual" if not entry[2] is XRController3D else ("left" if entry[2] == player.left_controller else "right")
+			if pickup.held_by_local(grip): continue
 			var selected: String = pickup.nearest_available(entry[2], entry[1])
 			if not selected.is_empty(): targets.append(pickup.items[selected].get_ref())
 		var controller = network.get_animation_controller()
 		var mirror = controller.get("local_mirror") if controller != null else null
 		if is_instance_valid(mirror) and mirror.visible:
 			for entry in anchors:
+				if not entry[2] is XRController3D:
+					if pickup.held_by_local("virtual") or not pickup.nearest_available(entry[2], entry[1]).is_empty(): continue
+					var hit = mirror.desktop_grab_hit(player.camera)
+					if hit != null and _clear_path(player, player.camera.global_position, hit): targets.append(mirror)
+					continue
+				if not mirror.can_grab_at(entry[0], entry[1]): continue
 				var local: Vector3 = mirror.to_local(entry[0])
 				var nearest = Vector3(clampf(local.x, -mirror.dimensions.x / 2, mirror.dimensions.x / 2), clampf(local.y, -mirror.dimensions.y / 2, mirror.dimensions.y / 2), 0)
 				if mirror.to_global(nearest).distance_to(entry[0]) < entry[1] and _clear_path(player, entry[0], mirror.to_global(nearest)): targets.append(mirror)

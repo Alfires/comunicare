@@ -17,6 +17,23 @@ func run():
 	root.add_child(camera)
 	camera.position = Vector3(0, 1.5, 2)
 	mirror.source_camera = camera
+	check(mirror.has_method("desktop_grab_hit"), "mirror shares exact desktop interaction test with hover")
+	if mirror.has_method("desktop_grab_hit"):
+		camera.position = Vector3(0, 0, 2.1)
+		check(mirror.desktop_grab_hit(camera) == null, "mirror outside camera reach cannot highlight")
+		camera.position.z = 1.9
+		check(mirror.desktop_grab_hit(camera) != null, "mirror in camera reach can highlight and interact")
+		camera.rotation.y = PI / 2
+		check(mirror.desktop_grab_hit(camera) == null, "nearby mirror not under aim cannot highlight")
+		camera.rotation = Vector3.ZERO
+	check(mirror.has_method("can_grab_at"), "VR mirror hover shares grab surface predicate")
+	if mirror.has_method("can_grab_at"):
+		check(not mirror.can_grab_at(Vector3(0, 0, 0.31), 0.3), "VR mirror outside grip reach cannot highlight")
+		check(mirror.can_grab_at(Vector3(0, 0, 0.29), 0.3), "VR mirror inside grip reach can highlight")
+		mirror.held_grip = "left"
+		check(not mirror.can_grab_at(Vector3.ZERO, 0.3), "held mirror is not advertised as another grab target")
+		mirror.held_grip = ""
+	camera.position = Vector3(0, 1.5, 2)
 	mirror._process(0.016)
 	check(is_equal_approx(mirror.reflection_camera.global_position.z, -2), "mirror reflects camera position across plane")
 	check(mirror.viewport.world_3d == root.world_3d, "mirror renders the real local world")

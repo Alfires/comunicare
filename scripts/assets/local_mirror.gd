@@ -89,14 +89,25 @@ func _exit_tree():
 	if is_instance_valid(settings) and settings.setting_changed.is_connected(_setting_changed): settings.setting_changed.disconnect(_setting_changed)
 
 func try_grab(node: Node3D, grip: String, distance: float) -> bool:
-	if not visible or not held_grip.is_empty() or not is_instance_valid(node): return false
-	var point = to_local(node.global_position)
-	var nearest = Vector3(clampf(point.x, -dimensions.x * 0.5, dimensions.x * 0.5), clampf(point.y, -dimensions.y * 0.5, dimensions.y * 0.5), 0)
-	if node.global_position.distance_to(to_global(nearest)) > distance: return false
+	if not is_instance_valid(node) or not can_grab_at(node.global_position, distance): return false
 	anchor = node
 	held_grip = grip
 	grab_offset = node.global_transform.affine_inverse() * global_transform
 	return true
+
+func can_grab_at(position: Vector3, distance: float) -> bool:
+	if not visible or not held_grip.is_empty() or not position.is_finite(): return false
+	var point = to_local(position)
+	var nearest = Vector3(clampf(point.x, -dimensions.x * 0.5, dimensions.x * 0.5), clampf(point.y, -dimensions.y * 0.5, dimensions.y * 0.5), 0)
+	return position.distance_to(to_global(nearest)) <= distance
+
+func desktop_grab_hit(camera: Camera3D):
+	if not visible or not held_grip.is_empty() or not is_instance_valid(camera): return null
+	var ray = -camera.global_basis.z
+	var hit = Plane(global_basis.z.normalized(), global_position).intersects_ray(camera.global_position, ray)
+	if hit == null or camera.global_position.distance_to(hit) >= 2.0: return null
+	var point = to_local(hit)
+	return hit if absf(point.x) <= dimensions.x * 0.5 and absf(point.y) <= dimensions.y * 0.5 else null
 
 func release(grip: String) -> bool:
 	if held_grip != grip: return false
@@ -148,15 +159,12 @@ func _input(event: InputEvent):
 			release("virtual")
 			get_viewport().set_input_as_handled()
 		elif is_instance_valid(source_camera):
-			var ray = -source_camera.global_basis.z
-			var hit = Plane(global_basis.z.normalized(), global_position).intersects_ray(source_camera.global_position, ray)
+			var hit = desktop_grab_hit(source_camera)
 			if hit == null: return
-			var point = to_local(hit)
-			if source_camera.global_position.distance_to(hit) < 2.0 and absf(point.x) <= dimensions.x * 0.5 and absf(point.y) <= dimensions.y * 0.5:
-				anchor = source_camera
-				held_grip = "virtual"
-				grab_offset = source_camera.global_transform.affine_inverse() * global_transform
-				get_viewport().set_input_as_handled()
+			anchor = source_camera
+			held_grip = "virtual"
+			grab_offset = source_camera.global_transform.affine_inverse() * global_transform
+			get_viewport().set_input_as_handled()
 
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT: release(held_grip)

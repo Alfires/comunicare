@@ -569,6 +569,35 @@ func host_world(world_url: String) -> bool:
 	var result: Dictionary = await session_response
 	return await _finish_transition(result, staged, world_url)
 
+func load_local_map(path: String) -> bool:
+	if session_busy:
+		last_session_error = "Another world transition is in progress"
+		return false
+	session_busy = true
+	var staged = DataLoader.prepare_world(path, "")
+	if staged.is_empty():
+		return _transition_failed(DataLoader.get_asset_cache().last_error)
+	# Validate before leaving multiplayer. Local filesystem paths never become
+	# relay world URLs, profile fields or discoverable sessions.
+	if peer != null:
+		if peer.peer != null: peer.peer.peer_disconnect()
+		peer.disconnected_from_relay()
+	current_session_id = ""
+	_clear_remote_players()
+	staged.source_url = "local-package:" + str(staged.revision)
+	if not await DataLoader.activate_world(staged): return _transition_failed("Local map activation failed")
+	var local_items: Dictionary = {}
+	var scene = get_tree().current_scene
+	for id in staged.document.entities:
+		var entry = staged.document.entities[id]
+		if entry.get("pickup", false): local_items[id] = scene.get_node_or_null(NodePath(entry.path))
+	DataLoader.get_world_pickups().activate_local(scene, local_items)
+	current_world_url = ""
+	session_busy = false
+	last_session_error = ""
+	active_instance_changed.emit()
+	return true
+
 func _begin_transition() -> bool:
 	if session_busy:
 		last_session_error = "Another world transition is in progress"

@@ -26,8 +26,22 @@ var legacy_timed_out := false
 var local_instances: Dictionary = {}
 var connecting := false
 signal reset
+var local_map_picker: FileDialog
 
 func _ready() -> void:
+	local_map_picker = FileDialog.new()
+	local_map_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	local_map_picker.access = FileDialog.ACCESS_FILESYSTEM
+	local_map_picker.use_native_dialog = false
+	local_map_picker.filters = PackedStringArray(["*.cworld,*.zip,*.cne ; Validated world package"])
+	local_map_picker.file_selected.connect(_load_local_map)
+	add_child(local_map_picker)
+	var open_local = Button.new()
+	open_local.name = "OpenLocalMap"
+	open_local.text = "Open local map…"
+	open_local.custom_minimum_size.y = 44
+	open_local.pressed.connect(func(): local_map_picker.popup_centered_ratio(0.8))
+	$VBoxContainer/HBoxContainer.add_child(open_local)
 	reset.connect(close_info_menu)
 	$WorldInfo/Back.pressed.connect(close_info_menu)
 	$WorldInfo/Create.pressed.connect(_on_create_pressed)
@@ -51,6 +65,16 @@ func _request_catalog() -> void:
 	if url.is_empty(): return
 	if http_request.request(url) != OK:
 		status.text = "Catalog request could not start; public discovery still works"
+
+func _load_local_map(path: String):
+	if busy: return
+	busy = true
+	status.text = "Validating local map…"
+	var network = get_node("/root/NetworkHandler")
+	var loaded = await network.load_local_map(path)
+	if not is_inside_tree(): return
+	busy = false
+	status.text = "Local map loaded offline." if loaded else network.last_session_error
 
 func _process(_delta: float) -> void:
 	if discovery_peer != NetworkHandler.peer:

@@ -1,5 +1,34 @@
 # Welcome island startup contracts
 
+## Part 06 offline interaction and open-gate follow-up — 2026-11-05
+
+`python3 tests/welcome_island/run_interactions.py` tests trusted local activation
+on the existing pickup controller without accounts/network: pickup, carry/drop,
+collision restore, duplicate grip, wall/reach rejection, activation, reset,
+left/right/virtual anchors, cancellation and cleanup. Missing `activate_local`
+failed before implementation. Remote `activate` never enables local authority.
+Home has two temporary pickup blocks and a fixed lamp switch at the picnic reserve;
+these are graybox fixtures, not final props. Desktop uses the saved world-grab
+binding; VR uses the existing grip threshold. Grab precedes activation, so the
+fixed switch is not pickupable. Controls settings explains local-only home state.
+
+Evidence: 21 interaction assertions; world safety 126, example 25 and real-UDP
+example 16 checks; microphone/settings 112; VR/sprint 105 + 60; startup 68 passed.
+Manual procedure: approach picnic objects, aim/reach and use the saved action,
+carry/drop, open menus/lose focus while holding, reset/fall and change world.
+Require reachable-only highlighting, no violent collisions or stale hands/objects.
+Actual controller reach and rendered carry stability remain open.
+
+`run_layout.py --recovery --rendered` now passes 26 assertions, including three
+camera-root recoveries; screenshot inspected at `/tmp/opencode/island-recovery.png`
+on X11/Compatibility/Intel UHD 630. `run_export.py` exports a disposable PCK,
+unmounts source paths and verifies home load plus pre-export revision. It initially
+failed with an empty revision, then passed after fixing source/editor detection.
+The host is the installed editor executable, **not a standalone export template**.
+The template directory is empty and no OpenXR runtime configuration was found;
+standalone binary and real-headset recovery/reach/comfort gates remain blocked.
+No production export preset or real account is used by these checks.
+
 ## Part 05 recovery/revisions — 2026-11-05
 
 `python3 tests/welcome_island/run_layout.py --recovery` runs direct-load spawn,

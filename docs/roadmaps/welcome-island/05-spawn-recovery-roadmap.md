@@ -1,6 +1,9 @@
 # 05 — Spawn, recovery and built-in revision
 
 **Status:** Implemented with manual/export gates — 2026-11-05. **Prerequisites:** 04.
+Follow-up: rendered recovery and isolated exported-PCK revision/load checks pass.
+Standalone-template export (templates unavailable) and real-headset recovery
+(no configured OpenXR runtime) remain open; do not infer them from the PCK test.
 See [recovery/revision evidence](../../../tests/welcome_island/README.md).
 See the [mandatory test-first workflow](README.md) and [implementation baseline](../offline-welcome-island-roadmap.md#inspected-implementation-baseline).
 

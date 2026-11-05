@@ -20,7 +20,7 @@ def main():
     if not godot: return 2
     with tempfile.TemporaryDirectory(prefix='island-layout-', dir='/tmp/opencode') as directory:
         project = Path(directory)
-        for name in ['scenes/world.tscn', 'scenes/world.gd']:
+        for name in ['scenes/world.tscn', 'scenes/world.gd', 'scripts/worlds/world_pickup_controller.gd', 'scripts/worlds/world_data.gd']:
             target = project / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)

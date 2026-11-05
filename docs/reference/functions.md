@@ -1,5 +1,22 @@
 # Production function contracts
 
+## Trusted local home interaction additions
+
+`activate_local` on the shared pickup controller accepts a trusted current-world
+node, rigid-body map and callable activation map. It restores previous ownership,
+registers only descendants, and installs local-only state with no relay messages.
+Downloaded document `activate` never selects this mode. `cancel_local_input` releases
+local grips safely; `reset_local_item` restores a registered home with cleared motion;
+`activate_nearest` invokes only an explicitly registered reachable/unobstructed local
+callable. Local carry disables collision, drop restores original settings with no
+throw velocity, and scene exit clears local references/callables. Desktop/VR retain
+existing bindings and suppression; Controls settings discloses local-only behavior.
+
+The recovery/PCK follow-up detects editor-source mode only when `project.godot`
+is actually mounted. A pack hosted by the editor executable uses pre-export hashes;
+the isolated pack test does not certify a standalone template or real headset.
+
+
 <!-- module: scripts/worlds/welcome_island/home_contract.gd -->
 ## Built-in home spawn/revision contract
 

@@ -26,6 +26,7 @@ def main():
         for folder in ("scripts/settings", "scripts/profile"):
             shutil.copytree(ROOT / folder, project / folder)
         for name in ("scripts/startup/main.gd", "scripts/player/voice_controller.gd",
+                     "scripts/worlds/world_pickup_controller.gd", "scripts/worlds/world_data.gd",
                      "relay_protocol/instance_state.gd", "relay_protocol/friend_event.gd",
                      "relay_protocol/world_address.gd",
                      "scenes/startup.tscn", "scenes/world.tscn", "scenes/world.gd",

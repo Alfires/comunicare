@@ -399,7 +399,8 @@ lighting, kitchen, optional Help, landscape/rendering and final release acceptan
 Part 01 is implemented with manual gates; part 02 delivers provenance/sample assets
 with runtime limits; part 03 delivers Credits with a manual headset gate;
 part 04 delivers the tested layout graybox; part 05 adds spawn/recovery/revisions;
-parts 06–14 remain planned. See the
+part 06 adds shared offline interactions and rendered recovery/PCK checks;
+parts 07–14 remain planned. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

@@ -23,7 +23,7 @@ static func revision() -> String:
 		# Editor/source builds detect edits immediately. Exports use the verified
 		# pre-export hashes for resources transformed/remapped by Godot's exporter.
 		var hash: String = document.files[name]
-		if OS.has_feature("editor"):
+		if OS.has_feature("editor") and FileAccess.file_exists("res://project.godot"):
 			if not FileAccess.file_exists("res://" + name): return ""
 			hash = FileAccess.get_sha256("res://" + name)
 		lines.append(name + ":" + hash)

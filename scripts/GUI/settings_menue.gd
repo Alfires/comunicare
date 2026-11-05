@@ -94,6 +94,11 @@ func _render():
 		var panel = load("res://scripts/multiplayer/federation/relay_preferences_panel.gd").new()
 		category_pages.Network.add_child(panel)
 		panel.configure(NetworkHandler.get_relay_preferences())
+	if category_pages.has("Controls"):
+		var local_notice = Label.new()
+		local_notice.text = "Home objects are local to this client; changes are not synchronized with other players."
+		local_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		category_pages.Controls.add_child(local_notice)
 	var credits = preload("res://scripts/GUI/credits_page.gd").new()
 	credits.source_requested.connect(func(url): OS.shell_open(url))
 	rows.add_child(credits)

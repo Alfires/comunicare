@@ -160,12 +160,14 @@ func _update_world_grips():
 	var pickups = DataLoader.get_world_pickups()
 	var blocked = not focused or _menu_open() or SaveData.voice.input_blocked or NetworkHandler.session_busy \
 		or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty()
+	if blocked: pickups.cancel_local_input()
 	for side in ["left", "right"]:
 		var hand: XRController3D = left_controller if side == "left" else right_controller
 		var pressed = not blocked and hand.get_is_active() and hand.get_float("grip") >= 0.6
 		var mirror = NetworkHandler.get_animation_controller().get("local_mirror")
 		if pressed and not world_grip_pressed[side]:
-			if not is_instance_valid(mirror) or not mirror.visible or not mirror.try_grab(hand, side, 0.3): pickups.grab_nearest(hand, side, 0.3)
+			if not is_instance_valid(mirror) or not mirror.visible or not mirror.try_grab(hand, side, 0.3):
+				if not pickups.grab_nearest(hand, side, 0.3): pickups.activate_nearest(hand, 0.3)
 		if not pressed and world_grip_pressed[side]:
 			if is_instance_valid(mirror): mirror.release(side)
 			pickups.release_grip(side)

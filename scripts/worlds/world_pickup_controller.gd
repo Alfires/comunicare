@@ -13,6 +13,56 @@ var session := ""
 var revision := ""
 var elapsed := 0.0
 var snapshot_elapsed := 0.0
+var local_only := false
+var local_actions: Dictionary = {}
+var local_world: WeakRef
+const LOCAL_NOTICE = "Home objects are local to this client; changes are not synchronized with other players."
+
+func activate_local(world: Node3D, local_items: Dictionary, actions: Dictionary = {}):
+	reset()
+	local_only = true
+	local_world = weakref(world)
+	for id in local_items:
+		var item = local_items[id]
+		if not item is RigidBody3D or not world.is_ancestor_of(item): continue
+		items[id] = weakref(item)
+		originals[id] = {"transform": item.global_transform, "freeze": item.freeze, "layer": item.collision_layer, "mask": item.collision_mask}
+		states[id] = {"holder": -1, "grip": ""}
+	for id in actions:
+		var entry = actions[id]
+		if entry is Dictionary and entry.get("node") is Node3D and entry.get("action") is Callable and world.is_ancestor_of(entry.node):
+			local_actions[id] = {"node": weakref(entry.node), "action": entry.action}
+	world.tree_exiting.connect(reset, CONNECT_ONE_SHOT)
+
+func cancel_local_input():
+	if not local_only: return
+	for grip in anchors.keys(): release_grip(grip)
+
+func reset_local_item(id: String) -> bool:
+	if not local_only or not items.has(id): return false
+	var item = items[id].get_ref()
+	if not is_instance_valid(item): return false
+	var grip: String = states[id].grip
+	if not grip.is_empty(): release_grip(grip)
+	item.global_transform = originals[id].transform
+	item.linear_velocity = Vector3.ZERO
+	item.angular_velocity = Vector3.ZERO
+	return true
+
+func activate_nearest(anchor: Node3D, max_distance: float = 0.3) -> bool:
+	if not local_only or not is_instance_valid(anchor) or not anchor.is_inside_tree(): return false
+	var selected: Callable
+	var distance = clampf(max_distance, 0.05, 2.0)
+	for entry in local_actions.values():
+		var node = entry.node.get_ref()
+		if not is_instance_valid(node): continue
+		var separation = node.global_position.distance_to(anchor.global_position)
+		if separation < distance and _unobstructed(anchor, node):
+			distance = separation
+			selected = entry.action
+	if not selected.is_valid(): return false
+	selected.call()
+	return true
 
 func configure(network: Node, data_loader: Node):
 	coordinator = network
@@ -46,12 +96,18 @@ func _attach_peer():
 	if peer != null: peer.world_data.connect(receive)
 
 func reset():
+	if local_world != null and is_instance_valid(local_world.get_ref()):
+		var world = local_world.get_ref()
+		if world.tree_exiting.is_connected(reset): world.tree_exiting.disconnect(reset)
+	local_world = null
 	for id in items:
 		_restore(id)
 	items.clear()
 	states.clear()
 	anchors.clear()
 	originals.clear()
+	local_only = false
+	local_actions.clear()
 	received_sequence = -1
 	snapshot_elapsed = 0.0
 	# Sender sequence spans activations within the same connection, because a
@@ -83,6 +139,16 @@ func request_grab(id: String, grip: String, anchor: Node3D) -> bool:
 	if not item is Node3D or not item.is_inside_tree() or not anchor.is_inside_tree() or item.global_position.distance_to(anchor.global_position) > 2.0: return false
 	if not _unobstructed(anchor, item): return false
 	if states.get(id, {}).get("holder", -1) != -1: return false
+	if local_only:
+		if held_by_local(grip): return false
+		anchors[grip] = weakref(anchor)
+		states[id] = {"holder": 0, "grip": grip}
+		item.freeze = true
+		item.collision_layer = 0
+		item.collision_mask = 0
+		item.linear_velocity = Vector3.ZERO
+		item.angular_velocity = Vector3.ZERO
+		return true
 	anchors[grip] = weakref(anchor)
 	local_sequence += 1
 	return _send({"op": "grab", "entity": id, "grip": grip, "epoch": states.get(id, {}).get("epoch", 0), "sequence": local_sequence})
@@ -116,6 +182,18 @@ func nearest_available(anchor: Node3D, max_distance: float = 0.3) -> String:
 	return selected
 
 func release_grip(grip: String) -> bool:
+	if local_only:
+		for id in states:
+			if states[id].holder == 0 and states[id].grip == grip:
+				_restore(id)
+				var item = items[id].get_ref()
+				if is_instance_valid(item):
+					item.linear_velocity = Vector3.ZERO
+					item.angular_velocity = Vector3.ZERO
+				states[id] = {"holder": -1, "grip": ""}
+				anchors.erase(grip)
+				return true
+		return false
 	if peer == null: return false
 	for id in states:
 		var state: Dictionary = states[id]
@@ -125,6 +203,8 @@ func release_grip(grip: String) -> bool:
 	return false
 
 func held_by_local(grip: String) -> bool:
+	if local_only:
+		return states.values().any(func(state): return state.holder == 0 and state.grip == grip)
 	if peer == null: return false
 	for state in states.values():
 		if state.holder == peer.world_peer_id and state.grip == grip: return true
@@ -170,6 +250,18 @@ func _valid_state(value: Variant) -> bool:
 	return absf(Quaternion(value.rotation[0], value.rotation[1], value.rotation[2], value.rotation[3]).length_squared() - 1.0) < 0.02
 
 func _process(delta: float):
+	if local_only:
+		for id in states:
+			var state = states[id]
+			if state.holder != 0: continue
+			var item = items[id].get_ref()
+			var anchor = anchors.get(state.grip)
+			var hand = anchor.get_ref() if anchor != null else null
+			if not is_instance_valid(hand) or not is_instance_valid(item):
+				release_grip(state.grip)
+				continue
+			item.global_transform = hand.global_transform
+		return
 	if coordinator == null or loader == null: return
 	_attach_peer()
 	if peer != null and peer.current_session_id != session:
@@ -205,4 +297,5 @@ func _process(delta: float):
 			item.global_basis = Basis(item.global_basis.orthonormalized().get_rotation_quaternion().slerp(q, minf(1.0, delta * 20.0)))
 
 func _exit_tree():
+	reset()
 	if peer != null and peer.world_data.is_connected(receive): peer.world_data.disconnect(receive)

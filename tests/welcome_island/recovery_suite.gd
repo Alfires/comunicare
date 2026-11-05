@@ -57,9 +57,10 @@ func run():
 		await process_frame
 		check(not is_instance_valid(unknown), "unregistered lost bodies removed instead of spawning at player's head")
 		check(not world.register_recoverable(item, Transform3D(Basis.IDENTITY, Vector3(INF, 0, 0))), "nonfinite item homes rejected")
+		var item_id = item.get_instance_id()
 		item.queue_free()
 		await process_frame
-		check(world.recoverable_homes.is_empty(), "deleted items leave no recovery reference")
+		check(not world.recoverable_homes.has(item_id), "deleted items leave no recovery reference")
 		world.return_player_to_spawn(player)
 		check(get_nodes_in_group("player").size() == 1 and player.get_parent() == root, "menu-style return preserves one root player")
 	var contract_path = "res://scripts/worlds/welcome_island/home_contract.gd"
@@ -87,6 +88,22 @@ func run():
 		file = FileAccess.open(path, FileAccess.WRITE); file.store_buffer(bytes + PackedByteArray([0])); file.close()
 		check(contract.revision() != revision, "shipped texture edit changes built-in revision")
 		file = FileAccess.open(path, FileAccess.WRITE); file.store_buffer(bytes); file.close()
+	if OS.get_environment("ISLAND_LAYOUT_RENDERED") == "1":
+		var camera = Camera3D.new()
+		player.add_child(camera)
+		camera.position = Vector3(0, 0.7, 0)
+		camera.rotation_degrees.y = -45
+		for index in 3:
+			player.position = Vector3(2, -40, 0)
+			player.velocity = Vector3(2, -10, 0)
+			world._on_area_3d_body_entered(player)
+			await process_frame
+			await process_frame
+			await RenderingServer.frame_post_draw
+			check(player.position == Vector3(0, 1, 0) and player.velocity == Vector3.ZERO,
+				"rendered repeated recovery returns stopped camera root: " + str(index))
+		check(root.get_texture().get_image().save_png("/tmp/opencode/island-recovery.png") == OK,
+			"rendered recovery screenshot saved")
 	player.queue_free()
 	world.queue_free()
 	await process_frame

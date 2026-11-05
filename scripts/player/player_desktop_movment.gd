@@ -134,13 +134,13 @@ func _input(event: InputEvent) -> void:
 			camera.current = true
 
 func _unhandled_input(event: InputEvent):
-	if event.is_action_pressed("world_grab") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
-		and not SaveData.voice.input_blocked and not NetworkHandler.session_busy:
+	if event.is_action_pressed("world_grab") and not event.is_echo() and not _movement_blocked():
 		var pickups = DataLoader.get_world_pickups()
 		if pickups.held_by_local("virtual"):
 			pickups.release_grip("virtual")
 		else:
-			pickups.grab_nearest(world_grip, "virtual", 1.5)
+			if not pickups.grab_nearest(world_grip, "virtual", 1.5):
+				pickups.activate_nearest(world_grip, 1.5)
 		get_viewport().set_input_as_handled()
 			
 	
@@ -155,6 +155,8 @@ func _physics_process(delta):
 	# Get input
 	var input_direction = Vector3(0,0,0)
 	var blocked = _movement_blocked()
+	if blocked and DataLoader.has_method("get_world_pickups"):
+		DataLoader.get_world_pickups().cancel_local_input()
 	var target_speed = sprint.target_speed(get_walk_speed(), Input.is_action_pressed("sprint"), blocked)
 	if not blocked:
 		input_direction = Input.get_vector("left", "right", "back", "forward")

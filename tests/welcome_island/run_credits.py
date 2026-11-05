@@ -22,6 +22,7 @@ def main():
         project = Path(directory)
         for folder in ("scripts/settings", "scripts/profile", "scripts/GUI", "scripts/player", "scripts/discovery", "relay_protocol", "scenes/GUI", "themes/icons"):
             shutil.copytree(ROOT / folder, project / folder)
+        shutil.copytree(ROOT / "scripts/worlds", project / "scripts/worlds")
         shutil.copytree(ROOT / "tests/microphone_settings/fixtures", project / "fixtures")
         for name in ("assets/welcome_island/manifest.json", "assets/welcome_island/licenses/CC0-1.0.txt",
                      "assets/animations/CC0-1.0.txt", "assets/animations/Quaternius-License.txt"):

@@ -5,7 +5,8 @@ manual headset/lifecycle gates; part 02 delivers tested provenance and a four-en
 CC0 sample; reduced tree/rock runtime variants now exist. Part 03 Credits is
 implemented with a manual headset gate. Part 04 delivers the single-island layout
 graybox with physics/capsule and rendered checks; part 05 adds tested spawn/item
-recovery and dependency revisions with manual/export gates. Parts 06–14 remain planned.
+recovery and dependency revisions with manual/export gates. Part 06 adds local
+pickup/activation and rendered recovery/exported-PCK verification; parts 07–14 remain planned.
 The [shared design overview](../offline-welcome-island-roadmap.md) owns the home-first
 requirements, ASCII concepts, asset candidates and compatibility boundaries.
 This index and the small roadmaps below replace its original five broad milestones.
@@ -41,7 +42,8 @@ never run against real accounts or launch normal startup against real user data.
 Part 01 is **implemented with manual gates**; part 02 is **implemented with
 asset-selection/runtime limits**; part 03 is **implemented with manual headset gate**;
 part 04 is **implemented graybox with manual VR gates**; part 05 is **implemented
-with manual/export gates**; parts 06–14 remain **planned**.
+with manual/export gates**; part 06 is **implemented with manual interaction/headset
+gates**; parts 07–14 remain **planned**.
 
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
@@ -50,7 +52,7 @@ with manual/export gates**; parts 06–14 remain **planned**.
 | [03](03-credits-roadmap.md) | Implemented: offline read-only Settings → Credits; real-headset validation open | 02 |
 | [04](04-island-layout-roadmap.md) | Implemented graybox: one landmass, middle spawn and tested dry routes; real VR/final-art gates open | 01 |
 | [05](05-spawn-recovery-roadmap.md) | Implemented: shared player/item recovery and dependency revision; real-headset/export verification open | 04 |
-| [06](06-local-interactions-roadmap.md) | Shared offline pickup and activation | 05 |
+| [06](06-local-interactions-roadmap.md) | Implemented: shared local pickup/activation; actual headset and rendered carry checks open | 05 |
 | [07](07-pond-dock-roadmap.md) | Pond, shoreline safety and dock | 02, 04, 05 |
 | [08](08-working-ship-roadmap.md) | Boardable, player-steered ship | 06, 07 |
 | [09](09-house-spaces-roadmap.md) | House, lounge, beds and left/right hangouts | 02, 04, 06 |

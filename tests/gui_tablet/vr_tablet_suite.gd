@@ -87,6 +87,11 @@ func test_screen():
 	var viewport = tablet.get("viewport")
 	check(viewport is SubViewport and viewport.size == Vector2i(1600, 1200), "tablet renders a 1600×1200 SubViewport")
 	check(viewport is SubViewport and viewport.get_meta("vr_menu", false), "tablet viewport keeps the vr_menu meta")
+	check(viewport is SubViewport and viewport.size_2d_override == Vector2i(1000, 750) and viewport.size_2d_override_stretch,
+		"layout is 1000×750 logical px stretched to 1600×1200 so body text is about 1° tall")
+	var pin = find_by_script(viewport, "res://scripts/GUI/tablet_shell.gd") if viewport is SubViewport else null
+	pin = pin.get_node_or_null("%PinButton") if pin != null else null
+	check(pin is BaseButton and pin.visible, "pin button is shown on the VR tablet")
 	var size = tablet.get("screen_size_m")
 	check(size is Vector2 and size.is_equal_approx(Vector2(0.55, 0.4125)), "default screen is 0.55 × 0.41 m (4:3)")
 	check(size is Vector2 and 1600.0 / size.x >= 2800.0, "about 2900 px/m keeps text sharp at arm's length")

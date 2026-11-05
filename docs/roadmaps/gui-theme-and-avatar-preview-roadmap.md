@@ -104,11 +104,15 @@ Mix of social-VR familiarity and modern app design:
 Only the interaction ideas are borrowed. No VRChat names, icons, artwork,
 fonts or color schemes are copied.
 
-### Screen layout (1600 × 1200 px reference at UI scale 1.0)
+### Screen layout
+
+Exact sizes, colors, texts and behavior are fixed in the
+[GUI tablet specification](gui-tablet-specification.md), which takes precedence
+over this overview.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ Status bar: instance name · [people] 7 · [mic] · 12:41 · [x]  │ 56 px
+│ [profile][presence] instance · [people] 7  [pin][mic] 12:41 [x] │ 56 px
 ├────────┬─────────────────────────────────────────────────────┤
 │ Nav    │ Page header: title · back (nested pages) · actions  │
 │ rail   ├─────────────────────────────────────────────────────┤
@@ -122,10 +126,13 @@ fonts or color schemes are copied.
 ```
 Bracketed names are icons from the SVG icon set.
 
-- **Quick page (default when opening):** a tile grid with Mute mic, Emotes,
-  Change avatar (thumbnail of the current avatar), Invite / Share instance,
-  Respawn / Go home, Hide avatars, Mirror and Camera, plus an "Online friends"
-  strip. Each tile is large (≥ 160 × 120 px) and has an icon and a short label.
+- **Quick page (default when opening):** six tiles: Mute, Emotes, Change
+  avatar (thumbnail of the current avatar), Invite, Respawn and Mirror. Below
+  them is an "Online friends" strip. Each tile is large (≥ 160 × 120 px) and has
+  an icon and a short label. Hide avatars and Camera were dropped because no
+  matching feature exists (specification D1).
+- **Profile and presence** move from the old Home page to the left of the
+  status bar.
 - **Nav rail:** 96 px wide, icon above label, active item marked with the
   accent bar. It never scrolls at the default scale.
 - **Status bar:** always visible. In VR it doubles as the **grab handle**.
@@ -151,14 +158,15 @@ Bracketed names are icons from the SVG icon set.
   requested. Outside the zone, world pickup behaves as today.
 - **Pin modes** (button in the status bar): *Pinned in world* (stays where
   placed, default) or *Follow* (lazily re-centers in front when it is more than
-  ~45° out of view). A **Summon** gesture or a double press of the menu button
-  brings it back in front.
+  ~45° out of view). **Holding** the menu button for 0.6 s summons it in
+  front; a short press still opens or closes it.
 - **Interaction:** both controller lasers keep working via
-  `vr_pointer_router.gd`. Optional **direct touch** with the index fingertip
-  when a hand is within 3 cm of the screen, with a press threshold and haptic
-  tick. The laser hides while the hand is touching.
-- **Readability:** default 0.55 × 0.41 m screen at about 2900 px/m, which keeps
-  the 1600 × 1200 layout sharp at arm's length. Unshaded screen, no bloom;
+  `vr_pointer_router.gd`. Optional **direct touch** with the controller tip
+  (6 cm along the aim direction) when it is within 3 cm of the screen, with a
+  press threshold and haptic tick. The laser hides while that hand is touching.
+- **Readability:** default 0.55 × 0.41 m screen rendered at 1600 × 1200 px
+  (about 2900 px/m) but laid out at 1000 × 750 logical px, so 18 px body text
+  is about 1° tall at arm's length. Unshaded screen, no bloom;
   a slight frame shadow helps depth perception.
 - **Comfort:** the tablet never locks to the head. Smoothing respects
   `interface.reduce_motion`. Opening the menu still dismisses the emote wheel
@@ -168,7 +176,7 @@ Bracketed names are icons from the SVG icon set.
 - `vr_keyboard.gd` docks under the tablet and moves with it.
 - New settings (category **VR Menu**): `vr.menu_pin_mode` (pinned/follow),
   `vr.menu_scale` (0.6–1.6), `vr.menu_direct_touch` (bool),
-  `vr.menu_hand` (left/right/either for summoning). The placement itself is
+  `vr.menu_hand` (which side the tablet opens on). The placement itself is
   session state, not a saved setting.
 
 ### PC: 2D overlay menu

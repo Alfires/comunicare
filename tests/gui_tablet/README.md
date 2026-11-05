@@ -44,7 +44,10 @@ summary is not the final implemented-system count.
 
 The roadmap did not fix every interface. These are product contracts for the
 tests. They may be adapted with implementation evidence, but must not be
-replaced by passing empty stubs.
+replaced by passing empty stubs. Values, texts and behavior come from the
+[GUI tablet specification](../../docs/roadmaps/gui-tablet-specification.md).
+The tests check its palette tables, the 18/24/14 px text sizes, the Quick tile
+list, the status-bar contents, the VR logical layout size and the key texts.
 
 ### Part 1: `tools/gui/style_inventory.py`
 - `--root DIR` (default: repository root) scans `scripts/GUI/*.gd` and `scenes/GUI/*.tscn`.
@@ -88,9 +91,12 @@ replaced by passing empty stubs.
 - Methods: `open_page, push_page(control, title), back() -> bool, reset, current_page, page_ids, page_scene_paths, set_compact, update_status(dict), handle_quick_action(id)`.
 - `page_factories` is a Dictionary of `id → Callable`, prefilled with the defaults.
 - Signals `close_requested` and `quick_action(id)`.
-- Unique nodes: `%StatusBar %NavRail %PageHeader %Content %InstanceLabel %PeopleLabel %MicButton %Clock %CloseButton %BackButton %PageTitle`.
+- Unique nodes: `%StatusBar %NavRail %PageHeader %Content %ProfileButton %PresenceButton %InstanceLabel %PeopleLabel %PinButton %MicButton %Clock %CloseButton %BackButton %PageTitle %HeaderActions`.
+- `%PresenceButton` is a MenuButton with the items Online, Do not disturb and Appear offline.
+- `%PinButton` is hidden on desktop and visible on the VR tablet.
+- With no instance, `%InstanceLabel` reads "Not in an instance".
 - Nav buttons carry the `page_id` meta.
-- `scenes/GUI/quick_page.tscn` emits `action_requested(id)`. Tiles carry the `quick_action` meta. `%OnlineFriends` holds the friends strip.
+- `scenes/GUI/quick_page.tscn` emits `action_requested(id)`. Tiles carry the `quick_action` meta, in this order: `mute emotes avatar invite respawn mirror`. `%OnlineFriends` holds the friends strip.
 - The mic button and mute tile use `SaveData.voice`, with icons `microphone.svg` / `microphone_muted.svg`.
 - `menue.tscn` keeps its path and wraps the shell.
 
@@ -99,12 +105,12 @@ replaced by passing empty stubs.
 - Methods: `open, close, toggle, is_open, layout_for(size) -> {rect, compact}, apply_layout(size), handle_input(event) -> bool`. Signals `opened` / `closed`.
 - Layout: 4:3, centered, at most 86 % of the window height.
 - Compact mode switches on when 0.86·height < 560 px or the 4:3 width does not fit the window. It uses the full window height.
-- Esc goes back first, then closes, and reopens on Quick. Keys 1–6 select pages. `blocks_global_shortcuts` is honored. The overlay is not draggable.
+- Esc goes back first, then closes, and reopens on Quick. Keys 1–6 select pages. `blocks_global_shortcuts` is honored. The overlay is not draggable, and a click on `%Dim` closes it.
 - `player_desktop.tscn` references the overlay.
 
 ### Part 8: `scenes/GUI/vr_tablet.tscn` (`scripts/GUI/vr_tablet.gd`, screen faces +Z)
 - Methods: `configure(store), place_initial(head), summon(head), raycast_to_pixel(origin, dir), grab_zone_contains(point), begin_grab(hand, transform) -> bool, update_grab, end_grab, remember_placement(player), restore_placement(player) -> bool, update_follow(head, delta), world_grab_blocked(point), touch_pixel(fingertip) -> {pixel, hover, pressed} or {}, effective_smoothing()`.
-- Properties: `viewport` (1600×1200, `vr_menu` meta), `screen_size_m` (0.55 × 0.4125), `scale_factor` (0.6–1.6), `pin_mode`, `smoothing`, `reduce_motion`, `direct_touch_enabled`, and `%KeyboardAnchor` below the screen.
+- Properties: `viewport` (1600×1200, `size_2d_override` 1000×750 with stretch, `vr_menu` meta), `screen_size_m` (0.55 × 0.4125), `scale_factor` (0.6–1.6), `pin_mode`, `smoothing`, `reduce_motion`, `direct_touch_enabled`, and `%KeyboardAnchor` below the screen.
 - Direct touch: hover from 0 to 3 cm in front of the screen; press from 0.8 cm in front to 2 cm behind it.
 - Settings in category VR Menu: `vr.menu_pin_mode`, `vr.menu_scale`, `vr.menu_direct_touch`, `vr.menu_hand`.
 - `TrackerSetupButton` and `ComfortPresetButton` move into Settings.
@@ -128,6 +134,6 @@ replaced by passing empty stubs.
 - `browser_detail.gd`: `show_record(record, eligibility)`, `set_progress`, `show_error`, signal `apply_requested`. Nodes `UseButton` (PrimaryButton, "Use this avatar"), `Progress` and `Reason`.
 - `browser_sidebar.gd`: `set_sources`, `state()`, signal `filters_changed`, and a `Search` field.
 - `avatar_browser.gd` is at most 400 lines and has no modal apply dialog.
-- `scripts/GUI/toast_host.gd`: `show_message(text, kind, seconds)` and `visible_toasts()`. At most three toasts, which never take focus.
+- `scripts/GUI/toast_host.gd`: `show_message(text, kind, seconds)`, `visible_toasts()` and a static `find_for(node)` lookup. At most three toasts, which never take focus.
 - `scripts/GUI/empty_state.gd`: `configure(icon, message, action_label := "", action := Callable())` with `Message` and `Action` nodes.
 - User docs mention the tablet, grip and all six presets.

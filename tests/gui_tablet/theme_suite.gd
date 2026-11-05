@@ -19,6 +19,20 @@ const CUSTOM_COLORS = {
 const REQUIRED_ICONS = ["home", "quick", "friends", "world", "avatar", "instance", "settings",
 	"emote", "close", "search", "rotate", "zoom", "reset", "folder", "warning", "check",
 	"people", "pin", "microphone", "microphone_muted", "profile", "back", "edit"]
+## Values from docs/roadmaps/gui-tablet-specification.md §2.1/§2.2.
+const SPEC_PRESETS = {
+	"graphite": {"background": "#1c1d1f", "surface": "#242528", "surface_raised": "#2e3034", "border": "#4a4d52", "text": "#ebe9e4", "text_muted": "#a9a7a1", "preview_stage": "#2b2c2f"},
+	"paper": {"background": "#f3f1ec", "surface": "#fbfaf7", "surface_raised": "#ffffff", "border": "#cfccc4", "text": "#1f2023", "text_muted": "#5a5c61", "preview_stage": "#e6e3dc"},
+	"forest": {"background": "#1a201d", "surface": "#212824", "surface_raised": "#2a322d", "border": "#45504a", "text": "#e6ebe7", "text_muted": "#a3ada6", "preview_stage": "#28302b"},
+	"sand": {"background": "#efe8dc", "surface": "#f7f2e9", "surface_raised": "#fdfaf4", "border": "#d3c8b5", "text": "#2b261f", "text_muted": "#5e564a", "preview_stage": "#e4dccd"},
+	"night": {"background": "#0b0b0c", "surface": "#131315", "surface_raised": "#1b1b1e", "border": "#34343a", "text": "#d9d8d4", "text_muted": "#9a9893", "preview_stage": "#18181b"},
+	"high_contrast": {"background": "#000000", "surface": "#000000", "surface_raised": "#141414", "border": "#ffffff", "text": "#ffffff", "text_muted": "#e6e6e6", "preview_stage": "#1a1a1a"},
+}
+const SPEC_ACCENTS = { # on dark, on light, on high contrast
+	"teal": ["#4fb3a9", "#1d6b64", "#6fd6cb"], "blue": ["#6ea1e0", "#2b5ea8", "#8fb8ee"],
+	"amber": ["#e0a43a", "#85591c", "#f0bd5e"], "green": ["#7bbf6a", "#3a6b2c", "#98d488"],
+	"rose": ["#e07a8f", "#a3364d", "#eda0b0"], "violet": ["#a58be0", "#6747a6", "#c0aeee"],
+}
 const DRAWN_SCRIPTS = ["res://scripts/GUI/circular_value_control.gd", "res://scripts/GUI/emote_wheel.gd",
 	"res://scripts/GUI/xr_emote_wheel.gd", "res://scripts/GUI/error_popup.gd"]
 
@@ -99,6 +113,22 @@ func test_palette():
 	var yellow: Color = colors.tokens("graphite", "match_highlight", "yellow").accent
 	check(yellow.h > 0.09 and yellow.h < 0.2 and not yellow.is_equal_approx(colors.tokens("graphite", "match_highlight", "cyan").accent),
 		"Match 3D highlight follows interface.hover_color (yellow → yellow accent)")
+	var mismatched: Array = []
+	for preset in SPEC_PRESETS:
+		var tokens = colors.tokens(preset, "teal", "cyan")
+		for key in SPEC_PRESETS[preset]:
+			if not colors_equal(tokens[key], Color(SPEC_PRESETS[preset][key])): mismatched.append(preset + "." + key)
+		var kind = 2 if preset == "high_contrast" else (1 if preset in ["paper", "sand"] else 0)
+		for accent in SPEC_ACCENTS:
+			var value = colors.tokens(preset, accent, "cyan").accent
+			if not colors_equal(value, Color(SPEC_ACCENTS[accent][kind])): mismatched.append(preset + "/" + accent)
+	check(mismatched.is_empty(), "palette values match the specification tables %s" % [mismatched.slice(0, 5)])
+	var mapped: Array = []
+	for pair in [["cyan", "teal"], ["yellow", "amber"], ["green", "green"], ["magenta", "rose"]]:
+		if not colors_equal(colors.tokens("graphite", "match_highlight", pair[0]).accent, colors.tokens("graphite", pair[1], "cyan").accent):
+			mapped.append(pair[0])
+	check(mapped.is_empty() and colors_equal(colors.tokens("graphite", "match_highlight", "white").accent, Color("#d6d3cc")),
+		"Match 3D highlight maps cyan/yellow/green/magenta/white to Teal/Amber/Green/Rose/Neutral %s" % [mapped])
 	check(colors.tokens("unknown", "unknown", "cyan") == colors.tokens("graphite", "teal", "cyan"),
 		"unknown preset/accent fall back to Graphite/Teal")
 	check(colors.tokens("paper", "rose", "cyan") == colors.tokens("paper", "rose", "cyan"), "tokens are deterministic")
@@ -147,6 +177,8 @@ func test_builder():
 		sizes[theme.get_font_size("font_size", type)] = true
 	check(theme.has_default_font_size() and header > body and body > caption and sizes.size() == 3,
 		"exactly three text sizes: title > body > caption")
+	check(body == 18 and header == 24 and caption == 14 and theme.default_font_size == 18,
+		"text sizes match the specification: 18 / 24 / 14 px")
 	var spacing: Array = []
 	for pair in [["separation", "VBoxContainer"], ["separation", "HBoxContainer"], ["h_separation", "GridContainer"],
 		["v_separation", "GridContainer"]]:

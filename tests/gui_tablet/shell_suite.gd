@@ -3,7 +3,7 @@ extends "res://common.gd"
 
 const SHELL = "res://scenes/GUI/tablet_shell.tscn"
 const SHELL_SCRIPT = "res://scripts/GUI/tablet_shell.gd"
-const QUICK = ["mute", "emotes", "avatar", "invite", "home", "hide_avatars", "mirror", "camera"]
+const QUICK = ["mute", "emotes", "avatar", "invite", "respawn", "mirror"]
 const SCENE_PATHS = {
 	"quick": "res://scenes/GUI/quick_page.tscn", "friends": "res://scenes/GUI/friends_menue.tscn",
 	"worlds": "res://scenes/GUI/world_explorer.tscn", "avatars": "res://scenes/GUI/avatar_browser.tscn",
@@ -65,8 +65,8 @@ func test_shell():
 	check(SCENE_PATHS.values().all(func(path): return ResourceLoader.exists(path)), "every page scene exists")
 	check(shell.current_page() == "quick", "the tablet opens on the Quick page")
 	var nodes: Array = []
-	for name in ["StatusBar", "NavRail", "PageHeader", "Content", "InstanceLabel", "PeopleLabel", "MicButton",
-		"Clock", "CloseButton", "BackButton", "PageTitle"]:
+	for name in ["StatusBar", "NavRail", "PageHeader", "Content", "ProfileButton", "PresenceButton", "InstanceLabel",
+		"PeopleLabel", "PinButton", "MicButton", "Clock", "CloseButton", "BackButton", "PageTitle", "HeaderActions"]:
 		if shell.get_node_or_null("%" + name) == null: nodes.append(name)
 	check(nodes.is_empty(), "shell has status bar, nav rail, header and content nodes %s" % [nodes])
 	if not nodes.is_empty():
@@ -75,6 +75,14 @@ func test_shell():
 	var frame_ok = shell.theme_type_variation == "TabletFrame" or named(shell, "Frame") != null and named(shell, "Frame").theme_type_variation == "TabletFrame"
 	check(frame_ok, "shell is drawn in a TabletFrame")
 	check(shell.get_node("%StatusBar").theme_type_variation == "StatusBar", "status bar uses the StatusBar variation")
+	var presence = shell.get_node("%PresenceButton")
+	var presence_items: Array = []
+	if presence is MenuButton:
+		var popup = presence.get_popup()
+		for index in popup.item_count: presence_items.append(popup.get_item_text(index))
+	check(presence_items == ["Online", "Do not disturb", "Appear offline"], "presence selector moved from Home to the status bar")
+	check(shell.get_node("%ProfileButton") is BaseButton, "own profile button moved from Home to the status bar")
+	check(not shell.get_node("%PinButton").visible, "pin button is VR-only and hidden on desktop")
 	var nav: Array = find_by_meta(shell.get_node("%NavRail"), "page_id").filter(func(node): return node is BaseButton)
 	check(nav.map(func(button): return button.get_meta("page_id")) == PAGES, "one nav button per page, in order")
 	check(nav.all(func(b): return b.theme_type_variation == "NavButton" and b.icon != null and not b.text.is_empty()),
@@ -115,7 +123,8 @@ func test_shell():
 		"status bar shows instance name and people count")
 	shell.update_status({})
 	await frames()
-	check(not shell.get_node("%InstanceLabel").text.is_empty(), "status bar shows a clear text when not in an instance")
+	check(shell.get_node("%InstanceLabel").text == "Not in an instance" and not shell.get_node("%PeopleLabel").visible,
+		"status bar says 'Not in an instance' and hides the people count")
 	check(RegEx.create_from_string("^\\d{1,2}:\\d{2}$").search(shell.get_node("%Clock").text) != null, "status bar clock shows H:MM")
 	var voice = autoload("SaveData").voice
 	var mic: BaseButton = shell.get_node("%MicButton")
@@ -281,5 +290,12 @@ func test_overlay():
 	shell.get_node("%StatusBar").gui_input.emit(drag)
 	await frames()
 	check(shell.global_position == before, "the PC overlay is not movable")
+	if dim is Control:
+		var click = InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = true
+		dim.gui_input.emit(click)
+		await frames()
+		check(not overlay.is_open(), "clicking the dimmed game outside the tablet closes the menu")
 	check(evidence("player_desktop.tscn").contains("desktop_overlay.tscn"), "desktop player instances the overlay (wiring check)")
 	overlay.free()

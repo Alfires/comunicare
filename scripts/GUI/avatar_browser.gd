@@ -57,6 +57,7 @@ func _ready():
 		{"id": "osa", "kind": "builtin", "name": "100Avatars R1 · CC0", "adapter": "osa", "auth": "none", "base_url": Service.OSA + "avatars/100avatars-r1.json"},
 		{"id": "osa-r2", "kind": "builtin", "name": "100Avatars R2 · CC0", "adapter": "osa", "auth": "none", "base_url": Service.OSA + "avatars/100avatars-r2.json"},
 		{"id": "osa-r3", "kind": "builtin", "name": "100Avatars R3 · CC0", "adapter": "osa", "auth": "none", "base_url": Service.OSA + "avatars/100avatars-r3.json"},
+		{"id": "osa-neon", "kind": "builtin", "name": "NeonGlitch86 · verified CC0 subset", "adapter": "osa-neon", "auth": "none", "base_url": Service.OSA + "avatars/NeonGlitch86.json"},
 		{"id": "vox", "kind": "builtin", "name": "Public CC0 VRMA manifest", "adapter": "vox", "auth": "none", "base_url": Service.VOX + "manifest.json"}]: registry.add_source(value)
 	var save = get_node_or_null("/root/SaveData")
 	if save != null and save.get("profile") != null:

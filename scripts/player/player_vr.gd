@@ -141,8 +141,12 @@ func _update_world_grips():
 	for side in ["left", "right"]:
 		var hand: XRController3D = left_controller if side == "left" else right_controller
 		var pressed = not blocked and hand.get_is_active() and hand.get_float("grip") >= 0.6
-		if pressed and not world_grip_pressed[side]: pickups.grab_nearest(hand, side, 0.3)
-		if not pressed and world_grip_pressed[side]: pickups.release_grip(side)
+		var mirror = NetworkHandler.get_animation_controller().get("local_mirror")
+		if pressed and not world_grip_pressed[side]:
+			if not is_instance_valid(mirror) or not mirror.visible or not mirror.try_grab(hand, side, 0.3): pickups.grab_nearest(hand, side, 0.3)
+		if not pressed and world_grip_pressed[side]:
+			if is_instance_valid(mirror): mirror.release(side)
+			pickups.release_grip(side)
 		world_grip_pressed[side] = pressed
 
 func _physics_process(delta):

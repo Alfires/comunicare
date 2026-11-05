@@ -1,5 +1,20 @@
 # Running clients and relays
 
+## Local mirror
+
+Open **Emotes → Mirror → Show / hide mirror**. The subgroup also offers **Larger**,
+**Smaller** and **Move in front**. The floating planar mirror renders your local
+world/avatar using a separate reflection camera and is never sent to other clients.
+It has no physics bodies, collision or gravity. On desktop, aim at its blue handle
+and press your world-grab key (E by default); press again to release. In VR, squeeze
+grip close to the blue handle, move it, then release grip. Mirror interaction takes
+priority over ordinary pickups only at the handle. Session cleanup removes it.
+
+The camera is bounded to 768×1152 maximum and excludes the mirror surface and
+first-person-only mesh derivative, preserving the original third-person avatar.
+Reflection camera/frustum and handle behavior have automated checks; renderer/XR
+stereo, arbitrary viewing angles and headset comfort still need visual validation.
+
 ## Two local game windows
 
 Two ordinary launches share `user://user.key`. The relay still rejects a second

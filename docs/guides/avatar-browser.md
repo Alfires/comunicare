@@ -22,6 +22,10 @@ receive your IP and search terms. Built-in providers never receive credentials:
 - **Public CC0 VRMA manifest:** VoxAvatar's public manifest of 13 CC0 animations,
   with creator/source links and expected SHA-256 digests. This is an animations-only
   source; select it or the Animation type filter to add motions to your library.
+- **NeonGlitch86 verified CC0 subset:** Steamboat Summer V2 and Gary Grifter 1.0.
+  Only these two reachable files had confirmed embedded CC0 metadata; exact SHA-256
+  digests are checked on import. Other entries with prohibited redistribution or
+  inaccessible downloads are excluded rather than inheriting the catalog license.
 
 These endpoints were live-tested on 2026-11-05 without authentication. Catalogs
 can change or go offline. Listing compatibility remains unknown until actual import.

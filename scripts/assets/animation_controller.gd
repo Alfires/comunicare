@@ -167,15 +167,41 @@ static func strafe_pose(clip: Dictionary) -> Dictionary:
 		if track.bone not in legs: result.tracks.append(track.duplicate(true))
 	return result
 
+var local_mirror: Node3D
+
+func _mirror_actions() -> Dictionary:
+	return {"__mirror_toggle__": {"name": "Show / hide mirror"}, "__mirror_larger__": {"name": "Larger"}, "__mirror_smaller__": {"name": "Smaller"}, "__mirror_reset__": {"name": "Move in front"}}
+
+func _wheel_layout():
+	var layout = preload("res://scripts/assets/emote_layout.gd").new()
+	if configuration != null: layout.groups = configuration.layout.groups.duplicate(true)
+	# Inject local tools into a copy: never overwrite a user's saved wheel.
+	layout.groups["__local_mirror_tools__"] = {"name": "Mirror", "entries": []}
+	for id in _mirror_actions(): layout.groups["__local_mirror_tools__"].entries.append({"type": "emote", "id": id, "name": _mirror_actions()[id].name})
+	layout.groups.root.entries.append({"type": "group", "id": "__local_mirror_tools__", "name": "Mirror"})
+	return layout
+
+func _mirror_action(id: String):
+	if not is_instance_valid(local_mirror):
+		local_mirror = preload("res://scripts/assets/local_mirror.gd").new()
+		get_tree().root.add_child(local_mirror)
+		local_mirror.place_in_front(get_viewport().get_camera_3d())
+	elif id == "__mirror_toggle__": local_mirror.visible = not local_mirror.visible
+	if id == "__mirror_larger__": local_mirror.resize_by(1.2)
+	if id == "__mirror_smaller__": local_mirror.resize_by(1.0 / 1.2)
+	if id == "__mirror_reset__": local_mirror.place_in_front(get_viewport().get_camera_3d())
+
 func emote_catalog() -> Dictionary:
 	if configuration != null:
 		var actions: Dictionary = configuration.emotes.duplicate()
 		actions["__cancel_emote__"] = {"name": "Return to movement"}
+		actions.merge(_mirror_actions())
 		return actions
 	var catalog: Dictionary = {}
 	for id in ["dance", "interact"]:
 		catalog["builtin:" + id] = {"name": id.capitalize(), "clip": Defaults.clip(id), "builtin": id,
 			"handle": {}, "index": 0, "share": true, "loop": id == "dance"}
+	catalog.merge(_mirror_actions())
 	return catalog
 
 func request_emote(id: String) -> bool:
@@ -256,11 +282,13 @@ func toggle_emote_menu():
 		wheel = preload("res://scripts/GUI/emote_wheel.gd").new()
 		wheel_layer.add_child(wheel)
 		wheel.emote_selected.connect(_choose_emote)
-	var menu_layout = configuration.layout if configuration != null else preload("res://scripts/assets/emote_layout.gd").new()
+	var menu_layout = _wheel_layout()
 	wheel.open(menu_layout, emote_catalog())
 
 func _choose_emote(id: String):
-	if id == "__cancel_emote__":
+	if _mirror_actions().has(id):
+		_mirror_action(id)
+	elif id == "__cancel_emote__":
 		cancel_emote()
 	elif not request_emote(id):
 		if is_instance_valid(wheel):
@@ -275,7 +303,7 @@ func open_xr_menu(hand: XRController3D, camera: XRCamera3D, hold: bool):
 	if is_instance_valid(xr_wheel): xr_wheel.queue_free()
 	xr_wheel = preload("res://scripts/GUI/xr_emote_wheel.gd").new()
 	get_tree().root.add_child(xr_wheel)
-	var menu_layout = configuration.layout if configuration != null else preload("res://scripts/assets/emote_layout.gd").new()
+	var menu_layout = _wheel_layout()
 	xr_wheel.open(hand, camera, menu_layout, emote_catalog(), hold)
 	wheel = xr_wheel.wheel
 	wheel.emote_selected.connect(_choose_emote)
@@ -624,6 +652,8 @@ func _remove_remote(id: int):
 	assets.clear()
 
 func clear():
+	if is_instance_valid(local_mirror): local_mirror.queue_free()
+	local_mirror = null
 	for id in tracking_nodes.keys(): _remove_remote(id)
 	remote_tracking.clear()
 	for id in remote_states.keys():

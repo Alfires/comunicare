@@ -120,10 +120,17 @@ func search(query: Dictionary) -> Dictionary:
 		var result = await _json(source.base_url)
 		if result.has("error"): return result
 		var records: Array = []
-		if source.adapter == "osa":
+		if source.adapter in ["osa", "osa-neon"]:
 			if not result.data is Array: return {"error": "Invalid avatar catalog"}
 			for item in result.data:
 				if not item is Dictionary or not item.get("is_public", false) or item.get("is_draft", false): continue
+				if source.adapter == "osa-neon":
+					var verified = {
+						"https://raw.githubusercontent.com/neonglitch86/vrm/main/SBW_86v2.vrm": "10b1feceb1734188e5295d644300a25ed623fc4af9679764bb57748e650380c3",
+						"https://raw.githubusercontent.com/neonglitch86/vrm/main/GG_1.vrm": "fc84fc35ad78f8010f688ed2ae9a12045a9ae814429e70bd51f9fe0e4e2b6ea7"}
+					if not verified.has(item.get("model_file_url", "")): continue
+					records.append({"id": str(item.get("id", "")).left(100), "title": str(item.get("name", "Avatar")).left(200), "type": "avatar", "format": "vrm", "author": "NeonGlitch86", "license": "CC0-1.0", "redistribution": true, "compatibility": "unknown", "download_url": item.model_file_url, "thumbnail_url": item.get("thumbnail_url", ""), "page_url": "https://opensourceavatars.com", "category": "humanoid", "sha256": verified[item.model_file_url]})
+					continue
 				records.append({"id": str(item.get("id", "")).left(100), "title": str(item.get("name", "Avatar")).left(200), "type": "avatar", "format": "vrm", "author": "Polygonal Mind", "license": "CC0-1.0", "redistribution": true, "compatibility": "unknown", "download_url": item.get("model_file_url", ""), "thumbnail_url": item.get("thumbnail_url", ""), "page_url": "https://opensourceavatars.com", "category": "humanoid"})
 		elif source.adapter == "vox":
 			if not result.data is Dictionary or not result.data.get("assets") is Array: return {"error": "Invalid motion manifest"}

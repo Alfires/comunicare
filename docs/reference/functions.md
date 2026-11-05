@@ -1,5 +1,17 @@
 # Production function contracts
 
+<!-- module: scripts/assets/local_mirror.gd -->
+## Client-only mirror
+
+`place_in_front` places the local panel relative to the current camera, without
+network or physics state. `resize_by` clamps panel dimensions/render target size.
+`try_grab` accepts a nearby handle anchor, captures relative transform and reserves
+one local grip; `release` clears only the matching grip without throw simulation.
+Private process reflects the source eye across the panel and updates off-axis
+frustum/clipping in a shared-world SubViewport; mirror/first-person derivative
+layers are excluded. Desktop E and VR grip use local handle movement. Hide/focus
+loss releases grip; controller/session teardown frees mirror and viewport.
+
 <!-- module: scripts/discovery/avatars/request_policy.gd -->
 ## Avatar discovery request policy
 

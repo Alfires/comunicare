@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--rendered', action='store_true')
     parser.add_argument('--recovery', action='store_true', help='Run focused spawn/recovery contracts')
     parser.add_argument('--pond', action='store_true', help='Run pond/dock physics contracts')
+    parser.add_argument('--ship', action='store_true', help='Run player-operated ship contracts')
     args = parser.parse_args()
     godot = shutil.which(os.environ.get('GODOT', 'godot'))
     if not godot: return 2
@@ -37,7 +38,9 @@ def main():
             target = project / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)
-        shutil.copy2(HERE / ('pond_suite.gd' if args.pond else 'recovery_suite.gd' if args.recovery else 'layout_suite.gd'), project / 'suite.gd')
+        if (ROOT / 'assets/welcome_island/models/ship').exists():
+            shutil.copytree(ROOT / 'assets/welcome_island/models/ship', project / 'assets/welcome_island/models/ship', dirs_exist_ok=True, ignore=shutil.ignore_patterns('*.import'))
+        shutil.copy2(HERE / ('ship_suite.gd' if args.ship else 'pond_suite.gd' if args.pond else 'recovery_suite.gd' if args.recovery else 'layout_suite.gd'), project / 'suite.gd')
         (project / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="Island layout contracts"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
         env = {**os.environ, 'XDG_DATA_HOME': str(project / 'data'), 'XDG_CONFIG_HOME': str(project / 'config'), 'XDG_CACHE_HOME': str(project / 'cache'), 'ISLAND_LAYOUT_RENDERED': '1' if args.rendered else '0'}
         try:

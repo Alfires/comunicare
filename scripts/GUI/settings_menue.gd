@@ -99,6 +99,19 @@ func _render():
 		local_notice.text = "Home objects are local to this client; changes are not synchronized with other players."
 		local_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		category_pages.Controls.add_child(local_notice)
+		for ship in get_tree().get_nodes_in_group("home_ship"):
+			var board = Button.new()
+			board.text = "Board pond boat (near dock)…"
+			board.custom_minimum_size.y = 44
+			board.pressed.connect(func():
+				var world = get_tree().current_scene
+				if world != null and world.has_method("_confirm_ship_boarding"): world._confirm_ship_boarding(ship))
+			category_pages.Controls.add_child(board)
+			for action in [["Stop pond boat", ship.stop], ["Leave boat at dock", ship.disembark], ["Return boat to dock", ship.return_to_dock]]:
+				var button = Button.new()
+				button.text = action[0]; button.custom_minimum_size.y = 44
+				button.pressed.connect(action[1])
+				category_pages.Controls.add_child(button)
 	var credits = preload("res://scripts/GUI/credits_page.gd").new()
 	credits.source_requested.connect(func(url): OS.shell_open(url))
 	rows.add_child(credits)

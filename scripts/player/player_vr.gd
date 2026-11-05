@@ -174,6 +174,12 @@ func _update_world_grips():
 		world_grip_pressed[side] = pressed
 
 func _physics_process(delta):
+	var riding = get_meta("home_ship") if has_meta("home_ship") else null
+	if riding is WeakRef and is_instance_valid(riding.get_ref()):
+		var input = _get_movement_input()
+		riding.get_ref().drive(Vector2(input.x, -input.y), not focused or not _head_tracking_active() or _menu_open() or SaveData.voice.input_blocked or NetworkHandler.session_busy)
+		velocity = Vector3.ZERO
+		return
 	grounded_body_targets = tracking_calibration.calibrated_targets(tracker_roles.targets(Time.get_ticks_msec()), role_offsets)
 	for role in ["leftFoot", "rightFoot"]:
 		if grounded_body_targets.has(role):

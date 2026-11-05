@@ -53,6 +53,16 @@ func run():
 		var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(point, point - Vector3.UP * 6, 1))
 		if hit.is_empty() or absf(hit.position.y) > 0.1: dock_clear = false
 	check(dock_clear, "level dock extends from dry bank over pond")
+	var dock_start = Vector3(8.5, 0.05, 23)
+	body.position = dock_start
+	for frame in 115:
+		body.velocity = Vector3(4, -1, 0)
+		body.move_and_slide()
+		await physics_frame
+	check(body.position.x > 15.5 and body.position.x < 17 and body.position.y > -0.1,
+		"physical player walks from bank to dock end without falling or reset")
+	var surface = pond.get_node_or_null("Surface")
+	check(surface != null and surface.mesh is ArrayMesh, "water uses shore-clipped surface instead of cylinder side wall")
 	check(world.has_method("recover_from_pond"), "water recovery uses trusted shared reset")
 	if world.has_method("recover_from_pond"):
 		for index in 3:

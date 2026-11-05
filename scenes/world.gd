@@ -5,6 +5,7 @@ var local_pickups: Node
 
 func recover_from_pond(body: Node3D):
 	if not is_instance_valid(body) or not body.is_in_group("player"): return
+	if body.has_meta("home_ship"): return # Supported riders are not swimmers.
 	call_deferred("_recover_pond_player", weakref(body))
 
 func _recover_pond_player(reference: WeakRef):
@@ -27,6 +28,9 @@ func _ready():
 	call_deferred("_setup_local_objects")
 
 func _setup_local_objects():
+	var ship = preload("res://scripts/worlds/welcome_island/pond_ship.gd").new()
+	ship.name = "PondShip"
+	add_child(ship)
 	var loader = get_node_or_null("/root/DataLoader")
 	local_pickups = loader.get_world_pickups() if loader != null and loader.has_method("get_world_pickups") else null
 	if local_pickups == null:
@@ -69,7 +73,37 @@ func _setup_local_objects():
 	switch_shape.size = Vector3(0.15, 0.3, 0.15)
 	switch_collision.shape = switch_shape
 	switch.add_child(switch_collision)
-	local_pickups.activate_local(self, objects, {"lamp": {"node": switch, "action": func(): lamp.visible = not lamp.visible}})
+	local_pickups.activate_local(self, objects, {
+		"lamp": {"node": switch, "action": func(): lamp.visible = not lamp.visible},
+		"ship": {"node": ship, "action": func(): _confirm_ship_boarding(ship)}
+	})
+
+func _confirm_ship_boarding(ship: Node3D):
+	var dialog = ConfirmationDialog.new()
+	dialog.dialog_text = "Board the local pond boat? Movement controls steer/throttle. Stop, exit or return via Controls settings."
+	var parent: Node = self
+	for player in get_tree().get_nodes_in_group("player"):
+		if player.get("main_panel") != null:
+			if not player._menu_open(): player._toggle_main_menu()
+			parent = player.main_panel.viewport
+			break
+	parent.add_child(dialog)
+	var previous_mouse_mode = Input.mouse_mode
+	if parent == self: Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	dialog.tree_exited.connect(func():
+		var save = get_node_or_null("/root/SaveData")
+		if save != null: save.voice.input_blocked = false
+		if parent == self: Input.mouse_mode = previous_mouse_mode)
+	var save = get_node_or_null("/root/SaveData")
+	if save != null: save.voice.input_blocked = true
+	dialog.confirmed.connect(func():
+		for player in get_tree().get_nodes_in_group("player"):
+			if player is CharacterBody3D and ship.board(player):
+				if player.has_method("_close_main_menu"): player._close_main_menu()
+				break
+		dialog.queue_free())
+	dialog.canceled.connect(dialog.queue_free)
+	dialog.popup_centered()
 
 func _spawn_players():
 	for player in get_tree().get_nodes_in_group("player"):
@@ -77,6 +111,8 @@ func _spawn_players():
 
 func return_player_to_spawn(player: Node3D):
 	if is_instance_valid(player) and player.is_in_group("player"):
+		var riding = player.get_meta("home_ship") if player.has_meta("home_ship") else null
+		if riding is WeakRef and is_instance_valid(riding.get_ref()): riding.get_ref().return_to_dock()
 		if is_instance_valid(local_pickups): local_pickups.cancel_local_input()
 		Home.reset_player(player)
 

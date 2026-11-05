@@ -213,4 +213,17 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - Shipped: `assets/welcome_island/textures/weathered_planks/weathered_planks_rough_1k.jpg`; SHA-256 `a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3`
   Original: `weathered_planks_rough_1k.jpg`; SHA-256 `a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_rough_1k.jpg
 
+### kenney.pond-boat — Watercraft Kit 2.1 — large rowing boat
+
+- Author: Kenney
+- Source: https://kenney.nl/assets/watercraft-kit
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified boat-row-large.glb extracted from Watercraft Kit 2.1. Runtime hull uniformly scaled to pond size; independent collision/controls. Publisher notice: assets/welcome_island/licenses/Kenney-Watercraft.txt. Archive SHA-256 cd1470c1cf441c7f46d0944ae6d0d897242365dc97677c5079b3238965d659f3. Official download returned 403; same archive obtained via Asset Commons mirror.
+- Shipped: `assets/welcome_island/models/ship/boat-row-large.glb`; SHA-256 `25eed6585c7398654522d338ec575509615443887362ca8e598559b4eca142a3`
+  Original: `Models/GLB format/boat-row-large.glb`; SHA-256 `25eed6585c7398654522d338ec575509615443887362ca8e598559b4eca142a3`; download: https://youraiagent.biz/api/assets/kenney-watercraft-kit/download
+- Shipped: `assets/welcome_island/models/ship/Textures/colormap.png`; SHA-256 `311138350e74e35c5497a1bd8076a01740b7c302bed11027639fa553459a68de`
+  Original: `Models/GLB format/Textures/colormap.png`; SHA-256 `311138350e74e35c5497a1bd8076a01740b7c302bed11027639fa553459a68de`; download: https://youraiagent.biz/api/assets/kenney-watercraft-kit/download
+
 <!-- welcome-island-assets:end -->

@@ -39,13 +39,27 @@ func _build_pond():
 	water.position = Vector3(23, -0.65, 23)
 	add_child(water)
 	var visual = MeshInstance3D.new()
-	var plane = CylinderMesh.new()
-	plane.top_radius = 10.7
-	plane.bottom_radius = 10.7
-	plane.height = 0.02
-	plane.radial_segments = 64
-	visual.mesh = plane
-	visual.scale.x = 1.15
+	visual.name = "Surface"
+	var surface = SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# Single upper surface without an exposed dark cylinder rim. Follow the same
+	# basin height function so the water never hangs above the west bank.
+	var boundary: Array[Vector3] = []
+	for index in 96:
+		var direction = Vector2(cos(index * TAU / 96), sin(index * TAU / 96))
+		var low := 0.0
+		var high := 14.0
+		for iteration in 16:
+			var distance = (low + high) * 0.5
+			var point = Vector2(23, 23) + direction * Vector2(1.15, 1) * distance
+			if _height(point.x, point.y) < -0.65: low = distance
+			else: high = distance
+		boundary.append(Vector3(direction.x * 1.15 * low, 0, direction.y * low))
+	for index in boundary.size():
+		for point in [Vector3.ZERO, boundary[index], boundary[(index + 1) % boundary.size()]]:
+			surface.add_vertex(point)
+	surface.generate_normals()
+	visual.mesh = surface.commit()
 	var material = _material(Color(0.12, 0.32, 0.36, 1))
 	material.roughness = 0.3
 	material.metallic = 0.15

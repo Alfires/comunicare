@@ -7,7 +7,8 @@ implemented with a manual headset gate. Part 04 delivers the single-island layou
 graybox with physics/capsule and rendered checks; part 05 adds tested spawn/item
 recovery and dependency revisions with manual/export gates. Part 06 adds local
 pickup/activation and rendered recovery/exported-PCK verification. Part 07 delivers
-the pond/dock with synthetic safety checks; parts 08–14 remain planned.
+the pond/dock with synthetic safety checks; part 08 adds constrained local ship
+operation with manual XR/UI gates. Parts 09–14 remain planned.
 The [shared design overview](../offline-welcome-island-roadmap.md) owns the home-first
 requirements, ASCII concepts, asset candidates and compatibility boundaries.
 This index and the small roadmaps below replace its original five broad milestones.
@@ -45,7 +46,7 @@ asset-selection/runtime limits**; part 03 is **implemented with manual headset g
 part 04 is **implemented graybox with manual VR gates**; part 05 is **implemented
 with manual/export gates**; part 06 is **implemented with manual interaction/headset
 gates**; part 07 is **implemented with manual headset/final-water gates**;
-parts 08–14 remain **planned**.
+part 08 is **implemented with manual XR/UI gates**; parts 09–14 remain **planned**.
 
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
@@ -56,7 +57,7 @@ parts 08–14 remain **planned**.
 | [05](05-spawn-recovery-roadmap.md) | Implemented: shared player/item recovery and dependency revision; real-headset/export verification open | 04 |
 | [06](06-local-interactions-roadmap.md) | Implemented: shared local pickup/activation; actual headset and rendered carry checks open | 05 |
 | [07](07-pond-dock-roadmap.md) | Implemented: pond, timber dock and safe water recovery; two-eye/headset checks open | 02, 04, 05 |
-| [08](08-working-ship-roadmap.md) | Boardable, player-steered ship | 06, 07 |
+| [08](08-working-ship-roadmap.md) | Implemented: constrained local board/steer/stop/reset ship; actual headset/UI comfort gates open | 06, 07 |
 | [09](09-house-spaces-roadmap.md) | House, lounge, beds and left/right hangouts | 02, 04, 06 |
 | [10](10-room-lighting-roadmap.md) | Adjustable house lighting | 06, 09 |
 | [11](11-kitchen-roadmap.md) | Working kitchen and pickupable kitchenware | 06, 09 |

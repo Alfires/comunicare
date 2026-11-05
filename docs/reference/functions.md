@@ -1,5 +1,20 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/welcome_island/pond_ship.gd -->
+## Local pond ship
+
+`board` accepts a nearby player-group CharacterBody with a clear dock recovery
+target, sets a weak rider link and requires neutral input. `drive` bounds finite
+input and stops/rearms on suppression; `step` advances bounded level-plane motion
+and translates the rider without forced yaw or local tracked-pose changes. `stop`
+clears propulsion. `disembark` requires proximity to berth and clear bank capsule;
+`return_to_dock` restores berth and safely releases to bank or center fallback.
+Private UI/exit helpers create temporary controls, clear rider metadata and use
+sphere-sweep/shore bounds for collision. This is local-only, not relay ownership,
+full buoyancy or verified headset comfort. Explicit boarding confirmation belongs
+to the built-in world/shared Controls UI; ordinary player movement is paused while riding.
+
+
 ## Pond and dock safety additions
 
 `recover_from_pond` on the trusted built-in world defers player-only recovery,

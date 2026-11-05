@@ -157,6 +157,13 @@ func _physics_process(delta):
 	# Get input
 	var input_direction = Vector3(0,0,0)
 	var blocked = _movement_blocked()
+	var riding = get_meta("home_ship") if has_meta("home_ship") else null
+	if riding is WeakRef and is_instance_valid(riding.get_ref()):
+		var input = Input.get_vector("left", "right", "forward", "back")
+		riding.get_ref().drive(Vector2(input.x, -input.y), blocked)
+		velocity = Vector3.ZERO
+		_reset_camera_motion()
+		return
 	if blocked and DataLoader.has_method("get_world_pickups"):
 		DataLoader.get_world_pickups().cancel_local_input()
 	var target_speed = sprint.target_speed(get_walk_speed(), Input.is_action_pressed("sprint"), blocked)

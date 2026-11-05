@@ -401,7 +401,8 @@ with runtime limits; part 03 delivers Credits with a manual headset gate;
 part 04 delivers the tested layout graybox; part 05 adds spawn/recovery/revisions;
 part 06 adds shared offline interactions and rendered recovery/PCK checks;
 part 07 adds the pond/dock and water recovery with manual headset gates;
-parts 08–14 remain planned. See the
+part 08 adds the constrained local ship with manual XR/UI gates;
+parts 09–14 remain planned. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

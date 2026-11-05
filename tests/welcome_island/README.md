@@ -1,5 +1,40 @@
 # Welcome island startup contracts
 
+## Part 08 ship and pond follow-up — 2026-11-05
+
+`run_layout.py --pond --rendered`: 18 checks pass, including physical dock walking
+and a shore-clipped water mesh without the old cylinder rim. This closes the
+desktop fixture follow-up, not two-eye/headset rendering or final water art.
+
+`run_layout.py --ship --rendered`: 20 checks pass. Initial missing-ship assertion
+failed before implementation. Covers explicit nearby boarding, neutral rearming,
+bounded propulsion/turning, supported root translation without forced view/head
+rotation, invalid input/menu/focus stop, blocked/away-from-dock exits, stranded
+reset and prolonged shore containment. Ship is constrained to a level water plane;
+not a full buoyancy simulation. Collision uses a conservative sphere proxy plus
+shore bounds; detailed rotating hull/corner collision remains a manual limitation.
+
+Near the dock use Controls → “Board pond boat…” and explicitly confirm (or target
+the hull with the existing interaction). Movement keys/left stick steer/throttle;
+the menu exposes Stop, Leave at dock and Return to dock. Home state is local-only.
+VR confirmation mounts in the shared menu viewport; production physical controller
+hit-testing and comfort have not been certified. Desktop has a transient button
+strip; VR uses shared Controls. Boarding preserves local tracking pose; no camera
+roll/bob or forced yaw. No blink/comfort-transition certification is claimed.
+
+Manual gate procedure: repeatedly board from dock in desktop and seated VR, start
+only after neutral input, steer both ways, open menus/lose focus, return and exit;
+verify no slide/jitter, local tracked offsets, immediate stop and accessible escape.
+Inspect `/tmp/opencode/island-ship.png` and shoreline view; desktop image inspected.
+Actual-headset tests remain unavailable, not silently passed. Layout 30, recovery
+22, startup 68, assets 98, Credits 30, settings 112 and VR/sprint regressions pass.
+
+Hull: Kenney Watercraft Kit 2.1 `boat-row-large.glb`, CC0, unchanged bytes plus
+required colormap. Official download returned 403; retrieved from Asset Commons
+mirror, matching archive hash and included Kenney license. See asset manifest and
+THIRD_PARTY_ASSETS for exact records; runtime scale is 1.6. Final realistic hull
+material/style adaptation is not complete. No complete environment preset used.
+
 ## Part 07 pond/dock — 2026-11-05
 
 `python3 tests/welcome_island/run_layout.py --pond --rendered` checks the sealed

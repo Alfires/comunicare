@@ -18,6 +18,8 @@
     "assets/welcome_island/models/runtime/pine_sapling_small_a.scn": "f1cbd09d0252462e9b624fcc9612c4d4e94ab320b0171b97e8217d70d70c2bb0",
     "assets/welcome_island/models/runtime/pine_sapling_small_b.scn": "dd2bea2c31e511b5fe4cf65229f900900f3625a577ddb18d3cbd3fc166eb6940",
     "assets/welcome_island/models/runtime/pine_sapling_small_c.scn": "0c59dcf5b6fc36ac5b8bda7966ec9d3e220545fc9ec192bbbcce45be340dd60b",
+    "assets/welcome_island/models/ship/Textures/colormap.png": "311138350e74e35c5497a1bd8076a01740b7c302bed11027639fa553459a68de",
+    "assets/welcome_island/models/ship/boat-row-large.glb": "25eed6585c7398654522d338ec575509615443887362ca8e598559b4eca142a3",
     "assets/welcome_island/sky/kloofendal_48d_partly_cloudy_puresky/kloofendal_48d_partly_cloudy_puresky_1k.hdr": "fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798",
     "assets/welcome_island/textures/forest_floor/forest_floor_diff_1k.jpg": "f12e5adea1741f9eb7a528bfc621f8267885b9530b74c3a8afdb823899bdbf0b",
     "assets/welcome_island/textures/forest_floor/forest_floor_nor_gl_1k.jpg": "681f3de8c756c4d19bcda33039f953295498f38b1425ce9d56b37d6f97f6e518",
@@ -34,11 +36,12 @@
     "assets/welcome_island/textures/weathered_planks/weathered_planks_diff_1k.jpg": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
     "assets/welcome_island/textures/weathered_planks/weathered_planks_nor_gl_1k.jpg": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
     "assets/welcome_island/textures/weathered_planks/weathered_planks_rough_1k.jpg": "a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3",
-    "scenes/world.gd": "18eefece247ba170f00762f6d4b0e0f725ed5a411ce40a5ddccddbf937387263",
+    "scenes/world.gd": "b021ece56c66cb43eb5ad529275fb11cbf9aa282897778e5b329ee1c70adc303",
     "scenes/world.tscn": "a631d68e4aeac5e5865883a5dec2b1c57542d1f0979570909970c737874a2e65",
     "scenes/worlds/welcome_island/layout.tscn": "5e41b2fec15f9cff0a95fe60d9c2651f13c4a997c6f0720d4ab77429e5c2a838",
     "scripts/worlds/welcome_island/home_contract.gd": "7d27de848676fb27c9a3487020dae418bcbb82035908e2150fc2571ab13631a6",
-    "scripts/worlds/welcome_island/layout.gd": "43ac124947fff3c5e75b57284bab37b69768b273a5c498188c1af0ed72ee8fd2",
+    "scripts/worlds/welcome_island/layout.gd": "b3f100e52b4c4d08e4aa3eccd134c259de7e500678fb36ba8665ed023986b9ed",
+    "scripts/worlds/welcome_island/pond_ship.gd": "86b543de8d284bae59dd912ebf79cbef74d5db4f639fd6958be2649de70f7e4c",
     "scripts/worlds/world_data.gd": "49237f4c25f6a5fecab622a5d09e144af0b06de8c7ecbe7f7763b46c25c15b16",
     "scripts/worlds/world_pickup_controller.gd": "a485e2fda9f945f4aca4778c68da25f0f5cc9cfa966e6458f4417d4d9b206c45"
   }

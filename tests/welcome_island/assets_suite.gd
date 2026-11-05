@@ -45,7 +45,7 @@ func run():
 	for entry in data.assets:
 		for file in entry.files:
 			var resource_path = "res://" + file.path
-			if file.path.ends_with(".gltf"):
+			if file.path.ends_with(".gltf") or file.path.ends_with(".glb"):
 				var packed = load(resource_path)
 				check(packed is PackedScene, entry.id + " imports as a scene")
 				if not packed is PackedScene: continue
@@ -75,7 +75,7 @@ func run():
 					entry.id + " has plausible finite meter-scale bounds")
 				print("INSPECT: ", entry.id, " bounds=", bounds.size, " vertices=", vertices, " triangles=", triangles)
 				scene.free()
-			elif file.path.ends_with(".jpg") or file.path.ends_with(".hdr"):
+			elif file.path.ends_with(".jpg") or file.path.ends_with(".hdr") or file.path.ends_with(".png"):
 				var texture = load(resource_path)
 				check(texture is Texture2D and texture.get_width() <= 2048 and texture.get_height() <= 2048,
 					file.original_name + " imports within 2K texture budget")

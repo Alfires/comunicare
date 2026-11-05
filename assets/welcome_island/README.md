@@ -1,5 +1,35 @@
 # Welcome island asset sample and provenance
 
+## Optimized runtime variants — 2026-11-05
+
+Use `models/runtime/*.scn` when assembling the future island, not the source glTF
+collection. Source downloads remain unchanged for reproducibility. Rebuild locally:
+
+```sh
+python3 tools/assets/optimize_island.py
+python3 tools/assets/provenance.py --write-doc
+python3 tests/welcome_island/run_assets.py --rendered
+```
+
+The rebuild uses a disposable project, Godot 4.7's meshoptimizer LOD generator
+(60-degree normal merge), selects at most 7,000 triangles per surface, compacts
+every vertex channel, splits individual saplings and generates further distance
+LODs. It updates derived file records/modification notices in the manifest;
+review changes and regenerate the readable inventory afterward. `.scn` hashes can
+vary between Godot versions; rebuilds are authoring operations, not runtime work.
+Materials reference shared original 1K textures, not duplicated baked textures.
+
+| Model | Source triangles | Reduced base triangles |
+| --- | --- | --- |
+| Three saplings combined | 398,144 | 16,121 (3,879 / 5,974 / 6,268) |
+| Boulder | 66,122 | 4,132 |
+
+Four compressed scenes total about 578 KiB. Normals, materials, compaction and
+additional LODs pass executable checks (70 asset checks total). Rendered sample
+inspected on Compatibility/Intel UHD 630. Whole-island draw calls, collision proxies,
+real-headset foliage quality and final Forward Plus budgets remain open. Older
+source-quality warnings below apply to source glTF, not these variants.
+
 This is a **parts library for inspection**, not the island or a preset map. Nothing
 here replaces `scenes/world.tscn` yet. Four individual Poly Haven asset entries
 are bundled locally; all use CC0 1.0. Existing avatar/animation provenance remains

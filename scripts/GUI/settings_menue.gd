@@ -94,6 +94,18 @@ func _render():
 		var panel = load("res://scripts/multiplayer/federation/relay_preferences_panel.gd").new()
 		category_pages.Network.add_child(panel)
 		panel.configure(NetworkHandler.get_relay_preferences())
+	var credits = preload("res://scripts/GUI/credits_page.gd").new()
+	credits.source_requested.connect(func(url): OS.shell_open(url))
+	rows.add_child(credits)
+	category_pages["Credits"] = credits
+	var credits_tab = Button.new()
+	credits_tab.text = "Credits"
+	credits_tab.custom_minimum_size = Vector2(140, 44)
+	credits_tab.toggle_mode = true
+	credits_tab.button_group = group
+	credits_tab.pressed.connect(select_category.bind("Credits"))
+	categories.add_child(credits_tab)
+	category_buttons["Credits"] = credits_tab
 	if not category_pages.has(selected_category):
 		selected_category = "" if category_pages.is_empty() else str(category_pages.keys()[0])
 	select_category(selected_category)

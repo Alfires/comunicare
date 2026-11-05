@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "quaternius.robotexpressive",
+      "title": "RobotExpressive — offline avatar placeholder",
+      "author": "Tomás Laulhé / Quaternius; conversion and modifications by Don McCurdy",
+      "source": "https://quaternius.com/packs/animatedrobot.html",
+      "license": "CC0-1.0",
+      "license_file": "assets/animations/CC0-1.0.txt",
+      "attribution": "",
+      "modifications": "Don McCurdy added facial expression morph targets, converted FBX2GLTF, removed duplicate materials and reduced metalness. Bundled GLB is unchanged; runtime normalizes size and uses instance-owned indicators."
+    },
+    {
+      "id": "quaternius.universal-animation-library",
+      "title": "Universal Animation Library — free Standard-1.0",
+      "author": "Quaternius",
+      "source": "https://store.godotengine.org/asset/quaternius/universal-animation-library/",
+      "license": "CC0-1.0",
+      "license_file": "assets/animations/CC0-1.0.txt",
+      "attribution": "",
+      "modifications": "Authored rotation keys extracted; translation/scale omitted. Standing combines Idle_Loop upper body and A_TPose lower body. Walk keys adapted for left/right orientation. These are not dedicated strafe clips. No paid Pro/Source assets included. Publisher notice: assets/animations/Quaternius-License.txt."
+    }
+  ]
+}

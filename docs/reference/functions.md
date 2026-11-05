@@ -1,5 +1,18 @@
 # Production function contracts
 
+<!-- module: scripts/GUI/credits_page.gd -->
+## Offline asset Credits
+
+`load_entries` accepts an array of records and rebuilds a read-only VBox from validated local asset records;
+it reads full bundled license text, skips malformed/duplicate/missing-license entries
+with visible feedback and never writes settings or downloads content. The private
+ready loader merges `assets/credits.json` with the island manifest. Local file-path
+and notice checks precede rendering; `source_requested` emits only after an explicit
+source button activation. Settings owns the resulting OS browser action. Full terms
+expand/collapse inline inside the existing settings scroll area. `_valid_record`
+and `_add_text` validate local notice fields and build wrapping readable labels.
+
+
 <!-- module: scripts/assets/default_robot.gd -->
 ## Bundled default robot
 

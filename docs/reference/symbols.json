@@ -1140,98 +1140,98 @@
     {
       "kind": "func",
       "name": "_add_cache_actions",
-      "line": 101,
+      "line": 113,
       "signature": "func _add_cache_actions(page: VBoxContainer)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "select_category",
-      "line": 135,
+      "line": 147,
       "signature": "func select_category(category: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_create_control",
-      "line": 145,
+      "line": 157,
       "signature": "func _create_control(definition: Dictionary) -> Control",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_commit",
-      "line": 181,
+      "line": 193,
       "signature": "func _commit(value: Variant, id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_value",
-      "line": 188,
+      "line": 200,
       "signature": "func _reset_value(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_category",
-      "line": 194,
+      "line": 206,
       "signature": "func _reset_category(category: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_value",
-      "line": 199,
+      "line": 211,
       "signature": "func _update_value(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_begin_binding",
-      "line": 218,
+      "line": 230,
       "signature": "func _begin_binding(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 224,
+      "line": 236,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_cancel_binding",
-      "line": 245,
+      "line": 257,
       "signature": "func _cancel_binding()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 252,
+      "line": 264,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_show_error",
-      "line": 256,
+      "line": 268,
       "signature": "func _show_error(message: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_saved",
-      "line": 260,
+      "line": 272,
       "signature": "func _on_saved()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 263,
+      "line": 275,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -8253,6 +8253,43 @@
       "line": 115,
       "signature": "func disconnect_peer(server: Node, sender: int)",
       "visibility": "public"
+    }
+  ],
+  "scripts/GUI/credits_page.gd": [
+    {
+      "kind": "signal",
+      "name": "source_requested",
+      "line": 3,
+      "signature": "signal source_requested(url: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 7,
+      "signature": "func _ready()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "load_entries",
+      "line": 17,
+      "signature": "func load_entries(records: Array)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_valid_record",
+      "line": 64,
+      "signature": "func _valid_record(record: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_add_text",
+      "line": 72,
+      "signature": "func _add_text(value: String, heading: bool = false) -> Label",
+      "visibility": "private"
     }
   ]
 }

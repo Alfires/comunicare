@@ -1,5 +1,26 @@
 # Welcome island startup contracts
 
+## Part 03 Credits and optimization verification
+
+Run `python3 tests/welcome_island/run_credits.py` (optional `--rendered`) for the
+production Settings page with inert network/data fixtures and disposable settings.
+Only local manifests/licenses are copied; tests never open a browser. The source
+handler is disconnected before testing explicit source-request emission.
+Missing/malformed entries/licenses, complete manifest display, attribution,
+expand/collapse, keyboard focus, scrolling, selection and unchanged settings-file
+hash are covered. Desktop and 800×600 viewport sizes are checked; this is not
+real headset pointer/comfort certification.
+
+Test-first evidence: Credits navigation failed before implementation; four runtime
+model existence assertions failed before optimization. Current checks: 25 Credits
+assertions, 70 asset assertions, 13 Python provenance methods and 112 settings
+regressions pass. Rendered screenshots inspected at `/tmp/opencode/welcome-credits.png`
+and `/tmp/opencode/welcome-assets.png`; no private data is included. Actual headset
+navigation and whole-map GPU budgets remain open. Manual procedure: open Credits,
+expand full terms, scroll with controller and keyboard/pointer, switch categories
+and re-render; require readable notices, no reset action, and no network activity
+until an explicit source click.
+
 Part 02 adds separate offline provenance and disposable asset-import checks:
 `python3 tests/welcome_island/test_provenance.py`,
 `python3 tools/assets/provenance.py`, and

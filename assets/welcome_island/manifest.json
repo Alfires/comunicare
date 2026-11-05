@@ -11,7 +11,7 @@
       "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
       "retrieved": "2026-11-05",
       "attribution": "",
-      "modifications": "Unmodified publisher 1K download; individual files retained, no scene preset or conversion.",
+      "modifications": "Publisher 1K glTF/buffer/textures preserved unchanged. Derived runtime scenes split individual variants, select Godot 4.7 meshoptimizer LOD topology up to 7000 triangles per surface, compact unused vertices and regenerate distance LODs. Rebuild: python3 tools/assets/optimize_island.py.",
       "files": [
         {
           "path": "assets/welcome_island/models/pine_sapling_small/pine_sapling_small_1k.gltf",
@@ -68,6 +68,27 @@
           "original_name": "textures/pine_sapling_small_twig_nor_gl_1k.jpg",
           "original_sha256": "76af87821d7ff00e25768d5d97a449394fe64a21ae55d099da7f5ed46d9098c8",
           "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/runtime/pine_sapling_small_a.scn",
+          "sha256": "f1cbd09d0252462e9b624fcc9612c4d4e94ab320b0171b97e8217d70d70c2bb0",
+          "original_name": "pine_sapling_small_1k.gltf",
+          "original_sha256": "f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf"
+        },
+        {
+          "path": "assets/welcome_island/models/runtime/pine_sapling_small_b.scn",
+          "sha256": "dd2bea2c31e511b5fe4cf65229f900900f3625a577ddb18d3cbd3fc166eb6940",
+          "original_name": "pine_sapling_small_1k.gltf",
+          "original_sha256": "f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf"
+        },
+        {
+          "path": "assets/welcome_island/models/runtime/pine_sapling_small_c.scn",
+          "sha256": "0c59dcf5b6fc36ac5b8bda7966ec9d3e220545fc9ec192bbbcce45be340dd60b",
+          "original_name": "pine_sapling_small_1k.gltf",
+          "original_sha256": "f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf"
         }
       ]
     },
@@ -81,7 +102,7 @@
       "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
       "retrieved": "2026-11-05",
       "attribution": "",
-      "modifications": "Unmodified publisher 1K download; individual files retained, no scene preset or conversion.",
+      "modifications": "Publisher 1K glTF/buffer/textures preserved unchanged. Derived runtime scenes split individual variants, select Godot 4.7 meshoptimizer LOD topology up to 7000 triangles per surface, compact unused vertices and regenerate distance LODs. Rebuild: python3 tools/assets/optimize_island.py.",
       "files": [
         {
           "path": "assets/welcome_island/models/boulder_01/boulder_01_1k.gltf",
@@ -117,6 +138,13 @@
           "original_name": "textures/boulder_01_nor_gl_1k.jpg",
           "original_sha256": "0810cf6e89d89bb6eb065b4d2e2855288f5dcbd2c15c6e40ab90d462021b50aa",
           "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/runtime/boulder_01.scn",
+          "sha256": "333d61fa86fa6708671da74a986a8a68f88958adb56321d5b6c4a146b535a581",
+          "original_name": "boulder_01_1k.gltf",
+          "original_sha256": "51487934db898b4c24072780a451e34eca5c02e3ada24a62bbc600bbc4019e92",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/boulder_01/boulder_01_1k.gltf"
         }
       ]
     },

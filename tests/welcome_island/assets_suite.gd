@@ -10,6 +10,28 @@ func check(value: bool, title: String):
 	else: failed += 1; print("FAIL: ", title)
 
 func run():
+	for name in ["pine_sapling_small_a", "pine_sapling_small_b", "pine_sapling_small_c", "boulder_01"]:
+		var runtime_path = "res://assets/welcome_island/models/runtime/" + name + ".scn"
+		check(ResourceLoader.exists(runtime_path), "optimized runtime scene exists: " + name)
+		if not ResourceLoader.exists(runtime_path): continue
+		var scene = load(runtime_path).instantiate()
+		var triangles := 0
+		var vertices := 0
+		for node in scene.find_children("*", "MeshInstance3D", true, false):
+			var lod_check = ImporterMesh.from_mesh(node.mesh)
+			var lods := 0
+			for surface in node.mesh.get_surface_count():
+				var arrays = node.mesh.surface_get_arrays(surface)
+				triangles += arrays[Mesh.ARRAY_INDEX].size() / 3
+				vertices += arrays[Mesh.ARRAY_VERTEX].size()
+				check(arrays[Mesh.ARRAY_NORMAL] != null and arrays[Mesh.ARRAY_NORMAL].size() == arrays[Mesh.ARRAY_VERTEX].size(), "optimized normals retained: " + name)
+				check(node.mesh.surface_get_material(surface) is BaseMaterial3D, "optimized material retained: " + name)
+				lods += lod_check.get_surface_lod_count(surface)
+			check(lods > 0, "optimized mesh includes lower distance LODs: " + name)
+		check(triangles > 0 and triangles <= 16000, "runtime model stays within 16K triangle budget: " + name)
+		check(vertices <= triangles * 3, "runtime mesh compacts unused vertices: " + name)
+		print("OPTIMIZED: ", name, " triangles=", triangles, " vertices=", vertices)
+		scene.free()
 	var path = "res://assets/welcome_island/manifest.json"
 	check(FileAccess.file_exists(path), "bundled asset manifest exists")
 	if not FileAccess.file_exists(path):
@@ -71,10 +93,13 @@ func preview():
 	var light = DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-45, -30, 0)
 	world.add_child(light)
-	var tree = load("res://assets/welcome_island/models/pine_sapling_small/pine_sapling_small_1k.gltf").instantiate()
+	var tree = load("res://assets/welcome_island/models/runtime/pine_sapling_small_a.scn").instantiate()
 	world.add_child(tree)
 	tree.position.x = -2
-	var rock = load("res://assets/welcome_island/models/boulder_01/boulder_01_1k.gltf").instantiate()
+	var original_tree = load("res://assets/welcome_island/models/pine_sapling_small/pine_sapling_small_1k.gltf").instantiate()
+	world.add_child(original_tree)
+	original_tree.position = Vector3(-2, 0, -3)
+	var rock = load("res://assets/welcome_island/models/runtime/boulder_01.scn").instantiate()
 	world.add_child(rock)
 	rock.position.x = 2
 	var floor_mesh = MeshInstance3D.new()

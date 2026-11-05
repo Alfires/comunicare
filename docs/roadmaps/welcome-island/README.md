@@ -2,7 +2,8 @@
 
 **In progress — 2026-11-05.** Part 01's runner/startup fix is implemented with
 manual headset/lifecycle gates; part 02 delivers tested provenance and a four-entry
-CC0 sample with runtime/selection limits. Parts 03–14 remain planned.
+CC0 sample; reduced tree/rock runtime variants now exist. Part 03 Credits is
+implemented with a manual headset gate. Parts 04–14 remain planned.
 The [shared design overview](../offline-welcome-island-roadmap.md) owns the home-first
 requirements, ASCII concepts, asset candidates and compatibility boundaries.
 This index and the small roadmaps below replace its original five broad milestones.
@@ -36,13 +37,14 @@ never run against real accounts or launch normal startup against real user data.
 ## Parts and dependency order
 
 Part 01 is **implemented with manual gates**; part 02 is **implemented with
-asset-selection/runtime limits**; parts 03–14 remain **planned**.
+asset-selection/runtime limits**; part 03 is **implemented with manual headset gate**;
+parts 04–14 remain **planned**.
 
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
 | [01](01-offline-foundation-roadmap.md) | Implemented: isolated startup tests and persistent-player reuse; actual headset and legacy panel lifecycle gates open | None |
 | [02](02-asset-provenance-roadmap.md) | Implemented: manifest/license validator and inspected four-entry CC0 nature/sky sample; later props and runtime optimization pending | 01 |
-| [03](03-credits-roadmap.md) | Offline Settings → Credits | 02 |
+| [03](03-credits-roadmap.md) | Implemented: offline read-only Settings → Credits; real-headset validation open | 02 |
 | [04](04-island-layout-roadmap.md) | One-island graybox, middle spawn and dry routes | 01 |
 | [05](05-spawn-recovery-roadmap.md) | Player/item recovery and built-in revision | 04 |
 | [06](06-local-interactions-roadmap.md) | Shared offline pickup and activation | 05 |

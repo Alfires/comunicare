@@ -82,7 +82,7 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
 - Retrieved: 2026-11-05
 - Attribution: Not required (CC0); voluntary acknowledgement above.
-- Modifications: Unmodified publisher 1K download; individual files retained, no scene preset or conversion.
+- Modifications: Publisher 1K glTF/buffer/textures preserved unchanged. Derived runtime scenes split individual variants, select Godot 4.7 meshoptimizer LOD topology up to 7000 triangles per surface, compact unused vertices and regenerate distance LODs. Rebuild: python3 tools/assets/optimize_island.py.
 - Shipped: `assets/welcome_island/models/pine_sapling_small/pine_sapling_small_1k.gltf`; SHA-256 `f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48`
   Original: `pine_sapling_small_1k.gltf`; SHA-256 `f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf
 - Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_twig_arm_1k.jpg`; SHA-256 `2eb0aa44124b5a4ae9401e00b23b3c916f4c3f421616ce1bb932f248fc061288`
@@ -99,6 +99,12 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
   Original: `textures/pine_sapling_small_bark_arm_1k.jpg`; SHA-256 `336a4680cd571b6076b67afee2310b290b8900d9d126eb39ec1ae92e95be2ea9`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_bark_arm_1k.jpg
 - Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_twig_nor_gl_1k.jpg`; SHA-256 `76af87821d7ff00e25768d5d97a449394fe64a21ae55d099da7f5ed46d9098c8`
   Original: `textures/pine_sapling_small_twig_nor_gl_1k.jpg`; SHA-256 `76af87821d7ff00e25768d5d97a449394fe64a21ae55d099da7f5ed46d9098c8`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/runtime/pine_sapling_small_a.scn`; SHA-256 `f1cbd09d0252462e9b624fcc9612c4d4e94ab320b0171b97e8217d70d70c2bb0`
+  Original: `pine_sapling_small_1k.gltf`; SHA-256 `f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf
+- Shipped: `assets/welcome_island/models/runtime/pine_sapling_small_b.scn`; SHA-256 `dd2bea2c31e511b5fe4cf65229f900900f3625a577ddb18d3cbd3fc166eb6940`
+  Original: `pine_sapling_small_1k.gltf`; SHA-256 `f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf
+- Shipped: `assets/welcome_island/models/runtime/pine_sapling_small_c.scn`; SHA-256 `0c59dcf5b6fc36ac5b8bda7966ec9d3e220545fc9ec192bbbcce45be340dd60b`
+  Original: `pine_sapling_small_1k.gltf`; SHA-256 `f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf
 
 ### polyhaven.boulder_01 — Boulder 01
 
@@ -107,7 +113,7 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
 - Retrieved: 2026-11-05
 - Attribution: Not required (CC0); voluntary acknowledgement above.
-- Modifications: Unmodified publisher 1K download; individual files retained, no scene preset or conversion.
+- Modifications: Publisher 1K glTF/buffer/textures preserved unchanged. Derived runtime scenes split individual variants, select Godot 4.7 meshoptimizer LOD topology up to 7000 triangles per surface, compact unused vertices and regenerate distance LODs. Rebuild: python3 tools/assets/optimize_island.py.
 - Shipped: `assets/welcome_island/models/boulder_01/boulder_01_1k.gltf`; SHA-256 `51487934db898b4c24072780a451e34eca5c02e3ada24a62bbc600bbc4019e92`
   Original: `boulder_01_1k.gltf`; SHA-256 `51487934db898b4c24072780a451e34eca5c02e3ada24a62bbc600bbc4019e92`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/boulder_01/boulder_01_1k.gltf
 - Shipped: `assets/welcome_island/models/boulder_01/textures/boulder_01_arm_1k.jpg`; SHA-256 `c57187c5746b6be913fa53846cb44ff78743e7ca5000f131c9627b99563c2b87`
@@ -118,6 +124,8 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
   Original: `boulder_01.bin`; SHA-256 `7f5b06503d62bd95bfe9c6b8a354a5cc8ff04a4d271a8cf87a3e3125db4232d7`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/boulder_01/boulder_01.bin
 - Shipped: `assets/welcome_island/models/boulder_01/textures/boulder_01_nor_gl_1k.jpg`; SHA-256 `0810cf6e89d89bb6eb065b4d2e2855288f5dcbd2c15c6e40ab90d462021b50aa`
   Original: `textures/boulder_01_nor_gl_1k.jpg`; SHA-256 `0810cf6e89d89bb6eb065b4d2e2855288f5dcbd2c15c6e40ab90d462021b50aa`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/runtime/boulder_01.scn`; SHA-256 `333d61fa86fa6708671da74a986a8a68f88958adb56321d5b6c4a146b535a581`
+  Original: `boulder_01_1k.gltf`; SHA-256 `51487934db898b4c24072780a451e34eca5c02e3ada24a62bbc600bbc4019e92`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/boulder_01/boulder_01_1k.gltf
 
 ### polyhaven.forest_floor — Forest Floor
 

@@ -70,7 +70,6 @@ Idle_Loop frame. No temporal idle motion or new hand-keyed motion is introduced.
 User-imported assets retain their own licenses. A cache hash or successful import
 does not grant permission to redistribute them.
 
-<!-- welcome-island-assets:start -->
 ## Interface font — Atkinson Hyperlegible Next
 
 - **Creator:** Braille Institute, Applied Design Works, Elliott Scott, Megan
@@ -91,6 +90,7 @@ does not grant permission to redistribute them.
 for body text and a weight-600 `FontVariation` for titles and primary buttons.
 The font is not sold on its own and keeps its Reserved Font Name.
 
+<!-- welcome-island-assets:start -->
 ## Welcome island asset inventory
 
 Generated from `assets/welcome_island/manifest.json`; candidates not bundled are excluded.

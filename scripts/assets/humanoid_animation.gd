@@ -18,9 +18,11 @@ func document(bytes: PackedByteArray, byte_limit: int = MAX_BYTES) -> Dictionary
 	var offset := 12
 	var json: Dictionary = {}
 	var binary = PackedByteArray()
+	var binary_seen := false
 	while offset + 8 <= bytes.size():
 		var length = bytes.decode_u32(offset)
 		var type = bytes.decode_u32(offset + 4)
+		if offset == 12 and type != 0x4e4f534a: return {}
 		offset += 8
 		if length % 4 != 0 or length > bytes.size() - offset:
 			return {}
@@ -32,15 +34,20 @@ func document(bytes: PackedByteArray, byte_limit: int = MAX_BYTES) -> Dictionary
 				return {}
 			json = parser.data
 		elif type == 0x004e4942:
+			if binary_seen: return {}
+			binary_seen = true
 			binary = bytes.slice(offset, offset + length)
 		offset += length
 	if offset != bytes.size() or json.is_empty() or not json.get("nodes", []) is Array \
 		or json.get("nodes", []).size() > 4096 or not json.get("buffers", []) is Array \
 		or not json.get("images", []) is Array:
 		return {}
+	if json.get("buffers", []).size() > 1: return {}
 	for buffer in json.get("buffers", []):
 		if not buffer is Dictionary or buffer.has("uri"):
 			return {}
+		var size = buffer.get("byteLength", -1)
+		if not _integer(size) or size < 0 or size > binary.size(): return {}
 	for image in json.get("images", []):
 		if not image is Dictionary or image.has("uri"):
 			return {}
@@ -90,6 +97,16 @@ func read_bytes(bytes: PackedByteArray) -> Dictionary:
 			if not _index(child, json.nodes.size()) or parents.has(int(child)):
 				return _fail("Invalid or multiply-parented hierarchy.")
 			parents[int(child)] = index
+	# Validate every component once, including unanimated/disconnected nodes.
+	var checked := {}
+	for index in json.nodes.size():
+		var visiting := {}
+		var cursor = index
+		while cursor >= 0 and not checked.has(cursor):
+			if visiting.has(cursor): return _fail("Cyclic node hierarchy.")
+			visiting[cursor] = true
+			cursor = parents.get(cursor, -1)
+		checked.merge(visiting)
 	var clips: Array = []
 	var animations = json.get("animations", [])
 	if not animations is Array or animations.is_empty() or animations.size() > 64:
@@ -165,7 +182,7 @@ func _accessor(json: Dictionary, binary: PackedByteArray, id: Variant, type: Str
 	if not accessors is Array or not views is Array or not _index(id, accessors.size()):
 		return []
 	var accessor = accessors[int(id)]
-	if not accessor is Dictionary or accessor.has("sparse") or accessor.get("componentType") != 5126 \
+	if not accessor is Dictionary or accessor.has("sparse") or accessor.get("normalized", false) != false or accessor.get("componentType") != 5126 \
 		or accessor.get("type") != type or not _index(accessor.get("bufferView"), views.size()) \
 		or not _integer(accessor.get("count")) or accessor.count <= 0 or accessor.count > MAX_KEYS:
 		return []
@@ -178,6 +195,7 @@ func _accessor(json: Dictionary, binary: PackedByteArray, id: Variant, type: Str
 	var stride = view.get("byteStride", width * 4)
 	if not _integer(offset) or not _integer(length) or not _integer(start) or not _integer(stride) \
 		or offset < 0 or length < 0 or start < 0 or stride < width * 4 or stride > 256 \
+		or int(offset) % 4 != 0 or int(start) % 4 != 0 or int(stride) % 4 != 0 \
 		or offset + length > binary.size() or start + (accessor.count - 1) * stride + width * 4 > length:
 		return []
 	var result: Array = []
@@ -227,6 +245,7 @@ func _fail(message: String) -> Dictionary:
 	return {}
 
 func bind_clip(clip: Dictionary, avatar: Node3D) -> Animation:
+	last_error = ""
 	var skeleton = _skeleton(avatar)
 	if skeleton == null:
 		last_error = "Avatar has no skeleton."
@@ -244,6 +263,7 @@ func bind_clip(clip: Dictionary, avatar: Node3D) -> Animation:
 			return null
 		var index = skeleton.find_bone(mapping[source.bone])
 		if index < 0:
+			last_error = "Avatar mapped bone is missing: " + str(mapping[source.bone])
 			return null
 		var track = animation.add_track(Animation.TYPE_ROTATION_3D)
 		animation.track_set_path(track, NodePath(str(avatar.get_path_to(skeleton)) + ":" + skeleton.get_bone_name(index)))

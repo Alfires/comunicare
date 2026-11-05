@@ -17,6 +17,18 @@ class Remote extends Node3D:
 class LocalPlayer extends CharacterBody3D:
 	var avatar_model: Node3D
 
+class ModelValidationLoader extends Node:
+	var animation_calls := 0
+	func _validate_avatar(_path): return true
+	func _load_model_from_file(_path):
+		var model = Node3D.new()
+		model.add_child(Skeleton3D.new())
+		model.set_meta("humanoid_bones", {"head": "Head"})
+		return model
+	func read_animation(_path):
+		animation_calls += 1
+		return {}
+
 func _initialize():
 	call_deferred("run")
 
@@ -61,6 +73,8 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	await test_model_validation_separation()
+	test_document_structure_regressions()
 	test_avatar_dimensions()
 	test_remote_motion()
 	await test_walk_to_standing()
@@ -559,6 +573,68 @@ func test_ui(bytes: PackedByteArray):
 		check(batch_menu.draft_sources.size() == 2 and batch_menu.draft_sources.all(func(source): return not source.share), "batch without consent never inherits previous selection permission")
 	batch_menu.queue_free()
 	await process_frame
+
+func test_model_validation_separation():
+	var configuration = load("res://scripts/assets/avatar_configuration.gd").new()
+	var loader = ModelValidationLoader.new()
+	root.add_child(loader)
+	root.add_child(configuration)
+	configuration.loader = loader
+	var file = FileAccess.open("res://model-with-extra-motion.glb", FileAccess.WRITE)
+	var doc = Reader.new().document(fixture())
+	doc.json.animations[0].channels[0].target.path = "translation"
+	file.store_buffer(pack(doc.json, doc.binary)); file.close()
+	check(await configuration._validate_model("res://model-with-extra-motion.glb"), "valid avatar is not rejected because optional embedded animation is unsupported")
+	check(loader.animation_calls == 0, "model validation never applies standalone animation byte/clip limits")
+	configuration.free(); loader.free()
+	if FileAccess.file_exists("res://real-avatar.vrm"):
+		var real_configuration = load("res://scripts/assets/avatar_configuration.gd").new()
+		root.add_child(real_configuration)
+		real_configuration.loader = root.get_node("DataLoader")
+		check(await real_configuration._validate_model("res://real-avatar.vrm"), "real downloaded avatar passes model validation independently of embedded clips")
+		real_configuration.free()
+
+func test_document_structure_regressions():
+	var reader = Reader.new()
+	var doc = reader.document(fixture())
+	var bin = doc.binary.duplicate()
+	var duplicate = fixture()
+	var header = PackedByteArray(); header.resize(8)
+	header.encode_u32(0, bin.size()); header.encode_u32(4, 0x004e4942)
+	duplicate.append_array(header); duplicate.append_array(bin); duplicate.encode_u32(8, duplicate.size())
+	check(reader.document(duplicate).is_empty(), "duplicate binary chunks are rejected rather than replacing animation bytes")
+	var reordered = PackedByteArray(); reordered.resize(12)
+	reordered.encode_u32(0, 0x46546c67); reordered.encode_u32(4, 2)
+	reordered.append_array(header); reordered.append_array(bin)
+	var text = JSON.stringify(doc.json).to_utf8_buffer()
+	while text.size() % 4: text.append(32)
+	header.encode_u32(0, text.size()); header.encode_u32(4, 0x4e4f534a)
+	reordered.append_array(header); reordered.append_array(text); reordered.encode_u32(8, reordered.size())
+	check(reader.document(reordered).is_empty(), "binary-before-JSON container is rejected")
+	doc.json.buffers.append({"byteLength": 4})
+	check(reader.document(pack(doc.json, bin)).is_empty(), "multiple buffers cannot alias one binary payload")
+	doc.json.buffers = [{"byteLength": bin.size() + 100}]
+	check(reader.document(pack(doc.json, bin)).is_empty(), "declared buffer beyond actual payload is rejected")
+	doc = reader.document(fixture())
+	doc.json.accessors[0].byteOffset = 1
+	check(reader.read_bytes(pack(doc.json, bin)).is_empty(), "misaligned float accessor is rejected before reading")
+	doc = reader.document(fixture())
+	doc.json.accessors[0].normalized = true
+	check(reader.read_bytes(pack(doc.json, bin)).is_empty(), "normalized float accessor is rejected")
+	doc = reader.document(fixture())
+	doc.json.nodes.append({"name": "Unused cycle", "children": [1]})
+	check(reader.read_bytes(pack(doc.json, bin)).is_empty(), "hierarchy cycle is rejected even outside animated bone chain")
+	var source = Reader.new().read_bytes(fixture())
+	var model = Node3D.new()
+	var rig = Skeleton3D.new(); model.add_child(rig); rig.add_bone("Hips")
+	model.set_meta("humanoid_bones", {"hips": "Hips"})
+	reader.bind_clip(source.clips[0], model)
+	model.set_meta("humanoid_bones", {"hips": "MissingBone"})
+	reader.last_error = "stale unrelated error"
+	check(reader.bind_clip(source.clips[0], model) == null and "MissingBone" in reader.last_error, "missing mapped bone supplies current actionable error")
+	model.set_meta("humanoid_bones", {"hips": "Hips"})
+	check(reader.bind_clip(source.clips[0], model) != null and reader.last_error.is_empty(), "successful animation binding clears previous error")
+	model.free()
 
 func test_avatar_dimensions():
 	var layout = load("res://scripts/assets/emote_layout.gd").new()

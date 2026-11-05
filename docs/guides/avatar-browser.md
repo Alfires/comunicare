@@ -1,5 +1,13 @@
 # Avatar Browser
 
+Model-download validation is independent of optional embedded animation support.
+A valid humanoid model is no longer rejected because embedded clips include root
+translation, exceed the standalone motion budget or cannot be read by the
+rotation-only animation importer. Unsupported embedded motion is skipped and the
+existing bundled/external movement defaults remain available. Standalone animation
+files still require supported channels, byte limits and at most 64 clips; model
+validation is not a bypass for malformed binary containers or invalid rig data.
+
 Open **Home → Avatar Browser**. The left sidebar offers **Home**, **Search** and
 **Sources**. Home search opens Search with the entered text; category buttons
 select avatar/animation filters. Search also has provider, format and ordering

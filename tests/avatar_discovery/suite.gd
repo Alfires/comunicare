@@ -242,6 +242,8 @@ func test_loopback_search():
 func test_import_gate():
 	var gate = component("import_policy", ["evaluate"])
 	if gate == null: return
+	check(not gate.evaluate({"type": "texture", "format": "glb"}).can_import, "unknown asset types cannot be imported as animations")
+	check(not gate.evaluate({"type": "animation", "format": "vrma", "compatibility": "verified", "redistribution": 1, "license": "CC0"}).can_equip, "numeric truth does not grant asset redistribution consent")
 	var record = {"type": "avatar", "format": "vrm", "compatibility": "unknown", "license": "CC0-1.0", "redistribution": true}
 	check(not gate.evaluate(record).get("can_equip", true), "public metadata cannot bypass importer validation")
 	record.compatibility = "verified"

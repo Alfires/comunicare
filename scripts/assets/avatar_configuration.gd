@@ -206,12 +206,9 @@ func _validate_model(path_to_file: String) -> bool:
 	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
 	var compatible = reader._skeleton(model_tree) != null and not model_tree.get_meta("humanoid_bones", {}).is_empty()
 	model_tree.free()
-	if compatible:
-		var file = FileAccess.open(path_to_file, FileAccess.READ)
-		var doc = reader.document(file.get_buffer(file.get_length()), 64 * 1024 * 1024)
-		if not doc.is_empty() and not doc.json.get("animations", []).is_empty():
-			compatible = not (await loader.read_animation(path_to_file)).is_empty()
-			if not compatible: last_error = "Embedded animations exceed the supported rotation-only humanoid format or 16 MiB animation budget."
+	# Embedded motion is optional. Model validity must not depend on standalone
+	# animation limits (16 MiB/64 clips/rotation-only); _restore skips unsupported
+	# embedded clips and retains bundled/external movement defaults.
 	if not compatible and last_error.is_empty(): last_error = "Model must contain a compatible skeleton and declared humanoid mapping."
 	return compatible
 

@@ -7,6 +7,13 @@ listing avatars and animations from documented public provider APIs. This is a
 discovery/import interface, not another animation playback or synchronization
 system. No API integration or browser UI is delivered by this document.
 
+**Test-first baseline:** `tests/avatar_discovery/run.py` now provides intentionally
+RED acceptance contracts: 1 passed, 6 failed, 5 dependent groups not run on
+2026-11-05, exit 1 with no Godot errors. See the
+[test scope](../../tests/avatar_discovery/README.md). This is initial scaffolding
+and guarded behavioral assertions, not implemented discovery or full roadmap
+coverage; generation races, secure-store/OAuth and rendered flows still need tests.
+
 **Built-in provider requirement: no login or tokens.** Every built-in provider must support
 anonymous catalog/search, metadata, thumbnails and asset downloads without user
 accounts, OAuth, API keys, bearer tokens, session cookies or token-bearing signed

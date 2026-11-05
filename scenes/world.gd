@@ -73,10 +73,18 @@ func _setup_local_objects():
 	switch_shape.size = Vector3(0.15, 0.3, 0.15)
 	switch_collision.shape = switch_shape
 	switch.add_child(switch_collision)
+	var kitchen = get_node("Island/House/Kitchen")
+	for id in kitchen.items:
+		objects[id] = kitchen.items[id]
+		register_recoverable(kitchen.items[id], kitchen.homes[id])
 	local_pickups.activate_local(self, objects, {
 		"lamp": {"node": switch, "action": func(): lamp.visible = not lamp.visible},
 		"ship": {"node": ship, "action": func(): _confirm_ship_boarding(ship)}
 	})
+	local_pickups.local_actions["kitchen.faucet"] = {"node": weakref(kitchen.water), "action": func(): kitchen.set_faucet(not kitchen.water.visible)}
+	local_pickups.local_actions["kitchen.hob"] = {"node": weakref(kitchen.hob), "action": func(): kitchen.set_heat((kitchen.heat_level + 1) % 3)}
+	local_pickups.local_actions["kitchen.storage"] = {"node": weakref(kitchen.door), "action": func(): kitchen.set_storage(not kitchen.storage_open)}
+	local_pickups.local_actions["kitchen.fridge"] = {"node": weakref(kitchen.fridge_door), "action": func(): kitchen.set_fridge(not kitchen.fridge_open)}
 
 func _confirm_ship_boarding(ship: Node3D):
 	var dialog = ConfirmationDialog.new()

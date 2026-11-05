@@ -1,5 +1,34 @@
 # Welcome island startup contracts
 
+## Part 11 kitchen foundation — 2026-11-05
+
+`run_layout.py --kitchen` initially failed on the missing kitchen, then passes
+46 checks for the exact eight-item inventory (Cup, Bowl, Plate, Pot, Pan, Spoon,
+Board, Canister), mass limits, shared pickup/drop/own-home reset, faucet/hob visible
+state, door bounds/obstruction and appliance shutdown/reset on reload. The rendered
+variant also captures `/tmp/opencode/island-kitchen.png`; image inspected. House
+clearance 24, startup 68, settings regressions and standalone Linux debug export pass.
+
+Sink/cooker/fridge are individual CC0 Kenney Furniture Kit models, with source
+hashes and Credits records. The eight movable belongings are **temporary original
+primitive models**, not the final premade kitchenware required by the design.
+This is a functional foundation, not completed kitchen art or full part 11 acceptance.
+No kettle, cooking sim, fire or damage is implemented. Faucet is a bounded visible
+stream; hob has off/low/high visual indication, not actual heat simulation.
+
+Controls are available through Settings → Controls and the existing local reachable
+activation path. Door panels translate within bounded travel; obstruction prevents
+movement instead of pushing through players. Reset does not force blocked doors
+closed. Collision is simple proxy geometry; detailed handles, meaningful cup/bowl
+interiors and seated physical reach need further work. Appliance state is client-local
+and resets on reload; no global settings/account/network writes are introduced.
+
+Manual procedure: with hints hidden, use water/hob/storage and every belonging,
+carry/drop/place/reset on the counter, obstruct doors, then reload while appliances
+are active. Require no stale holds, violent collision or blocked exit. Real-headset
+seated reach and production pointer interaction remain open, as do final kitchenware
+models/materials and complete door sweep/fixture visual polish.
+
 ## Part 10 adjustable room lighting — 2026-11-05
 
 `run_layout.py --lighting --rendered` initially failed on the missing owner, then

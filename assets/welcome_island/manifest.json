@@ -453,6 +453,27 @@
           "original_name": "Models/GLTF format/lampRoundFloor.glb",
           "original_sha256": "50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908",
           "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/kitchenSink.glb",
+          "sha256": "7b9610277d71f00dcf1bba49cf4d98d77ce5177e84bf76c7da2f8893e542f743",
+          "original_name": "Models/GLTF format/kitchenSink.glb",
+          "original_sha256": "7b9610277d71f00dcf1bba49cf4d98d77ce5177e84bf76c7da2f8893e542f743",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/kitchenStoveElectric.glb",
+          "sha256": "cf646b960d7dfed1fac27898ff6de1f0671cfa33beecbed06ead7d0684517392",
+          "original_name": "Models/GLTF format/kitchenStoveElectric.glb",
+          "original_sha256": "cf646b960d7dfed1fac27898ff6de1f0671cfa33beecbed06ead7d0684517392",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/kitchenFridgeSmall.glb",
+          "sha256": "35dab7f63711623be321bfd82072f4ab29fe8006aac9371c6e6b78df2e02f5ed",
+          "original_name": "Models/GLTF format/kitchenFridgeSmall.glb",
+          "original_sha256": "35dab7f63711623be321bfd82072f4ab29fe8006aac9371c6e6b78df2e02f5ed",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
         }
       ]
     }

@@ -1,5 +1,17 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/welcome_island/kitchen.gd -->
+## Local kitchen foundation
+
+`set_faucet` toggles the bounded stream mesh. `set_heat` accepts off/low/high integer
+levels only and updates visible indication without damage/fire simulation.
+`set_storage` and `set_fridge` reject occupied door travel space before translating
+their panels within fixed bounds. `reset_kitchen` stops effects, attempts safe door
+closure, releases local grips and restores eight registered items to their own
+homes. `make_controls` returns shared-menu buttons with no saved preferences.
+Private ready builds fixtures and temporary original kitchenware; exit stops effects.
+State is client-local, not relay ownership; final premade kitchenware is still pending.
+
 <!-- module: scripts/worlds/welcome_island/room_lighting.gd -->
 ## Local home room lighting
 

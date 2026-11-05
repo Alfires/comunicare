@@ -1140,105 +1140,105 @@
     {
       "kind": "func",
       "name": "_add_cache_actions",
-      "line": 133,
+      "line": 135,
       "signature": "func _add_cache_actions(page: VBoxContainer)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "select_category",
-      "line": 167,
+      "line": 169,
       "signature": "func select_category(category: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_swatch_colors",
-      "line": 179,
+      "line": 181,
       "signature": "func _swatch_colors(id: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_create_control",
-      "line": 193,
+      "line": 195,
       "signature": "func _create_control(definition: Dictionary) -> Control",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_commit",
-      "line": 234,
+      "line": 236,
       "signature": "func _commit(value: Variant, id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_value",
-      "line": 241,
+      "line": 243,
       "signature": "func _reset_value(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_category",
-      "line": 247,
+      "line": 249,
       "signature": "func _reset_category(category: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_value",
-      "line": 252,
+      "line": 254,
       "signature": "func _update_value(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_begin_binding",
-      "line": 276,
+      "line": 278,
       "signature": "func _begin_binding(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 282,
+      "line": 284,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_cancel_binding",
-      "line": 303,
+      "line": 305,
       "signature": "func _cancel_binding()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 310,
+      "line": 312,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_show_error",
-      "line": 314,
+      "line": 316,
       "signature": "func _show_error(message: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_saved",
-      "line": 318,
+      "line": 320,
       "signature": "func _on_saved()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 321,
+      "line": 323,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -8547,14 +8547,14 @@
     {
       "kind": "func",
       "name": "_furniture",
-      "line": 30,
+      "line": 31,
       "signature": "func _furniture(label: String, asset: String, center: Vector3, target: Vector3, solid: bool = true) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_box",
-      "line": 48,
+      "line": 49,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D",
       "visibility": "private"
     }
@@ -8587,6 +8587,71 @@
       "line": 29,
       "signature": "func make_controls() -> VBoxContainer",
       "visibility": "public"
+    }
+  ],
+  "scripts/worlds/welcome_island/kitchen.gd": [
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 14,
+      "signature": "func _ready()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_effect",
+      "line": 47,
+      "signature": "func _effect(label: String, center: Vector3, size: Vector3, color: Color) -> MeshInstance3D",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "set_faucet",
+      "line": 53,
+      "signature": "func set_faucet(enabled: bool) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_heat",
+      "line": 57,
+      "signature": "func set_heat(level: int) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_storage",
+      "line": 63,
+      "signature": "func set_storage(open: bool) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "reset_kitchen",
+      "line": 73,
+      "signature": "func reset_kitchen()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "make_controls",
+      "line": 86,
+      "signature": "func make_controls() -> VBoxContainer",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_fridge",
+      "line": 93,
+      "signature": "func set_fridge(open: bool) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_exit_tree",
+      "line": 103,
+      "signature": "func _exit_tree()",
+      "visibility": "private"
     }
   ]
 }

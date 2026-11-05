@@ -21,7 +21,8 @@ func _ready():
 	_furniture("Rug", "rugRectangle", Vector3(-4.5, 0.015, 3.6), Vector3(4.5, 0.02, 3.8), false)
 	_furniture("FloorLamp", "lampRoundFloor", Vector3(-6.8, 0, 2), Vector3(0.5, 1.5, 0.5))
 	var kitchen = Marker3D.new(); kitchen.name = "KitchenReserve"; kitchen.position = Vector3(5, 0, -3); add_child(kitchen)
-	_box("FutureCounter", Vector3(6.8, 0.45, -3), Vector3(1.1, 0.9, 5), true)
+	var kitchen_node = preload("res://scripts/worlds/welcome_island/kitchen.gd").new()
+	kitchen_node.name = "Kitchen"; add_child(kitchen_node)
 	_furniture("HousePlant", "plantSmall1", Vector3(6, 0, 4.8), Vector3(0.5, 0.75, 0.5))
 	var lighting = preload("res://scripts/worlds/welcome_island/room_lighting.gd").new()
 	lighting.name = "RoomLighting"

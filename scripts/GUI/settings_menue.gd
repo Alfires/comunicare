@@ -101,6 +101,8 @@ func _render():
 		category_pages.Controls.add_child(local_notice)
 		for lighting in get_tree().get_nodes_in_group("home_lighting"):
 			category_pages.Controls.add_child(lighting.make_controls())
+		for kitchen in get_tree().get_nodes_in_group("home_kitchen"):
+			category_pages.Controls.add_child(kitchen.make_controls())
 		for ship in get_tree().get_nodes_in_group("home_ship"):
 			var board = Button.new()
 			board.text = "Board pond boat (near dock)…"

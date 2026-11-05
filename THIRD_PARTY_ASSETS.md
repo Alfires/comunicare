@@ -71,26 +71,6 @@ User-imported assets retain their own licenses. A cache hash or successful impor
 does not grant permission to redistribute them.
 
 <!-- welcome-island-assets:start -->
-## Interface font — Atkinson Hyperlegible Next
-
-- **Creator:** Braille Institute, Applied Design Works, Elliott Scott, Megan
-  Eiswerth, Letters From Sweden.
-- **License:** SIL Open Font License 1.1; full text in `themes/fonts/OFL.txt`.
-- **Source:** https://github.com/googlefonts/atkinson-hyperlegible-next
-  (Google Fonts `ofl/atkinsonhyperlegiblenext`, upstream commit
-  `7925f50f649b3813257faf2f4c0b381011f434f1`).
-- **Retrieved:** 2026-11-05.
-- Bundled `themes/fonts/AtkinsonHyperlegibleNext-Variable.ttf` is the unmodified
-  upstream `AtkinsonHyperlegibleNext[wght].ttf` (weight axis 200–800, default
-  400), renamed only to avoid brackets in resource paths. SHA-256:
-  `5a455d1cfa099b601ab70751bb9673e8fe1854dc4500c80e1a220d0d75e31745`.
-- `OFL.txt` SHA-256:
-  `aca6a428580965d2297d1b718042dd427c2a9443ece3b0d02d758e161e0c4030`.
-
-`scripts/GUI/theme/theme_builder.gd` uses the default instance (Regular, 400)
-for body text and a weight-600 `FontVariation` for titles and primary buttons.
-The font is not sold on its own and keeps its Reserved Font Name.
-
 ## Welcome island asset inventory
 
 Generated from `assets/welcome_island/manifest.json`; candidates not bundled are excluded.
@@ -274,5 +254,11 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
   Original: `Models/GLTF format/rugRectangle.glb`; SHA-256 `a989d2d59c04e3071e0c90388b113a9a8f339ce1814ef984c51cb6dcd7c8e0eb`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
 - Shipped: `assets/welcome_island/models/furniture/lampRoundFloor.glb`; SHA-256 `50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908`
   Original: `Models/GLTF format/lampRoundFloor.glb`; SHA-256 `50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/kitchenSink.glb`; SHA-256 `7b9610277d71f00dcf1bba49cf4d98d77ce5177e84bf76c7da2f8893e542f743`
+  Original: `Models/GLTF format/kitchenSink.glb`; SHA-256 `7b9610277d71f00dcf1bba49cf4d98d77ce5177e84bf76c7da2f8893e542f743`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/kitchenStoveElectric.glb`; SHA-256 `cf646b960d7dfed1fac27898ff6de1f0671cfa33beecbed06ead7d0684517392`
+  Original: `Models/GLTF format/kitchenStoveElectric.glb`; SHA-256 `cf646b960d7dfed1fac27898ff6de1f0671cfa33beecbed06ead7d0684517392`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/kitchenFridgeSmall.glb`; SHA-256 `35dab7f63711623be321bfd82072f4ab29fe8006aac9371c6e6b78df2e02f5ed`
+  Original: `Models/GLTF format/kitchenFridgeSmall.glb`; SHA-256 `35dab7f63711623be321bfd82072f4ab29fe8006aac9371c6e6b78df2e02f5ed`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
 
 <!-- welcome-island-assets:end -->

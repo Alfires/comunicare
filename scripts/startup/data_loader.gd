@@ -38,9 +38,9 @@ func get_avatar_configuration() -> Node:
 	if save != null and save.get("profile") != null:
 		var owner: String = save.profile.get_local_fingerprint()
 		if not owner.is_empty() and avatar_configuration.account_owner != owner:
-			avatar_configuration.configure(owner, "user://avatars/" + owner + ".json", self)
-			if save.get("temporary_identity") == true:
-				avatar_configuration.writable = false
+			var temporary = save.get("temporary_identity") == true
+			avatar_configuration.memory_only = temporary
+			avatar_configuration.configure(owner, "" if temporary else "user://avatars/" + owner + ".json", self)
 	return avatar_configuration
 const MAX_AVATAR_BYTES = 64 * 1024 * 1024
 const MAX_AVATAR_WAITERS = 8

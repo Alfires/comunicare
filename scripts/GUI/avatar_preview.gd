@@ -1,4 +1,5 @@
 extends PanelContainer
+const FirstPerson = preload("res://scripts/assets/first_person_avatar.gd")
 
 signal failed(message: String)
 @onready var viewport: SubViewport = $Layout/ViewportContainer/Viewport
@@ -126,7 +127,11 @@ func _safe_preview_tree(node: Node) -> bool:
 	# Preview content must not contain player/network/physics/script behavior.
 	# Current GLTF loader generates model nodes; imported script-bearing trees
 	# are refused before they enter the scene tree. This is not a full sandbox.
-	if node.get_script() != null or node is CollisionObject3D or node is AudioStreamPlayer \
+	# The production loader adds this exact bundled helper to mirror blend
+	# shapes onto its first-person derivative. Disable it in preview, but do
+	# not mistake it for arbitrary script-bearing downloaded content.
+	var trusted_helper = node is FirstPerson.BlendShapeSync
+	if (node.get_script() != null and not trusted_helper) or node is CollisionObject3D or node is AudioStreamPlayer \
 		or node is AudioStreamPlayer3D:
 		return false
 	node.process_mode = Node.PROCESS_MODE_DISABLED

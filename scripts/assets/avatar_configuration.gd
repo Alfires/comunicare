@@ -14,6 +14,7 @@ var roles: Dictionary = {}
 var emotes: Dictionary = {}
 var layout = Layout.new()
 var writable := true
+var memory_only := false
 var last_error := ""
 var loader: Node
 var generation := 0
@@ -62,8 +63,8 @@ func configure(fingerprint: String, file_path: String, data_loader: Node):
 	writable = true
 	last_error = ""
 	_reset_catalog()
-	layout.configure(path + ".wheel.json")
-	if FileAccess.file_exists(path):
+	layout.configure("" if memory_only else path + ".wheel.json")
+	if not memory_only and FileAccess.file_exists(path):
 		var file = FileAccess.open(path, FileAccess.READ)
 		var parser = JSON.new()
 		if file == null or file.get_length() > 1024 * 1024 or parser.parse(file.get_as_text()) != OK \
@@ -163,6 +164,7 @@ func _merge_source(source: Dictionary, handle: Dictionary, parsed: Dictionary):
 
 func import_source(source: String, is_model: bool, share_allowed: bool) -> Dictionary:
 	if loader == null or account_owner.is_empty() or not writable:
+		last_error = "Avatar configuration is unavailable or read-only for this account."
 		return {}
 	last_error = ""
 	var cache = loader.get_asset_cache()
@@ -243,6 +245,7 @@ func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
 	return true
 
 func _save(value: Dictionary) -> bool:
+	if memory_only: return true
 	if DirAccess.make_dir_recursive_absolute(path.get_base_dir()) != OK: return false
 	var file = FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	if file == null:

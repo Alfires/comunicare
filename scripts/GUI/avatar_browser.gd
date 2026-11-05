@@ -39,6 +39,7 @@ var oauth_id := ""
 var oauth_config: Dictionary = {}
 var oauth = preload("res://scripts/discovery/avatars/oauth_session.gd").new()
 var oauth_exchange: HTTPRequest
+var transport_options: Dictionary = {} # Isolated test seam; production remains HTTPS-only.
 
 func _button(parent: Node, title: String, action: Callable) -> Button:
 	var button = Button.new()
@@ -159,6 +160,7 @@ func select_category(category: String):
 	state.tab = "search"
 	state.category = category
 	state.query = "robot" if category.to_lower() == "robots" else ""
+	search_box.text = state.query
 	state.type = "animation" if "animation" in category.to_lower() else "avatar"
 	state.cursor = ""
 	state.format = "all"
@@ -186,6 +188,7 @@ func _home_feeds():
 		add_child(service)
 		services.append(service)
 		service.configure(source)
+		service.options = transport_options.duplicate()
 		service.catalogs = catalog_cache
 		service.credentials = registry.get_credentials(id)
 		var response: Dictionary = await service.search({"query": "", "type": "all", "cursor": ""})
@@ -200,6 +203,7 @@ func _home_feeds():
 
 func _search(more: bool):
 	if not is_instance_valid(results): return
+	if not more: state.query = search_box.text.left(200)
 	_cancel_pending()
 	generation += 1
 	var ticket = generation
@@ -221,6 +225,7 @@ func _search(more: bool):
 		add_child(service)
 		services.append(service)
 		service.configure(source)
+		service.options = transport_options.duplicate()
 		service.catalogs = catalog_cache
 		service.credentials = registry.get_credentials(id)
 		var query = state.duplicate()
@@ -258,7 +263,7 @@ func _details(record: Dictionary):
 	info.text = "%s\nAuthor: %s\nLicense: %s\nFormat: %s\nCompatibility: unverified until import\nNo asset is equipped by browsing." % [str(record.get("title", "")).left(200), str(record.get("author", "Unknown")).left(200), str(record.get("license", "Unknown")).left(100), str(record.get("format", "Unknown")).left(20)]
 	results.add_child(info)
 	var page = str(record.get("page_url", ""))
-	if Service.new().policy.valid_url(page): _button(results, "Open source page", func(): OS.shell_open(page))
+	if preload("res://scripts/discovery/avatars/request_policy.gd").new().valid_url(page): _button(results, "Open source page", func(): OS.shell_open(page))
 	if ImportPolicy.new().evaluate(record).can_import:
 		if record.get("type") == "avatar": _button(results, "Preview model (external download)", _preview_record.bind(record))
 		_button(results, "Download, validate and review in Avatar configuration", _import_record.bind(record))
@@ -399,6 +404,8 @@ func _preview_record(record: Dictionary):
 	add_child(service)
 	services.append(service)
 	service.configure(source)
+	service.options = transport_options.duplicate()
+	status.text = "Downloading model for an independent preview…"
 	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 64 * 1024 * 1024)
 	services.erase(service)
 	service.queue_free()
@@ -423,9 +430,12 @@ func _preview_record(record: Dictionary):
 	preview.custom_minimum_size = Vector2(240, 320)
 	results.add_child(preview)
 	model.free()
+	preview.failed.connect(func(message): status.text = message)
 	preview.loader = func(_url): return await loader._load_model_from_buffer(bytes)
 	preview.set_source("browser-preview")
 	await preview.load_preview()
+	if ticket == generation and is_instance_valid(preview) and is_instance_valid(preview.model):
+		status.text = "Preview ready. Download and review the model, then Apply to equip."
 
 func _import_record(record: Dictionary):
 	if editor_open: return
@@ -441,6 +451,7 @@ func _import_record(record: Dictionary):
 	add_child(service)
 	services.append(service)
 	service.configure(registry.sources[record.provider])
+	service.options = transport_options.duplicate()
 	service.credentials = registry.get_credentials(record.provider)
 	status.text = "Downloading and validating; your equipped avatar is unchanged…"
 	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 64 * 1024 * 1024 if record.type == "avatar" else 16 * 1024 * 1024)
@@ -475,10 +486,14 @@ func _import_record(record: Dictionary):
 		if bytes.is_empty():
 			status.text = "In-place adaptation is still incompatible with the humanoid importer."
 			return
-	if not cache.initialize(): return
+	if not cache.initialize():
+		status.text = cache.last_error
+		return
 	var path: String = cache.directory.path_join("staging/browser-" + str(Time.get_ticks_usec()))
 	var file = FileAccess.open(path, FileAccess.WRITE)
-	if file == null: return
+	if file == null:
+		status.text = "Cannot stage downloaded asset for import."
+		return
 	file.store_buffer(bytes)
 	file.close()
 	var configuration = loader.get_avatar_configuration()

@@ -1,5 +1,20 @@
 # Production UI acceptance — initial roadmap execution
 
+## Avatar preview and Apply integration
+
+```sh
+AVATAR_FIXTURE=/path/to/permitted/avatar.vrm python3 tests/real_ui/run.py --plugins --suite avatar
+AVATAR_FIXTURE=/path/to/permitted/avatar.vrm python3 tests/real_ui/run.py --plugins --rendered --suite avatar
+```
+
+Explicit fixture only; the runner serves it on loopback and never downloads an
+external model implicitly. Production browser download/preview/import, editor Apply,
+cache-backed model reload and temporary-identity memory-only Apply are exercised.
+Preview must accept only the exact bundled first-person BlendShapeSync helper,
+disable its processing, and continue rejecting arbitrary script-bearing content.
+Search reads the typed field even without Enter. Temporary accounts do not create
+durable avatar configuration/wheel files; validated asset bytes use the shared cache.
+
 ## Expanded movement and world-switch checks
 
 The VR emulator additionally invokes the production frame and physics methods on

@@ -16,6 +16,7 @@ var busy := false
 var generation := 0
 var profile_service
 var profile_owner := ""
+var apply_button: Button
 
 func _ready():
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -38,7 +39,7 @@ func _ready():
 	layout.add_theme_constant_override("separation", 12)
 	scroll.add_child(layout)
 	var title = Label.new()
-	title.text = "Avatar • model and animation sources"
+	title.text = "My avatar & animations"
 	layout.add_child(title)
 	status = Label.new()
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -47,17 +48,25 @@ func _ready():
 	model_label = Label.new()
 	model_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	layout.add_child(model_label)
+	var advanced_toggle = CheckButton.new()
+	advanced_toggle.text = "Import from file or URL (advanced)"
+	layout.add_child(advanced_toggle)
+	var imports = VBoxContainer.new()
+	imports.visible = false
+	layout.add_child(imports)
+	advanced_toggle.toggled.connect(func(enabled): imports.visible = enabled)
 	model_mode = CheckButton.new()
-	model_mode.text = "Select model / model with embedded animations (otherwise: external animations)"
-	layout.add_child(model_mode)
+	model_mode.text = "This file is an avatar model (off = animation)"
+	imports.add_child(model_mode)
 	permission = CheckButton.new()
 	permission.text = "I have permission to redistribute these selected assets to instance participants"
-	layout.add_child(permission)
+	permission.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	imports.add_child(permission)
 	url = LineEdit.new()
 	url.max_length = 4096
 	url.placeholder_text = "HTTPS URL or local file path (headset file-picker fallback)"
-	layout.add_child(url)
-	_button(layout, "Add URL / local path", func(): add_source(url.text.strip_edges(), model_mode.button_pressed))
+	imports.add_child(url)
+	_button(imports, "Validate file / URL", func(): add_source(url.text.strip_edges(), model_mode.button_pressed))
 	picker = FileDialog.new()
 	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
 	picker.access = FileDialog.ACCESS_FILESYSTEM
@@ -66,7 +75,7 @@ func _ready():
 		for path in paths:
 			await add_source(path, model_mode.button_pressed))
 	add_child(picker)
-	_button(layout, "Select file(s)…", func(): picker.popup_centered_ratio(0.8))
+	_button(imports, "Choose file(s)…", func(): picker.popup_centered_ratio(0.8))
 	_button(layout, "Use profile avatar / defaults", func():
 		draft_model = {}
 		_render())
@@ -76,16 +85,18 @@ func _ready():
 		var editor = preload("res://scripts/GUI/emote_layout_editor.gd").new()
 		add_child(editor)
 		editor.configure(configuration))
-	_button(layout, "Apply", apply)
+	apply_button = _button(layout, "Apply avatar & animations", apply)
 	_button(layout, "Cancel / Back", func(): closed.emit(); queue_free())
 	_render()
 
-func _button(parent: Node, title: String, callback: Callable):
+func _button(parent: Node, title: String, callback: Callable) -> Button:
 	var button = Button.new()
 	button.text = title
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.custom_minimum_size.y = 44
 	button.pressed.connect(callback)
 	parent.add_child(button)
+	return button
 
 func _render():
 	model_label.text = "Model: " + str(draft_model.get("name", "Current profile avatar"))
@@ -114,11 +125,13 @@ func add_source(source: String, is_model: bool):
 		status.text = "At most 32 external sources can be applied."
 		return
 	busy = true
+	apply_button.disabled = true
 	var ticket = generation
 	status.text = "Validating source…"
 	var result = await configuration.import_source(source, is_model, permission.button_pressed)
 	if ticket != generation or not is_inside_tree(): return
 	busy = false
+	apply_button.disabled = false
 	if result.is_empty():
 		status.text = configuration.last_error
 		return
@@ -138,9 +151,11 @@ func apply():
 		status.text = "Avatar owner changed; close and reopen this editor."
 		return
 	busy = true
+	apply_button.disabled = true
 	var saved = await configuration.apply(draft_model, draft_sources)
 	if not is_inside_tree(): return
 	busy = false
+	apply_button.disabled = false
 	status.text = "Applied. Basic movement animations are automatic; press B or Home → Emotes for other actions." if saved else configuration.last_error
 
 func _exit_tree():

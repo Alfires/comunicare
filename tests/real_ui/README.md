@@ -2,6 +2,12 @@
 
 ## Avatar preview and Apply integration
 
+Browser usability regressions assert collapsed advanced filters, typed search,
+digest mismatch rejection during preview, visible review/Apply controls and a
+missing-cache error that preserves the current model. The browser has a direct
+My avatar entry; review/import controls distinguish supported preview from licensed
+equipping. File/URL import is an expandable advanced editor section.
+
 ```sh
 AVATAR_FIXTURE=/path/to/permitted/avatar.vrm python3 tests/real_ui/run.py --plugins --suite avatar
 AVATAR_FIXTURE=/path/to/permitted/avatar.vrm python3 tests/real_ui/run.py --plugins --rendered --suite avatar

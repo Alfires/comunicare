@@ -13,6 +13,7 @@ func run():
 	var browser = load("res://scenes/GUI/avatar_browser.tscn").instantiate()
 	root.add_child(browser)
 	root.size = Vector2i(1000, 800)
+	check(browser.has_node("BrowserLayout") and not browser.advanced_filters.visible, "browser starts with uncluttered named navigation and collapsed advanced filters")
 	browser.search_box.text = "robot"
 	var sources = browser.registry.sources.duplicate(true)
 	browser.registry.sources.clear() # No implicit external requests in this suite.
@@ -26,6 +27,10 @@ func run():
 	await browser._preview_record(record)
 	check(browser.preview != null and is_instance_valid(browser.preview.model), "catalog avatar loads in production browser preview: " + browser.status.text)
 	check(loader.get_avatar_configuration().model.is_empty(), "preview never equips model")
+	var wrong = record.duplicate(true)
+	wrong.sha256 = "f".repeat(64)
+	await browser._preview_record(wrong)
+	check("digest" in browser.status.text.to_lower(), "preview rejects mismatched catalog digest just like import")
 	await browser._import_record(record)
 	check(browser.editor_open, "catalog avatar opens validated source draft: " + browser.status.text)
 	if browser.editor_open:
@@ -40,6 +45,13 @@ func run():
 			var model = await loader.get_avatar_configuration().load_model("")
 			check(model != null, "applied browser avatar loads from pinned cache for player")
 			if model != null: model.free()
+			var configuration = loader.get_avatar_configuration()
+			var previous = configuration.model.duplicate(true)
+			var missing = previous.duplicate(true)
+			missing.hash = "e".repeat(64)
+			configuration.last_error = ""
+			check(not await configuration.apply(missing, []) and not configuration.last_error.is_empty() and configuration.model == previous,
+				"missing cached avatar gives actionable Apply error without replacing current avatar")
 	browser.queue_free()
 	await process_frame
 	check(save.use_temporary_identity(), "duplicate-window temporary identity can be configured")

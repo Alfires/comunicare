@@ -205,9 +205,13 @@ func _validate_model(path_to_file: String) -> bool:
 	return compatible
 
 func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
+	last_error = ""
 	if not writable or account_owner.is_empty() or candidate_sources.size() > 32:
+		last_error = "Avatar configuration is read-only, has no account owner, or exceeds 32 animation sources."
 		return false
-	if not candidate_model.is_empty() and not _valid_source(candidate_model): return false
+	if not candidate_model.is_empty() and not _valid_source(candidate_model):
+		last_error = "Invalid avatar selection. Import and validate the model again."
+		return false
 	for source in candidate_sources:
 		if not _valid_source(source): return false
 	var ticket = generation
@@ -223,12 +227,16 @@ func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
 			last_error = "Equipped custom models need redistribution permission so instance participants can receive the same avatar."
 			return false
 		var handle = loader.get_asset_cache().revision_handle(candidate_model.hash)
-		if handle.is_empty(): return false
+		if handle.is_empty():
+			last_error = "Selected avatar is missing from the cache. Import it again before applying."
+			return false
 		if not await _validate_model(handle.path):
 			last_error = "Applied model must contain a compatible humanoid skeleton."
 			return false
 		var preview = await loader._load_model_from_file(handle.path)
-		if preview == null: return false
+		if preview == null:
+			last_error = "Selected avatar could not be loaded. The current avatar is unchanged."
+			return false
 		preview.free()
 		if ticket != generation: return false
 	if ticket != generation: return false

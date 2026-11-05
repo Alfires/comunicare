@@ -40,10 +40,12 @@ var oauth_config: Dictionary = {}
 var oauth = preload("res://scripts/discovery/avatars/oauth_session.gd").new()
 var oauth_exchange: HTTPRequest
 var transport_options: Dictionary = {} # Isolated test seam; production remains HTTPS-only.
+var advanced_filters: Control
 
 func _button(parent: Node, title: String, action: Callable) -> Button:
 	var button = Button.new()
 	button.text = title
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.custom_minimum_size.y = 44
 	button.pressed.connect(action)
 	parent.add_child(button)
@@ -74,6 +76,7 @@ func _ready():
 					for value in data:
 						if not value is Dictionary or value.get("kind") != "custom" or not registry.add_source(value): preferences_writable = false
 	var layout = HBoxContainer.new()
+	layout.name = "BrowserLayout"
 	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(layout)
 	var sidebar = VBoxContainer.new()
@@ -81,14 +84,20 @@ func _ready():
 	layout.add_child(sidebar)
 	_button(sidebar, "Home", _home)
 	_button(sidebar, "Search", func(): state.tab = "search"; _search(false))
-	_button(sidebar, "Sources", _sources)
+	_button(sidebar, "My avatar", _open_configuration)
+	_button(sidebar, "Providers", _sources)
 	var scroll = ScrollContainer.new()
 	scroll_container = scroll
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
 	content = VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 10)
 	scroll.add_child(content)
+	var title = Label.new()
+	title.text = "Avatar browser"
+	title.add_theme_font_size_override("font_size", 24)
+	content.add_child(title)
 	search_box = LineEdit.new()
 	search_box.placeholder_text = "Search avatars and animations…"
 	search_box.max_length = 200
@@ -96,18 +105,30 @@ func _ready():
 	content.add_child(search_box)
 	_button(content, "Search", func(): submit_home_search(search_box.text))
 	var filters = HFlowContainer.new()
+	advanced_filters = filters
+	filters.visible = false
+	var advanced = CheckButton.new()
+	advanced.text = "Advanced filters"
+	advanced.toggled.connect(func(enabled): filters.visible = enabled)
+	content.add_child(advanced)
 	content.add_child(filters)
 	for definition in [["type", ["all", "avatar", "animation"]], ["format", ["all", "vrm", "vrma", "glb"]], ["sort", ["provider", "title"]], ["license", ["all", "CC0", "attribution", "unknown"]], ["compatibility", ["all", "unknown", "verified", "incompatible"]], ["shareable", ["all", "yes"]], ["loop", ["all", "yes", "no"]]]:
 		var selector = OptionButton.new()
+		selector.tooltip_text = str(definition[0]).capitalize()
 		for item in definition[1]: selector.add_item(item)
 		selector.item_selected.connect(func(index): state[definition[0]] = definition[1][index]; _search(false))
 		filter_controls[definition[0]] = selector
-		filters.add_child(selector)
+		var field = VBoxContainer.new()
+		var label = Label.new()
+		label.text = str(definition[0]).capitalize()
+		field.add_child(label)
+		field.add_child(selector)
+		filters.add_child(field)
 	var tag_field = LineEdit.new()
 	tag_field.placeholder_text = "Filter tags (fetched metadata)"
 	tag_field.max_length = 80
 	tag_field.text_submitted.connect(func(text): state.tag = text; _search(false))
-	content.add_child(tag_field)
+	filters.add_child(tag_field)
 	source_filter = OptionButton.new()
 	source_filter.item_selected.connect(func(_index): _search(false))
 	filters.add_child(source_filter)
@@ -265,8 +286,10 @@ func _details(record: Dictionary):
 	var page = str(record.get("page_url", ""))
 	if preload("res://scripts/discovery/avatars/request_policy.gd").new().valid_url(page): _button(results, "Open source page", func(): OS.shell_open(page))
 	if ImportPolicy.new().evaluate(record).can_import:
-		if record.get("type") == "avatar": _button(results, "Preview model (external download)", _preview_record.bind(record))
-		_button(results, "Download, validate and review in Avatar configuration", _import_record.bind(record))
+		if record.get("type") == "avatar": _button(results, "1. Preview avatar", _preview_record.bind(record))
+		var import_button = _button(results, "2. Review & equip avatar" if record.get("type") == "avatar" else "Add animation to my library", _import_record.bind(record))
+		import_button.disabled = not ImportPolicy.new().evaluate(record).share
+		if import_button.disabled: import_button.tooltip_text = "Equipping requires reviewed redistribution permission. Preview is still available."
 		if record.get("type") == "animation":
 			_button(results, "Preview animation on a separate copy of my avatar (in-place)", _preview_animation.bind(record))
 			var converted = record.duplicate(true)
@@ -414,6 +437,13 @@ func _preview_record(record: Dictionary):
 		status.text = response.error
 		return
 	var bytes: PackedByteArray = response.bytes
+	if not record.get("sha256", "").is_empty():
+		var digest = HashingContext.new()
+		digest.start(HashingContext.HASH_SHA256)
+		digest.update(bytes)
+		if digest.finish().hex_encode() != record.sha256:
+			status.text = "Source digest mismatch; preview rejected."
+			return
 	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
 	if reader.document(bytes, 64 * 1024 * 1024).is_empty():
 		status.text = "Preview requires a bounded self-contained binary model."
@@ -520,6 +550,13 @@ func _import_record(record: Dictionary):
 		if not editor.draft_sources.any(func(item): return item.hash == imported.hash): editor.draft_sources.append(imported)
 	editor._render()
 	status.text = "Validated. Review the source editor and Apply explicitly to equip."
+
+func _open_configuration():
+	if editor_open: return
+	var editor = load("res://scenes/GUI/animation_menue.tscn").instantiate()
+	add_child(editor)
+	editor_open = true
+	editor.tree_exited.connect(func(): editor_open = false)
 
 func _persist_sources():
 	if configuration_path.is_empty(): return

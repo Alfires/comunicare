@@ -51,13 +51,18 @@ func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0
 	if ticket != generation: return {"error": "Cancelled"}
 	if response.size() != 4: return {"error": "Provider request failed"}
 	var code = int(response[1])
+	var no_store := false
+	for header in response[2]:
+		if header.to_lower().begins_with("cache-control:") and "no-store" in header.to_lower(): no_store = true
 	if code in [301, 302, 303, 307, 308] and redirects < 3:
 		var location := ""
 		for header in response[2]:
 			if header.to_lower().begins_with("location:"): location = header.substr(9).strip_edges()
-		if location.begins_with("/"): location = policy.origin(url) + location
+		location = _redirect_url(url, location)
 		# Authenticated custom sources may never redirect to a different origin.
-		return await request_bytes(location, limit, redirects + 1)
+		var redirected = await request_bytes(location, limit, redirects + 1)
+		if no_store and redirected.has("bytes"): redirected.no_store = true
+		return redirected
 	if code == 429:
 		var seconds := 60
 		for header in response[2]:
@@ -66,10 +71,21 @@ func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0
 		return {"error": "Provider rate limited; retry later"}
 	if code != 200: return {"error": "Provider returned HTTP %s (login is never requested for built-ins)" % code}
 	if response[0] != HTTPRequest.RESULT_SUCCESS: return {"error": "Provider transfer failed or exceeded size limit"}
-	var no_store := false
-	for header in response[2]:
-		if header.to_lower().begins_with("cache-control:") and "no-store" in header.to_lower(): no_store = true
 	return {"bytes": response[3], "no_store": no_store}
+
+func _redirect_url(base: String, location: String) -> String:
+	if location.is_empty(): return ""
+	if location.begins_with("https://") or location.begins_with("http://"): return location
+	if location.begins_with("//"): return base.get_slice("://", 0) + ":" + location
+	if location.begins_with("/"): return policy.origin(base) + location
+	if location.begins_with("?"): return base.get_slice("?", 0) + location
+	# A relative path may not smuggle a new scheme; policy validates the result.
+	if ":" in location.get_slice("/", 0): return ""
+	var address = base.get_slice("?", 0)
+	var origin = policy.origin(address)
+	var path = address.substr(origin.length())
+	if path.is_empty(): path = "/"
+	return origin + (path.get_base_dir() + "/" + location).simplify_path()
 
 func _json(url: String) -> Dictionary:
 	var response = await request_bytes(url)

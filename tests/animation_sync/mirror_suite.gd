@@ -5,6 +5,13 @@ func check(ok: bool, title: String):
 	print("PASS: " if ok else "FAIL: ", title)
 	if not ok: failed += 1
 func run():
+	var dial = load("res://scripts/GUI/circular_value_control.gd").new()
+	var changes: Array = []
+	dial.configure("Offset range", 0.15, 0.15, 1.15, 0.2, "", func(value): changes.append(value))
+	dial.set_fraction(0.2)
+	check(is_equal_approx(dial.value, 0.35), "circular step grid is anchored to configured minimum")
+	dial.set_fraction(0.2)
+	check(changes.size() == 1, "unchanged dial position does not repeat settings callbacks")
 	var adapter_path = "res://scripts/assets/avatar_rig_profile.gd"
 	check(ResourceLoader.exists(adapter_path), "generic avatar rig profile exists")
 	if ResourceLoader.exists(adapter_path):

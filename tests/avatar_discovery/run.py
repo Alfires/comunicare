@@ -22,6 +22,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         url = urllib.parse.urlsplit(self.path)
         query = urllib.parse.parse_qs(url.query)
+        redirects = {
+            "/redirect-relative": "catalog",
+            "/redirect-query": "?finished=1",
+            "/redirect-origin": "//127.0.0.1:%s/catalog" % self.server.server_port,
+            "/redirect-private": "/catalog",
+        }
+        if url.path in redirects and not (url.path == "/redirect-query" and "finished" in query):
+            self.send_response(302)
+            self.send_header("Location", redirects[url.path])
+            if url.path == "/redirect-private":
+                self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
         if url.path == "/rate-limit":
             self.send_response(429)
             self.send_header("Retry-After", "60")

@@ -19,7 +19,9 @@ func configure(label: String, initial: float, low: float, high: float, increment
 
 func set_fraction(fraction: float):
 	if not is_finite(fraction): return
-	value = clampf(snappedf(lerpf(minimum, maximum, clampf(fraction, 0, 1)), step), minimum, maximum)
+	var next = clampf(minimum + snappedf(lerpf(minimum, maximum, clampf(fraction, 0, 1)) - minimum, step), minimum, maximum)
+	if is_equal_approx(value, next): return
+	value = next
 	if callback.is_valid(): callback.call(value)
 
 func fraction() -> float:

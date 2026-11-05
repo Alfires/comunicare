@@ -12,6 +12,12 @@ tracking, with bind-preserving foot hierarchy adaptation and corrected forward
 orientation. Tracking calibration includes the imported rig frame. Head and wrist
 alignment has synthetic regression coverage; real headset fit still needs checking.
 
+All imported humanoid avatars now receive the same rest-frame preparation,
+including nested import rotations/scales and unique renamed-bone resolution.
+Head translation bounds use world metres across rig scales. Missing or ambiguous
+declared bones produce rig diagnostics, not guessed assignments. This does not
+promise automatic support for nonhumanoid, malformed or arbitrary unmapped rigs.
+
 Nearby selectable pickup items and the local mirror receive a translucent local
 hover overlay on desktop/VR. **Settings → Interface → Selectable item highlight
 color** offers cyan, yellow, green, magenta and white. Hints are suppressed during

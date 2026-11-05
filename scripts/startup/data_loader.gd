@@ -227,6 +227,7 @@ func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D:
 				bone_names[bone] = nodes[mapping[bone]].resource_name
 		model.set_meta("humanoid_bones", bone_names)
 		model.set_meta("vrm_legacy_orientation", state.json.get("extensions", {}).has("VRM"))
+		preload("res://scripts/assets/avatar_rig_profile.gd").prepare(model)
 		var annotations: Dictionary = {}
 		var extensions: Dictionary = state.json.get("extensions", {})
 		var first_person = extensions.get("VRMC_vrm", {}).get("firstPerson", {})

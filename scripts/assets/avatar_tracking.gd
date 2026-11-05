@@ -124,7 +124,9 @@ func _set_target(rig: Skeleton3D, role: String, target: Node3D, position: bool):
 	if angle > limit: rotation = rest_rotation.slerp(rotation, limit / angle)
 	rig.set_bone_pose_rotation(index, rotation)
 	if position:
-		var maximum = clampf(rest.origin.length() * 0.5, 0.05, 0.2)
+		# Translation safety bound is in world metres, not imported skeleton units.
+		var world_scale = maxf(rig.global_basis.get_scale().abs().length() / sqrt(3.0), 0.0001)
+		var maximum = clampf(rest.origin.length() * world_scale * 0.5, 0.05, 0.2) / world_scale
 		rig.set_bone_pose_position(index, rest.origin + (local.origin - rest.origin).limit_length(maximum))
 
 func _rotate_toward(rig: Skeleton3D, bone: int, child: int, destination: Vector3):

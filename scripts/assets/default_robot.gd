@@ -35,15 +35,8 @@ static func create() -> Node3D:
 		model.position.y -= bounds[0].position.y * factor
 	model.rotation.y = PI # The authored robot faces +Z; gameplay faces -Z.
 	model.set_meta("vrm_legacy_orientation", true)
-	if rig is Skeleton3D:
-		var frame = Transform3D.IDENTITY
-		var cursor: Node3D = rig
-		while cursor != model:
-			frame = cursor.transform * frame
-			cursor = cursor.get_parent()
-		frame = model.transform * frame
-		model.set_meta("tracking_rest_frame", frame.basis.orthonormalized())
 	model.set_meta("humanoid_bones", mapping)
+	preload("res://scripts/assets/avatar_rig_profile.gd").prepare(model)
 	model.set_meta("asset_revision", FileAccess.get_sha256("res://assets/avatars/placeholder/RobotExpressive.glb"))
 	preload("res://scripts/assets/first_person_avatar.gd").prepare(model, {})
 	return model

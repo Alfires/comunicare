@@ -5,6 +5,52 @@ func check(ok: bool, title: String):
 	print("PASS: " if ok else "FAIL: ", title)
 	if not ok: failed += 1
 func run():
+	var adapter_path = "res://scripts/assets/avatar_rig_profile.gd"
+	check(ResourceLoader.exists(adapter_path), "generic avatar rig profile exists")
+	if ResourceLoader.exists(adapter_path):
+		var adapter = load(adapter_path)
+		for scale_value in [0.1, 1.0, 4.0]:
+			var model = Node3D.new()
+			model.rotation.y = 0.6
+			var nested = Node3D.new()
+			nested.rotation.x = -PI / 2
+			nested.scale = Vector3.ONE * scale_value
+			model.add_child(nested)
+			var rig = Skeleton3D.new()
+			nested.add_child(rig)
+			rig.add_bone("Skull_2")
+			rig.set_bone_rest(0, Transform3D(Basis(Vector3.UP, 0.3), Vector3(0, 0, 1)))
+			rig.reset_bone_poses()
+			model.set_meta("humanoid_bones", {"head": "Skull"})
+			var report: Dictionary = adapter.prepare(model)
+			check(model.get_meta("humanoid_bones").get("head") == "Skull_2", "unique imported suffix resolves declared humanoid role")
+			check(report.get("frame_valid", false), "rotated scaled nested rig has valid tracking frame")
+			var frame: Basis = model.get_meta("tracking_rest_frame")
+			check(frame.get_rotation_quaternion().angle_to((model.basis * nested.basis).orthonormalized().get_rotation_quaternion()) < 0.001, "per-avatar tracking frame includes nested import rotation")
+			root.add_child(model)
+			var target = Node3D.new()
+			root.add_child(target)
+			target.global_position = rig.global_transform * rig.get_bone_global_rest(0).origin
+			var before = (rig.global_basis * rig.get_bone_global_rest(0).basis).orthonormalized()
+			var modifier = load("res://scripts/assets/avatar_tracking.gd").new()
+			rig.add_child(modifier)
+			modifier.configure(model.get_meta("humanoid_bones"), target, null, null)
+			modifier._process_modification()
+			var actual = (rig.global_basis * rig.get_bone_global_pose(0).basis).orthonormalized()
+			check(before.get_rotation_quaternion().angle_to(actual.get_rotation_quaternion()) < 0.03, "generic neutral tracking preserves facing at scale %s" % scale_value)
+			target.global_position += Vector3(0.02, 0, 0)
+			modifier._process_modification()
+			check((rig.global_transform * rig.get_bone_global_pose(0).origin).distance_to(target.global_position) < 0.005, "head translation uses world-space limits at scale %s" % scale_value)
+			model.free(); target.free()
+		var ambiguous = Node3D.new()
+		var ambiguous_rig = Skeleton3D.new()
+		ambiguous.add_child(ambiguous_rig)
+		ambiguous_rig.add_bone("Head_2")
+		ambiguous_rig.add_bone("Head_3")
+		ambiguous.set_meta("humanoid_bones", {"head": "Head"})
+		var report: Dictionary = adapter.prepare(ambiguous)
+		check(not report.errors.is_empty() and not ambiguous.get_meta("humanoid_bones").has("head"), "ambiguous head names fail explicitly rather than selecting wrong bone")
+		ambiguous.free()
 	var robot = preload("res://scripts/assets/default_robot.gd").create()
 	check(robot != null and not robot.get_meta("humanoid_bones", {}).is_empty(), "bundled default robot has humanoid bone mapping without network")
 	var reader = load("res://scripts/assets/humanoid_animation.gd").new()

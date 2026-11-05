@@ -226,4 +226,33 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - Shipped: `assets/welcome_island/models/ship/Textures/colormap.png`; SHA-256 `311138350e74e35c5497a1bd8076a01740b7c302bed11027639fa553459a68de`
   Original: `Models/GLB format/Textures/colormap.png`; SHA-256 `311138350e74e35c5497a1bd8076a01740b7c302bed11027639fa553459a68de`; download: https://youraiagent.biz/api/assets/kenney-watercraft-kit/download
 
+### kenney.home-furniture — Furniture Kit 2.0 — selected home furnishings
+
+- Author: Kenney
+- Source: https://kenney.nl/assets/furniture-kit
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified individual GLBs extracted from Furniture Kit 2.0; assembled and scaled independently in our original house/layout. Included notice assets/welcome_island/licenses/Kenney-Furniture.txt. Mirror archive SHA-256 e67652d0932cee41683f74711c03d3e192a2af9979ef8e6b237711f5482d46b0. No furnished house preset included.
+- Shipped: `assets/welcome_island/models/furniture/bedSingle.glb`; SHA-256 `ca00c63f9a12da3138d902b2f5f18e0360fb6e8a5ac42ccb4bc3f185724b65d1`
+  Original: `Models/GLTF format/bedSingle.glb`; SHA-256 `ca00c63f9a12da3138d902b2f5f18e0360fb6e8a5ac42ccb4bc3f185724b65d1`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/loungeSofa.glb`; SHA-256 `1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd`
+  Original: `Models/GLTF format/loungeSofa.glb`; SHA-256 `1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/tableCoffee.glb`; SHA-256 `e38bea760fbd514efbb75528d09b4752c91af44677bbb97e6d4386c263525179`
+  Original: `Models/GLTF format/tableCoffee.glb`; SHA-256 `e38bea760fbd514efbb75528d09b4752c91af44677bbb97e6d4386c263525179`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/bench.glb`; SHA-256 `ba05a6d23a5a5a44da016757632070e47ff7587ce10e2f6d6d52328b4cf5489b`
+  Original: `Models/GLTF format/bench.glb`; SHA-256 `ba05a6d23a5a5a44da016757632070e47ff7587ce10e2f6d6d52328b4cf5489b`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/benchCushionLow.glb`; SHA-256 `d1fac209eae2ea7393beefa4932dacb54d500e8f9932a1b17d2a842527df1b2c`
+  Original: `Models/GLTF format/benchCushionLow.glb`; SHA-256 `d1fac209eae2ea7393beefa4932dacb54d500e8f9932a1b17d2a842527df1b2c`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/pillow.glb`; SHA-256 `6fae7c190d0b676ef3efd35e5178cef21dffb5c80e1257d8b537ad424da0e5f6`
+  Original: `Models/GLTF format/pillow.glb`; SHA-256 `6fae7c190d0b676ef3efd35e5178cef21dffb5c80e1257d8b537ad424da0e5f6`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/table.glb`; SHA-256 `ff1a94498d023957f4bc3ff6f55a7a82977d336dbf01a573b3364f03afe5ff61`
+  Original: `Models/GLTF format/table.glb`; SHA-256 `ff1a94498d023957f4bc3ff6f55a7a82977d336dbf01a573b3364f03afe5ff61`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/plantSmall1.glb`; SHA-256 `2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15`
+  Original: `Models/GLTF format/plantSmall1.glb`; SHA-256 `2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/rugRectangle.glb`; SHA-256 `a989d2d59c04e3071e0c90388b113a9a8f339ce1814ef984c51cb6dcd7c8e0eb`
+  Original: `Models/GLTF format/rugRectangle.glb`; SHA-256 `a989d2d59c04e3071e0c90388b113a9a8f339ce1814ef984c51cb6dcd7c8e0eb`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+- Shipped: `assets/welcome_island/models/furniture/lampRoundFloor.glb`; SHA-256 `50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908`
+  Original: `Models/GLTF format/lampRoundFloor.glb`; SHA-256 `50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908`; download: https://youraiagent.biz/api/assets/kenney-furniture-kit/download
+
 <!-- welcome-island-assets:end -->

@@ -1,5 +1,14 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/welcome_island/house_spaces.gd -->
+## Built-in house and furnishing assembly
+
+Private ready builds a single-level shell and places individual cleared furniture
+models. `_furniture` normalizes aggregate model bounds with uniform scale, centers
+the base and optionally adds a simple static collision proxy. `_box` creates
+timber structural meshes/collision. No remote scene code, player pose mutation,
+sleep progression, working appliances or adjustable lighting is introduced.
+
 Ship `_hull_clear` now uses a full hull-sized box for translation sweeps and four
 sampled rotation/translation overlaps instead of a small sphere. `step` commits
 yaw only with an accepted target; berth is offset clear of dock collision. Hull

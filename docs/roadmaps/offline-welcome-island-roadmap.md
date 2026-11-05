@@ -402,7 +402,8 @@ part 04 delivers the tested layout graybox; part 05 adds spawn/recovery/revision
 part 06 adds shared offline interactions and rendered recovery/PCK checks;
 part 07 adds the pond/dock and water recovery with manual headset gates;
 part 08 adds the constrained local ship with manual XR/UI gates;
-parts 09–14 remain planned. See the
+part 09 adds the initial furnished house and side spaces with manual XR/art gates;
+parts 10–14 remain planned. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

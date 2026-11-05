@@ -371,6 +371,90 @@
           "download": "https://youraiagent.biz/api/assets/kenney-watercraft-kit/download"
         }
       ]
+    },
+    {
+      "id": "kenney.home-furniture",
+      "title": "Furniture Kit 2.0 \u2014 selected home furnishings",
+      "author": "Kenney",
+      "source": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-05",
+      "attribution": "",
+      "modifications": "Unmodified individual GLBs extracted from Furniture Kit 2.0; assembled and scaled independently in our original house/layout. Included notice assets/welcome_island/licenses/Kenney-Furniture.txt. Mirror archive SHA-256 e67652d0932cee41683f74711c03d3e192a2af9979ef8e6b237711f5482d46b0. No furnished house preset included.",
+      "files": [
+        {
+          "path": "assets/welcome_island/models/furniture/bedSingle.glb",
+          "sha256": "ca00c63f9a12da3138d902b2f5f18e0360fb6e8a5ac42ccb4bc3f185724b65d1",
+          "original_name": "Models/GLTF format/bedSingle.glb",
+          "original_sha256": "ca00c63f9a12da3138d902b2f5f18e0360fb6e8a5ac42ccb4bc3f185724b65d1",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/loungeSofa.glb",
+          "sha256": "1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd",
+          "original_name": "Models/GLTF format/loungeSofa.glb",
+          "original_sha256": "1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/tableCoffee.glb",
+          "sha256": "e38bea760fbd514efbb75528d09b4752c91af44677bbb97e6d4386c263525179",
+          "original_name": "Models/GLTF format/tableCoffee.glb",
+          "original_sha256": "e38bea760fbd514efbb75528d09b4752c91af44677bbb97e6d4386c263525179",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/bench.glb",
+          "sha256": "ba05a6d23a5a5a44da016757632070e47ff7587ce10e2f6d6d52328b4cf5489b",
+          "original_name": "Models/GLTF format/bench.glb",
+          "original_sha256": "ba05a6d23a5a5a44da016757632070e47ff7587ce10e2f6d6d52328b4cf5489b",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/benchCushionLow.glb",
+          "sha256": "d1fac209eae2ea7393beefa4932dacb54d500e8f9932a1b17d2a842527df1b2c",
+          "original_name": "Models/GLTF format/benchCushionLow.glb",
+          "original_sha256": "d1fac209eae2ea7393beefa4932dacb54d500e8f9932a1b17d2a842527df1b2c",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/pillow.glb",
+          "sha256": "6fae7c190d0b676ef3efd35e5178cef21dffb5c80e1257d8b537ad424da0e5f6",
+          "original_name": "Models/GLTF format/pillow.glb",
+          "original_sha256": "6fae7c190d0b676ef3efd35e5178cef21dffb5c80e1257d8b537ad424da0e5f6",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/table.glb",
+          "sha256": "ff1a94498d023957f4bc3ff6f55a7a82977d336dbf01a573b3364f03afe5ff61",
+          "original_name": "Models/GLTF format/table.glb",
+          "original_sha256": "ff1a94498d023957f4bc3ff6f55a7a82977d336dbf01a573b3364f03afe5ff61",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/plantSmall1.glb",
+          "sha256": "2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15",
+          "original_name": "Models/GLTF format/plantSmall1.glb",
+          "original_sha256": "2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/rugRectangle.glb",
+          "sha256": "a989d2d59c04e3071e0c90388b113a9a8f339ce1814ef984c51cb6dcd7c8e0eb",
+          "original_name": "Models/GLTF format/rugRectangle.glb",
+          "original_sha256": "a989d2d59c04e3071e0c90388b113a9a8f339ce1814ef984c51cb6dcd7c8e0eb",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/furniture/lampRoundFloor.glb",
+          "sha256": "50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908",
+          "original_name": "Models/GLTF format/lampRoundFloor.glb",
+          "original_sha256": "50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908",
+          "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
+        }
+      ]
     }
   ]
 }

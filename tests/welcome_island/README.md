@@ -1,5 +1,28 @@
 # Welcome island startup contracts
 
+## Part 09 house/side spaces — 2026-11-05
+
+`run_layout.py --house --rendered` initially failed on the missing house. It now
+passes 27 checks: lounge, two individual beds, kitchen reserve, roof/porch, side
+benches/cushions/picnic/herb beds, capsule approach/exit and physical entry. The
+full layout suite passes 30 checks after widening the doorway; its ground ray now
+starts below ceiling height so roofs aren't confused with indoor walking floors.
+Standalone Linux debug export, startup, asset import and Credits checks pass.
+
+Our house shell uses individually assembled structure and existing cleared timber
+textures. Ten individual Kenney Furniture Kit 2.0 GLBs are bundled (CC0), not a
+furnished scene. Archive/mirror/source/hash and full notices are recorded in the
+manifest/THIRD_PARTY_ASSETS. Bounds-derived uniform scale and simple collision
+proxies keep original model bytes intact. Furniture is static for this part; no
+forced sitting, lying pose, time skip, sleep progression or spawn change. Working
+lighting/kitchen controls are parts 10/11. The interior has static warm fill only.
+
+Rendered views at `/tmp/opencode/island-house-{outside,inside,left}.png` inspect
+entry, resting places and both side compositions without hints. Floor/deck depth
+overlap was corrected after first inspection. Actual headset reach/walkthrough,
+final realistic furniture palette and landscape integration remain open. Optional
+Sit/Rest/Leave is not implemented, so no synthetic pass is claimed for it.
+
 ## Ship/pond remaining-gate follow-up — 2026-11-05
 
 New test-first failures exposed the sphere collision proxy missing bow corners and

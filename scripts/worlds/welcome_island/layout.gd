@@ -12,12 +12,20 @@ var routes := {
 func _ready():
 	_build_land()
 	_build_pond()
-	# Temporary house walls: open south entrance, no required stairs.
-	_box("HouseBack", Vector3(24, 1.6, -27), Vector3(16, 3.2, 0.35), Color(0.53, 0.43, 0.31))
-	_box("HouseLeft", Vector3(16, 1.6, -20), Vector3(0.35, 3.2, 14), Color(0.53, 0.43, 0.31))
-	_box("HouseRight", Vector3(32, 1.6, -20), Vector3(0.35, 3.2, 14), Color(0.53, 0.43, 0.31))
-	_box("DeckFootprint", Vector3(-29, -0.1, -12), Vector3(14, 0.2, 10), Color(0.5, 0.37, 0.24), false)
+	var house = preload("res://scripts/worlds/welcome_island/house_spaces.gd").new()
+	house.name = "House"; add_child(house)
+	_box("DeckFootprint", Vector3(-29, -0.08, -12), Vector3(14, 0.2, 10), Color(0.5, 0.37, 0.24), false)
 	_box("GardenFootprint", Vector3(35, -0.08, 0), Vector3(10, 0.16, 12), Color(0.36, 0.4, 0.22), false)
+	house._furniture("LeftBench", "bench", Vector3.ZERO, Vector3(2.4, 1, 1))
+	var bench = house.get_node("LeftBench"); bench.reparent(self); bench.position = Vector3(-32, 0, -15)
+	var cushions = house._furniture("LeftCushions", "benchCushionLow", Vector3.ZERO, Vector3(2, 0.5, 0.8)); cushions.reparent(self); cushions.position = Vector3(-26, 0, -15)
+	var picnic = house._furniture("PicnicTable", "table", Vector3.ZERO, Vector3(3, 0.85, 1.6)); picnic.reparent(self); picnic.position = Vector3(-28, 0, 19)
+	var shore = house._furniture("ShoreBench", "bench", Vector3.ZERO, Vector3(2.4, 1, 1)); shore.reparent(self); shore.position = Vector3(35, 0, 5)
+	_box("HerbBedOne", Vector3(38, 0.2, -3), Vector3(2, 0.4, 3), Color(0.25, 0.2, 0.12))
+	_box("HerbBedTwo", Vector3(32, 0.2, -3), Vector3(2, 0.4, 3), Color(0.25, 0.2, 0.12))
+	for index in 6:
+		var plant = house._furniture("Herbs", "plantSmall1", Vector3.ZERO, Vector3(0.4, 0.5, 0.4), false)
+		plant.reparent(self); plant.position = Vector3(32 if index < 3 else 38, 0.4, -4 + index % 3)
 	for name in routes:
 		var previous := Vector3.ZERO
 		for endpoint in routes[name]:

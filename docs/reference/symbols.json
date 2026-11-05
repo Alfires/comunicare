@@ -8373,42 +8373,42 @@
     {
       "kind": "func",
       "name": "_height",
-      "line": 30,
+      "line": 38,
       "signature": "func _height(x: float, z: float) -> float",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_build_pond",
-      "line": 35,
+      "line": 43,
       "signature": "func _build_pond()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_build_land",
-      "line": 96,
+      "line": 104,
       "signature": "func _build_land()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_material",
-      "line": 146,
+      "line": 154,
       "signature": "func _material(color: Color) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_surface_material",
-      "line": 153,
+      "line": 161,
       "signature": "func _surface_material(id: String, meters: float) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_box",
-      "line": 166,
+      "line": 174,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3D",
       "visibility": "private"
     }
@@ -8526,6 +8526,29 @@
       "name": "_exit_tree",
       "line": 135,
       "signature": "func _exit_tree()",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/welcome_island/house_spaces.gd": [
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 3,
+      "signature": "func _ready()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_furniture",
+      "line": 31,
+      "signature": "func _furniture(label: String, asset: String, center: Vector3, target: Vector3, solid: bool = true) -> Node3D",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_box",
+      "line": 49,
+      "signature": "func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D",
       "visibility": "private"
     }
   ]

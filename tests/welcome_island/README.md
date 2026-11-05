@@ -1,5 +1,41 @@
 # Welcome island startup contracts
 
+## Part 05 recovery/revisions — 2026-11-05
+
+`python3 tests/welcome_island/run_layout.py --recovery` runs direct-load spawn,
+repeated deferred fall recovery, menu-style trusted return, item-specific homes,
+linear/angular motion reset, nonfinite-home rejection, stale-item reference cleanup
+and unchanged synthetic local head transforms. The initial run had four clean
+failing assertions before production changes. Unknown lost rigid bodies are
+removed, not teleported onto the player. Register known items explicitly before
+letting them fall; there are no pickup items in the graybox yet.
+
+`python3 tests/public_discovery/run.py` now includes five real DataLoader home
+stage/activation/mismatch checks, plus all previous discovery checks. Its fixture
+copies the new built-in dependency sources and circular-value UI dependency.
+The earlier missing-fixture blocker is resolved; 66 contracts and 24 startup
+assertions passed, with no skipped group. Active Instance: 132 checks plus the
+visibility group passed. Startup: 68 passed. Credits: 29 passed after adding the
+four realistic texture sets. These are source/Compatibility checks, not XR proof.
+
+Before local export, run `python3 tools/assets/build_home_revision.py`, then
+`python3 tools/assets/build_home_revision.py --check`. The checked-in JSON lists
+sorted source hashes for the wrapper, reset script, island scenes/scripts and all
+bundled island payloads (conservative coverage includes presently unused samples).
+Source/editor runs recompute listed file hashes to catch edits immediately. Export
+runtimes use these pre-export hashes because Godot remaps/converts resources.
+**Rebuilding/checking before export is required**; no export hook is installed and
+an exported binary built from a stale manifest has not been certified. Tests mutate
+a script/subscene/texture in the disposable copy and prove revisions change, while
+an unrelated file does not. Downloaded-world validation/session admission is unchanged.
+
+Remaining manual gate: in disposable desktop/real-headset sessions repeatedly fall
+and return home, including DataLoader world transitions; confirm stopped motion,
+one root player and no forced head rotation. The tests preserve synthetic local
+head offsets but do not certify real XR comfort, rider/bed recovery or physical
+capsule placement for every user height. Rendered texture/layout views were inspected;
+no rendered or physical recovery test is claimed complete.
+
 ## Part 04 layout graybox — 2026-11-05
 
 Run `python3 tests/welcome_island/run_layout.py` (optional `--rendered`). The runner

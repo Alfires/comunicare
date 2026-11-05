@@ -1,5 +1,29 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/welcome_island/home_contract.gd -->
+## Built-in home spawn/revision contract
+
+`reset_player` accepts a live Node3D and finite target, invokes its trusted
+`set_player_pos` hook when present, otherwise translates the root, and clears
+CharacterBody velocity without writing local tracked-camera transforms.
+`revision` hashes sorted dependency records from the locally generated revision
+JSON. Editor/source runs read actual listed bytes; exports use pre-export hashes
+because imported resources are remapped. Missing manifest/dependency fails empty;
+the local generator/check must run before export. This is built-in content identity,
+not downloadable-world authorization or session identity.
+
+<!-- module: scenes/world.gd -->
+## Built-in world recovery
+
+`return_player_to_spawn` accepts only player-group nodes and delegates to the shared
+contract. `register_recoverable` records a finite global home transform for a live
+RigidBody using a weak reference, removes entries on exit, and returns acceptance.
+Private ready/spawn callbacks place persistent players on direct world entry;
+the void callback defers physics mutations. Registered items restore their own
+pose and clear linear/angular motion; unregistered lost rigid bodies are removed.
+This does not implement a pickup/vehicle ownership service or a public remote API.
+
+
 <!-- module: scripts/worlds/welcome_island/layout.gd -->
 ## Built-in welcome island graybox
 

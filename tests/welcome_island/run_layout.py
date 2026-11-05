@@ -14,6 +14,7 @@ HERE = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rendered', action='store_true')
+    parser.add_argument('--recovery', action='store_true', help='Run focused spawn/recovery contracts')
     args = parser.parse_args()
     godot = shutil.which(os.environ.get('GODOT', 'godot'))
     if not godot: return 2
@@ -28,12 +29,14 @@ def main():
         for id in ['sparse_grass', 'rock_path', 'rock_01', 'weathered_planks']:
             source = ROOT / 'assets/welcome_island/textures' / id
             if source.exists(): shutil.copytree(source, project / 'assets/welcome_island/textures' / id, ignore=shutil.ignore_patterns('*.import'))
+        if args.recovery:
+            shutil.copytree(ROOT / 'assets/welcome_island', project / 'assets/welcome_island', dirs_exist_ok=True, ignore=shutil.ignore_patterns('*.import', '*.uid'))
         # Baseline legacy dependency; not loaded after the island scene replaces it.
         for name in ['scenes/GUI/vr_gui.tscn', 'scripts/GUI/vr_gui.gd']:
             target = project / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)
-        shutil.copy2(HERE / 'layout_suite.gd', project / 'suite.gd')
+        shutil.copy2(HERE / ('recovery_suite.gd' if args.recovery else 'layout_suite.gd'), project / 'suite.gd')
         (project / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="Island layout contracts"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
         env = {**os.environ, 'XDG_DATA_HOME': str(project / 'data'), 'XDG_CONFIG_HOME': str(project / 'config'), 'XDG_CACHE_HOME': str(project / 'cache'), 'ISLAND_LAYOUT_RENDERED': '1' if args.rendered else '0'}
         try:
@@ -47,6 +50,9 @@ def main():
                 if result.returncode: return result.returncode
             return 0
         except (OSError, subprocess.TimeoutExpired) as error:
+            if isinstance(error, subprocess.TimeoutExpired):
+                for output in (error.stdout, error.stderr):
+                    if output: print(output.decode() if isinstance(output, bytes) else output)
             print(error)
             return 2
 

@@ -29,6 +29,7 @@ def main():
             "scripts/GUI/error_popup.gd",
             "scripts/GUI/emote_wheel.gd",
             "scripts/GUI/xr_emote_wheel.gd",
+            "scripts/GUI/circular_value_control.gd",
             "scripts/multiplayer/relay.gd",
             "scripts/multiplayer/network_handler.gd",
             "scripts/multiplayer/client/participant_registry.gd",
@@ -48,6 +49,10 @@ def main():
         shutil.copytree(HERE / "fixtures", project / "fixtures")
         shutil.copytree(ROOT / "scripts/profile", project / "scripts/profile")
         shutil.copytree(ROOT / "scripts/worlds", project / "scripts/worlds")
+        shutil.copytree(ROOT / "scenes/worlds/welcome_island", project / "scenes/worlds/welcome_island")
+        for source in ("scenes/world.tscn", "scenes/world.gd"):
+            shutil.copy2(ROOT / source, project / source)
+        shutil.copytree(ROOT / "assets/welcome_island", project / "assets/welcome_island", ignore=shutil.ignore_patterns("*.import", "*.uid"))
         shutil.copytree(ROOT / "scripts/multiplayer/federation", project / "scripts/multiplayer/federation")
         shutil.copytree(ROOT / "config", project / "config")
         for source in (ROOT / "scripts/assets").glob("*.gd"):

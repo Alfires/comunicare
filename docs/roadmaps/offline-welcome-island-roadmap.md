@@ -6,7 +6,8 @@
 are implemented with manual gates. Part 02 delivers provenance validation and four
 bundled CC0 nature/sky samples, now with reduced runtime tree/rock variants. Part 03
 delivers offline Credits with manual headset checks open. Part 04 delivers the
-island layout graybox, not final art or interactions. This file is the **shared design overview**; implementation is
+island layout graybox, now with realistic PBR surface maps. Part 05 adds shared
+spawn/recovery and dependency revisions with manual/export gates. This file is the **shared design overview**; implementation is
 split into [14 small test-first roadmaps](welcome-island/README.md), whose index
 owns dependency order and per-part status. Replace the built-in default blockout with an original,
 hand-assembled floating island: **a good home first**, where players can naturally
@@ -397,7 +398,8 @@ recovery/revisions, local interactions, pond/dock, ship, house/side spaces, room
 lighting, kitchen, optional Help, landscape/rendering and final release acceptance.
 Part 01 is implemented with manual gates; part 02 delivers provenance/sample assets
 with runtime limits; part 03 delivers Credits with a manual headset gate;
-part 04 delivers the tested layout graybox; parts 05–14 remain planned. See the
+part 04 delivers the tested layout graybox; part 05 adds spawn/recovery/revisions;
+parts 06–14 remain planned. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

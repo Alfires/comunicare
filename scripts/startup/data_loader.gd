@@ -269,7 +269,8 @@ func prepare_world_from_url(url: String, expected_revision: String = "") -> Dict
 		var revision = built_in_world_revision()
 		if not expected_revision.is_empty() and expected_revision != revision:
 			return {}
-		return {"scene": home, "spawn_point": [0, 1, 0], "revision": revision} if home is PackedScene else {}
+		var spawn = preload("res://scripts/worlds/welcome_island/home_contract.gd").SPAWN
+		return {"scene": home, "spawn_point": [spawn.x, spawn.y, spawn.z], "revision": revision} if home is PackedScene and not revision.is_empty() else {}
 	var cache = get_asset_cache()
 	var handle: Dictionary = cache.revision_handle(expected_revision) if not expected_revision.is_empty() else {}
 	if handle.is_empty():
@@ -290,7 +291,7 @@ func prepare_world_from_url(url: String, expected_revision: String = "") -> Dict
 
 func built_in_world_revision() -> String:
 	# The built-in scene is shipped with the application, not publisher content.
-	return FileAccess.get_sha256("res://scenes/world.tscn")
+	return preload("res://scripts/worlds/welcome_island/home_contract.gd").revision()
 
 class TemporaryWorld extends RefCounted:
 	var cache: WeakRef
@@ -348,8 +349,8 @@ func activate_world(staged: Dictionary) -> bool:
 		get_world_pickups().activate(get_tree().current_scene, staged.document, str(staged.get("revision", "")))
 	var spawn = staged.get("spawn_point", [0, 0, 0])
 	for player in get_tree().get_nodes_in_group("player"):
-		if player.has_method("set_player_pos"):
-			player.set_player_pos(Vector3(spawn[0], spawn[1], spawn[2]))
+		if player is Node3D:
+			preload("res://scripts/worlds/welcome_island/home_contract.gd").reset_player(player, Vector3(spawn[0], spawn[1], spawn[2]))
 	return true
 
 func stop_world_scripts():

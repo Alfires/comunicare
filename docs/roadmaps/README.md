@@ -5,7 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
-| [Offline welcome island: design](offline-welcome-island-roadmap.md) / [14 test-first parts](welcome-island/README.md) | Parts 01–04 delivered with limits: startup, CC0 provenance/reduced models, Credits and single-island layout graybox with middle spawn/tested routes. Actual headset, final art/interactions and performance gates remain open; parts 05–14 planned |
+| [Offline welcome island: design](offline-welcome-island-roadmap.md) / [14 test-first parts](welcome-island/README.md) | Parts 01–05 delivered with limits: startup, CC0 assets/realistic surfaces, Credits, island graybox, shared recovery and dependency revisions. Actual headset/export, final art/interactions and performance gates remain open; parts 06–14 planned |
 | [Public avatar and animation discovery](public-avatar-discovery-roadmap.md) | Browser/catalog/import, thumbnail cards, advanced filters/TTL, animation preview, custom PKCE and Linux keyring support implemented; real-provider OAuth, keyring/preview visual checks and headset gates remain open |
 | [Client-only per-player avatar visibility](client-avatar-visibility-roadmap.md) | Implemented with manual gates: beside-row Hide/Show, session/fingerprint policy, replacement-model enforcement and same-resource independence; rendered mirror/shadow and headset checks remain open |
 | [Desktop and VR sprinting](sprinting-roadmap.md) | Implemented with manual gates: hold left joystick click in VR or Ctrl on desktop for 1.5× horizontal speed; rebindable Ctrl, suppression/rearming and relative walk/run selection; hardware comfort and visual two-client validation remain open |

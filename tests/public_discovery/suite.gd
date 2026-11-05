@@ -73,6 +73,7 @@ func make_relay() -> Node:
 	return load("res://scripts/multiplayer/relay.gd").new()
 
 func run() -> void:
+	await test_builtin_home_contract()
 	network = root.get_node("NetworkHandler")
 	test_protocol_and_relay_filter()
 	test_relay_lifecycle()
@@ -354,6 +355,27 @@ func test_loopback_relay():
 		client.connection.destroy()
 	relay.connection.destroy()
 	relay.free()
+
+func test_builtin_home_contract():
+	var loader = load("res://scripts/startup/data_loader.gd").new()
+	root.add_child(loader)
+	var revision = loader.built_in_world_revision()
+	check(revision.length() == 64, "real DataLoader resolves dependency-aware built-in revision")
+	check((await loader.prepare_world_from_url("default_wold", "stale-revision")).is_empty(), "built-in revision mismatch rejects before activation")
+	var staged = await loader.prepare_world_from_url("default_wold", revision)
+	check(not staged.is_empty() and staged.spawn_point == [0.0, 1.0, 0.0], "real DataLoader stages shared home spawn contract")
+	var player = CharacterBody3D.new()
+	player.add_to_group("player")
+	root.add_child(player)
+	player.position = Vector3(10, 20, 30)
+	player.velocity = Vector3(3, -4, 5)
+	check(await loader.activate_world(staged), "real DataLoader activates built-in home")
+	check(player.position == Vector3(0, 1, 0) and player.velocity == Vector3.ZERO, "DataLoader activation clears motion at same spawn as direct startup")
+	player.queue_free()
+	current_scene.queue_free()
+	await process_frame
+	await process_frame
+	loader.free()
 
 func test_real_loader():
 	var loader = load("res://scripts/startup/data_loader.gd").new()

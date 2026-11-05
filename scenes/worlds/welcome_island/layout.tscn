@@ -1,0 +1,34 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/worlds/welcome_island/layout.gd" id="1"]
+
+[node name="Island" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Landmass" type="Node3D" parent="."]
+
+[node name="Spawn" type="Marker3D" parent="."]
+position = Vector3(0, 1, 0)
+
+[node name="Places" type="Node3D" parent="."]
+
+[node name="House" type="Marker3D" parent="Places"]
+position = Vector3(24, 0, -18)
+
+[node name="LeftDeck" type="Marker3D" parent="Places"]
+position = Vector3(-29, 0, -12)
+
+[node name="RightGarden" type="Marker3D" parent="Places"]
+position = Vector3(35, 0, 0)
+
+[node name="Pond" type="Marker3D" parent="Places"]
+position = Vector3(23, 0, 23)
+
+[node name="Dock" type="Marker3D" parent="Places"]
+position = Vector3(9, 0, 23)
+
+[node name="Grove" type="Marker3D" parent="Places"]
+position = Vector3(0, 0, -33)
+
+[node name="Picnic" type="Marker3D" parent="Places"]
+position = Vector3(-24, 0, 17)

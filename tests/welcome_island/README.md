@@ -1,5 +1,46 @@
 # Welcome island startup contracts
 
+## Part 04 layout graybox — 2026-11-05
+
+Run `python3 tests/welcome_island/run_layout.py` (optional `--rendered`). The runner
+copies only the built-in world/layout into a disposable Compatibility project, with
+no account, capture, player, relay or autoload. It checks the preserved scene UID,
+middle spawn at `(0, 1, 0)`, level ground/capsule clearance, a physics-sampled
+connected landmass, reserved house/deck/garden/pond/dock/grove/picnic areas and
+broad dry routes. Each route is densely sampled for slope and standing clearance,
+then traversed by an actual CharacterBody capsule at 4 m/s. Wall/off-island negative
+controls verify queries reject invalid space. This is synthetic teleport-target
+clearance, **not** production VR teleport input or real-headset certification.
+
+Test-first baseline failed on the missing island layout before production edits;
+the legacy panel also emitted its known resource-leak errors (runner exit 2, not
+a clean red baseline). After replacement the route tests caught a house wall
+crossing and pond-bank encroachment; both failed assertions were fixed before
+verification. Current result: 30 headless-equivalent assertions plus four rendered
+captures, all passing; startup's 68 assertions also pass against the new layout.
+
+Composition procedure written into the suite: center at `(0,1.7,0)` toward the
+house, elevated overview and views from both sides. Inspect screenshots at
+`/tmp/opencode/island-layout-{overview,center,left,right}.png` for one landmass,
+open center and several freely reachable destinations, without tutorial labels
+or a required ordered circuit. These are graybox views, not final art. Rendered
+X11/Compatibility on Intel UHD 630; actual VR traversal and final Forward Plus
+renderer checks remain open. No water/ship/furnished house, collision recovery
+redesign, downloaded assets or vegetation are claimed here.
+
+Additional regression attempt: `python3 tests/public_discovery/run.py` exited 2.
+It printed 61 passing contract assertions but could not compile a real coordinator
+dependency because its fixture omits `scripts/GUI/circular_value_control.gd`, now
+preloaded by concurrently edited emote UI. Its second startup group did not run;
+this is not a full discovery pass and was not bypassed for the layout change.
+
+The old world-mounted VRPanel was only a camera-display surface, not the player
+menu, and is absent in the new world. Startup now tests the full new world with
+no panel exclusion; the runner keeps its conditional legacy stripping for older
+fixtures. The old reset area's bounds are moved below the deeper underside, but
+its reset policy remains unchanged until part 05. Edge safety/final landscaping
+remain later work; this graybox is not release-ready.
+
 ## Part 03 Credits and optimization verification
 
 Run `python3 tests/welcome_island/run_credits.py` (optional `--rendered`) for the

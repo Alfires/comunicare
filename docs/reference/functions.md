@@ -1,5 +1,27 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/welcome_island/layout.gd -->
+## Built-in welcome island graybox
+
+Private `_ready` builds application-owned terrain, original graybox footprints and
+branching route strips from the layout scene. `_height` reserves a recessed pond
+while keeping the dock bank dry. `_build_land` creates one continuous terrain
+mesh/collision with boundary skirts and a tapered visual underside. `_box` and
+`_material` create temporary colored layout resources; house walls have collision,
+path/deck/garden color strips do not add raised obstacles. `routes` is an authored
+traversal contract, not a required player route, network state or tutorial progress.
+No account, relay, asset download, remote-world script permission or active player
+ownership is changed. Final art, water, furniture and reset/revision policy are
+separate roadmap parts; these helpers are trusted built-in code only.
+
+Interaction highlight correction: `InteractionHighlight.show_targets` applies
+instance-only material_overlay passes and restores preexisting overlays on exit;
+it never duplicates geometry or changes physics/input. Physics-tick candidate
+selection uses `WorldPickupController.nearest_available`, the same obstruction/
+unheld/range selection used by `grab_nearest`. The local mirror defers desktop E
+to a held or reachable ordinary pickup instead of swallowing its interaction.
+
+
 <!-- module: scripts/GUI/credits_page.gd -->
 ## Offline asset Credits
 

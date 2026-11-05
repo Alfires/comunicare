@@ -37,15 +37,18 @@ def main():
             if uid.exists():
                 shutil.copy2(uid, str(target) + ".uid")
         shutil.copytree(HERE / "fixtures", project / "fixtures")
+        for folder in ("scenes/worlds/welcome_island", "scripts/worlds/welcome_island"):
+            if (ROOT / folder).exists(): shutil.copytree(ROOT / folder, project / folder)
         # The legacy world-mounted VRPanel holds a viewport-texture/material cycle
         # on repeated unloading. This startup suite uses player menu probes, not
         # that unrelated legacy panel. Keep terrain/environment/reset production
         # content intact and document the exclusion rather than ignoring leak errors.
         world = project / "scenes/world.tscn"
         text = world.read_text()
-        panel_start = text.index('[node name="VRPanel"')
-        connections = text.index('[connection ', panel_start)
-        world.write_text(text[:panel_start] + text[connections:])
+        if '[node name="VRPanel"' in text:
+            panel_start = text.index('[node name="VRPanel"')
+            connections = text.index('[connection ', panel_start)
+            world.write_text(text[:panel_start] + text[connections:])
         shutil.copy2(HERE / "suite.gd", project / "suite.gd")
         players = project / "scenes/player"
         players.mkdir(parents=True)

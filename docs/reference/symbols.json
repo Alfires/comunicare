@@ -8291,5 +8291,42 @@
       "signature": "func _add_text(value: String, heading: bool = false) -> Label",
       "visibility": "private"
     }
+  ],
+  "scripts/worlds/welcome_island/layout.gd": [
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 12,
+      "signature": "func _ready()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_height",
+      "line": 30,
+      "signature": "func _height(x: float, z: float) -> float",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_build_land",
+      "line": 35,
+      "signature": "func _build_land()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_material",
+      "line": 85,
+      "signature": "func _material(color: Color) -> StandardMaterial3D",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_box",
+      "line": 92,
+      "signature": "func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3D",
+      "visibility": "private"
+    }
   ]
 }

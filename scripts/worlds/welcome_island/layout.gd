@@ -1,0 +1,109 @@
+extends Node3D
+## Original graybox composition. No network, accounts, downloads or tutorial logic.
+var routes := {
+	"House": [Vector3(0, 0, -10), Vector3(24, 0, -10), Vector3(24, 0, -18)],
+	"LeftDeck": [Vector3(-29, 0, 0), Vector3(-29, 0, -12)],
+	"RightGarden": [Vector3(35, 0, 0)],
+	"Dock": [Vector3(9, 0, 0), Vector3(9, 0, 23)],
+	"Grove": [Vector3(0, 0, -33)],
+	"Picnic": [Vector3(-24, 0, 0), Vector3(-24, 0, 17)]
+}
+
+func _ready():
+	_build_land()
+	# Temporary house walls: open south entrance, no required stairs.
+	_box("HouseBack", Vector3(24, 1.6, -27), Vector3(16, 3.2, 0.35), Color(0.53, 0.43, 0.31))
+	_box("HouseLeft", Vector3(16, 1.6, -20), Vector3(0.35, 3.2, 14), Color(0.53, 0.43, 0.31))
+	_box("HouseRight", Vector3(32, 1.6, -20), Vector3(0.35, 3.2, 14), Color(0.53, 0.43, 0.31))
+	_box("DeckFootprint", Vector3(-29, -0.1, -12), Vector3(14, 0.2, 10), Color(0.5, 0.37, 0.24), false)
+	_box("DockFootprint", Vector3(9, -0.1, 23), Vector3(5, 0.2, 10), Color(0.5, 0.37, 0.24), false)
+	_box("GardenFootprint", Vector3(35, -0.08, 0), Vector3(10, 0.16, 12), Color(0.36, 0.4, 0.22), false)
+	for name in routes:
+		var previous := Vector3.ZERO
+		for endpoint in routes[name]:
+			var middle: Vector3 = (previous + endpoint) * 0.5
+			var distance: float = previous.distance_to(endpoint)
+			var path = _box("Path", middle + Vector3(0, 0.015, 0), Vector3(3.6, 0.03, distance + 1), Color(0.64, 0.57, 0.4), false)
+			path.rotation.y = atan2(endpoint.x - previous.x, endpoint.z - previous.z)
+			previous = endpoint
+
+func _height(x: float, z: float) -> float:
+	# Pond reserve is recessed but dry until part 07 adds water/safe shore behavior.
+	var distance = Vector2((x - 23) / 1.15, z - 23).length()
+	return -2.0 * clampf((13.0 - distance) / 3.0, 0, 1) * clampf((x - 12) / 3, 0, 1)
+
+func _build_land():
+	var land = get_node("Landmass")
+	var body = StaticBody3D.new()
+	body.name = "ContinuousTerrain"
+	land.add_child(body)
+	var tool = SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var radius := 52
+	var edges := {}
+	# Shared-height grid: no gaps between faces, central plateau at y=0.
+	for x in range(-radius, radius, 2):
+		for z in range(-radius, radius, 2):
+			if Vector2(x + 1, z + 1).length() > radius: continue
+			var a = Vector3(x, _height(x, z), z)
+			var b = Vector3(x + 2, _height(x + 2, z), z)
+			var c = Vector3(x, _height(x, z + 2), z + 2)
+			var d = Vector3(x + 2, _height(x + 2, z + 2), z + 2)
+			for point in [a, b, c, b, d, c]: tool.add_vertex(point)
+			for edge in [[a, b], [b, d], [d, c], [c, a]]:
+				var key = str(edge[0]) + str(edge[1])
+				var reverse = str(edge[1]) + str(edge[0])
+				if edges.has(reverse): edges.erase(reverse)
+				else: edges[key] = edge
+	for edge in edges.values():
+		var a: Vector3 = edge[0]
+		var b: Vector3 = edge[1]
+		var c = Vector3(a.x, -4, a.z)
+		var d = Vector3(b.x, -4, b.z)
+		for point in [a, c, b, b, c, d]: tool.add_vertex(point)
+	tool.generate_normals()
+	var mesh = tool.commit()
+	var instance = MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.material_override = _material(Color(0.36, 0.47, 0.29))
+	body.add_child(instance)
+	var collision = CollisionShape3D.new()
+	collision.shape = mesh.create_trimesh_shape()
+	body.add_child(collision)
+	# Continuous tapered underside, not separate playable islands.
+	var underside = MeshInstance3D.new()
+	var cone = CylinderMesh.new()
+	cone.top_radius = 52
+	cone.bottom_radius = 12
+	cone.height = 24
+	cone.radial_segments = 15
+	underside.mesh = cone
+	underside.position.y = -16
+	underside.material_override = _material(Color(0.29, 0.29, 0.28))
+	add_child(underside)
+
+func _material(color: Color) -> StandardMaterial3D:
+	var material = StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.95
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return material
+
+func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3D:
+	var node = MeshInstance3D.new()
+	node.name = label
+	var mesh = BoxMesh.new()
+	mesh.size = size
+	node.mesh = mesh
+	node.material_override = _material(color)
+	node.position = center
+	add_child(node)
+	if solid:
+		var body = StaticBody3D.new()
+		node.add_child(body)
+		var shape = CollisionShape3D.new()
+		var box = BoxShape3D.new()
+		box.size = size
+		shape.shape = box
+		body.add_child(shape)
+	return node

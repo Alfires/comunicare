@@ -21,6 +21,10 @@ materials and lighting within a deliberately fantastical floating-island setting
   and all activity areas surround this central clearing rather than displacing it.
 - A pond with a **working, boardable and steerable small ship**, not a static
   decoration or an inaccessible animated model.
+- Furnish both the left and right sides with places to spend time, without
+  crowding the central spawn or making the island a row of activity stations.
+- Include a hand-assembled **house with a chill/lounge area, beds, a usable
+  kitchen, adjustable room lighting and multiple pickupable kitchen objects**.
 - Assemble the terrain, paths, vegetation and props ourselves using individual
   free premade assets. **Do not import a complete island, environment demo or
   large scene preset as the map.** An asset pack is a parts library, not a layout.
@@ -82,15 +86,15 @@ No required jumping, narrow balance obstacles or lethal edge challenges.
                .-----------------------------------.
            .--'       T   T   QUIET GROVE   T       '--.
          .'       T      bench       T       T          '.
-         /    shaded overlook ---- garden path -- shelter  \
-       /          |                    |        + lamp     \
-      |           |                    |                    |
-      |    T      +-------------+------+          T         |
-      |                         |                           |
-      |                    [ SPAWN ]                        |
-      |                  ISLAND MIDDLE                      |
-      |                         |                           |
-       |   picnic garden --------+---- path ---- dock         |
+         /  LEFT: shaded deck ---- garden path --- HOUSE    \
+        /   bench / cushions           |       lounge / beds \
+       |         |                     |       kitchen / porch|
+       |    T    +---------------+-----+          |     T     |
+       |                         |          RIGHT: herb beds  |
+       |                    [ SPAWN ]        shore seating   |
+       |                  ISLAND MIDDLE          |           |
+       |                         |               |           |
+       |   picnic garden --------+---- path ---- dock        |
        |    table / lantern      |               H ~~~~~~~   |
         \     T               meadow path       ~ H  /|  ~  /
         \         T                           ~   /_|   ~ /
@@ -105,10 +109,10 @@ No required jumping, narrow balance obstacles or lethal edge challenges.
 ### Intended final appearance: side-view ASCII concept
 
 ```text
-                       trees       central spawn       trees
-                      /\   /\          |               /\
+                       trees       central spawn        house
+                      /\   /\          |                /\
                      /__\ /__\       [ + ]    dock     /__\
-                 ____ ||__ ||__________|_______H__ /| ___||____
+                 ____ ||__ ||__________|_______H__ /| __|[]|___
                 / grass / soil / continuous land  \_|          \
                /                         pond ~~~\___/~~~       \
               / rock layers __________ pond bed __________       \
@@ -128,6 +132,10 @@ stays inside the pond, and no secondary island is needed for a destination.
 Names such as “spawn” label this design document only: the finished clearing has
 no giant spawn marker or tutorial signage. Paths branch and reconnect for casual
 wandering; their arrangement must not imply an ordered course to complete.
+Left/right refer to this north-up plan: the left side has a shaded lounging deck,
+picnic garden and grove overlook; the right side has the house, herb garden,
+shore seating and pond dock. Keep both sides interesting with natural details
+and usable belongings, while preserving an open middle and continuous dry paths.
 
 The diagram is a planning aid, not a premade layout to download. Sculpt/model
 the base ourselves; place individual rocks to break up the cliffs and underside,
@@ -141,6 +149,8 @@ soil, roots and stone. Avoid obvious repeated boulder piles as the whole island.
 | Garden paths and meadow | Broad branching paths, gentle slopes, optional low steps with accessible bypasses and open grass to wander off-path | Desktop and supported VR locomotion can reach every destination without jumping or following a prescribed route |
 | Picnic garden | Stable table, a few believable movable belongings and a lantern; recovery available through contextual/menu actions | Objects feel useful for hanging out or free play, not like a row of interaction exercises; pickup/drop/reset works offline |
 | Cozy shelter | Timber/stone nook with warm switchable lighting, weathered wood and ordinary metal fittings | A place to linger; sunlight, shade and material response look good without labeled swatches, test spheres or comparison instructions |
+| Left-side lounging deck | Low shaded deck, cushions, bench, side table and a few movable books or game pieces near the grove | Comfortable informal destination with accessible ground-level entry and no timed activity or forced seating |
+| House and right-side garden | Lounge, sleeping nook with beds, kitchen, porch, herb beds and pond-facing seating | All rooms are accessible; lighting/kitchen controls and pickupable belongings work offline without displacing the middle spawn |
 | Pond and dock | Landscaped pond, shallow readable shoreline, accessible dock and small player-operated ship | Player can board, steer around the pond, stop, return and disembark on desktop and VR without networking |
 | Grove and overlook | Trees, rocks, benches, quiet wind/birds and a broad protected view of clouds/underside | A usable relaxing destination with no task marker, timer or forced narration |
 
@@ -148,6 +158,71 @@ Use rock borders, shrubs, railings and generous setbacks to make edges legible.
 Provide recovery below the island and a menu-accessible return to spawn. Do not
 rely on invisible walls alone. Benches are scenery initially; an actual seating
 interaction is optional and must not forcibly move a VR headset.
+
+### House, chill spaces and kitchen
+
+Build the house ourselves from individual cleared structural and furnishing
+assets, not a furnished-house scene preset. Match the timber/stone exterior to
+the island and keep the footprint modest enough for open views and paths around
+the middle. Start with a single accessible level, generous doorways, flush
+thresholds and clear teleport/standing space; do not require stairs to reach a bed
+or appliance. The outside shelter remains a small garden nook, not a duplicate
+feature-demo room.
+
+```text
+                 HOUSE: plan, not a downloaded prefab
+       .------------------------------------------------.
+       | SLEEPING NOOK           | KITCHEN                |
+       | [bed]   [bed]           | counter  sink  hob     |
+       | bedside lamp / dimmer   | mugs / dishes / pans   |
+       |                         | fridge    shelves     |
+       |---- open circulation ---+--- dining table ------|
+       | LOUNGE / CHILL AREA                             |
+       | sofa   cushions   low table   warm floor lamp    |
+       |                         clear entry             |
+       '---------------------------    ------------------'
+                                   porch --> herb beds / pond
+```
+
+- **Chill region:** provide a sofa, cushions, low table, reading/game belongings,
+  soft lamps and a view outside. Support simply standing, talking or relaxing;
+  do not attach a lesson or objective to the furniture.
+- **Beds:** provide at least two furnished beds with bedside lighting. They are
+  usable resting places; optional explicit Sit/Rest and Leave actions must retain
+  an easy exit, preserve XR tracking offsets and never force lying-down head
+  rotation. No mandatory sleeping, time skip or change to the central spawn.
+- **Adjustable lighting:** lounge, sleeping nook and kitchen each have reachable
+  on/off and brightness controls, plus bounded warm/neutral color-temperature
+  adjustment where appropriate. Controls must change actual illumination, give
+  immediate feedback and work with desktop aim and VR pointers. Avoid rapid
+  flicker, blinding minimum/maximum values and excessive shadowed lights.
+- **Working kitchen controls:** include an operable faucet with a contained water
+  effect, openable fridge/cabinet doors or drawers, and a hob with on/off plus
+  bounded low/high heat indication. Controls change visible state rather than
+  being decorative knobs. A kettle may be a simple toggleable appliance with
+  quiet steam/indicator feedback; a cooking/food simulation is not required.
+  Keep water/steam cheap, avoid forced loud sounds and do not add damage/fire.
+- **Pickupable kitchen belongings:** aim for at least eight individual movable
+  items across mugs/cups, plates/bowls, a pot, pan, kettle, spoon/spatula and
+  cutting board or food props. A named inventory of at least eight shipped items
+  is the acceptance list; not every listed category has to ship. Use plausible
+  mass/scale, simple collision, stable resting surfaces and accessible placement.
+  No scoring, recipes or required arrangement; let people set the table or play.
+- **Reliable interaction:** allow pickup, carry, place/drop and contextual reset;
+  prevent held cookware colliding violently with the player or launching furniture.
+  Door/drawer motion must not trap players or block safe exit. Reset restores
+  belongings to their own shelves/counters and switches appliances safely off.
+- **State ownership:** room lighting/appliance state starts session-local and
+  resets predictably on home reload; persistence is not promised. Do not repurpose
+  global audio/renderer settings for kitchen knobs. Any future saved home controls
+  need reviewed registry/store ownership. Online local-only behavior follows the
+  same clear contextual/menu disclosure as the ship and other belongings.
+
+Acquire free, redistribution-cleared beds, seating, modular house parts,
+appliances and individual kitchen props under the asset gate below. Record exact
+sources and required credits before bundling; these additions do not authorize a
+paid pack or complete house/island preset. Prefer matching materials over a large
+mismatched prop collection.
 
 ### Pond and working ship
 
@@ -182,7 +257,7 @@ The following are independent possibilities, **not tutorial steps**. All are
 available immediately, in any order, and none is a task to finish.
 
 - **Arrive and choose:** an uncluttered view from the middle offers the grove,
-  shelter, picnic garden and pond as natural destinations. No welcome modal,
+  house, shaded deck, shelter, picnic garden and pond as natural destinations. No welcome modal,
   quest marker, arrows, forced camera turn or automatic tour.
 - **Wander or do nothing:** the terrain naturally provides walking, turning and
   teleport opportunities without a movement practice zone. Open grass and
@@ -196,6 +271,9 @@ available immediately, in any order, and none is a task to finish.
   not just emissive appearance. Warm light on the table and fittings showcases
   quality naturally; never ask users to compare roughness swatches. Bound
   brightness and avoid flashing/strobing.
+- **Use their home:** adjust the house lights, relax in the lounge or by a bed,
+  open the kitchen cupboards, use appliance controls and move dishes around.
+  These are ordinary home affordances, not a kitchen tutorial or cooking quest.
 - **Use the pond as they like:** board and steer freely, remain at the dock or
   enjoy the bank. No prescribed loop, checkpoint, lap time or ship lesson. On
   deliberate boarding, make stop/disembark/return controls readily available.
@@ -309,6 +387,8 @@ existing player, animation or test changes along with island work.
   Test capsule clearance, slopes, desktop movement and VR teleport surfaces.
 - [ ] Keep one continuous landmass with the spawn in its middle; graybox the pond,
   sealed pond bed, dry perimeter route, dock and ship turning clearance.
+- [ ] Graybox left-side lounging/picnic spaces and the right-side house/garden;
+  validate the house rooms, accessible entry, beds, counter reach and clear exits.
 - [ ] Share a spawn/reset contract across direct startup, DataLoader activation
   and fall recovery; preserve root-level player lifetime, XR tracking offsets and
   cleared movement velocity. Reset items to their own homes, not the player's head.
@@ -325,6 +405,9 @@ moving, and `default_wold` still resolves through DataLoader.
   inspect imports, scale, normals, foliage alpha, license files and redistribution.
 - [ ] Select a free cleared ship hull and individual dock components; record exact
   sources/licenses and test suitable scale, collision proxies and water material.
+- [ ] Select cleared modular house parts, lounge seating, beds, kitchen fixtures
+  and at least eight individual movable kitchen objects; record an exact inventory
+  with sources, licenses, runtime variants and Credits entries before bundling.
 - [ ] Establish original terrain authoring/export steps, asset provenance manifest,
   source/license storage and reduced runtime variants. No opaque imported map.
 - [ ] Implement the read-only Credits page and manifest/license consistency tests.
@@ -342,6 +425,9 @@ Credits and full notices work offline in desktop UI and the VR viewport.
 - [ ] Deliver offline ship boarding, player steering, stopping, safe disembarking,
   rider support and return-to-dock/reset. Test pond/shore collision, lost focus,
   scene exit and VR comfort; do not substitute a decorative animated ship.
+- [ ] Deliver the house lounge and beds, three independently adjustable lighting
+  zones, working faucet/storage/hob controls and at least eight pickupable kitchen
+  objects. Verify bounded controls, stable placement, door clearance and reset.
 - [ ] Add opt-in device/binding-aware Help, minimal contextual action hints and
   show/hide controls through real menus. Verify remapping and focus suppression;
   do not add tutorial stations, task tracking or an ordered introduction.
@@ -354,7 +440,8 @@ Credits and full notices work offline in desktop UI and the VR viewport.
 without internet, enabling the microphone, changing preferences or completing
 earlier tasks. Reset recovers all props, including lost/held objects, and safely
 returns the ship and rider to the dock. The ship is optional to try, not optional
-to implement.
+to implement. House controls and kitchen belongings are also required working
+features, not scenery-only substitutes.
 
 ### 4. Hand-assembled landscape and lighting pass
 
@@ -365,6 +452,9 @@ to implement.
   keep technical comparison displays out of the finished environment.
 - [ ] Finish the pond banks, bed, dock and ship materials; verify waterline,
   reflections and hull contact in both XR eyes without costly required effects.
+- [ ] Finish the left/right spaces and hand-assembled house interior; verify cozy
+  composition, natural prop placement, light spill and kitchen effects in both
+  XR eyes without increasing dynamic-light/physics costs beyond measured budgets.
 - [ ] Optimize vegetation, collision, LODs and lighting against measured budgets;
   retain a readable lower-cost configuration and accessible traversal routes.
 
@@ -380,6 +470,9 @@ readable hints, comfortable reach/locomotion, safe recovery and stable performan
 - [ ] Add ship control/reset/lifecycle tests, invalid disembark rejection, shoreline
   containment and safe pond recovery. Manually verify moving rider stability and
   comfortable boarding/steering on desktop and an actual headset.
+- [ ] Test house light bounds/zones, appliance state changes and cleanup, safe
+  door/drawer limits, kitchen pickup/drop/reset and bed exit. Manually verify seated
+  reach, room/teleport clearance, held-prop stability and actual light response.
 - [ ] Run relevant isolated suites: microphone/settings, active instance, public
   discovery, safe worlds, VR controls and real UI; inspect their current runners
   and prerequisites first. Report failures/skips without claiming full coverage.
@@ -397,7 +490,9 @@ readable hints, comfortable reach/locomotion, safe recovery and stable performan
 **Done means:** the old default blockout is replaced, the island works offline
 from bundled content, it is one big island with the spawn in the middle, the pond
 has a working player-steered ship, spawn/recovery are reliable, all required
-interactions work on desktop/VR, help is optional and unobtrusive, the island is
+interactions work on desktop/VR, both sides offer places to linger, and the house
+has a lounge, beds, working kitchen controls, adjustable lighting and pickupable
+kitchen belongings. Help is optional and unobtrusive, the island is
 an enjoyable reusable home without tutorial signage or task progression, Credits is complete,
 and measured visual/performance gates pass. A screenshot or headless test alone
 does not satisfy this release gate.

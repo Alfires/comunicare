@@ -529,8 +529,33 @@ func test_ui(bytes: PackedByteArray):
 		editor.filter_library("")
 		check(editor.library_rows.get_child_count() == configuration.emotes.size(), "library shows all applied emotes as direct add rows")
 	check(editor.group_choice.item_count == 3, "actual wheel editor exposes root, Dances and applied imported actions group")
+	editor.group = "root"
+	editor._render()
+	editor.entries.select(0)
+	var moved_id = configuration.layout.groups.root.entries[0].id
+	editor._move(1)
+	check(editor.entries.get_selected_items() == PackedInt32Array([1]) and configuration.layout.groups.root.entries[1].id == moved_id, "moving shortcut preserves selection for repeated moves")
 	editor.queue_free()
 	menu.queue_free()
+	await process_frame
+	var batch_menu = load("res://scenes/GUI/animation_menue.tscn").instantiate()
+	root.add_child(batch_menu)
+	batch_menu.draft_sources.clear()
+	check(batch_menu.has_method("import_animation_files"), "multi-file import snapshots mode and consent for whole selection")
+	if batch_menu.has_method("import_animation_files"):
+		var document = Reader.new().document(bytes)
+		document.json.animations[0].name = "Another turn"
+		var second_file = FileAccess.open("res://second-motion.vrma", FileAccess.WRITE)
+		second_file.store_buffer(pack(document.json, document.binary))
+		second_file.close()
+		batch_menu.permission.set_pressed_no_signal(true)
+		await batch_menu.import_animation_files(PackedStringArray(["res://motion.vrma", "res://second-motion.vrma"]))
+		check(batch_menu.draft_sources.size() == 2 and batch_menu.draft_sources.all(func(source): return source.share), "explicit batch redistribution consent applies consistently to every selected animation")
+		check(not batch_menu.permission.button_pressed and not batch_menu.busy, "batch clears consent and busy state after all files complete")
+		batch_menu.draft_sources.clear()
+		await batch_menu.import_animation_files(PackedStringArray(["res://motion.vrma", "res://second-motion.vrma"]))
+		check(batch_menu.draft_sources.size() == 2 and batch_menu.draft_sources.all(func(source): return not source.share), "batch without consent never inherits previous selection permission")
+	batch_menu.queue_free()
 	await process_frame
 
 func test_avatar_dimensions():

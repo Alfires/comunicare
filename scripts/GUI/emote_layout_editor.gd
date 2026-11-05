@@ -156,8 +156,14 @@ func _render_library():
 func _move(delta: int):
 	var selected = entries.get_selected_items()
 	if selected.is_empty(): return
-	configuration.layout.move_entry(group, selected[0], group, selected[0] + delta)
+	var count = configuration.layout.groups[group].entries.size()
+	var destination_index = clampi(selected[0] + delta, 0, count - 1)
+	if not configuration.layout.move_entry(group, selected[0], group, destination_index):
+		status.text = configuration.layout.last_error
+		return
 	_render()
+	entries.select(destination_index)
+	entries.ensure_current_is_visible()
 
 func _delete_group():
 	if group == "root": return

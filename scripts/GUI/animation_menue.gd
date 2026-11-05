@@ -16,6 +16,7 @@ var generation := 0
 var profile_service
 var profile_owner := ""
 var apply_button: Button
+var batch_importing := false
 
 func _ready():
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -60,9 +61,7 @@ func _ready():
 	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
 	picker.access = FileDialog.ACCESS_FILESYSTEM
 	picker.filters = PackedStringArray(["*.vrm,*.vrma,*.glb ; Avatar / humanoid animation"])
-	picker.files_selected.connect(func(paths):
-		for path in paths:
-			await add_source(path, model_mode.button_pressed))
+	picker.files_selected.connect(import_animation_files)
 	add_child(picker)
 	_button(imports, "Import avatar model from file…", choose_model_file)
 	_button(imports, "Add animation files…", choose_animation_files)
@@ -110,6 +109,10 @@ func _render():
 		rows.add_child(row)
 
 func add_source(source: String, is_model: bool):
+	if batch_importing: return
+	await _import_source(source, is_model, permission.button_pressed)
+
+func _import_source(source: String, is_model: bool, share_allowed: bool):
 	if busy or source.is_empty(): return
 	if source.begins_with("https://") or source.begins_with("http://"):
 		status.text = "Choose a local model/animation file, or use Avatar Browser to discover models. Manual URLs are no longer supported here."
@@ -121,7 +124,7 @@ func add_source(source: String, is_model: bool):
 	apply_button.disabled = true
 	var ticket = generation
 	status.text = "Validating source…"
-	var result = await configuration.import_source(source, is_model, permission.button_pressed)
+	var result = await configuration.import_source(source, is_model, share_allowed)
 	if ticket != generation or not is_inside_tree(): return
 	busy = false
 	apply_button.disabled = false
@@ -134,11 +137,24 @@ func add_source(source: String, is_model: bool):
 		for entry in draft_sources:
 			if entry.hash == result.hash: duplicate = true
 		if not duplicate: draft_sources.append(result)
-	permission.set_pressed_no_signal(false)
+	if not batch_importing: permission.set_pressed_no_signal(false)
 	status.text = "Ready to add. Press Apply; new emotes will appear in the Imported emotes wheel group. Cancel leaves your setup unchanged."
 	_render()
 
+func import_animation_files(paths: PackedStringArray):
+	if busy or batch_importing: return
+	var share_allowed = permission.button_pressed
+	batch_importing = true
+	apply_button.disabled = true
+	for path in paths:
+		await _import_source(path, false, share_allowed)
+		if not is_inside_tree(): return
+	batch_importing = false
+	permission.set_pressed_no_signal(false)
+	apply_button.disabled = false
+
 func choose_model_file():
+	if busy or batch_importing: return
 	model_mode.set_pressed_no_signal(true)
 	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	picker.filters = PackedStringArray(["*.vrm,*.glb ; Avatar model"])
@@ -149,13 +165,14 @@ func _model_file_selected(path: String):
 	add_source(path, true)
 
 func choose_animation_files():
+	if busy or batch_importing: return
 	model_mode.set_pressed_no_signal(false)
 	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
 	picker.filters = PackedStringArray(["*.vrma,*.glb ; Humanoid animations"])
 	picker.popup_centered_ratio(0.8)
 
 func apply():
-	if busy: return
+	if busy or batch_importing: return
 	if profile_service != null and (profile_service.get_local_fingerprint() != profile_owner or not profile_service.can_edit(profile_owner)):
 		status.text = "Avatar owner changed; close and reopen this editor."
 		return

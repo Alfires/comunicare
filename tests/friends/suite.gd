@@ -264,13 +264,10 @@ func test_ui():
 	await process_frame
 	check(scene.list.get_child_count() > 4 and "Offline" in scene.status_label.text, "real Friends page renders persisted lists while disconnected")
 	check(scene.preference.item_count == 3, "self status selector offers Online/DND/Offline")
-	var state = load("res://scenes/GUI/menue.tscn").get_state()
-	var titles: Array = []
-	for i in state.get_node_count():
-		for j in state.get_node_property_count(i):
-			if str(state.get_node_property_name(i, j)).begins_with("tab_") and str(state.get_node_property_name(i, j)).ends_with("/title"):
-				titles.append(state.get_node_property_value(i, j))
-	check(titles == ["Home", "Friends", "World Explorer", "Settings"], "Friends remains second tab and World Explorer is available in tab bar")
+	var shell_script = load("res://scripts/GUI/tablet_shell.gd")
+	check(shell_script.PAGES[1] == "friends" and shell_script.TITLES.friends == "Friends" and "worlds" in shell_script.PAGES
+		and shell_script.SCENES.friends == "res://scenes/GUI/friends_menue.tscn",
+		"Friends remains the second tablet page and Worlds is available in the rail")
 	scene._open_profile(fp(1))
 	check(scene.profile_panel.profile_owner == fp(1) and not scene.profile_panel.is_editable(), "friend row profile uses correct fingerprint without editing rights")
 	scene.profile_panel._close()

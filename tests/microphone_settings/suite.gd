@@ -91,40 +91,34 @@ func descendants(node: Node, type_name: String) -> Array:
 	return node.find_children("*", type_name, true, false)
 
 func test_home_scene():
-	var scene = load("res://scenes/GUI/home_menue.tscn").instantiate()
+	var scene = load("res://scenes/GUI/tablet_shell.tscn").instantiate()
 	root.add_child(scene) # Do not suppress production _ready().
 	var toggles: Array = []
 	for button in descendants(scene, "BaseButton"):
 		if button.toggle_mode and ("mic" in button.name.to_lower() or "mic" in str(button.get("text")).to_lower()):
 			toggles.append(button)
-	check(toggles.size() == 1, "actual Home scene has exactly one microphone toggle")
+	check(toggles.size() == 1, "actual tablet shell has exactly one microphone toggle")
 	if toggles.size() == 1:
 		var button: BaseButton = toggles[0]
 		check(not button.tooltip_text.is_empty(), "microphone button explains its action/binding")
-		check(str(button.get("text")).is_empty() and button.icon != null, "Home microphone is icon-only with no status text")
+		check(str(button.get("text")).is_empty() and button.icon != null, "status bar microphone is icon-only with no status text")
 		check(not button.get_signal_connection_list("toggled").is_empty()
-			or not button.get_signal_connection_list("pressed").is_empty(), "real Home ready wires microphone button")
+			or not button.get_signal_connection_list("pressed").is_empty(), "real shell ready wires microphone button")
 	else:
 		skipped += 1
 	scene.free()
 
 func test_home_in_tab_panel():
-	var menu = TabContainer.new()
-	menu.set_script(load("res://scripts/GUI/menue.gd"))
-	menu.size = Vector2(800, 600)
-	# Reproduce an inherited theme's inset instead of testing Home in isolation.
-	var padded = StyleBoxFlat.new()
-	padded.content_margin_right = 12.0
-	menu.add_theme_stylebox_override("panel", padded)
-	var home = load("res://scenes/GUI/home_menue.tscn").instantiate()
-	menu.add_child(home)
+	# The shared menue.tscn wraps the tablet shell; the microphone lives in its status bar.
+	var menu = load("res://scenes/GUI/menue.tscn").instantiate()
+	root.size = Vector2i(1000, 700)
 	root.add_child(menu)
 	await process_frame
 	await process_frame
-	var button: Button = home.get_node("VBoxContainer/HBoxContainer/Microphone")
-	check(is_equal_approx(button.get_global_rect().end.x, menu.get_global_rect().end.x),
-		"microphone meets outer menu edge even with inherited tab-panel padding")
-	check(padded.content_margin_right == 12.0, "menu padding fix does not mutate shared theme style")
+	var bar: Control = menu.shell.get_node("%StatusBar")
+	var button: Button = menu.shell.get_node("%MicButton")
+	check(bar.is_ancestor_of(button) and button.get_global_rect().position.x > bar.get_global_rect().get_center().x,
+		"microphone sits on the right side of the always-visible status bar")
 	menu.free()
 
 func test_current_settings_scene():
@@ -405,11 +399,11 @@ func test_shared_ui_and_capture():
 	var network = root.get_node("NetworkHandler")
 	AudioServer.set_bus_layout(load("res://default_bus_layout.tres"))
 	save.voice.set_muted(true)
-	var home = load("res://scenes/GUI/home_menue.tscn").instantiate()
+	var home = load("res://scenes/GUI/tablet_shell.tscn").instantiate()
 	var settings = load("res://scenes/GUI/settings_menue.tscn").instantiate()
 	root.add_child(home)
 	root.add_child(settings)
-	var button: Button = home.get_node("VBoxContainer/HBoxContainer/Microphone")
+	var button: Button = home.get_node("%MicButton")
 	var toggle: CheckButton = settings.controls["audio.microphone_muted"]
 	var capture = load("res://fixtures/capture.gd").new()
 	root.add_child(capture)
@@ -424,7 +418,7 @@ func test_shared_ui_and_capture():
 	check(capture.packets.is_empty(), "muted direct send emits zero packets even with valid session")
 	button.button_pressed = false
 	check(not save.voice.is_muted() and not toggle.button_pressed and capture.audio_player.playing,
-		"Home click updates store, settings toggle and capture stream together")
+		"status bar click updates store, settings toggle and capture stream together")
 	capture._send_voice(PackedFloat32Array([0.8]))
 	check(capture.packets.size() == 1, "unmuted fresh voice reaches packet sink")
 	save.store.set_value("audio.microphone_gain", 2.0)
@@ -441,7 +435,7 @@ func test_shared_ui_and_capture():
 	toggle.button_pressed = true
 	check(save.voice.is_muted() and button.button_pressed and not capture.audio_player.playing
 		and capture.recording_buffer.is_empty() and capture.audio_capture.get_frames_available() == 0,
-		"Settings mute stops capture, clears both buffers and synchronizes Home")
+		"Settings mute stops capture, clears both buffers and synchronizes the status bar")
 	capture._send_voice(PackedFloat32Array([0.9]))
 	check(capture.packets.size() == 1, "muting live stream suppresses subsequent packets")
 	save.voice.handle_toggle_input(key_event(true), false)
@@ -472,7 +466,7 @@ func test_shared_ui_and_capture():
 	key.physical_keycode = KEY_M
 	settings._input(key)
 	check(not save.voice.input_blocked and save.store.get_value("input.toggle_microphone") == KEY_M
-		and "M" in button.tooltip_text, "rebinding changes action and Home tooltip")
+		and "M" in button.tooltip_text, "rebinding changes action and status bar tooltip")
 	save.voice.set_muted(true)
 	save.voice.handle_toggle_input(key_event(true), false)
 	check(save.voice.is_muted(), "old V binding no longer toggles after rebinding")
@@ -498,7 +492,7 @@ func test_shared_ui_and_capture():
 	home.hide()
 	settings.hide()
 	root.push_input(key_event(true))
-	check(save.voice.is_muted() != previous, "global V toggles with Home and Settings hidden")
+	check(save.voice.is_muted() != previous, "global V toggles with the menu and Settings hidden")
 	home.show()
 	settings.show()
 	for dimensions in [Vector2i(1000, 700), Vector2i(640, 480)]:
@@ -506,9 +500,9 @@ func test_shared_ui_and_capture():
 		await process_frame
 		await process_frame
 		var bounds: Rect2 = button.get_global_rect()
-		check(is_equal_approx(bounds.end.x, home.get_global_rect().end.x)
-			and is_equal_approx(bounds.position.y, home.global_position.y),
-			"microphone stays top-right at " + str(dimensions))
+		var bar: Rect2 = home.get_node("%StatusBar").get_global_rect()
+		check(bounds.position.x > bar.get_center().x and bar.encloses(bounds),
+			"microphone stays in the right part of the status bar at " + str(dimensions))
 	edit.text = ""
 	edit.text_submitted.emit("")
 	check(save.store.get_value("test.text") == "Test user" and not settings.errors["test.text"].text.is_empty(), "invalid text remains uncommitted with feedback")
@@ -531,7 +525,7 @@ func test_shared_ui_and_capture():
 	settings.free()
 	home.free()
 	await process_frame
-	check(save.voice.mute_changed.get_connections().is_empty(), "Home teardown removes mute subscription")
+	check(save.voice.mute_changed.get_connections().is_empty(), "menu teardown removes mute subscriptions")
 	network.peer = null
 	network.current_session_id = ""
 	connection.destroy()

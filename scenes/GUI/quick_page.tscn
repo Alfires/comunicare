@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/GUI/quick_page.gd" id="1_quick"]
+
+[node name="QuickPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_quick")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="Column" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="QuickGrid" type="GridContainer" parent="Scroll/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+
+[node name="Separator" type="HSeparator" parent="Scroll/Column"]
+layout_mode = 2
+
+[node name="FriendsCaption" type="Label" parent="Scroll/Column"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Friends online"
+
+[node name="OnlineFriends" type="HFlowContainer" parent="Scroll/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="NoFriends" type="HBoxContainer" parent="Scroll/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Message" type="Label" parent="Scroll/Column/NoFriends"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+text = "None of your friends are online."
+autowrap_mode = 3
+
+[node name="OpenFriends" type="Button" parent="Scroll/Column/NoFriends"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Open Friends"

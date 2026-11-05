@@ -53,34 +53,33 @@ func run():
 	quit(1 if failed else 0)
 
 func test_home_navigation():
-	var home = load("res://scenes/GUI/home_menue.tscn").instantiate()
-	root.add_child(home)
+	var shell = load("res://scenes/GUI/tablet_shell.tscn").instantiate()
+	root.add_child(shell)
 	for dimensions in [Vector2i(1000, 700), Vector2i(640, 480)]:
 		root.size = dimensions
 		await process_frame
 		await process_frame
-		var grid = home.get_node("VBoxContainer/MenuGrid")
-		var status = home.get_node("VBoxContainer/Status")
-		var tiles = grid.get_children()
-		check(grid.columns == 2 and tiles.size() == 4, "Home has exactly four options in a two-column grid at " + str(dimensions))
-		check(grid.position.y >= status.position.y + status.size.y and grid.size.y > home.size.y * 0.5,
-			"Home grid fills remaining space below status at " + str(dimensions))
-		check(absf(tiles[0].size.x - tiles[1].size.x) <= 1 and absf(tiles[0].size.y - tiles[2].size.y) <= 1
-			and tiles[1].position.x > tiles[0].position.x and tiles[2].position.y > tiles[0].position.y,
-			"Home tiles form equal 2x2 cells at " + str(dimensions))
-		check(tiles[2] is Button and tiles[2].text == "Emotes" and tiles[3] is Button and tiles[3].text == "Avatar Browser",
-			"Home bottom row offers Emotes and Avatar Browser")
-	home.get_node("VBoxContainer/MenuGrid/ActiveInstance").pressed.emit()
-	check(home.submenu_kind == "share_session_menue" and is_instance_valid(home.submenu_page)
-		and home.get_node("Submenu").visible and not home.get_node("VBoxContainer").visible,
-		"Home Active Instance button opens actual instance scene as a subpage")
-	home.get_node("Submenu/Back").pressed.emit()
-	check(home.submenu_page == null and home.get_node("VBoxContainer").visible,
-		"subpage Back restores Home grid and releases page")
-	home.get_node("VBoxContainer/MenuGrid/ActiveInstance").pressed.emit()
-	home.hide()
-	check(home.submenu_page == null and home.submenu_kind.is_empty(), "hiding Home closes subpage and avoids stale subscriptions")
-	home.free()
+		var nav: Array = shell.get_node("%NavList").get_children()
+		check(nav.map(func(button): return button.text) == ["Quick", "Friends", "Worlds", "Avatars", "Instance", "Settings"],
+			"tablet rail offers the six pages in order at " + str(dimensions))
+		var quick = shell.pages.get("quick")
+		var tiles: Array = quick.get_node("%QuickGrid").get_children() if quick != null else []
+		check(tiles.size() == 6 and quick.get_node("%QuickGrid").columns >= 2, "Quick page shows six tiles in a grid at " + str(dimensions))
+		check(tiles.size() == 6 and tiles[1].text == "Emotes" and tiles[2].text == "Change avatar",
+			"Quick page keeps Emotes and avatar change one tap away")
+	shell.get_node("%NavList").get_children()[4].pressed.emit()
+	var instance = shell.pages.get("instance")
+	check(shell.current_page() == "instance" and is_instance_valid(instance) and instance.visible
+		and instance.get_script().resource_path == "res://scripts/GUI/share_session_menue.gd" and not shell.pages.quick.visible,
+		"Instance rail item opens the actual instance scene as a page")
+	shell.get_node("%NavList").get_children()[0].pressed.emit()
+	check(shell.pages.quick.visible and not instance.visible, "Quick rail item returns to the Quick page")
+	shell.open_page("instance")
+	shell.reset()
+	await process_frame
+	check(not shell.pages.has("instance") and not is_instance_valid(instance) and shell.current_page() == "quick",
+		"closing the menu releases pages and avoids stale subscriptions")
+	shell.free()
 
 func profile_buttons(home: Node) -> Array:
 	var matches: Array = []
@@ -90,51 +89,43 @@ func profile_buttons(home: Node) -> Array:
 	return matches
 
 func test_header():
-	# Test actual parent padding, not just an isolated Home control.
-	var menu = TabContainer.new()
-	menu.set_script(load("res://scripts/GUI/menue.gd"))
-	var panel = StyleBoxFlat.new()
-	panel.content_margin_left = 12
-	panel.content_margin_right = 12
-	menu.add_theme_stylebox_override("panel", panel)
-	menu.size = Vector2(900, 600)
-	var home = load("res://scenes/GUI/home_menue.tscn").instantiate()
-	menu.add_child(home)
-	root.add_child(menu)
-	var buttons = profile_buttons(home)
-	check(buttons.size() == 1, "Home has one separate profile/account button")
-	var microphone: Button = home.get_node("VBoxContainer/HBoxContainer/Microphone")
+	var shell = load("res://scenes/GUI/tablet_shell.tscn").instantiate()
+	root.add_child(shell)
+	var buttons = profile_buttons(shell)
+	check(buttons.size() == 1, "status bar has one separate profile/account button")
+	var microphone: Button = shell.get_node("%MicButton")
 	check(microphone.text.is_empty() and microphone.icon != null, "existing microphone stays icon-only")
-	for dimensions in [Vector2(900, 600), Vector2(640, 480)]:
-		menu.size = dimensions
+	for dimensions in [Vector2i(900, 600), Vector2i(640, 480)]:
+		root.size = dimensions
 		await process_frame
 		await process_frame
-		check(is_equal_approx(microphone.get_global_rect().end.x, menu.get_global_rect().end.x),
-			"microphone remains flush right at " + str(dimensions))
+		var bar: Rect2 = shell.get_node("%StatusBar").get_global_rect()
+		check(bar.encloses(microphone.get_global_rect()) and microphone.get_global_rect().position.x > bar.get_center().x,
+			"microphone stays on the right of the status bar at " + str(dimensions))
 		if buttons.size() == 1:
 			var button: Button = buttons[0]
-			check(is_equal_approx(button.get_global_rect().position.x, menu.get_global_rect().position.x)
+			check(bar.encloses(button.get_global_rect()) and button.get_global_rect().position.x < shell.get_node("%InstanceLabel").get_global_rect().position.x
 				and is_equal_approx(button.global_position.y, microphone.global_position.y),
-				"profile button is flush top-left at " + str(dimensions))
+				"profile button leads the status bar at " + str(dimensions))
 	if buttons.size() == 1:
 		var button: Button = buttons[0]
 		check(button.text.is_empty() and button.icon != null, "profile has default icon without visible text")
 		check(button.custom_minimum_size.x >= 48 and button.custom_minimum_size.y >= 48,
 			"profile button has an accessible hit area")
 		check(not button.tooltip_text.is_empty() and not button.get_signal_connection_list("pressed").is_empty(),
-			"real Home ready wires profile button and tooltip")
+			"real shell ready wires profile button and tooltip")
 		button.pressed.emit()
-		var opened = home.profile_panel
-		check(is_instance_valid(opened) and opened.is_editable(), "Home profile button opens actual owner editor")
+		var opened = shell.profile_panel
+		check(is_instance_valid(opened) and opened.is_editable() and shell.get_node("%PageTitle").text == "My profile",
+			"profile button opens actual owner editor as a nested page")
 		button.pressed.emit()
-		check(home.profile_panel == opened, "repeated profile click reuses one panel")
+		check(shell.profile_panel == opened, "repeated profile click reuses one panel")
 		opened.cancel_edit()
-		check(home.get_node("VBoxContainer").visible, "Cancel returns to Home")
+		await process_frame
+		check(shell.stack.is_empty() and shell.pages.quick.visible, "Cancel returns to the Quick page")
 	else:
 		deferred_groups.append("profile button icon, placement and signal wiring")
-	menu.free()
-	check(panel.content_margin_left == 12 and panel.content_margin_right == 12,
-		"header placement never mutates shared theme padding")
+	shell.free()
 
 func test_settings_separation():
 	var scene = load("res://scenes/GUI/settings_menue.tscn").instantiate()

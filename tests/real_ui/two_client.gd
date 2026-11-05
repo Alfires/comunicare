@@ -71,7 +71,7 @@ func run():
 	root.add_child(menu)
 	menu.current_tab = 2
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	var browser = menu.get_node("world_explorer")
+	var browser = menu.page("worlds")
 	if role == "host":
 		browser.create_world_info_menue({"url": url})
 		await process_frame

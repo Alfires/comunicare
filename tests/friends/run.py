@@ -21,7 +21,7 @@ def main():
         return 2
     with tempfile.TemporaryDirectory(prefix="comunicare-friends-", dir="/tmp/opencode") as directory:
         project = Path(directory)
-        for folder in ("relay_protocol", "scripts/discovery", "scripts/profile", "scripts/GUI", "scenes/GUI", "themes/icons"):
+        for folder in ("relay_protocol", "scripts/discovery", "scripts/profile", "scripts/GUI", "scripts/assets", "scenes/GUI", "themes/icons"):
             shutil.copytree(ROOT / folder, project / folder)
         target = project / "scripts/multiplayer/relay.gd"
         target.parent.mkdir(parents=True)

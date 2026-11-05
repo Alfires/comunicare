@@ -60,18 +60,12 @@ func run():
 	quit(1 if failed else 0)
 
 func test_labels():
-	var state = load("res://scenes/GUI/home_menue.tscn").get_state()
-	var title := ""
-	var metadata := ""
-	for i in state.get_node_count():
-		for j in state.get_node_property_count(i):
-			var property = str(state.get_node_property_name(i, j))
-			if str(state.get_node_name(i)) == "ActiveInstance" and property == "text":
-				title = str(state.get_node_property_value(i, j))
-			if str(state.get_node_name(i)) == "ActiveInstance" and property == "tooltip_text":
-				metadata = str(state.get_node_property_value(i, j))
-	check(title == "Active Instance", "shared desktop/VR Home option is titled Active Instance")
-	check(not metadata.is_empty(), "Active Instance Home option explains its action")
+	var shell = load("res://scripts/GUI/tablet_shell.gd")
+	var title: String = shell.TITLES.get("instance", "")
+	var metadata: String = shell.TOOLTIPS.get("instance", "")
+	check(title == "Instance" and shell.SCENES.instance == "res://scenes/GUI/share_session_menue.tscn",
+		"shared desktop/VR tablet page for the active instance is titled Instance")
+	check(not metadata.is_empty(), "Instance rail item explains its action")
 	var desktop = FileAccess.get_file_as_string("res://scene_inputs/player_desktop.txt")
 	check(not 'tab_2/title = "Share Session"' in desktop and not 'tab_2/title = "Session Share"' in desktop,
 		"desktop inherited override cannot restore the old tab label")

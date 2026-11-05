@@ -1,0 +1,189 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/GUI/tablet_shell.gd" id="1_shell"]
+[ext_resource type="Texture2D" path="res://themes/icons/profile.svg" id="2_profile"]
+[ext_resource type="Texture2D" path="res://themes/icons/people.svg" id="3_people"]
+[ext_resource type="Texture2D" path="res://themes/icons/pin.svg" id="4_pin"]
+[ext_resource type="Texture2D" path="res://themes/icons/microphone_muted.svg" id="5_mic"]
+[ext_resource type="Texture2D" path="res://themes/icons/close.svg" id="6_close"]
+[ext_resource type="Texture2D" path="res://themes/icons/back.svg" id="7_back"]
+[ext_resource type="Script" path="res://scripts/GUI/presence_dot.gd" id="8_dot"]
+
+[node name="TabletShell" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"TabletFrame"
+script = ExtResource("1_shell")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_type_variation = &"FlushVBox"
+
+[node name="StatusBar" type="PanelContainer" parent="Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_type_variation = &"StatusBar"
+
+[node name="Row" type="HBoxContainer" parent="Layout/StatusBar"]
+layout_mode = 2
+
+[node name="ProfileButton" type="Button" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "My profile"
+theme_type_variation = &"IconButton"
+icon = ExtResource("2_profile")
+icon_alignment = 1
+expand_icon = true
+
+[node name="PresenceDot" type="Control" parent="Layout/StatusBar/Row"]
+custom_minimum_size = Vector2(12, 48)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_dot")
+
+[node name="PresenceButton" type="MenuButton" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Friend presence only. Does not change the microphone or the instance."
+theme_type_variation = &"IconButton"
+text = "Online"
+item_count = 3
+popup/item_0/text = "Online"
+popup/item_0/id = 0
+popup/item_1/text = "Do not disturb"
+popup/item_1/id = 1
+popup/item_2/text = "Appear offline"
+popup/item_2/id = 2
+
+[node name="InstanceLabel" type="Label" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+text = "Not in an instance"
+text_overrun_behavior = 3
+clip_text = true
+
+[node name="PeopleLabel" type="Button" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 2
+theme_type_variation = &"IconButton"
+icon = ExtResource("3_people")
+
+[node name="Spacer" type="Control" parent="Layout/StatusBar/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="PinButton" type="Button" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Keep the tablet where you put it"
+theme_type_variation = &"IconButton"
+toggle_mode = true
+button_pressed = true
+icon = ExtResource("4_pin")
+icon_alignment = 1
+
+[node name="MicButton" type="Button" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_type_variation = &"IconButton"
+toggle_mode = true
+button_pressed = true
+icon = ExtResource("5_mic")
+icon_alignment = 1
+
+[node name="Clock" type="Label" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "0:00"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="Layout/StatusBar/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Close menu (Esc)"
+theme_type_variation = &"IconButton"
+icon = ExtResource("6_close")
+icon_alignment = 1
+
+[node name="Body" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"FlushHBox"
+
+[node name="NavRail" type="PanelContainer" parent="Layout/Body"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+theme_type_variation = &"Sidebar"
+
+[node name="NavList" type="VBoxContainer" parent="Layout/Body/NavRail"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Main" type="VBoxContainer" parent="Layout/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"FlushVBox"
+
+[node name="PageHeader" type="PanelContainer" parent="Layout/Body/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_type_variation = &"PageHeader"
+
+[node name="Row" type="HBoxContainer" parent="Layout/Body/Main/PageHeader"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="Layout/Body/Main/PageHeader/Row"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Back"
+theme_type_variation = &"IconButton"
+icon = ExtResource("7_back")
+icon_alignment = 1
+
+[node name="PageTitle" type="Label" parent="Layout/Body/Main/PageHeader/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeaderLabel"
+text = "Quick"
+text_overrun_behavior = 3
+
+[node name="HeaderActions" type="HBoxContainer" parent="Layout/Body/Main/PageHeader/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ContentArea" type="PanelContainer" parent="Layout/Body/Main"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"ContentArea"
+
+[node name="Content" type="Control" parent="Layout/Body/Main/ContentArea"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 2
+mouse_filter = 1

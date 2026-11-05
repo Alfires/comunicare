@@ -355,6 +355,15 @@ func _variations():
 	var header = box(c("background"), 0, 24, 8)
 	theme.set_stylebox("panel", "PageHeader", header)
 
+	# Layout helpers so scenes never need inline theme overrides.
+	_variation("FlushVBox", "VBoxContainer")
+	theme.set_constant("separation", "FlushVBox", 0)
+	_variation("FlushHBox", "HBoxContainer")
+	theme.set_constant("separation", "FlushHBox", 0)
+	_variation("ContentArea", "PanelContainer")
+	theme.set_stylebox("panel", "ContentArea", box(c("background"), 0, 24, 16))
+	_variation("ContentAreaCompact", "PanelContainer")
+	theme.set_stylebox("panel", "ContentAreaCompact", box(c("background"), 0, 16, 12))
 	_variation("Card", "PanelContainer")
 	theme.set_stylebox("panel", "Card", bordered(c("surface"), 6, 16, 16))
 

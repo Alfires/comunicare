@@ -1,47 +1,17 @@
 [gd_scene format=3 uid="uid://ddvba2e5x1lxd"]
 
 [ext_resource type="Script" uid="uid://66yrw0ybyadj" path="res://scripts/GUI/menue.gd" id="1_8hq4l"]
-[ext_resource type="PackedScene" uid="uid://2lq4diyhql5i" path="res://scenes/GUI/home_menue.tscn" id="1_sjkj6"]
-[ext_resource type="PackedScene" uid="uid://cw1ia8xw77ut3" path="res://scenes/GUI/settings_menue.tscn" id="4_urf01"]
-[ext_resource type="PackedScene" path="res://scenes/GUI/friends_menue.tscn" id="5_friends"]
-[ext_resource type="PackedScene" uid="uid://bj01f1oxo6lkv" path="res://scenes/GUI/world_explorer.tscn" id="6_explorer"]
+[ext_resource type="PackedScene" path="res://scenes/GUI/tablet_shell.tscn" id="2_shell"]
 
-[node name="menue" type="TabContainer" unique_id=1733054730]
-anchors_preset = -1
-anchor_left = 0.1
-anchor_top = 0.1
-anchor_right = 0.9
-anchor_bottom = 0.9
+[node name="menue" type="Control" unique_id=1733054730]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-tab_alignment = 1
-current_tab = 0
-tabs_position = 1
-tab_0/title = "Home"
-tab_1/title = "Friends"
-tab_2/title = "World Explorer"
-tab_3/title = "Settings"
+mouse_filter = 2
 script = ExtResource("1_8hq4l")
 
-[node name="home_menue" parent="." unique_id=2133954344 instance=ExtResource("1_sjkj6")]
-layout_mode = 2
-metadata/_tab_index = 0
-metadata/_tab_name = "Home"
-
-[node name="friends_menue" parent="." instance=ExtResource("5_friends")]
-visible = false
-layout_mode = 2
-metadata/_tab_index = 1
-metadata/_tab_name = "Friends"
-
-[node name="world_explorer" parent="." instance=ExtResource("6_explorer")]
-visible = false
-layout_mode = 2
-metadata/_tab_index = 2
-metadata/_tab_name = "World Explorer"
-
-[node name="settings_menue" parent="." unique_id=1920010780 instance=ExtResource("4_urf01")]
-visible = false
-layout_mode = 2
-metadata/_tab_index = 3
-metadata/_tab_name = "Settings"
+[node name="Shell" parent="." instance=ExtResource("2_shell")]
+layout_mode = 1

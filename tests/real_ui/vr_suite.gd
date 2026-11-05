@@ -54,9 +54,10 @@ func run():
 	left.set_input("primary", Vector2.ZERO)
 	player._toggle_main_menu()
 	await process_frame
-	check(player._menu_open() and player.main_ui is TabContainer, "production VR rig opens actual shared menu in 3D viewport")
+	check(player._menu_open() and player.main_ui.get_script().resource_path == "res://scripts/GUI/menue.gd" and player.main_ui.shell != null,
+		"production VR rig opens actual shared tablet menu in 3D viewport")
 	check(player.main_panel.viewport.get_meta("vr_menu", false), "VR viewport owns input mode independently from desktop mouse capture")
-	var settings = player.main_ui.get_node("settings_menue")
+	var settings = player.main_ui.page("settings")
 	player.main_ui.current_tab = 3
 	settings.select_category("Network")
 	check(settings.selected_category == "Network", "actual Network preferences are mounted in emulated VR menu")

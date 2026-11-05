@@ -43,7 +43,7 @@ func new_shell() -> Node:
 	var shell = scene_component(SHELL, SHELL_METHODS)
 	if shell == null: return null
 	check(stub_factories(shell), "shell exposes page_factories prefilled with default page loaders")
-	shell.size = Vector2(1600, 1200)
+	root.size = Vector2i(1600, 1200)
 	root.add_child(shell)
 	await frames(3)
 	return shell
@@ -99,6 +99,8 @@ func test_shell():
 	shell.open_page("settings")
 	await frames()
 	check(created.get("settings", 0) == 1, "reopening a page reuses its instance")
+	check(nav.filter(func(b): return b.button_pressed).map(func(b): return b.get_meta("page_id")) == ["settings"],
+		"exactly one rail item is marked active")
 	var shown = visible_pages(shell)
 	check(shown.size() == 1 and shown[0].get_meta("page_id", "") == "settings", "exactly one page is visible")
 	var back: BaseButton = shell.get_node("%BackButton")
@@ -171,7 +173,7 @@ func test_quick_page():
 	var quick = scene_component("res://scenes/GUI/quick_page.tscn", [])
 	if quick == null: return
 	check(quick.has_signal("action_requested"), "Quick page emits action_requested(id)")
-	quick.size = Vector2(1400, 1100)
+	root.size = Vector2i(1400, 1100)
 	root.add_child(quick)
 	await frames(3)
 	var tiles: Array = find_by_meta(quick, "quick_action").filter(func(node): return node is BaseButton)

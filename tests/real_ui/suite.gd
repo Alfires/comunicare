@@ -92,7 +92,7 @@ func run():
 	menu = load("res://scenes/GUI/menue.tscn").instantiate()
 	root.add_child(menu)
 	menu.current_tab = 2
-	browser = menu.get_node("world_explorer")
+	browser = menu.page("worlds")
 	# External catalog request is cancelled, not a substituted UI script/autoload.
 	# Only loopback networking is part of this deterministic acceptance scenario.
 	browser.http_request.cancel_request()
@@ -142,7 +142,7 @@ func run():
 	check(await wait_until(func(): return not network.session_busy), "closing full menu during join leaves coordinator recoverable")
 	menu = load("res://scenes/GUI/menue.tscn").instantiate()
 	root.add_child(menu)
-	browser = menu.get_node("world_explorer")
+	browser = menu.page("worlds")
 	check(network.current_session_id == original, "menu recreation does not lose acknowledged membership")
 	# Forced loss is detected by the production process, not a hand-written
 	# disconnected label. Restore through fresh origin authentication afterward.
@@ -155,7 +155,7 @@ func run():
 	check(await network.join_remote_instance(same_summary), "fresh join recovers after route failure without restarting UI")
 	original = network.current_session_id
 	menu.current_tab = 3
-	var settings = menu.get_node("settings_menue")
+	var settings = menu.page("settings")
 	settings.select_category("Network")
 	var panel
 	for node in settings.category_pages.Network.get_children():

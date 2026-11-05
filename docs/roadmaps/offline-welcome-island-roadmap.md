@@ -14,7 +14,12 @@ materials and lighting within a deliberately fantastical floating-island setting
 
 ### Non-negotiable requirements
 
-- A flying island with trees, an original terrain silhouette and a central spawn.
+- **One big, continuous flying island**, not several islands or detached playable
+  platforms, with trees and an original terrain silhouette.
+- The spawn is in the **middle of the island**, on dry, level ground; the pond
+  and all activity areas surround this central clearing rather than displacing it.
+- A pond with a **working, boardable and steerable small ship**, not a static
+  decoration or an inaccessible animated model.
 - Assemble the terrain, paths, vegetation and props ourselves using individual
   free premade assets. **Do not import a complete island, environment demo or
   large scene preset as the map.** An asset pack is a parts library, not a layout.
@@ -54,21 +59,65 @@ These are integration constraints, not claims that the planned features exist.
 
 ## Experience and original layout
 
-Working title: **Sky Grove**. Start with an approximately 70–90 m wide island;
-adjust scale after testing traversal at current configurable movement speeds.
+Working title: **Sky Grove**. Start with one approximately 100–120 m wide island
+and a roughly 25–35 m wide pond with room to steer a small ship. These are initial
+graybox dimensions; adjust after testing movement and the ship's turning circle.
+Keep the spawn at the island's plan-view center, not at the center of a side area.
 Use a broad walkable upper surface, an asymmetric tapered rocky underside,
 overhanging roots and a cloud backdrop that clearly communicates floating height.
 No required jumping, narrow balance obstacles or lethal edge challenges.
 
+### Intended final appearance: top-down ASCII concept
+
 ```text
-                    Quiet tree grove
-                    /              \
-          Shaded overlook       Lighting alcove
-                 |                  |
-          Gentle movement loop — Central spawn
-                    \              /
-                     Interaction garden
+                                  NORTH
+                     ONE BIG FLOATING ISLAND
+               .-----------------------------------.
+           .--'       T   T   QUIET GROVE   T       '--.
+         .'       T      bench       T       T          '.
+        /    shaded overlook ---- loop path ---- shelter  \
+       /          |                    |        + lamp     \
+      |           |                    |                    |
+      |    T      +-------------+------+          T         |
+      |                         |                           |
+      |                    [ SPAWN ]                        |
+      |                  ISLAND MIDDLE                      |
+      |                         |                           |
+      |   interaction garden ---+---- path ---- dock         |
+      |    table / props        |               H ~~~~~~~   |
+       \     T              return path        ~ H  /|  ~  /
+        \         T                           ~   /_|   ~ /
+         '.              T                     ~ \___/ ~.'
+           '--.             grassy bank          ~~~~~.-'
+               '-------------------------------------'
+
+      T = tree     H = dock     /| + hull = working ship
+      ~ = pond water, enclosed by land on this same island
 ```
+
+### Intended final appearance: side-view ASCII concept
+
+```text
+                       trees       central spawn       trees
+                      /\   /\          |               /\
+                     /__\ /__\       [ + ]    dock     /__\
+                 ____ ||__ ||__________|_______H__ /| ___||____
+                / grass / soil / continuous land  \_|          \
+               /                         pond ~~~\___/~~~       \
+              / rock layers __________ pond bed __________       \
+              \        roots       \             /       rock   /
+               \  fractured stone   \___________/              /
+                \                 rocky underside             /
+                 \______        __________       ____________/
+                        \______/          \_____/
+
+           ~ clouds ~           open sky          ~ clouds ~
+```
+
+These sketches show composition, not construction measurements. The pond is a
+recess in the upper surface with a sealed bed; it does not divide the island or
+drain into space. All land destinations connect by broad dry paths. The ship
+stays inside the pond, and no secondary island is needed for a destination.
 
 The diagram is a planning aid, not a premade layout to download. Sculpt/model
 the base ourselves; place individual rocks to break up the cliffs and underside,
@@ -82,12 +131,40 @@ soil, roots and stone. Avoid obvious repeated boulder piles as the whole island.
 | Movement loop | Broad curved path, gentle slope, optional low steps with an accessible bypass; hints for looking, walking, turning, optional sprint and VR teleport | Both desktop and supported VR locomotion modes can complete the loop without jumping |
 | Interaction garden | Stable table, movable objects, reset control and a switch-operated lamp | Player can pick up, move, drop, activate and reset with visible feedback while offline |
 | Lighting alcove | Small shaded timber/stone shelter with a warm lamp, rough wood, stone and a restrained metal object | Sun/shade, contact shadows, roughness and reflections are visibly distinct, including with the lamp off |
+| Pond and dock | Landscaped pond, shallow readable shoreline, accessible dock and small player-operated ship | Player can board, steer around the pond, stop, return and disembark on desktop and VR without networking |
 | Grove and overlook | Trees, rocks, benches, quiet wind/birds and a broad protected view of clouds/underside | A usable relaxing destination with no task marker, timer or forced narration |
 
 Use rock borders, shrubs, railings and generous setbacks to make edges legible.
 Provide recovery below the island and a menu-accessible return to spawn. Do not
 rely on invisible walls alone. Benches are scenery initially; an actual seating
 interaction is optional and must not forcibly move a VR headset.
+
+### Pond and working ship
+
+- Use a small pond-scale launch/ship rather than a full-size ocean vessel. Obtain
+  a free, redistribution-cleared premade hull and suitable dock parts separately;
+  assemble the dock, shore and pond ourselves. Exact asset selection is pending
+  the same provenance/license gate as trees and materials.
+- Provide explicit board, steer/throttle, stop, disembark and reset actions with
+  current desktop/VR bindings. Do not call a ship “working” just because it bobs
+  or follows an automatic route. Player control is required; autopilot is optional.
+- Use bounded local watercraft movement with stable buoyancy or a constrained
+  water-surface model, hull/shore collision and a low speed/turn-rate limit. Full
+  ocean simulation, sails and swimming are not required for this pond.
+- Keep the rider supported without sliding or physics jitter. In VR, boarding
+  requires confirmation, preserves tracked head offsets and uses a brief comfort
+  transition; never force head rotation, roll or camera bob. Offer immediate stop
+  and return-to-dock. Riding is optional and never gates onboarding completion.
+- Disembark only to a validated clear shore/dock location, not into water, trees
+  or the void. Falling into the pond safely returns the player to the bank/dock;
+  a menu escape/reset works even if the ship is stranded or overturned.
+- Reset restores the ship at its berth, clears motion/input and safely releases
+  any rider. Scene changes and menu/focus loss must cancel control appropriately.
+- Use restrained water reflections, shore contact and ripples as part of the
+  lighting showcase; preserve visibility and a low-cost non-SSR fallback in VR.
+- Offline ship operation must not require a relay lease. In online home sessions,
+  clearly mark it local-only unless authorized synchronized rider/vehicle ownership
+  is implemented and verified; do not introduce a vehicle protocol in this plan.
 
 ## Optional onboarding and interaction design
 
@@ -106,7 +183,10 @@ interaction is optional and must not forcibly move a VR headset.
    and world/instance menus where available. Explain that meeting people needs
    a connection; mark unavailable network actions clearly. Never simulate a
    successful join, friendship or remote player in an offline tutorial.
-6. **Stay:** dismiss hints and enjoy the grove. No forced transfer to an online
+6. **Try the ship (optional):** follow the dry path to the dock, board, steer a
+   short loop and return. Explain stop/disembark/reset before moving; users who
+   prefer not to ride can enjoy the pond from the bank.
+7. **Stay:** dismiss hints and enjoy the grove. No forced transfer to an online
    world, automatic microphone enable or completion telemetry.
 
 Desktop and VR must share interaction semantics: aim/highlight, activate,
@@ -202,6 +282,8 @@ existing player, animation or test changes along with island work.
   split authored content into focused island subscenes/resources as needed.
 - [ ] Block out the original island, center spawn, paths, shelter and safe edges.
   Test capsule clearance, slopes, desktop movement and VR teleport surfaces.
+- [ ] Keep one continuous landmass with the spawn in its middle; graybox the pond,
+  sealed pond bed, dry perimeter route, dock and ship turning clearance.
 - [ ] Share a spawn/reset contract across direct startup, DataLoader activation
   and fall recovery; preserve root-level player lifetime, XR tracking offsets and
   cleared movement velocity. Reset items to their own homes, not the player's head.
@@ -216,6 +298,8 @@ moving, and `default_wold` still resolves through DataLoader.
 
 - [ ] Acquire a minimal cleared tree, rock, ground material, table and sky set;
   inspect imports, scale, normals, foliage alpha, license files and redistribution.
+- [ ] Select a free cleared ship hull and individual dock components; record exact
+  sources/licenses and test suitable scale, collision proxies and water material.
 - [ ] Establish original terrain authoring/export steps, asset provenance manifest,
   source/license storage and reduced runtime variants. No opaque imported map.
 - [ ] Implement the read-only Credits page and manifest/license consistency tests.
@@ -230,6 +314,9 @@ Credits and full notices work offline in desktop UI and the VR viewport.
   do not weaken downloaded-world validation or add relay dependencies for offline use.
 - [ ] Deliver pickup/drop/reset props plus an activatable lamp switch, including
   aim feedback, reach limits, collision, cancellation and bounded velocities.
+- [ ] Deliver offline ship boarding, player steering, stopping, safe disembarking,
+  rider support and return-to-dock/reset. Test pond/shore collision, lost focus,
+  scene exit and VR comfort; do not substitute a decorative animated ship.
 - [ ] Add optional device/binding-aware hints, replay/hide controls and links to
   real menus. Verify remapping and menu/focus suppression.
 - [ ] Keep tutorial progress and lamp demonstrations local. If this same built-in
@@ -238,7 +325,9 @@ Credits and full notices work offline in desktop UI and the VR viewport.
 
 **Gate:** a new desktop user and a seated VR user can try every required action
 without internet, enabling the microphone, changing preferences or completing
-earlier tasks. Reset recovers all props, including lost/held objects.
+earlier tasks. Reset recovers all props, including lost/held objects, and safely
+returns the ship and rider to the dock. The ship is optional to try, not optional
+to implement.
 
 ### 4. Hand-assembled landscape and lighting pass
 
@@ -246,6 +335,8 @@ earlier tasks. Reset recovers all props, including lost/held objects.
   compose the grove, underside, roots, overlooks and quiet destinations.
 - [ ] Add consistent PBR materials, shadows, restrained ambience and the lighting
   alcove. Test sunlight/shade and lamp-on/off comparisons with moving props.
+- [ ] Finish the pond banks, bed, dock and ship materials; verify waterline,
+  reflections and hull contact in both XR eyes without costly required effects.
 - [ ] Optimize vegetation, collision, LODs and lighting against measured budgets;
   retain a readable lower-cost configuration and accessible traversal routes.
 
@@ -257,6 +348,9 @@ readable hints, comfortable reach/locomotion, safe recovery and stable performan
 
 - [ ] Automate scene/load dependencies, spawn clearance, repeated scene changes,
   fall/item reset, interaction cleanup, hint rebinding and Credits completeness.
+- [ ] Add ship control/reset/lifecycle tests, invalid disembark rejection, shoreline
+  containment and safe pond recovery. Manually verify moving rider stability and
+  comfortable boarding/steering on desktop and an actual headset.
 - [ ] Run relevant isolated suites: microphone/settings, active instance, public
   discovery, safe worlds, VR controls and real UI; inspect their current runners
   and prerequisites first. Report failures/skips without claiming full coverage.
@@ -269,7 +363,8 @@ readable hints, comfortable reach/locomotion, safe recovery and stable performan
   remaining limitations. Update current user guides and this roadmap's index status.
 
 **Done means:** the old default blockout is replaced, the island works offline
-from bundled content, central spawn and recovery are reliable, all required
+from bundled content, it is one big island with the spawn in the middle, the pond
+has a working player-steered ship, spawn/recovery are reliable, all required
 interactions work on desktop/VR, tutorials are optional, Credits is complete,
 and measured visual/performance gates pass. A screenshot or headless test alone
 does not satisfy this release gate.

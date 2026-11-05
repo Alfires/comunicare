@@ -1,12 +1,26 @@
-# Public avatar discovery — opt-in RED acceptance tests
+# Public avatar discovery acceptance tests
+
+**Implementation update:** core contracts now run against production components,
+not guarded missing APIs. Optional `ANIMATION_FIXTURE=/path/to/permitted.vrma`
+checks explicit in-place adaptation through the production importer. Live network
+checks are **opt-in only**: `LIVE_DISCOVERY=1 python3 tests/avatar_discovery/run.py`.
+Normal invocation remains isolated loopback-only with no real account/credentials.
+The original RED baseline and interfaces below are retained as history; they are
+not the current implementation status. Additional roadmap tests remain outstanding.
+
+Current verification (2026-11-05): **46 passed**, zero failed/skipped in normal
+loopback mode. Real VRMA fixture adds one assertion. Explicit live verification
+plus real fixture: **52 passed**, zero failed/skipped, checking both anonymous
+catalogs/downloads and in-place motion conversion. Live checks are evidence at
+that time, not a guarantee of provider availability or complete asset compatibility.
 
 Run `python3 tests/avatar_discovery/run.py` (override executable with `GODOT`).
-These tests target the [roadmap](../../docs/roadmaps/public-avatar-discovery-roadmap.md),
-not existing implemented APIs. Missing production modules/scenes fail explicitly;
+These tests target the [roadmap](../../docs/roadmaps/public-avatar-discovery-roadmap.md)
+and its initial production implementation. Missing production modules/scenes fail explicitly;
 dependent checks are reported as not run, never counted as passing coverage.
 Exit 1 means acceptance failures; exit 2 means missing Godot, timeout or Godot
-`ERROR:` infrastructure failure. Do not add this intentionally red suite to green
-repository/release checks until implementation satisfies it.
+`ERROR:` infrastructure failure. The original intentionally red suite is now green
+for implemented core contracts, not every roadmap/manual gate.
 
 Initial baseline (2026-11-05): **1 passed, 6 failed, 5 dependent groups not run**,
 exit 1, no Godot errors. Only preservation of the existing Home entries currently
@@ -19,7 +33,7 @@ in fixtures. HTTP is allowed only through an explicit test-only loopback overrid
 All credentials are literal synthetic strings. Provider responses are a proposed
 schema-1 catalog, **not recorded evidence of a qualifying real public API**.
 
-## Proposed production interfaces
+## Production interfaces
 
 Modules under `scripts/discovery/avatars/`:
 
@@ -56,7 +70,7 @@ isolation, real loopback type filtering/pagination/error handling, import gates,
 and Home search/category navigation state. Until components exist, these are
 future conditional checks—not executed behavioral coverage.
 
-Not yet covered: request-generation races, cancellation/debounce, provider merging,
+Not yet covered by automated assertions: request-generation races, cancellation/debounce, provider merging,
 bounded decode limits, retries/backoff timing, thumbnail decoding/cache lifetime,
 redirect wire behavior, source-management rendered controls, credential-store
 failure, OAuth PKCE/state/callbacks, logout/account-switch in-flight cancellation,

@@ -34,6 +34,7 @@ func _ready():
 		status_selector.disabled = true
 	$VBoxContainer/MenuGrid/WorldExplorer.pressed.connect(open_home_menu.bind("world_explorer"))
 	$VBoxContainer/MenuGrid/ActiveInstance.pressed.connect(open_home_menu.bind("share_session_menue"))
+	$VBoxContainer/MenuGrid/AvatarBrowser.pressed.connect(open_home_menu.bind("avatar_browser"))
 	$VBoxContainer/MenuGrid/Emotes.pressed.connect(func(): NetworkHandler.get_animation_controller().toggle_emote_menu())
 	_setting_changed("input.toggle_animation_menu", SaveData.store.get_value("input.toggle_animation_menu"))
 	$Submenu/Back.pressed.connect(close_home_menu)
@@ -92,7 +93,7 @@ func open_profile(owner: String):
 	profile_panel.open_profile(SaveData.profile, owner)
 
 func open_home_menu(kind: String):
-	if kind not in ["world_explorer", "share_session_menue"]:
+	if kind not in ["world_explorer", "share_session_menue", "avatar_browser"]:
 		return
 	if kind == "world_explorer" and get_parent() is TabContainer:
 		var explorer = get_parent().get_node_or_null("world_explorer")
@@ -102,6 +103,7 @@ func open_home_menu(kind: String):
 	close_home_menu()
 	submenu_kind = kind
 	return_focus = $VBoxContainer/MenuGrid/WorldExplorer if kind == "world_explorer" else $VBoxContainer/MenuGrid/ActiveInstance
+	if kind == "avatar_browser": return_focus = $VBoxContainer/MenuGrid/AvatarBrowser
 	# Lazy construction avoids HTTP/discovery work until the option is opened.
 	submenu_page = load("res://scenes/GUI/" + kind + ".tscn").instantiate()
 	$VBoxContainer.hide()

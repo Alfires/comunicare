@@ -57,6 +57,134 @@
       "visibility": "private"
     }
   ],
+  "scripts/GUI/avatar_browser.gd": [
+    {
+      "kind": "func",
+      "name": "_button",
+      "line": 27,
+      "signature": "func _button(parent: Node, title: String, action: Callable) -> Button",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 35,
+      "signature": "func _ready()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_refresh_sources",
+      "line": 94,
+      "signature": "func _refresh_sources()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_clear",
+      "line": 102,
+      "signature": "func _clear()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_home",
+      "line": 110,
+      "signature": "func _home()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "submit_home_search",
+      "line": 121,
+      "signature": "func submit_home_search(query: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "select_category",
+      "line": 129,
+      "signature": "func select_category(category: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "get_search_state",
+      "line": 141,
+      "signature": "func get_search_state() -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_home_feeds",
+      "line": 144,
+      "signature": "func _home_feeds()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_search",
+      "line": 172,
+      "signature": "func _search(more: bool)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_details",
+      "line": 218,
+      "signature": "func _details(record: Dictionary)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_preview_record",
+      "line": 238,
+      "signature": "func _preview_record(record: Dictionary)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_import_record",
+      "line": 278,
+      "signature": "func _import_record(record: Dictionary)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_persist_sources",
+      "line": 357,
+      "signature": "func _persist_sources()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_sources",
+      "line": 369,
+      "signature": "func _sources()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_cancel_pending",
+      "line": 418,
+      "signature": "func _cancel_pending()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_process",
+      "line": 422,
+      "signature": "func _process(_delta)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_exit_tree",
+      "line": 429,
+      "signature": "func _exit_tree()",
+      "visibility": "private"
+    }
+  ],
   "scripts/GUI/avatar_preview.gd": [
     {
       "kind": "signal",
@@ -470,91 +598,91 @@
     {
       "kind": "func",
       "name": "_status_changed",
-      "line": 42,
+      "line": 43,
       "signature": "func _status_changed()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_toggled",
-      "line": 46,
+      "line": 47,
       "signature": "func _on_toggled(muted: bool)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update",
-      "line": 49,
+      "line": 50,
       "signature": "func _update(muted: bool)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_availability_changed",
-      "line": 58,
+      "line": 59,
       "signature": "func _availability_changed(_message: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_setting_changed",
-      "line": 61,
+      "line": 62,
       "signature": "func _setting_changed(id: String, _value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 67,
+      "line": 68,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_profile_changed",
-      "line": 76,
+      "line": 77,
       "signature": "func _profile_changed(owner: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_open_self_profile",
-      "line": 80,
+      "line": 81,
       "signature": "func _open_self_profile()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "open_profile",
-      "line": 84,
+      "line": 85,
       "signature": "func open_profile(owner: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "open_home_menu",
-      "line": 94,
+      "line": 95,
       "signature": "func open_home_menu(kind: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "close_home_menu",
-      "line": 112,
+      "line": 114,
       "signature": "func close_home_menu()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "reset_home",
-      "line": 123,
+      "line": 125,
       "signature": "func reset_home()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_visibility_changed",
-      "line": 128,
+      "line": 130,
       "signature": "func _visibility_changed()",
       "visibility": "private"
     }
@@ -2647,6 +2775,135 @@
       "name": "save_calibration",
       "line": 75,
       "signature": "func save_calibration(data: Dictionary) -> bool",
+      "visibility": "public"
+    }
+  ],
+  "scripts/discovery/avatars/animation_conversion.gd": [
+    {
+      "kind": "func",
+      "name": "convert",
+      "line": 3,
+      "signature": "func convert(bytes: PackedByteArray) -> PackedByteArray",
+      "visibility": "public"
+    }
+  ],
+  "scripts/discovery/avatars/discovery_service.gd": [
+    {
+      "kind": "func",
+      "name": "configure",
+      "line": 14,
+      "signature": "func configure(value: Dictionary, transport_options: Dictionary = {})",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "cancel",
+      "line": 20,
+      "signature": "func cancel()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "request_bytes",
+      "line": 28,
+      "signature": "func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_json",
+      "line": 68,
+      "signature": "func _json(url: String) -> Dictionary",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "search",
+      "line": 90,
+      "signature": "func search(query: Dictionary) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_exit_tree",
+      "line": 141,
+      "signature": "func _exit_tree()",
+      "visibility": "private"
+    }
+  ],
+  "scripts/discovery/avatars/import_policy.gd": [
+    {
+      "kind": "func",
+      "name": "evaluate",
+      "line": 3,
+      "signature": "func evaluate(record: Dictionary) -> Dictionary",
+      "visibility": "public"
+    }
+  ],
+  "scripts/discovery/avatars/request_policy.gd": [
+    {
+      "kind": "func",
+      "name": "origin",
+      "line": 3,
+      "signature": "func origin(url: String) -> String",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "valid_url",
+      "line": 6,
+      "signature": "func valid_url(url: String, loopback: bool = false) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "prepare_request",
+      "line": 15,
+      "signature": "func prepare_request(source: Dictionary, target_url: String, credentials: Dictionary, loopback: bool = false) -> Dictionary",
+      "visibility": "public"
+    }
+  ],
+  "scripts/discovery/avatars/source_registry.gd": [
+    {
+      "kind": "func",
+      "name": "add_source",
+      "line": 7,
+      "signature": "func add_source(value: Dictionary) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "set_credentials",
+      "line": 18,
+      "signature": "func set_credentials(id: String, value: Dictionary) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "get_credentials",
+      "line": 25,
+      "signature": "func get_credentials(id: String) -> Dictionary",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "remove_source",
+      "line": 28,
+      "signature": "func remove_source(id: String)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "export_configuration",
+      "line": 32,
+      "signature": "func export_configuration() -> Array",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "clear_credentials",
+      "line": 35,
+      "signature": "func clear_credentials()",
       "visibility": "public"
     }
   ],

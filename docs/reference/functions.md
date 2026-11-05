@@ -1,5 +1,57 @@
 # Production function contracts
 
+<!-- module: scripts/discovery/avatars/request_policy.gd -->
+## Avatar discovery request policy
+
+`origin` normalizes scheme/authority. `valid_url` accepts bounded HTTPS without
+embedded credentials/token queries; explicit test transport permits loopback HTTP.
+`prepare_request` returns URL/headers or empty; built-ins never inherit secrets,
+custom bearer/API-key headers require the configured exact origin.
+
+<!-- module: scripts/discovery/avatars/source_registry.gd -->
+## Avatar discovery sources
+
+`add_source` validates identity, endpoint and auth mode; custom sources only use
+the catalog adapter. `set_credentials` stores custom-only secrets in memory;
+`get_credentials` copies them. `remove_source` clears source and secret;
+`export_configuration` returns nonsecret preferences. `clear_credentials` drops
+all memory secrets. No OS credential store or OAuth implementation is implied.
+
+<!-- module: scripts/discovery/avatars/import_policy.gd -->
+## Discovery import gate
+
+`evaluate` reports format support, CC0 sharing and verified-compatibility equip
+eligibility. Actual import/Apply still validate bytes and ownership; provider
+metadata is never proof of humanoid compatibility.
+
+<!-- module: scripts/discovery/avatars/discovery_service.gd -->
+## Avatar discovery service
+
+`configure` cancels prior work and clears credential context. `cancel` invalidates
+generations, cancels HTTP and releases awaiters. `request_bytes` awaits bounded
+requests, HTTPS redirects, origin/rate checks and no-store detection; returns
+bytes or redacted error. `search` normalizes custom schema-1 catalogs or anonymous
+OSA/VoxAvatar manifests and pages/filters fetched records. Metadata cache lasts
+for the browser session, without TTL revalidation. Teardown cancels pending work.
+
+<!-- module: scripts/discovery/avatars/animation_conversion.gd -->
+## Explicit in-place animation conversion
+
+`convert` validates binary document, removes translation channels and repackages
+JSON/BIN, returning bytes only if the ordinary humanoid importer accepts them.
+Runs on a worker after explicit selection; source originals are unchanged.
+
+<!-- module: scripts/GUI/avatar_browser.gd -->
+## Avatar Browser UI
+
+`submit_home_search` transfers bounded query to Search and resets cursor.
+`select_category` installs visible type/category filters. `get_search_state`
+returns a copy. Private groups own generation guards, source management, separate
+previews, download/digest/license gates and import into the existing editor draft.
+Apply stays explicit. No network request runs at ready; user search/category/feed,
+preview or import actions initiate external requests. Close/account change cancels
+work and removes secrets. Exact limitations are in the browser guide.
+
 <!-- module: scripts/multiplayer/federation/relay_presets.gd -->
 ## Shipped internet relay discovery presets
 

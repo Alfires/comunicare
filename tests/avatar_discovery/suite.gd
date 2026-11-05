@@ -32,7 +32,7 @@ func component(name: String, methods: Array):
 	return object
 
 func dispose(object):
-	if object is Node: object.free()
+	if object is Node: object.queue_free()
 
 func run():
 	test_home_entry()
@@ -40,8 +40,14 @@ func run():
 	test_requests()
 	await test_loopback_search()
 	test_import_gate()
+	if FileAccess.file_exists("res://sample.vrma"):
+		var reader = load("res://scripts/assets/humanoid_animation.gd").new()
+		var converter = load(BASE + "animation_conversion.gd").new()
+		var converted = converter.convert(FileAccess.get_file_as_bytes("res://sample.vrma"))
+		check(not converted.is_empty() and not reader.read_bytes(converted).is_empty(), "explicit in-place provider animation passes production humanoid importer")
 	test_browser()
-	print("Avatar discovery RED: %d passed, %d failed; %d dependent groups not run" % [passed, failed, skipped])
+	if FileAccess.file_exists("res://live-opt-in.txt"): await test_live_sources()
+	print("Avatar discovery: %d passed, %d failed; %d dependent groups not run" % [passed, failed, skipped])
 	quit(1 if failed else 0)
 
 func test_home_entry():
@@ -62,6 +68,7 @@ func test_sources():
 		forbidden.auth = mode
 		check(not sources.add_source(forbidden), "built-ins reject " + mode + " authentication")
 	check(not sources.set_credentials("builtin", {"token": "synthetic-secret"}), "built-in source cannot acquire credentials")
+	check(not sources.add_source({"id": "spoof", "kind": "custom", "base_url": "https://custom.example.test", "adapter": "osa"}), "custom source cannot impersonate reviewed built-in adapter")
 	var custom = {"id": "custom", "kind": "custom", "base_url": "https://custom.example.test", "auth": "bearer"}
 	check(sources.add_source(custom), "user-added API may declare optional login")
 	check(sources.set_credentials("custom", {"token": "synthetic-secret", "memory_only": true}), "custom source supports memory-only synthetic credential")
@@ -87,6 +94,7 @@ func test_requests():
 	var own: Dictionary = policy.prepare_request(custom, "https://private.example.test/search", secret)
 	check("synthetic-secret" in JSON.stringify(own.get("headers", [])), "custom credentials are scoped to explicit source origin")
 	check(policy.prepare_request(custom, "https://cdn.example.test/model.glb", secret).is_empty(), "cross-origin authenticated download denied by default")
+	check(policy.prepare_request(custom, "https://private.example.test:444/search", secret).is_empty(), "different port cannot receive custom credential")
 	for url in ["https://public.example.test/model?token=secret", "https://public.example.test/model?api_key=secret"]:
 		check(policy.prepare_request(builtin, url, {}).is_empty(), "token-bearing built-in URL rejected")
 	dispose(policy)
@@ -108,6 +116,15 @@ func test_loopback_search():
 		service.configure({"id": "fixture", "base_url": base + endpoint, "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
 		result = await service.search({"query": "", "type": "all", "cursor": ""})
 		check(not result.get("error", "").is_empty(), "provider failure becomes bounded result: " + endpoint)
+	service.retry_at.clear() # Independent credential scenario after deliberate 429.
+	service.configure({"id": "fixture", "base_url": base, "kind": "custom", "auth": "bearer"}, {"allow_loopback_http": true})
+	service.credentials = {"token": "synthetic-secret"}
+	result = await service.search({"query": "", "type": "all"})
+	check(result.get("request_received", {}).get("authorization") == "Bearer synthetic-secret", "custom catalog receives scoped credential over real loopback")
+	service.configure({"id": "fixture", "base_url": base, "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	result = await service.search({"query": "", "type": "all"})
+	check(result.get("request_received", {}).get("authorization") == "", "switch back to public clears authenticated context")
+	check(result.get("items", []).all(func(item): return item.get("compatibility") == "unknown"), "remote metadata cannot self-certify importer compatibility")
 	dispose(service)
 
 func test_import_gate():
@@ -130,6 +147,9 @@ func test_browser():
 		return
 	var browser = load(path).instantiate()
 	root.add_child(browser)
+	check(browser.registry.sources.has("vox") and browser.registry.sources.vox.adapter == "vox", "built-in animations-only catalog is available separately")
+	check(browser.registry.sources.values().all(func(item): return item.auth == "none"), "all built-in adapters are anonymous")
+	check(browser.services.is_empty(), "opening browser does not start unconsented network requests")
 	if not browser.has_method("submit_home_search") or not browser.has_method("select_category") or not browser.has_method("get_search_state"):
 		check(false, "browser exposes Home search/category acceptance API")
 		skipped += 1
@@ -143,3 +163,21 @@ func test_browser():
 	state = browser.get_search_state()
 	check(state.get("tab") == "search" and state.get("category") == "robots", "Home category opens filtered Search")
 	browser.free()
+
+func test_live_sources():
+	var service = load(BASE + "discovery_service.gd").new()
+	root.add_child(service)
+	for source in [
+		{"id": "osa", "kind": "builtin", "auth": "none", "adapter": "osa", "base_url": service.OSA + "avatars/100avatars-r1.json"},
+		{"id": "vox", "kind": "builtin", "auth": "none", "adapter": "vox", "base_url": service.VOX + "manifest.json"}]:
+		service.configure(source)
+		var result: Dictionary = await service.search({"query": "", "type": "all"})
+		if result.has("error"): print("LIVE diagnostic: ", result.error)
+		check(not result.get("items", []).is_empty(), "LIVE anonymous production catalog works: " + source.id)
+		if result.get("items", []).is_empty(): continue
+		var download: Dictionary = await service.request_bytes(result.items[0].download_url, 64 * 1024 * 1024)
+		check(download.has("bytes") and download.bytes.size() > 0, "LIVE production download including bounded redirects: " + source.id)
+		if source.id == "vox" and download.has("bytes"):
+			var converter = load(BASE + "animation_conversion.gd").new()
+			check(not converter.convert(download.bytes).is_empty(), "LIVE animation converts to validated in-place humanoid clip")
+	service.queue_free()

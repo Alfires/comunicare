@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Opt-in RED avatar discovery contracts; disposable files, loopback API only."""
+"""Avatar discovery contracts; disposable files, loopback API by default."""
 import http.server
 import json
 import os
@@ -63,7 +63,7 @@ def main():
     try:
         with tempfile.TemporaryDirectory(prefix="comunicare-avatar-discovery-", dir="/tmp/opencode") as directory:
             project = Path(directory)
-            # Only prospective feature modules, not the real startup/autoloads.
+            # Production feature modules, never real startup/accounts/autoloads.
             source = ROOT / "scripts/discovery/avatars"
             if source.exists():
                 shutil.copytree(source, project / "scripts/discovery/avatars")
@@ -73,6 +73,13 @@ def main():
                     target.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / relative, target)
             shutil.copy2(HERE / "suite.gd", project / "suite.gd")
+            reader = project / "scripts/assets/humanoid_animation.gd"
+            reader.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / "scripts/assets/humanoid_animation.gd", reader)
+            if os.environ.get("ANIMATION_FIXTURE"):
+                shutil.copy2(os.environ["ANIMATION_FIXTURE"], project / "sample.vrma")
+            if os.environ.get("LIVE_DISCOVERY") == "1":
+                (project / "live-opt-in.txt").write_text("explicit external API verification")
             (project / "home_scene.txt").write_text((ROOT / "scenes/GUI/home_menue.tscn").read_text())
             (project / "port.txt").write_text(str(server.server_port))
             (project / "project.godot").write_text(

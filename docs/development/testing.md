@@ -15,13 +15,14 @@ stream validation checks. Original intentionally red baselines are recorded in i
 README. Exit 1 is regression failure; exit 2/Godot errors are infrastructure failure.
 No real accounts/external hosts or rendered multi-client avatars are used.
 
-## Public avatar browser acceptance (intentionally RED)
+## Public avatar browser acceptance
 
 `python3 tests/avatar_discovery/run.py` exercises proposed browser/provider
 contracts using a disposable project and loopback API only. Missing components
-fail explicitly and guarded groups report not run. This is not part of the green
-release gate; see its [coverage and proposed interfaces](../../tests/avatar_discovery/README.md).
-No real credentials, accounts or external API calls are used.
+fail explicitly and guarded groups report not run. The core implementation now
+passes; see [coverage and limits](../../tests/avatar_discovery/README.md).
+No real credentials/accounts are used. External verification is opt-in only via
+`LIVE_DISCOVERY=1`; `ANIMATION_FIXTURE` enables a permitted local VRMA conversion test.
 
 ## VR and tracking acceptance
 

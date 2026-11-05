@@ -11,6 +11,7 @@ headset, renderer, microphone or production-network verification.
 - [Accounts, profiles and social access](guides/accounts-and-social.md)
 - [World transitions, settings and voice](guides/worlds-settings-and-voice.md)
 - [Avatar sources, animation and emotes](asset-cache-and-animation-usage.md)
+- [Public avatar/animation browser and custom APIs](guides/avatar-browser.md)
 - [Relay privacy and lifecycle contract](relay-data-lifecycle.md)
 - [Third-party asset licenses](../THIRD_PARTY_ASSETS.md)
 

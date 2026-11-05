@@ -2,10 +2,36 @@
 
 ## Status and scope
 
-**Planned — 2026-11-05.** Add an **Avatar Browser** tile to the Home menu,
+**Initial implementation — 2026-11-05.** Avatar Browser Home/Search/sidebar,
+category feeds, provider/type/format/title filtering, anonymous catalog adapters,
+bounded redirects, optional memory-only custom bearer/API-key sources, isolated
+avatar preview and explicit import-to-draft are implemented. An animations-only
+CC0 source and explicit worker-based in-place VRMA adaptation are available.
+Current instructions and exact limitations: [browser guide](../guides/avatar-browser.md).
+
+Live production-network checks fetched both catalogs and downloaded models/motions
+anonymously. A Polygonal Mind VRM imported successfully; a real VRMA required
+translation removal before the rotation-only importer accepted it. This does not
+certify every catalog item, live ratings or renderer/headset quality.
+
+Remaining roadmap work includes thumbnail cards, advanced filters, metadata TTL,
+full navigation/scroll restoration, animation previews, OAuth/OS credential store,
+and broader race/redirect/import UI and headset validation. The original design
+below remains the target, not a claim that every milestone has been delivered.
+
+Verification for this slice: discovery core passes 46 checks without external
+networking; optional real VRMA adds one check; explicit live provider/catalog/
+download checks bring the total to 52, all passing with zero dependent groups
+skipped. Profile 123, settings 108 and animation/relay 166 checks pass. Profile
+reports its existing ObjectDB leak warning. An earlier profile run failed the old
+empty-Home-tile assertions; these were updated to the requested Avatar Browser
+tile and reran successfully. Real renderer/headset/independent-client browser
+validation has not been performed.
+
+Original request: add an **Avatar Browser** tile to the Home menu,
 listing avatars and animations from documented public provider APIs. This is a
 discovery/import interface, not another animation playback or synchronization
-system. No API integration or browser UI is delivered by this document.
+system.
 
 **Test-first baseline:** `tests/avatar_discovery/run.py` now provides intentionally
 RED acceptance contracts: 1 passed, 6 failed, 5 dependent groups not run on

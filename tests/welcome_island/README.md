@@ -1,5 +1,14 @@
 # Welcome island startup contracts
 
+Part 02 adds separate offline provenance and disposable asset-import checks:
+`python3 tests/welcome_island/test_provenance.py`,
+`python3 tools/assets/provenance.py`, and
+`python3 tests/welcome_island/run_assets.py` (optional `--rendered`). See
+[asset acquisition/inspection notes](../../assets/welcome_island/README.md).
+These do not change the startup runner's fixtures or claim final runtime asset
+optimization. Provenance fixtures were run red before the validator existed;
+the asset suite initially failed on the missing manifest before acquisition.
+
 Run from the repository root:
 
 ```sh

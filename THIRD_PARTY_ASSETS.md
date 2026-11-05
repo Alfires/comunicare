@@ -1,4 +1,4 @@
-# Bundled animation provenance
+# Bundled third-party asset provenance
 
 ## Offline robot avatar placeholder — RobotExpressive
 
@@ -69,3 +69,80 @@ Idle_Loop frame. No temporal idle motion or new hand-keyed motion is introduced.
 
 User-imported assets retain their own licenses. A cache hash or successful import
 does not grant permission to redistribute them.
+
+<!-- welcome-island-assets:start -->
+## Welcome island asset inventory
+
+Generated from `assets/welcome_island/manifest.json`; candidates not bundled are excluded.
+
+### polyhaven.pine_sapling_small — Pine Sapling Small
+
+- Author: Rob Tuytel; Rico Cilliers
+- Source: https://polyhaven.com/a/pine_sapling_small
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K download; individual files retained, no scene preset or conversion.
+- Shipped: `assets/welcome_island/models/pine_sapling_small/pine_sapling_small_1k.gltf`; SHA-256 `f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48`
+  Original: `pine_sapling_small_1k.gltf`; SHA-256 `f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf
+- Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_twig_arm_1k.jpg`; SHA-256 `2eb0aa44124b5a4ae9401e00b23b3c916f4c3f421616ce1bb932f248fc061288`
+  Original: `textures/pine_sapling_small_twig_arm_1k.jpg`; SHA-256 `2eb0aa44124b5a4ae9401e00b23b3c916f4c3f421616ce1bb932f248fc061288`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_twig_diff_1k.jpg`; SHA-256 `54af7d6fb664b5a38bcb118b557bc50e01e86ec54d6f1a573c3e32c649a53362`
+  Original: `textures/pine_sapling_small_twig_diff_1k.jpg`; SHA-256 `54af7d6fb664b5a38bcb118b557bc50e01e86ec54d6f1a573c3e32c649a53362`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_bark_nor_gl_1k.jpg`; SHA-256 `05c46455531781b6cf18cae0648cf627f60ee942adaa8bcbfd1592fc2506a9e0`
+  Original: `textures/pine_sapling_small_bark_nor_gl_1k.jpg`; SHA-256 `05c46455531781b6cf18cae0648cf627f60ee942adaa8bcbfd1592fc2506a9e0`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_bark_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/pine_sapling_small/pine_sapling_small.bin`; SHA-256 `b4d2fc73d53f1d8717eb5ef9a2c66957d2a53152787e543aace88fcd6fca94ef`
+  Original: `pine_sapling_small.bin`; SHA-256 `b4d2fc73d53f1d8717eb5ef9a2c66957d2a53152787e543aace88fcd6fca94ef`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/pine_sapling_small/pine_sapling_small.bin
+- Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_bark_diff_1k.jpg`; SHA-256 `5c76836b01c3536fa0e24207b67bf4f3315b53ebe2b4ecc6f08dfcf3f8d74929`
+  Original: `textures/pine_sapling_small_bark_diff_1k.jpg`; SHA-256 `5c76836b01c3536fa0e24207b67bf4f3315b53ebe2b4ecc6f08dfcf3f8d74929`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_bark_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_bark_arm_1k.jpg`; SHA-256 `336a4680cd571b6076b67afee2310b290b8900d9d126eb39ec1ae92e95be2ea9`
+  Original: `textures/pine_sapling_small_bark_arm_1k.jpg`; SHA-256 `336a4680cd571b6076b67afee2310b290b8900d9d126eb39ec1ae92e95be2ea9`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_bark_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/pine_sapling_small/textures/pine_sapling_small_twig_nor_gl_1k.jpg`; SHA-256 `76af87821d7ff00e25768d5d97a449394fe64a21ae55d099da7f5ed46d9098c8`
+  Original: `textures/pine_sapling_small_twig_nor_gl_1k.jpg`; SHA-256 `76af87821d7ff00e25768d5d97a449394fe64a21ae55d099da7f5ed46d9098c8`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_nor_gl_1k.jpg
+
+### polyhaven.boulder_01 — Boulder 01
+
+- Author: Rico Cilliers
+- Source: https://polyhaven.com/a/boulder_01
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K download; individual files retained, no scene preset or conversion.
+- Shipped: `assets/welcome_island/models/boulder_01/boulder_01_1k.gltf`; SHA-256 `51487934db898b4c24072780a451e34eca5c02e3ada24a62bbc600bbc4019e92`
+  Original: `boulder_01_1k.gltf`; SHA-256 `51487934db898b4c24072780a451e34eca5c02e3ada24a62bbc600bbc4019e92`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/boulder_01/boulder_01_1k.gltf
+- Shipped: `assets/welcome_island/models/boulder_01/textures/boulder_01_arm_1k.jpg`; SHA-256 `c57187c5746b6be913fa53846cb44ff78743e7ca5000f131c9627b99563c2b87`
+  Original: `textures/boulder_01_arm_1k.jpg`; SHA-256 `c57187c5746b6be913fa53846cb44ff78743e7ca5000f131c9627b99563c2b87`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/boulder_01/textures/boulder_01_diff_1k.jpg`; SHA-256 `c38f0e918f6dc16b8d386ba3cdd89805c78320c119a1ceec85856f82b09a65b8`
+  Original: `textures/boulder_01_diff_1k.jpg`; SHA-256 `c38f0e918f6dc16b8d386ba3cdd89805c78320c119a1ceec85856f82b09a65b8`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/boulder_01/boulder_01.bin`; SHA-256 `7f5b06503d62bd95bfe9c6b8a354a5cc8ff04a4d271a8cf87a3e3125db4232d7`
+  Original: `boulder_01.bin`; SHA-256 `7f5b06503d62bd95bfe9c6b8a354a5cc8ff04a4d271a8cf87a3e3125db4232d7`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/boulder_01/boulder_01.bin
+- Shipped: `assets/welcome_island/models/boulder_01/textures/boulder_01_nor_gl_1k.jpg`; SHA-256 `0810cf6e89d89bb6eb065b4d2e2855288f5dcbd2c15c6e40ab90d462021b50aa`
+  Original: `textures/boulder_01_nor_gl_1k.jpg`; SHA-256 `0810cf6e89d89bb6eb065b4d2e2855288f5dcbd2c15c6e40ab90d462021b50aa`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/boulder_01/boulder_01_nor_gl_1k.jpg
+
+### polyhaven.forest_floor — Forest Floor
+
+- Author: eye-candy.xyz
+- Source: https://polyhaven.com/a/forest_floor
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K download; individual files retained, no scene preset or conversion.
+- Shipped: `assets/welcome_island/textures/forest_floor/forest_floor_diff_1k.jpg`; SHA-256 `f12e5adea1741f9eb7a528bfc621f8267885b9530b74c3a8afdb823899bdbf0b`
+  Original: `forest_floor_diff_1k.jpg`; SHA-256 `f12e5adea1741f9eb7a528bfc621f8267885b9530b74c3a8afdb823899bdbf0b`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_diff_1k.jpg
+- Shipped: `assets/welcome_island/textures/forest_floor/forest_floor_nor_gl_1k.jpg`; SHA-256 `681f3de8c756c4d19bcda33039f953295498f38b1425ce9d56b37d6f97f6e518`
+  Original: `forest_floor_nor_gl_1k.jpg`; SHA-256 `681f3de8c756c4d19bcda33039f953295498f38b1425ce9d56b37d6f97f6e518`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/textures/forest_floor/forest_floor_rough_1k.jpg`; SHA-256 `ece0b331f08c03f3edcd8ab6815b74a5ae20768beef64cd4f96a5b2fa26e116e`
+  Original: `forest_floor_rough_1k.jpg`; SHA-256 `ece0b331f08c03f3edcd8ab6815b74a5ae20768beef64cd4f96a5b2fa26e116e`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_rough_1k.jpg
+
+### polyhaven.kloofendal_48d_partly_cloudy_puresky — Kloofendal 48d Partly Cloudy (Pure Sky)
+
+- Author: Greg Zaal; Jarod Guest
+- Source: https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K download; individual files retained, no scene preset or conversion.
+- Shipped: `assets/welcome_island/sky/kloofendal_48d_partly_cloudy_puresky/kloofendal_48d_partly_cloudy_puresky_1k.hdr`; SHA-256 `fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798`
+  Original: `kloofendal_48d_partly_cloudy_puresky_1k.hdr`; SHA-256 `fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798`; download: https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr
+
+<!-- welcome-island-assets:end -->

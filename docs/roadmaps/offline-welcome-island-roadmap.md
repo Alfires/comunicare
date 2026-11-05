@@ -3,7 +3,8 @@
 ## Status and goal
 
 **In progress — 2026-11-05.** Part 01's isolated startup tests and player-reuse fix
-are implemented with manual gates. No island, asset downloads or Credits UI are
+are implemented with manual gates. Part 02 delivers provenance validation and four
+bundled CC0 nature/sky samples with runtime limits. No island or Credits UI is
 delivered yet. This file is the **shared design overview**; implementation is
 split into [14 small test-first roadmaps](welcome-island/README.md), whose index
 owns dependency order and per-part status. Replace the built-in default blockout with an original,
@@ -389,7 +390,8 @@ snapshots or include unrelated player, animation or user changes.
 The parts cover offline foundation, asset provenance, Credits, island layout,
 recovery/revisions, local interactions, pond/dock, ship, house/side spaces, room
 lighting, kitchen, optional Help, landscape/rendering and final release acceptance.
-Part 01 is implemented with manual gates; parts 02–14 remain planned. See the
+Part 01 is implemented with manual gates; part 02 delivers provenance/sample assets
+with runtime limits; parts 03–14 remain planned. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

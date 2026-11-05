@@ -8,7 +8,6 @@ var draft_sources: Array = []
 var rows: VBoxContainer
 var status: Label
 var model_label: Label
-var url: LineEdit
 var model_mode: CheckButton
 var permission: CheckButton
 var picker: FileDialog
@@ -48,25 +47,15 @@ func _ready():
 	model_label = Label.new()
 	model_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	layout.add_child(model_label)
-	var advanced_toggle = CheckButton.new()
-	advanced_toggle.text = "Import from file or URL (advanced)"
-	layout.add_child(advanced_toggle)
 	var imports = VBoxContainer.new()
-	imports.visible = false
 	layout.add_child(imports)
-	advanced_toggle.toggled.connect(func(enabled): imports.visible = enabled)
 	model_mode = CheckButton.new()
-	model_mode.text = "This file is an avatar model (off = animation)"
+	model_mode.visible = false # Internal picker mode; users choose a dedicated action.
 	imports.add_child(model_mode)
 	permission = CheckButton.new()
 	permission.text = "I have permission to redistribute these selected assets to instance participants"
 	permission.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	imports.add_child(permission)
-	url = LineEdit.new()
-	url.max_length = 4096
-	url.placeholder_text = "HTTPS URL or local file path (headset file-picker fallback)"
-	imports.add_child(url)
-	_button(imports, "Validate file / URL", func(): add_source(url.text.strip_edges(), model_mode.button_pressed))
 	picker = FileDialog.new()
 	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
 	picker.access = FileDialog.ACCESS_FILESYSTEM
@@ -75,8 +64,9 @@ func _ready():
 		for path in paths:
 			await add_source(path, model_mode.button_pressed))
 	add_child(picker)
-	_button(imports, "Choose file(s)…", func(): picker.popup_centered_ratio(0.8))
-	_button(layout, "Use profile avatar / defaults", func():
+	_button(imports, "Import avatar model from file…", choose_model_file)
+	_button(imports, "Add animation files…", choose_animation_files)
+	_button(layout, "Clear custom model / use saved default", func():
 		draft_model = {}
 		_render())
 	rows = VBoxContainer.new()
@@ -99,7 +89,7 @@ func _button(parent: Node, title: String, callback: Callable) -> Button:
 	return button
 
 func _render():
-	model_label.text = "Model: " + str(draft_model.get("name", "Current profile avatar"))
+	model_label.text = "Model: " + str(draft_model.get("name", "Built-in robot / existing default"))
 	for child in rows.get_children():
 		rows.remove_child(child)
 		child.queue_free()
@@ -121,6 +111,9 @@ func _render():
 
 func add_source(source: String, is_model: bool):
 	if busy or source.is_empty(): return
+	if source.begins_with("https://") or source.begins_with("http://"):
+		status.text = "Choose a local model/animation file, or use Avatar Browser to discover models. Manual URLs are no longer supported here."
+		return
 	if not is_model and draft_sources.size() >= 32:
 		status.text = "At most 32 external sources can be applied."
 		return
@@ -144,6 +137,22 @@ func add_source(source: String, is_model: bool):
 	permission.set_pressed_no_signal(false)
 	status.text = "Ready to add. Press Apply; new emotes will appear in the Imported emotes wheel group. Cancel leaves your setup unchanged."
 	_render()
+
+func choose_model_file():
+	model_mode.set_pressed_no_signal(true)
+	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	picker.filters = PackedStringArray(["*.vrm,*.glb ; Avatar model"])
+	if not picker.file_selected.is_connected(_model_file_selected): picker.file_selected.connect(_model_file_selected)
+	picker.popup_centered_ratio(0.8)
+
+func _model_file_selected(path: String):
+	add_source(path, true)
+
+func choose_animation_files():
+	model_mode.set_pressed_no_signal(false)
+	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+	picker.filters = PackedStringArray(["*.vrma,*.glb ; Humanoid animations"])
+	picker.popup_centered_ratio(0.8)
 
 func apply():
 	if busy: return

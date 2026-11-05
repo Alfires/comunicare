@@ -2,10 +2,23 @@
 
 ## Active avatar in your account menu
 
+Avatar setup is now **file-first**: choose **Import avatar model from file…**
+for VRM/GLB, or **Add animation files…** for VRMA/GLB. The picker handles file type
+and single/multiple selection automatically; there is no manual avatar URL field
+or hidden advanced URL form. Confirm redistribution permission, choose the file,
+review validation, then Apply. Imported files are copied into the managed cache;
+original local paths are not published. The old profile avatar URL editor is disabled.
+
+Public Avatar Browser downloads still use URLs internally, and existing saved
+URL selections remain readable for compatibility. The wire/profile URL field has
+not been deleted; this removes the user-facing URL workflow without breaking
+existing accounts or provider downloads. Clearing a custom model uses the saved
+fallback (the built-in robot for new/default accounts).
+
 Your own account preview and source label resolve through the applied Avatar
 configuration, matching the equipped player's selection. Public URL selections
-show that source URL; local/imported cached models show their name and explicitly
-state that no public URL exists. The old profile URL is only a fallback when no
+are loaded through the same selection service; cached models show their active
+name without exposing a legacy URL field. The old profile URL is only a fallback when no
 custom model is applied, never presented as the active URL for a cached model.
 The avatar edit icon opens the same Avatar setup used for models/animation sources,
 with model mode selected. Apply updates the account preview; Cancel keeps the

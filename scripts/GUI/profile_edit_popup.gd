@@ -40,6 +40,7 @@ func _ready():
 				avatar_preview.clear_preview())
 
 func open_editor(profile_service, fingerprint: String, field: String = "profile.username") -> bool:
+	if field == "profile.avatar_url": return false # Avatar setup owns model selection.
 	if field not in Identity.defaults():
 		return false
 	if not profile_service.can_edit(fingerprint):

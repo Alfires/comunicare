@@ -98,11 +98,11 @@ func _refresh():
 		body.get_node("Status").text = "Read-only • cached contact; verify fingerprint. Media loads only on request."
 	_render_friend_actions()
 	var avatar_source = str(snapshot.get("profile.avatar_url", ""))
-	avatar_source_label.text = "Avatar URL: " + avatar_source
+	avatar_source_label.text = "Avatar"
 	if is_editable() and avatar_configuration != null and avatar_configuration.has_method("active_avatar"):
 		var active: Dictionary = avatar_configuration.active_avatar(avatar_source)
 		avatar_source = active.key
-		avatar_source_label.text = "Active avatar: " + active.name + "\n" + ("Source URL: " + active.url if not active.url.is_empty() else "Local / imported model · shared by revision, no public URL")
+		avatar_source_label.text = "Active avatar: " + active.name + "\nImport a model file or choose one in Avatar Browser."
 		avatar_preview.loader = func(_source): return await avatar_configuration.load_model(str(snapshot.get("profile.avatar_url", "")))
 	else: avatar_preview.loader = Callable()
 	var avatar_changed = avatar_preview.source != avatar_source

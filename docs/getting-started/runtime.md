@@ -51,13 +51,15 @@ has player-owned mouse look; VR camera pose is headset-owned. Avatars/rendering
 are visual representations and must not drive the tracked camera.
 
 On desktop, hold **Ctrl** while moving to sprint at **1.5×** walking speed
-(default 2 → 3 m/s on both PC and VR); release to walk. Rebind **Sprint (hold)** in Settings →
+(default 4 → 6 m/s on both PC and VR); release to walk. Rebind **Sprint (hold)** in Settings →
 Controls. Menus, focus loss, rebinding and session transitions suppress sprint;
 release and press again after returning to play. In VR, hold **left joystick
 click** while moving; see [VR controls](../guides/vr-controls.md).
 
-Both players use **Settings → VR Movement → Movement speed (PC and VR)** for
-walking speed. The existing `vr.move_speed` saved key is retained, including any
+Both players use **Settings → VR Movement → Base movement speed (PC and VR)**.
+Walking is twice this base value and sprint is three times it, doubling both
+speeds for existing settings as well as new installations.
+The existing `vr.move_speed` saved key is retained, including any
 custom value; desktop no longer has an independent fixed speed. Full-stick VR
 matches desktop's maximum walk/sprint speed, while partial stick input stays
 proportionally slower. Acceleration behavior remains platform-specific.

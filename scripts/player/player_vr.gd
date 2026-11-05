@@ -67,7 +67,7 @@ var sprint = preload("res://scripts/player/sprint_policy.gd").new()
 var air_control = preload("res://scripts/player/air_control.gd").new()
 
 func get_walk_speed() -> float:
-	return float(SaveData.store.get_value("vr.move_speed"))
+	return float(SaveData.store.get_value("vr.move_speed")) * sprint.MOVEMENT_SCALE
 
 func _sprint_speed(blocked: bool, teleport_mode: bool) -> float:
 	var active = left_controller.get_is_active()

@@ -1,6 +1,7 @@
 extends RefCounted
 ## Device-independent hold-to-sprint policy. Suppression requires release to rearm.
 const MULTIPLIER := 1.5
+const MOVEMENT_SCALE := 2.0
 var release_required := false
 
 func suppress():

@@ -42,11 +42,12 @@ to a platform file picker; native filesystem browsing varies by runtime/platform
   does not change speed. Right stick turns around the headset floor pivot, with
   Snap (30° default) or Smooth (60°/s default) in VR Movement settings.
 - Hold **left joystick click** while moving to sprint at **1.5×** configured
-  walking speed (default 2 → 3 m/s). Release to walk. Sprint is smooth-locomotion
+  walking speed (default 4 → 6 m/s). Release to walk. Sprint is smooth-locomotion
   only: it does not extend teleport range or amplify physical room-scale motion.
   After menu/focus/tracking suppression, return the movement controls to neutral
   and release/repress the sprint click. Right click remains optional jump.
-- **Movement speed (PC and VR)** under VR Movement is shared with desktop:
+- **Base movement speed (PC and VR)** under VR Movement is shared with desktop:
+  walking uses twice the saved base value, sprint uses three times it.
   full-stick walking/sprinting uses the same maximum speed as PC. Existing saved
   values are preserved; partial-stick movement is still proportionally slower.
 - Airborne smooth locomotion preserves momentum with a neutral stick and uses

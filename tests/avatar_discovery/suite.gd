@@ -80,6 +80,23 @@ func test_advanced_filters():
 	var misleading = records[0].duplicate(true)
 	misleading.license = "CC0-not-actually-a-license"
 	check(filters.apply([misleading], {"license": "CC0"}).is_empty(), "license filter rejects misleading CC0 prefixes")
+	misleading.license = "CC-BY-not-a-license"
+	check(filters.apply([misleading], {"license": "attribution"}).is_empty(), "attribution filter rejects invented license prefixes")
+	misleading.redistribution = "false"
+	check(filters.apply([misleading], {"shareable": "yes"}).is_empty(), "string false cannot grant sharing filter eligibility")
+	misleading.license = "CC-BY-SA-4.0"
+	check(filters.apply([misleading], {"license": "attribution"}).size() == 1, "recognized versioned attribution license remains searchable")
+	var large_catalog: Array = []
+	for i in 1000:
+		var record = records[i % 2].duplicate(true)
+		record.id = str(i)
+		large_catalog.append(record)
+	var started = Time.get_ticks_usec()
+	var selected: Array = filters.apply(large_catalog, {"type": "avatar", "license": "CC0", "query": "alex"})
+	check(selected.size() == 500, "optimized filtering preserves combined results over 1000 entries")
+	selected[0].title = "Changed copy"
+	check(large_catalog[0].title == "Friendly Robot", "filter optimization preserves catalog immutability")
+	print("INFO: 1000-record combined filter elapsed microseconds: ", Time.get_ticks_usec() - started)
 
 func test_thumbnail_bounds():
 	var path = BASE + "thumbnail_cache.gd"
@@ -101,6 +118,12 @@ func test_thumbnail_bounds():
 	check(cache.get_texture("sample") == texture, "thumbnail cache reuses decoded texture")
 	cache.entries.sample.at = Time.get_ticks_msec() - cache.TTL_MSEC - 1
 	check(cache.get_texture("sample") == null, "expired thumbnail is not reused")
+	for i in 64: cache.store(str(i), texture)
+	cache.store("32", texture)
+	check(cache.entries.size() == 64 and cache.entries.has("0"), "updating existing full-cache entry does not evict unrelated texture")
+	cache.get_texture("0")
+	cache.store("new", texture)
+	check(cache.entries.has("0") and not cache.entries.has("1"), "thumbnail eviction preserves recently viewed textures rather than insertion order")
 
 func test_oauth():
 	var path = BASE + "oauth_session.gd"

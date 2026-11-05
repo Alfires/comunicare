@@ -3,6 +3,7 @@ extends RefCounted
 const MAX_BYTES = 2 * 1024 * 1024
 const MAX_DIMENSION = 2048
 var entries: Dictionary = {}
+var access_serial := 0
 const TTL_MSEC = 300000
 
 func _u32be(bytes: PackedByteArray, at: int) -> int:
@@ -49,9 +50,16 @@ func get_texture(key: String) -> ImageTexture:
 	if entry.is_empty() or Time.get_ticks_msec() - entry.at > TTL_MSEC:
 		entries.erase(key)
 		return null
+	access_serial += 1
+	entries[key].used = access_serial
 	return entry.texture
 
 func store(key: String, texture: ImageTexture):
 	if texture == null: return
-	if entries.size() >= 64: entries.erase(entries.keys()[0])
-	entries[key] = {"texture": texture, "at": Time.get_ticks_msec()}
+	if not entries.has(key) and entries.size() >= 64:
+		var oldest = entries.keys()[0]
+		for candidate in entries:
+			if entries[candidate].get("used", 0) < entries[oldest].get("used", 0): oldest = candidate
+		entries.erase(oldest)
+	access_serial += 1
+	entries[key] = {"texture": texture, "at": Time.get_ticks_msec(), "used": access_serial}

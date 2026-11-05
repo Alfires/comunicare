@@ -136,7 +136,9 @@ class BlendShapeSync extends Node:
 	var target: MeshInstance3D
 	func _process(_delta: float):
 		if not is_instance_valid(source) or not is_instance_valid(target): return
-		target.transform = source.transform
-		target.material_override = source.material_override
+		if not target.is_visible_in_tree(): return
+		if target.transform != source.transform: target.transform = source.transform
+		if target.material_override != source.material_override: target.material_override = source.material_override
 		for index in mini(source.get_blend_shape_count(), target.get_blend_shape_count()):
-			target.set_blend_shape_value(index, source.get_blend_shape_value(index))
+			var value = source.get_blend_shape_value(index)
+			if target.get_blend_shape_value(index) != value: target.set_blend_shape_value(index, value)

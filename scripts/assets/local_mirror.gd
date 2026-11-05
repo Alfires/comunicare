@@ -146,6 +146,9 @@ func _process(_delta):
 
 func _input(event: InputEvent):
 	if not visible: return
+	# Mouse motion/key releases are not grab attempts. Avoid scanning every
+	# player and querying nearby pickups for each high-frequency mouse event.
+	if not event.is_action_pressed("world_grab") or event.is_echo(): return
 	var save = get_node_or_null("/root/SaveData")
 	if save != null and save.get("voice") != null and save.voice.input_blocked: release(held_grip); return
 	var loader = get_node_or_null("/root/DataLoader")

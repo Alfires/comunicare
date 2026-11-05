@@ -42,6 +42,7 @@ func set_state(blocked: bool, failed: bool):
 	indicator.modulate = Color.WHITE
 
 func _process(delta: float):
-	if not loading: return
+	if not loading or not is_visible_in_tree(): return
 	elapsed += delta
-	indicator.text = ".".repeat(1 + int(elapsed * 3) % 3)
+	var next = ".".repeat(1 + int(elapsed * 3) % 3)
+	if indicator.text != next: indicator.text = next

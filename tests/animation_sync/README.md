@@ -1,5 +1,14 @@
 # Animation and revision checks
 
+`performance_suite.gd` checks that hidden placeholders skip animation, their
+three-Hz loading text remains stable between steps, and hidden first-person mesh
+derivatives skip synchronization but catch up when revealed. Visible derivatives
+only write changed transforms/materials/blend shapes. Mirror grab input ignores
+non-grab mouse events before player/pickup queries. VR safety uses per-instance
+reusable physics-query resources (covered by `tests/vr_controls`). These reduce
+known work/allocations; no production FPS improvement is inferred from headless
+assertions.
+
 First-person tests now assert detached import preparation, unchanged original
 mesh resources, camera-exclusive derivative layers and idempotent activation.
 Tracking tests exercise actual SkeletonModifier head/arm solving against external

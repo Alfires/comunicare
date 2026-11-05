@@ -316,6 +316,8 @@ func test_safety_and_teleport():
 	check(ResourceLoader.exists(path), "VR safety validates capsule growth, head overlap and teleport clearance")
 	if not ResourceLoader.exists(path): return
 	var safety = load(path).new()
+	check(safety.get("head_query") != null and safety.get("clearance_query") != null,
+		"VR safety reuses per-player physics query resources instead of allocating every tick")
 	var body = CharacterBody3D.new()
 	var collider = CollisionShape3D.new()
 	var capsule = CapsuleShape3D.new()

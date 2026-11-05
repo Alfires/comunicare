@@ -46,11 +46,12 @@ def main():
         shutil.copy2(HERE / "suite.gd", project / "suite.gd")
         shutil.copy2(HERE / "lifecycle_suite.gd", project / "lifecycle_suite.gd")
         shutil.copy2(HERE / "mirror_suite.gd", project / "mirror_suite.gd")
+        shutil.copy2(HERE / "performance_suite.gd", project / "performance_suite.gd")
         (project / "project.godot").write_text(
             'config_version=5\n[application]\nconfig/name="Animation tests"\n'
             '[autoload]\nDataLoader="*res://scripts/startup/data_loader.gd"\nSaveData="*res://save_data.gd"\nNetworkHandler="*res://network.gd"\n'
             '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-        for args in (["--editor", "--import"], ["--script", "res://mirror_suite.gd"], ["--script", "res://lifecycle_suite.gd"], ["--script", "res://suite.gd"]):
+        for args in (["--editor", "--import"], ["--script", "res://performance_suite.gd"], ["--script", "res://mirror_suite.gd"], ["--script", "res://lifecycle_suite.gd"], ["--script", "res://suite.gd"]):
             try:
                 result = subprocess.run([godot, "--headless", "--path", directory, *args],
                                         capture_output=True, text=True, timeout=30)

@@ -41,7 +41,7 @@ func suite_name() -> String:
 
 func run():
 	test_palette()
-	test_builder()
+	await test_builder()
 	await test_project_theme()
 	await test_color_settings()
 	await test_swatch_settings_ui()
@@ -208,13 +208,15 @@ func test_builder():
 	root.add_child(holder)
 	var paper: Dictionary = colors.tokens("paper", "teal", "cyan")
 	builder.build(theme, paper)
+	await frames() # Control connects to Theme.changed deferred.
 	check(colors_equal(label.get_theme_color("font_color"), paper.text), "rebuilding the same Theme recolors already-open controls")
 	holder.free()
 
 func test_project_theme():
 	if not begin(2): return
-	check(evidence("project.godot").contains('gui/theme/custom="res://themes/default.tres"'),
-		"project.godot registers themes/default.tres as the project theme")
+	var gui = RegEx.create_from_string("(?ms)^\\[gui\\]\\s*$(.*?)(?=^\\[|\\z)").search(evidence("project.godot"))
+	check(gui != null and gui.get_string(1).contains('theme/custom="res://themes/default.tres"'),
+		"project.godot registers themes/default.tres as the project theme ([gui] theme/custom)")
 	var theme = project_theme()
 	check(theme != null and theme.resource_path == "res://themes/default.tres", "the shared Theme loads at startup for every window")
 	var save = autoload("SaveData")

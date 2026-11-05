@@ -15,6 +15,8 @@ var store = preload("res://scripts/settings/settings_store.gd").new()
 var voice = preload("res://scripts/player/voice_controller.gd").new()
 var profile = preload("res://scripts/profile/profile_service.gd").new()
 var friends = preload("res://scripts/profile/friend_service.gd").new()
+## Shared GUI theme owner; null in minimal test projects without scripts/GUI/theme.
+var theme_service
 var account_error := ""
 var temporary_identity := false
 signal account_ready
@@ -46,6 +48,10 @@ func _init():
 	store.setting_changed.connect(_apply_setting)
 	voice.configure(store)
 	profile.profile_changed.connect(_on_profile_changed)
+	const THEME_SERVICE = "res://scripts/GUI/theme/theme_service.gd"
+	if ResourceLoader.exists(THEME_SERVICE):
+		theme_service = load(THEME_SERVICE).new()
+		theme_service.configure(store)
 
 func _ready():
 	if "--relay" in OS.get_cmdline_args() or OS.has_feature("dedicated_server"):
@@ -56,6 +62,8 @@ func _ready():
 	add_child(voice)
 	for definition in registry.get_definitions():
 		_apply_setting(definition.id, store.get_value(definition.id))
+	if theme_service != null:
+		theme_service.apply()
 
 func _apply_setting(id: String, value: Variant):
 	var definition: Dictionary = registry.get_definition(id)

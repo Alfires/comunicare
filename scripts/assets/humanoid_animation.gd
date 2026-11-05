@@ -42,12 +42,14 @@ func document(bytes: PackedByteArray, byte_limit: int = MAX_BYTES) -> Dictionary
 		or json.get("nodes", []).size() > 4096 or not json.get("buffers", []) is Array \
 		or not json.get("images", []) is Array:
 		return {}
+	if not json.get("asset") is Dictionary or json.asset.get("version") != "2.0": return {}
 	if json.get("buffers", []).size() > 1: return {}
 	for buffer in json.get("buffers", []):
 		if not buffer is Dictionary or buffer.has("uri"):
 			return {}
 		var size = buffer.get("byteLength", -1)
-		if not _integer(size) or size < 0 or size > binary.size(): return {}
+		if not _integer(size) or size < 0 or size > binary.size() or binary.size() - size > 3: return {}
+		binary = binary.slice(0, int(size)) # Ignore only legal BIN alignment padding.
 	for image in json.get("images", []):
 		if not image is Dictionary or image.has("uri"):
 			return {}

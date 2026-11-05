@@ -140,6 +140,20 @@ func test_oauth():
 	check(fields.get("code") == "fixture" and fields.has("code_verifier"), "valid callback produces code exchange with verifier")
 	check(oauth.accept_callback(callback, config).is_empty(), "OAuth authorization code callback cannot be replayed")
 	oauth.begin(config)
+	var padded: Dictionary = oauth.accept_callback(config.redirect_uri + "?code=abc=def==&state=" + oauth.state, config)
+	check(padded.get("code") == "abc=def==", "OAuth code containing equals is not truncated")
+	oauth.begin(config)
+	var form_encoded: Dictionary = oauth.accept_callback(config.redirect_uri + "?code=hello+world&state=" + oauth.state, config)
+	check(form_encoded.get("code") == "hello world", "OAuth callback decodes form plus as space")
+	oauth.begin(config)
+	var replaced = config.duplicate()
+	replaced.client_id = "different-client"
+	check(oauth.accept_callback(config.redirect_uri + "?code=fixture&state=" + oauth.state, replaced).is_empty(), "OAuth callback cannot switch client configuration mid-session")
+	for redirect in ["http://127.0.0.1:bad/callback", "http://127.0.0.1:70000/callback"]:
+		var invalid = config.duplicate()
+		invalid.redirect_uri = redirect
+		check(oauth.begin(invalid).is_empty(), "OAuth rejects invalid loopback callback port")
+	oauth.begin(config)
 	oauth.expires = Time.get_ticks_msec() - 1
 	check(oauth.accept_callback(config.redirect_uri + "?code=fixture&state=" + oauth.state, config).is_empty(), "OAuth callback times out")
 	var store_path = BASE + "credential_store.gd"

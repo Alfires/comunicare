@@ -616,6 +616,15 @@ func test_document_structure_regressions():
 	doc.json.buffers = [{"byteLength": bin.size() + 100}]
 	check(reader.document(pack(doc.json, bin)).is_empty(), "declared buffer beyond actual payload is rejected")
 	doc = reader.document(fixture())
+	doc.json.buffers[0].byteLength = bin.size() - 4
+	check(reader.read_bytes(pack(doc.json, bin)).is_empty(), "animation accessors cannot read beyond declared buffer into extra BIN bytes")
+	doc = reader.document(fixture())
+	doc.json.asset.version = "1.0"
+	check(reader.document(pack(doc.json, bin)).is_empty(), "GLB2 header cannot conceal unsupported glTF asset version")
+	doc = reader.document(fixture())
+	doc.json.buffers[0].byteLength = bin.size() - 1
+	check(reader.document(pack(doc.json, bin)).binary.size() == bin.size() - 1, "legal one-byte BIN padding is excluded from accessor-visible payload")
+	doc = reader.document(fixture())
 	doc.json.accessors[0].byteOffset = 1
 	check(reader.read_bytes(pack(doc.json, bin)).is_empty(), "misaligned float accessor is rejected before reading")
 	doc = reader.document(fixture())

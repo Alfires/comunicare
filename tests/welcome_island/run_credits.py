@@ -26,7 +26,8 @@ def main():
         shutil.copytree(ROOT / "tests/microphone_settings/fixtures", project / "fixtures")
         for name in ("assets/welcome_island/manifest.json", "assets/welcome_island/licenses/CC0-1.0.txt",
                      "assets/welcome_island/licenses/Kenney-Watercraft.txt",
-                     "assets/animations/CC0-1.0.txt", "assets/animations/Quaternius-License.txt"):
+                     "assets/animations/CC0-1.0.txt", "assets/animations/Quaternius-License.txt",
+                     "themes/fonts/OFL.txt"):
             target = project / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)

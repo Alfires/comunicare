@@ -20,6 +20,16 @@
       "license_file": "assets/animations/CC0-1.0.txt",
       "attribution": "",
       "modifications": "Authored rotation keys extracted; translation/scale omitted. Standing combines Idle_Loop upper body and A_TPose lower body. Walk keys adapted for left/right orientation. These are not dedicated strafe clips. No paid Pro/Source assets included. Publisher notice: assets/animations/Quaternius-License.txt."
+    },
+    {
+      "id": "atkinson.hyperlegible-next",
+      "title": "Atkinson Hyperlegible Next — interface font",
+      "author": "Braille Institute, Applied Design Works, Elliott Scott, Megan Eiswerth, Letters From Sweden",
+      "source": "https://github.com/googlefonts/atkinson-hyperlegible-next",
+      "license": "OFL-1.1",
+      "license_file": "themes/fonts/OFL.txt",
+      "attribution": "",
+      "modifications": "Unmodified upstream variable font AtkinsonHyperlegibleNext[wght].ttf, renamed to AtkinsonHyperlegibleNext-Variable.ttf. Used at weights 400 and 600."
     }
   ]
 }

@@ -3,8 +3,8 @@ extends RefCounted
 ## build() mutates the given Theme in place so every open control, including
 ## menus inside SubViewports, picks up a new color scheme without restart.
 
-const REGULAR_FONT = "res://themes/fonts/AtkinsonHyperlegibleNext-Regular.ttf"
-const SEMIBOLD_FONT = "res://themes/fonts/AtkinsonHyperlegibleNext-SemiBold.ttf"
+## Variable font (wght 200–800, default 400 = Regular). See THIRD_PARTY_ASSETS.md.
+const FONT = "res://themes/fonts/AtkinsonHyperlegibleNext-Variable.ttf"
 const BODY := 18
 const TITLE := 24
 const CAPTION := 14
@@ -12,6 +12,7 @@ const CAPTION := 14
 var tokens: Dictionary
 var theme: Theme
 var dark := true
+var semibold: FontVariation
 
 func build(target: Theme, values: Dictionary) -> Theme:
 	theme = target
@@ -111,11 +112,16 @@ func set_font_colors(type: String, normal: Color, accent_hover: bool = false):
 
 func _fonts():
 	theme.default_font_size = BODY
-	if ResourceLoader.exists(REGULAR_FONT):
-		theme.default_font = load(REGULAR_FONT)
+	if ResourceLoader.exists(FONT):
+		theme.default_font = load(FONT)
 
 func _semibold() -> Font:
-	return load(SEMIBOLD_FONT) if ResourceLoader.exists(SEMIBOLD_FONT) else null
+	if semibold == null and ResourceLoader.exists(FONT):
+		semibold = FontVariation.new()
+		semibold.base_font = load(FONT)
+		var weight = TextServerManager.get_primary_interface().name_to_tag("wght")
+		semibold.variation_opentype = {weight: 600}
+	return semibold
 
 func _constants():
 	for type in ["BoxContainer", "VBoxContainer", "HBoxContainer", "FlowContainer", "HFlowContainer", "VFlowContainer"]:

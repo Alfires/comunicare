@@ -67,12 +67,12 @@ func _valid_record(record: Dictionary) -> bool:
 	var path: String = record.license_file
 	if ".." in path or "\\" in path or (":" in path and not path.begins_with("res://")): return false
 	if not record.source.begins_with("https://"): return false
-	return record.license in ["CC0-1.0", "CC-BY-4.0"] and (record.license != "CC-BY-4.0" or not str(record.get("attribution", "")).is_empty())
+	return record.license in ["CC0-1.0", "CC-BY-4.0", "OFL-1.1"] and (record.license != "CC-BY-4.0" or not str(record.get("attribution", "")).is_empty())
 
 func _add_text(value: String, heading: bool = false) -> Label:
 	var label = Label.new()
 	label.text = value
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", 22 if heading else 18)
+	label.theme_type_variation = "HeaderLabel" if heading else &""
 	add_child(label)
 	return label

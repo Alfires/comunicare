@@ -71,6 +71,26 @@ User-imported assets retain their own licenses. A cache hash or successful impor
 does not grant permission to redistribute them.
 
 <!-- welcome-island-assets:start -->
+## Interface font — Atkinson Hyperlegible Next
+
+- **Creator:** Braille Institute, Applied Design Works, Elliott Scott, Megan
+  Eiswerth, Letters From Sweden.
+- **License:** SIL Open Font License 1.1; full text in `themes/fonts/OFL.txt`.
+- **Source:** https://github.com/googlefonts/atkinson-hyperlegible-next
+  (Google Fonts `ofl/atkinsonhyperlegiblenext`, upstream commit
+  `7925f50f649b3813257faf2f4c0b381011f434f1`).
+- **Retrieved:** 2026-11-05.
+- Bundled `themes/fonts/AtkinsonHyperlegibleNext-Variable.ttf` is the unmodified
+  upstream `AtkinsonHyperlegibleNext[wght].ttf` (weight axis 200–800, default
+  400), renamed only to avoid brackets in resource paths. SHA-256:
+  `5a455d1cfa099b601ab70751bb9673e8fe1854dc4500c80e1a220d0d75e31745`.
+- `OFL.txt` SHA-256:
+  `aca6a428580965d2297d1b718042dd427c2a9443ece3b0d02d758e161e0c4030`.
+
+`scripts/GUI/theme/theme_builder.gd` uses the default instance (Regular, 400)
+for body text and a weight-600 `FontVariation` for titles and primary buttons.
+The font is not sold on its own and keeps its Reserved Font Name.
+
 ## Welcome island asset inventory
 
 Generated from `assets/welcome_island/manifest.json`; candidates not bundled are excluded.

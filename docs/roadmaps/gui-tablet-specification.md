@@ -125,8 +125,11 @@ same active style.
   stroke (`#ffffff`); Godot tints them with the theme's icon colors.
 - Shown at 24 px in buttons and 32 px on Quick tiles.
 - Required set: home, quick, friends, world, avatar, instance, settings, emote,
-  close, search, rotate, zoom, reset, folder, warning, check, people, pin, plus
-  the existing microphone, microphone_muted, profile, back, edit.
+  close, search, rotate, zoom, reset, folder, warning, check, people, pin,
+  invite, respawn, mirror and frame (Quick tiles and preview framing), plus the
+  existing microphone, microphone_muted, profile, back, edit.
+- Imported with `svg/scale=2.0` so they stay sharp on the 1.6× VR tablet; the
+  theme caps the displayed size with `icon_max_width`.
 - Own drawings or a CC0/OFL/MIT icon set recorded in `THIRD_PARTY_ASSETS.md`.
   Never emoji and never Unicode arrows as icons.
 

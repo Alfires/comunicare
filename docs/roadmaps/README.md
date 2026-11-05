@@ -5,6 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
+| [Client-only per-player avatar visibility](client-avatar-visibility-roadmap.md) | Planned: Hide/Show avatar beside each remote participant; local session/fingerprint scope, unaffected same-asset players, avatar-change enforcement and no relay/global block |
 | [Desktop and VR sprinting](sprinting-roadmap.md) | Implemented with manual gates: hold left joystick click in VR or Ctrl on desktop for 1.5× horizontal speed; rebindable Ctrl, suppression/rearming and relative walk/run selection; hardware comfort and visual two-client validation remain open |
 | [Documentation system](documentation-system-roadmap.md) | Documentation/tooling delivered with explicit operating limits; current guides, function/schema reference and local Git release checks linked from docs home |
 | [Real UI multiplayer investigation/testing](real-ui-multiplayer-validation-roadmap.md) | Investigated with full production autoloads and rendered UI: unrelated Add relay disconnects active federated play; offline startup delays menu; legacy port edits do not change effective list; planned hit-tested/two-client UI gates supersede service-only stability claims |

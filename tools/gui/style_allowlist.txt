@@ -1,0 +1,4 @@
+# Intentional hard-coded GUI styling. One entry per line:
+#   relative/path:LINE # reason
+#   relative/path:*    # reason
+# Keep this list short; prefer theme colors and type variations.

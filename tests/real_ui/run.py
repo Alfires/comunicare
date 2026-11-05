@@ -26,7 +26,9 @@ def main():
     parser.add_argument("--soak-seconds", type=int, default=0, help="Extend UI membership/edit soak (1200 for 20 minutes)")
     parser.add_argument("--two-clients", action="store_true", help="Run two isolated processes with real UI join and HTTP example world")
     parser.add_argument("--original-world", action="store_true", help="Use unmodified built-in world rather than lifecycle shell fixture")
+    parser.add_argument("--capture", action="store_true", help="Render menu pages at 1280x720 and 1920x1080 and save PNGs (manual comparison, implies --rendered)")
     args = parser.parse_args()
+    if args.capture: args.rendered = True
     if args.soak_seconds < 0 or args.soak_seconds > 3600: parser.error("soak duration must be 0..3600 seconds")
     godot = shutil.which(os.environ.get("GODOT", "godot"))
     if not godot:
@@ -60,7 +62,7 @@ def main():
     (project / "override.cfg").write_text('[discovery]\nworld_catalog_url=""\n')
     shutil.copy2(HERE / "suite.gd", project / "ui_suite.gd")
     shutil.copy2(HERE / "startup_suite.gd", project / "startup_suite.gd")
-    for filename in ("two_client.gd", "two_relay.gd", "vr_suite.gd", "avatar_suite.gd"):
+    for filename in ("two_client.gd", "two_relay.gd", "vr_suite.gd", "avatar_suite.gd", "capture.gd"):
         shutil.copy2(HERE / filename, project / filename)
     if args.suite == "avatar" and os.environ.get("AVATAR_FIXTURE"):
         shutil.copy2(os.environ["AVATAR_FIXTURE"], project / "browser-avatar.vrm")
@@ -75,6 +77,14 @@ def main():
             print(imported.stdout + imported.stderr)
             return 2
         display = ["--display-driver", "x11"] if args.rendered else ["--headless"]
+        if args.capture:
+            captures = artifacts / "captures"
+            env["COMUNICARE_UI_CAPTURE_DIR"] = str(captures)
+            result = subprocess.run([*command, *display, "--script", "res://capture.gd", "--non_vr"], capture_output=True, text=True, timeout=180, env=env)
+            output = result.stdout + result.stderr
+            (artifacts / "capture.log").write_text(output)
+            print(output, end="", flush=True)
+            return 2 if "Captured " not in output else result.returncode
         if args.suite == "avatar":
             if not os.environ.get("AVATAR_FIXTURE"):
                 print("Avatar browser integration requires AVATAR_FIXTURE=/path/to/permitted/avatar.vrm; no implicit external downloads")

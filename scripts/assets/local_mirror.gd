@@ -5,7 +5,6 @@ var viewport: SubViewport
 var reflection_camera: Camera3D
 var source_camera: Camera3D
 var panel: MeshInstance3D
-var handle: MeshInstance3D
 var dimensions := Vector2(1.0, 1.5)
 var held_grip := ""
 var anchor: Node3D
@@ -33,24 +32,14 @@ func _ready():
 	panel.layers = MIRROR_LAYER
 	panel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var shader = Shader.new()
-	shader.code = "shader_type spatial; render_mode unshaded, cull_disabled; uniform sampler2D reflection_texture : source_color; void fragment(){ ALBEDO = texture(reflection_texture, vec2(1.0-UV.x, UV.y)).rgb; }"
+	shader.code = "shader_type spatial; render_mode unshaded, cull_disabled; uniform sampler2D reflection_texture : source_color; void fragment(){ ALBEDO = FRONT_FACING ? texture(reflection_texture, vec2(1.0-UV.x, UV.y)).rgb : vec3(0.12, 0.12, 0.12); }"
 	var material = ShaderMaterial.new()
 	material.shader = shader
 	material.set_shader_parameter("reflection_texture", viewport.get_texture())
 	panel.material_override = material
 	add_child(panel)
-	handle = MeshInstance3D.new()
-	var sphere = SphereMesh.new()
-	sphere.radius = 0.07
-	sphere.height = 0.14
-	handle.mesh = sphere
-	handle.layers = MIRROR_LAYER
-	var grip_material = StandardMaterial3D.new()
-	grip_material.albedo_color = Color("62b5e5")
-	handle.material_override = grip_material
-	add_child(handle)
 	notice = Label3D.new()
-	notice.text = "Local mirror · grab blue handle"
+	notice.text = "Local mirror · grab the surface"
 	notice.font_size = 24
 	notice.pixel_size = 0.002
 	notice.layers = MIRROR_LAYER
@@ -77,7 +66,6 @@ func set_dimensions(size: Vector2):
 	dimensions = Vector2(clampf(size.x, 0.4, 3.0), clampf(size.y, 0.6, 4.5))
 	if panel == null: return
 	panel.mesh.size = dimensions
-	handle.position = Vector3(0, -dimensions.y * 0.5 - 0.1, 0.04)
 	notice.position = Vector3(0, dimensions.y * 0.5 + 0.08, 0.03)
 	_update_resolution()
 
@@ -101,7 +89,10 @@ func _exit_tree():
 	if is_instance_valid(settings) and settings.setting_changed.is_connected(_setting_changed): settings.setting_changed.disconnect(_setting_changed)
 
 func try_grab(node: Node3D, grip: String, distance: float) -> bool:
-	if not held_grip.is_empty() or not is_instance_valid(node) or node.global_position.distance_to(handle.global_position) > distance: return false
+	if not visible or not held_grip.is_empty() or not is_instance_valid(node): return false
+	var point = to_local(node.global_position)
+	var nearest = Vector3(clampf(point.x, -dimensions.x * 0.5, dimensions.x * 0.5), clampf(point.y, -dimensions.y * 0.5, dimensions.y * 0.5), 0)
+	if node.global_position.distance_to(to_global(nearest)) > distance: return false
 	anchor = node
 	held_grip = grip
 	grab_offset = node.global_transform.affine_inverse() * global_transform
@@ -152,8 +143,10 @@ func _input(event: InputEvent):
 			get_viewport().set_input_as_handled()
 		elif is_instance_valid(source_camera):
 			var ray = -source_camera.global_basis.z
-			var along = ray.dot(handle.global_position - source_camera.global_position)
-			if along > 0 and along < 2.0 and (source_camera.global_position + ray * along).distance_to(handle.global_position) < 0.15:
+			var hit = Plane(global_basis.z.normalized(), global_position).intersects_ray(source_camera.global_position, ray)
+			if hit == null: return
+			var point = to_local(hit)
+			if source_camera.global_position.distance_to(hit) < 2.0 and absf(point.x) <= dimensions.x * 0.5 and absf(point.y) <= dimensions.y * 0.5:
 				anchor = source_camera
 				held_grip = "virtual"
 				grab_offset = source_camera.global_transform.affine_inverse() * global_transform

@@ -4,10 +4,8 @@ extends Control
 signal emote_selected(id: String)
 signal closed
 signal navigated
-signal mirror_size_changed(dimensions: Vector2)
 var size_popup := false
-var size_axis := 0
-var size_values := Vector2(1, 1.5)
+var value_dial = preload("res://scripts/GUI/circular_value_control.gd").new()
 var size_dragging := false
 var pointer_direction := Vector2.ZERO
 var layout
@@ -165,7 +163,7 @@ func _gui_input(event: InputEvent):
 			size_pointer(event.pressed)
 		elif event.is_action_pressed("ui_cancel"): back()
 		elif event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
-			size_axis = 1 - size_axis; queue_redraw()
+			value_dial.set_fraction(value_dial.fraction() + (-0.01 if event.is_action_pressed("ui_left") else 0.01)); queue_redraw()
 		accept_event()
 		return
 	if event is InputEventMouseMotion:
@@ -232,19 +230,14 @@ func _draw():
 		# Error text stays in the center rather than adding navigation widgets.
 		draw_string(font, center + Vector2(-outer * 0.8, outer * 0.15), message.left(60), HORIZONTAL_ALIGNMENT_LEFT, outer * 1.6, 12, Color("ffcc88"))
 
-func open_size_popup(dimensions: Vector2):
-	size_values = dimensions
+func open_value_popup(title: String, value: float, low: float, high: float, step: float, unit: String, changed: Callable):
+	value_dial.configure(title, value, low, high, step, unit, changed)
 	size_popup = true
 	size_dragging = false
-	size_axis = 0
 	queue_redraw()
 
 func set_size_angle(fraction: float):
-	if not is_finite(fraction): return
-	var low = 0.4 if size_axis == 0 else 0.6
-	var high = 3.0 if size_axis == 0 else 4.5
-	size_values[size_axis] = snappedf(lerpf(low, high, clampf(fraction, 0, 1)), 0.01)
-	mirror_size_changed.emit(size_values)
+	value_dial.set_fraction(fraction)
 	queue_redraw()
 
 func _drag_size(direction: Vector2):
@@ -258,25 +251,9 @@ func size_pointer(pressed: bool):
 		return
 	if pointer_direction.length() < 0.28:
 		back()
-	elif pointer_direction.y > 0.9:
-		size_axis = 0 if pointer_direction.x < 0 else 1
-		queue_redraw()
 	else:
 		size_dragging = true
 		_drag_size(pointer_direction)
 
 func _draw_size_popup():
-	var center = size * 0.5
-	var outer = radius() * 0.8
-	var font = ThemeDB.fallback_font
-	draw_circle(center, radius(), Color(0.04, 0.09, 0.13, 0.97))
-	draw_arc(center, outer, -PI * 0.5, PI * 1.5, 96, Color("446478"), 10, true)
-	var fraction = inverse_lerp(0.4 if size_axis == 0 else 0.6, 3.0 if size_axis == 0 else 4.5, size_values[size_axis])
-	var knob = center + Vector2.from_angle(-PI * 0.5 + fraction * TAU) * outer
-	draw_circle(knob, 16, Color("62d7e5"))
-	var label = "%s: %.2f m" % ["Width X" if size_axis == 0 else "Height Y", size_values[size_axis]]
-	draw_string(font, center + Vector2(-outer * 0.7, -30), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 22)
-	draw_string(font, center + Vector2(-outer * 0.65, 4), "Drag around the ring", HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
-	draw_string(font, center + Vector2(-35, 35), "Back", HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
-	draw_string(font, center + Vector2(-outer * 0.6, radius() * 0.96), "Width X", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE if size_axis == 0 else Color.GRAY)
-	draw_string(font, center + Vector2(outer * 0.2, radius() * 0.96), "Height Y", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE if size_axis == 1 else Color.GRAY)
+	value_dial.draw_on(self, size * 0.5, radius())

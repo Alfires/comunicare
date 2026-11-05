@@ -1,18 +1,27 @@
 # Production function contracts
 
+<!-- module: scripts/GUI/circular_value_control.gd -->
+## Reusable circular numeric control
+
+`configure` sets independent title/range/step/unit/value and callback without any
+mirror/settings dependency. `set_fraction` maps finite normalized angle fraction
+to a clamped stepped scalar and calls the consumer. `fraction` returns its normalized
+value; `draw_on` draws the ring/value/Back hint in a caller's draw callback.
+
 <!-- module: scripts/assets/local_mirror.gd -->
 ## Client-only mirror
 
 `place_in_front` places the local panel relative to the current camera, without
 network or physics state. `resize_by` clamps panel dimensions/render target size.
-`set_dimensions` clamps independent X/Y meters and updates geometry, handle and
+`set_dimensions` clamps independent X/Y meters and updates geometry, notice and
 aspect-preserving target. `set_quality` selects bounded low/medium/high longest-edge
 resolution; registry signals apply live, teardown disconnects the setting listener.
-`try_grab` accepts a nearby handle anchor, captures relative transform and reserves
+`try_grab` accepts an anchor near the bounded mirror surface on either side, captures relative transform and reserves
 one local grip; `release` clears only the matching grip without throw simulation.
 Private process reflects the source eye across the panel and updates off-axis
 frustum/clipping in a shared-world SubViewport; mirror/first-person derivative
-layers are excluded. Desktop E and VR grip use local handle movement. Hide/focus
+layers are excluded. Desktop E and VR grip use the entire surface for movement;
+the shader shades back faces dark gray. Hide/focus
 loss releases grip; controller/session teardown frees mirror and viewport.
 
 <!-- module: scripts/discovery/avatars/request_policy.gd -->
@@ -1405,9 +1414,9 @@ No footer paging buttons, network calls or model importing.
 | `refresh` | Repairs current group/page after layout changes, builds sectors, disables unavailable actions and clears hover. |
 | `select_direction` | Selects sector from normalized 2D direction with dead zone/hysteresis; no activation. |
 | `activate_sector` | Ignores inert/disabled entries; emits action ID or navigates group/page. Returns true only if the action handler dismissed the wheel; local mirror tools do not dismiss it. |
-| `open_size_popup` | Opens an in-wheel circular size popup with copied dimensions and X axis initially selected; no avatar playback or input-ownership handoff. |
-| `set_size_angle` | Maps finite normalized turn fraction to bounded selected-axis metres, emits mirror_size_changed and redraws without closing. |
-| `size_pointer` | Starts/ends ring drag, selects X/Y at the bottom or returns via center Back; shared by desktop mouse and XR trigger. |
+| `open_value_popup` | Opens the reusable in-wheel circular scalar popup with caller-provided title/value/range/step/unit/callback; width and height use separate entries. No avatar playback or input handoff. |
+| `set_size_angle` | Delegates a finite normalized turn fraction to the reusable scalar dial callback and redraws without closing. |
+| `size_pointer` | Starts/ends ring drag or returns via center Back; shared by desktop mouse and XR trigger. |
 | `back` | Restores parent page/focus or dismisses root; no animation side effects. |
 | `dismiss` | Hides, restores prior input/focus once and emits closed; safe with later exit cleanup. |
 

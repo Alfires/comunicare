@@ -170,7 +170,7 @@ static func strafe_pose(clip: Dictionary) -> Dictionary:
 var local_mirror: Node3D
 
 func _mirror_actions() -> Dictionary:
-	return {"__mirror_toggle__": {"name": "Show / hide mirror"}, "__mirror_size__": {"name": "Resize mirror"}, "__mirror_reset__": {"name": "Move in front"}}
+	return {"__mirror_toggle__": {"name": "Show / hide mirror"}, "__mirror_width__": {"name": "Width X"}, "__mirror_height__": {"name": "Height Y"}, "__mirror_reset__": {"name": "Move in front"}}
 
 func _wheel_layout():
 	var layout = preload("res://scripts/assets/emote_layout.gd").new()
@@ -187,9 +187,13 @@ func _mirror_action(id: String):
 		get_tree().root.add_child(local_mirror)
 		local_mirror.place_in_front(get_viewport().get_camera_3d())
 	elif id == "__mirror_toggle__": local_mirror.visible = not local_mirror.visible
-	if id == "__mirror_size__" and is_instance_valid(wheel):
-		if not wheel.mirror_size_changed.is_connected(_mirror_size_changed): wheel.mirror_size_changed.connect(_mirror_size_changed)
-		wheel.open_size_popup(local_mirror.dimensions)
+	if id in ["__mirror_width__", "__mirror_height__"] and is_instance_valid(wheel):
+		var axis = 0 if id == "__mirror_width__" else 1
+		wheel.open_value_popup("Width X" if axis == 0 else "Height Y", local_mirror.dimensions[axis], 0.4 if axis == 0 else 0.6, 3.0 if axis == 0 else 4.5, 0.01, "m", func(value):
+			if not is_instance_valid(local_mirror): return
+			var dimensions = local_mirror.dimensions
+			dimensions[axis] = value
+			_mirror_size_changed(dimensions))
 	if id == "__mirror_reset__": local_mirror.place_in_front(get_viewport().get_camera_3d())
 
 func _mirror_size_changed(dimensions: Vector2):

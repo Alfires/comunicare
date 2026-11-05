@@ -2,17 +2,18 @@
 
 ## Local mirror
 
-Open **Emotes → Mirror → Show / hide mirror**. The subgroup also offers **Resize
-mirror** and **Move in front**. The floating planar mirror renders your local
+Open **Emotes → Mirror → Show / hide mirror**. The subgroup also offers separate
+**Width X**, **Height Y** and **Move in front** controls. The floating planar mirror renders your local
 world/avatar using a separate reflection camera and is never sent to other clients.
-It has no physics bodies, collision or gravity. On desktop, aim at its blue handle
+It has no physics bodies, collision or gravity. On desktop, aim at its surface
 and press your world-grab key (E by default); press again to release. In VR, squeeze
-grip close to the blue handle, move it, then release grip. Mirror interaction takes
-priority over ordinary pickups only at the handle. Session cleanup removes it.
+grip close to any point on the mirror surface, move it, then release grip. Mirror interaction takes
+priority over ordinary pickups only within its surface bounds. The back is solid
+dark gray, not a second reflection. Session cleanup removes it.
 
-**Resize mirror** opens a circular drag popup inside the wheel. Choose **Width X**
-or **Height Y** at the bottom and drag the handle around the ring clockwise to
-increase that dimension. In VR, point and hold the trigger to drag. Release keeps
+**Width X** and **Height Y** each open their own circular drag popup inside the
+wheel; there is no combined axis selector. Drag the ring handle clockwise to
+increase the chosen dimension. In VR, point and hold the trigger to drag. Release keeps
 the popup open; center Back returns to the Mirror subgroup. Mirror controls and
 Return to movement keep the wheel open; starting an emote dismisses it. Explicit
 Back/Cancel, menu-toggle and focus-loss closing remain available.

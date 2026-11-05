@@ -284,6 +284,10 @@ func _save(value: Dictionary) -> bool:
 func model_key(fallback: String) -> String:
 	return "cache:" + model.hash if not model.is_empty() else fallback
 
+func active_avatar(fallback: String) -> Dictionary:
+	if model.is_empty(): return {"key": fallback, "url": fallback, "name": "Profile / default avatar", "cached": false}
+	return {"key": "cache:" + model.hash, "url": str(model.get("url", "")), "name": str(model.get("name", "Imported avatar")), "cached": true}
+
 func load_model(fallback: String) -> Node3D:
 	if model.is_empty(): return await loader.load_vrm_from_url(fallback)
 	var handle = loader.get_asset_cache().revision_handle(model.hash)

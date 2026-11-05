@@ -1,5 +1,17 @@
 # Accounts, profiles, friends and presence
 
+## Active avatar in your account menu
+
+Your own account preview and source label resolve through the applied Avatar
+configuration, matching the equipped player's selection. Public URL selections
+show that source URL; local/imported cached models show their name and explicitly
+state that no public URL exists. The old profile URL is only a fallback when no
+custom model is applied, never presented as the active URL for a cached model.
+The avatar edit icon opens the same Avatar setup used for models/animation sources,
+with model mode selected. Apply updates the account preview; Cancel keeps the
+active selection. Visitor/contact profiles still show their signed public URL;
+private cached source paths/references are not written into public profiles.
+
 ## Hide one player's avatar locally
 
 In **Active Instance**, use **Hide avatar** beside another player's entry. Only

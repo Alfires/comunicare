@@ -473,6 +473,18 @@ func test_ui(bytes: PackedByteArray):
 	check(not loader.animation_import_busy and loader.animation_thread == null, "runtime animation worker is joined without blocking main loop")
 	await menu.apply()
 	check(configuration.emotes.size() == 3 and configuration.sources.size() == 1, "Apply resolves non-basic clip without changing locomotion defaults")
+	check(configuration.has_method("active_avatar"), "active avatar exposes one source descriptor for account UI")
+	if configuration.has_method("active_avatar"):
+		var original_model = configuration.model.duplicate(true)
+		configuration.model = {"hash": "a".repeat(64), "name": "Local robot", "url": "", "share": true}
+		var active: Dictionary = configuration.active_avatar("https://example.test/old.vrm")
+		check(active.url == "" and active.key == "cache:" + "a".repeat(64), "local active avatar never reports stale profile URL")
+		configuration.model.url = "https://example.test/new.vrm"
+		check(configuration.active_avatar("https://example.test/old.vrm").url == "https://example.test/new.vrm", "active public URL follows applied model")
+		configuration.model = {}
+		check(configuration.active_avatar("https://example.test/profile.vrm").url == "https://example.test/profile.vrm", "profile URL remains fallback only when no model is applied")
+		configuration.model = original_model
+	check(configuration.active_avatar("https://example.test/profile.vrm").key == configuration.model_key("https://example.test/profile.vrm"), "account descriptor and player model cache key stay linked")
 	menu.queue_free()
 	await process_frame
 	menu = load("res://scenes/GUI/animation_menue.tscn").instantiate()

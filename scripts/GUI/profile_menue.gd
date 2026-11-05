@@ -13,6 +13,8 @@ var edit_buttons: Dictionary = {}
 var friend_actions: HFlowContainer
 var avatar_setup: Button
 var avatar_editor: Control
+var avatar_configuration: Node
+var avatar_source_label: Label
 
 func _ready():
 	$Content/Details/Header/Back.pressed.connect(_close)
@@ -28,7 +30,8 @@ func _ready():
 		edit_buttons[field].icon = preload("res://themes/icons/edit.svg")
 		edit_buttons[field].tooltip_text = "Edit " + field.trim_prefix("profile.").replace("_", " ")
 		edit_buttons[field].custom_minimum_size = Vector2(36, 36)
-		edit_buttons[field].pressed.connect(open_editor.bind(field))
+		if field == "profile.avatar_url": edit_buttons[field].pressed.connect(_open_avatar_setup)
+		else: edit_buttons[field].pressed.connect(open_editor.bind(field))
 	body.get_node("KeyActions/ShowKey").toggled.connect(func(value): body.get_node("FullPublicKey").visible = value)
 	body.get_node("KeyActions/CopyKey").pressed.connect(func(): DisplayServer.clipboard_set(get_displayed_public_key()))
 	body.get_node("LoadPicture").pressed.connect(func(): media.request_icon(str(snapshot.get("profile.icon_source", ""))))
@@ -41,11 +44,13 @@ func _ready():
 	avatar_setup.tooltip_text = "Choose a model, animation sources and emote groups"
 	avatar_setup.custom_minimum_size.y = 44
 	$Content/AvatarColumn.add_child(avatar_setup)
-	avatar_setup.pressed.connect(func():
-		if not is_editable(): return
-		if is_instance_valid(avatar_editor): return
-		avatar_editor = load("res://scenes/GUI/animation_menue.tscn").instantiate()
-		add_child(avatar_editor))
+	avatar_setup.pressed.connect(_open_avatar_setup)
+	avatar_source_label = Label.new()
+	avatar_source_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	$Content/AvatarColumn.add_child(avatar_source_label)
+	if DataLoader.has_method("get_avatar_configuration"):
+		avatar_configuration = DataLoader.get_avatar_configuration()
+		avatar_configuration.changed.connect(_avatar_changed)
 	friend_actions = HFlowContainer.new()
 	body.add_child(friend_actions)
 	body.move_child(friend_actions, 1)
@@ -93,6 +98,13 @@ func _refresh():
 		body.get_node("Status").text = "Read-only • cached contact; verify fingerprint. Media loads only on request."
 	_render_friend_actions()
 	var avatar_source = str(snapshot.get("profile.avatar_url", ""))
+	avatar_source_label.text = "Avatar URL: " + avatar_source
+	if is_editable() and avatar_configuration != null and avatar_configuration.has_method("active_avatar"):
+		var active: Dictionary = avatar_configuration.active_avatar(avatar_source)
+		avatar_source = active.key
+		avatar_source_label.text = "Active avatar: " + active.name + "\n" + ("Source URL: " + active.url if not active.url.is_empty() else "Local / imported model · shared by revision, no public URL")
+		avatar_preview.loader = func(_source): return await avatar_configuration.load_model(str(snapshot.get("profile.avatar_url", "")))
+	else: avatar_preview.loader = Callable()
 	var avatar_changed = avatar_preview.source != avatar_source
 	if avatar_changed:
 		avatar_preview.set_source(avatar_source)
@@ -110,11 +122,25 @@ func _refresh():
 func open_editor(field: String = "profile.username") -> bool:
 	if not is_editable():
 		return false
+	if field == "profile.avatar_url":
+		_open_avatar_setup()
+		return true
 	if not is_instance_valid(editor):
 		editor = load("res://scenes/GUI/profile_edit_popup.tscn").instantiate()
 		add_child(editor)
 		editor.saved.connect(_refresh)
 	return editor.open_editor(service, profile_owner, field)
+
+func _open_avatar_setup():
+	if not is_editable() or is_instance_valid(avatar_editor): return
+	avatar_editor = load("res://scenes/GUI/animation_menue.tscn").instantiate()
+	add_child(avatar_editor)
+	avatar_editor.model_mode.set_pressed_no_signal(true)
+
+func _avatar_changed():
+	if service != null and is_editable():
+		avatar_preview.clear_preview()
+		_refresh()
 
 func _show_error(message: String):
 	body.get_node("Status").text = message
@@ -165,6 +191,7 @@ func _notification(what):
 			editor.cancel_edit()
 
 func _exit_tree():
+	if is_instance_valid(avatar_configuration) and avatar_configuration.changed.is_connected(_avatar_changed): avatar_configuration.changed.disconnect(_avatar_changed)
 	_unsubscribe()
 	if SaveData.get("friends") != null and SaveData.friends.changed.is_connected(_friend_changed):
 		SaveData.friends.changed.disconnect(_friend_changed)

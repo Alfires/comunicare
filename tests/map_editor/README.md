@@ -1,5 +1,12 @@
 # Collaborative in-game editor acceptance tests (RED)
 
+Implementation update: 36 service assertions now pass, followed by real loopback
+ENet host/client checks in `network_suite.gd`: fresh signed challenge authentication,
+no pre-approval snapshot, viewer restriction, revocation, fresh rejoin approval,
+editor mutation/snapshot convergence and disconnect permission cleanup. No external
+relay, real account or UI is used. This is not a rendered two-window/headset test.
+The runner copies profile/wire dependencies and parses the production editor panel.
+
 ```sh
 python3 tests/map_editor/run.py
 ```

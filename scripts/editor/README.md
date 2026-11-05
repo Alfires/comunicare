@@ -1,5 +1,12 @@
 # Initial local project editor and collaboration primitives
 
+Update: direct-IP signed editing transport and owner approval UI now exist. See
+[editing with friends](../../docs/guides/editing-with-friends.md) for the current
+workflow and limitations. Translation edits synchronize over real ENet; no project
+is sent until owner approval. Transport is authenticated but not encrypted; use
+trusted LAN/VPN only. The older disabled-transport description below is superseded
+by this update, not a claim of full roadmap completion.
+
 Open **World Explorer → Edit local project…**. Create/open a local authoring JSON,
 edit supported primitive entities, save it or export a validated `.cworld`. Open
 the export through **Open local map…**. Save before closing; there is no unsaved

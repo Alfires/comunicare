@@ -17,7 +17,7 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 var movement_speed: float = 2.0
 var turn_speed: float = 2.0
 var acceleration = 20.0
-var jump_force: float = 7.0
+var jump_force: float = 9.0
 
 var update_interval = 0.5
 var elapsed_time = 0.0

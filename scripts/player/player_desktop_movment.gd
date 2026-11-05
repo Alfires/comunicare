@@ -3,7 +3,7 @@ extends CharacterBody3D
 # Movement variables
 @export var acceleration = 20.0
 @export var friction = 15.0
-@export var jump_force = 7.0
+@export var jump_force = 9.0
 @export var gravity = 20.0
 @export var mouse_sensitivity: float = 0.003
 @export var max_tilt: float = deg_to_rad(85.0)  # Wider look without flipping.

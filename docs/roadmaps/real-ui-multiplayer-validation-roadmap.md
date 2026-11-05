@@ -1,5 +1,13 @@
 # Real UI multiplayer investigation and acceptance roadmap
 
+**VR emulation update (2026-11-05):** production VR-player tracker/menu/input tests
+now run with engine-level simulated head/controllers in `tests/real_ui --suite vr`,
+including rendered mode (16 assertions). There is no configured OpenXR runtime;
+this is not Monado/OpenXR compositor validation or hardware comfort certification.
+Actual original-world renderer teardown still fails with leaked VR-panel resources;
+unsuccessful speculative cleanup was removed. The roadmap remains open for that
+blocker and the explicitly unexecuted onboarding/fault combinations.
+
 **2026-11-05 fault-matrix update:** same-origin duplicate-account reauthentication
 was reproduced and fixed by reusing current authenticated origin transport; route
 loss recovery also exposed and fixed a disconnect call on an already-retired ENet

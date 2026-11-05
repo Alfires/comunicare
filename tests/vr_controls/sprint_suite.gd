@@ -25,7 +25,7 @@ func run():
 		var air = load(air_path).new()
 		var initial = Vector3(3, 5, 0)
 		var steered: Vector3 = air.steer(initial, Vector3(-3, 0, 0), 20.0, 0.1)
-		check(is_equal_approx(steered.x, 2.6), "air steering uses only twenty percent acceleration")
+		check(is_equal_approx(steered.x, 2.8), "air steering uses only ten percent acceleration")
 		check(steered.y == 5, "air steering preserves vertical velocity")
 		check(air.steer(initial, Vector3.ZERO, 20.0, 0.1) == initial, "released air input preserves horizontal momentum")
 	check(policy.target_speed(3.0, true, false) == 4.5, "held sprint multiplies walking speed once")
@@ -46,6 +46,7 @@ func desktop_checks():
 	for action in ["forward", "back", "left", "right", "sprint"]:
 		if not InputMap.has_action(action): InputMap.add_action(action)
 	var player = load("res://desktop_fixture.gd").new()
+	check(is_equal_approx(player.jump_force, 9.0), "desktop uses higher jump impulse")
 	var camera = Camera3D.new()
 	camera.name = "Camera3D"
 	player.add_child(camera)
@@ -87,13 +88,14 @@ func desktop_checks():
 	check(is_equal_approx(player.velocity.x, 2.0), "production desktop preserves airborne momentum without input")
 	Input.action_press("left")
 	player._physics_process(0.1)
-	check(is_equal_approx(player.velocity.x, 1.6), "production desktop opposing air input cannot instantly reverse movement")
+	check(is_equal_approx(player.velocity.x, 1.8), "production desktop opposing air input has reduced steering")
 	Input.action_release("left")
 	player.free()
 	await process_frame
 
 func vr_checks():
 	var player = load("res://scripts/player/player_vr.gd").new()
+	check(is_equal_approx(player.jump_force, 9.0), "VR uses higher jump impulse")
 	check(player.has_method("_sprint_speed"), "VR integrates sprint speed selection")
 	if not player.has_method("_sprint_speed"):
 		player.free()

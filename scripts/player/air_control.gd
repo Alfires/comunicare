@@ -1,6 +1,6 @@
 extends RefCounted
 ## Preserve takeoff momentum; deliberate air steering has limited acceleration.
-const ACCELERATION_FACTOR := 0.2
+const ACCELERATION_FACTOR := 0.1
 
 func steer(current: Vector3, desired: Vector3, acceleration: float, delta: float) -> Vector3:
 	var horizontal = Vector2(current.x, current.z)

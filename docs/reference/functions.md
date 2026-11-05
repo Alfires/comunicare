@@ -488,7 +488,7 @@ Shared by desktop and VR smooth locomotion; no persistence or network state.
 
 | Functions | Contract |
 | --- | --- |
-| `steer` | Moves horizontal velocity toward nonzero input targets at 20% of ground acceleration, bounded by vector distance. Zero input preserves takeoff momentum; vertical velocity is unchanged. Blocked-input braking bypasses this helper. |
+| `steer` | Moves horizontal velocity toward nonzero input targets at 10% of ground acceleration, bounded by vector distance. Zero input preserves takeoff momentum; vertical velocity is unchanged. Blocked-input braking bypasses this helper. |
 
 <!-- module: scripts/player/sprint_policy.gd -->
 ### [Sprint policy](../../scripts/player/sprint_policy.gd)

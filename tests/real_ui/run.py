@@ -20,7 +20,7 @@ HERE = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rendered", action="store_true", help="Open a dedicated X11 test window and capture screenshots")
-    parser.add_argument("--suite", choices=["ui", "startup", "all"], default="all")
+    parser.add_argument("--suite", choices=["ui", "startup", "vr", "all"], default="all")
     parser.add_argument("--plugins", action="store_true", help="Import with production editor plugins enabled (compatibility gate)")
     parser.add_argument("--soak-seconds", type=int, default=0, help="Extend UI membership/edit soak (1200 for 20 minutes)")
     parser.add_argument("--two-clients", action="store_true", help="Run two isolated processes with real UI join and HTTP example world")
@@ -59,7 +59,7 @@ def main():
     (project / "override.cfg").write_text('[discovery]\nworld_catalog_url=""\n')
     shutil.copy2(HERE / "suite.gd", project / "ui_suite.gd")
     shutil.copy2(HERE / "startup_suite.gd", project / "startup_suite.gd")
-    for filename in ("two_client.gd", "two_relay.gd"):
+    for filename in ("two_client.gd", "two_relay.gd", "vr_suite.gd"):
         shutil.copy2(HERE / filename, project / filename)
     env = {**os.environ, "XDG_DATA_HOME": str(artifacts / "data"), "XDG_CONFIG_HOME": str(artifacts / "config"), "XDG_CACHE_HOME": str(artifacts / "cache")}
     env["COMUNICARE_UI_SOAK_SECONDS"] = str(args.soak_seconds)
@@ -75,8 +75,8 @@ def main():
         if args.two_clients: return run_two_clients(command, display, artifacts, env)
         status = 0
         for suite in (["startup", "ui"] if args.suite == "all" else [args.suite]):
-            filename = "ui_suite.gd" if suite == "ui" else "startup_suite.gd"
-            marker = "Real UI acceptance:" if suite == "ui" else "Real startup acceptance:"
+            filename = {"ui": "ui_suite.gd", "startup": "startup_suite.gd", "vr": "vr_suite.gd"}[suite]
+            marker = {"ui": "Real UI acceptance:", "startup": "Real startup acceptance:", "vr": "VR emulator acceptance:"}[suite]
             result = subprocess.run([*command, *display, "--script", "res://" + filename, "--non_vr"], capture_output=True, text=True, timeout=90 + args.soak_seconds, env=env)
             output = result.stdout + result.stderr
             (artifacts / (suite + ".log")).write_text(output)

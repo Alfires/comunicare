@@ -1,5 +1,33 @@
 # Production UI acceptance — initial roadmap execution
 
+## VR emulator gate
+
+```sh
+python3 tests/real_ui/run.py --plugins --suite vr
+python3 tests/real_ui/run.py --plugins --rendered --suite vr
+```
+
+The new engine-level emulator registers head/left_hand/right_hand XR trackers,
+instantiates the **actual production VR player scene**, and drives controller
+poses, joystick, analog grip and button edges. Sixteen assertions pass headlessly
+and/or rendered as recorded in logs: actual tracked-hand motion, locomotion input,
+production 3D shared menu/Network settings, controller-ray geometry/pixel mapping,
+real SubViewport button hit testing, menu suppression, face-button edges, focus
+loss and grip/release latches. Normal player processing/physics is disabled while
+these specific production input paths are called deterministically; this is not
+a complete continuously running locomotion/physics or networked VR-play journey.
+
+No Monado service/OpenXR runtime manifest is configured on this host. `hello_xr`
+alone is not a runtime. The runner therefore uses Godot XR tracker emulation with
+OpenXR disabled; no system-wide runtime/package installation is performed. Do not
+report an OpenXR compositor, action-profile, stereo rendering, headset comfort or
+physical controller pass from this test. Hardware/runtime validation stays open.
+
+The original-world rendered teardown gate still reproduces leaked VR-panel render
+targets. Additional material/viewport cleanup did not remove that failure and was
+not retained as a speculative fix. It remains a blocker, not an emulator limitation
+to be silently ignored.
+
 ## Expanded fault and layout coverage
 
 The current UI suite passes **39 assertions** in headless and rendered X11 modes:

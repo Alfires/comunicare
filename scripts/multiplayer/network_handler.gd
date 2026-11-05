@@ -105,6 +105,10 @@ func join_remote_instance(instance: Dictionary) -> bool:
 	var revision = str(instance.get("world_revision", ""))
 	var policy = get_relay_preferences().snapshot()
 	if origin in policy.blocked_ids: return _transition_failed("Destination relay blocked")
+	# Rejoining/switching inside the current origin must not authenticate a second
+	# connection with the same account while the first is still live there.
+	if current_origin == origin and peer != null and peer.is_authenticated and peer.is_connected_to_relay:
+		return await join_session(destination, str(instance.get("world_url", "")))
 	var selected: Dictionary = {}
 	# Prefer main/fallback list as ingress where it has explicit certificate trust;
 	# directory/explicit instance access is not limited to those saved entries.
@@ -140,7 +144,7 @@ func join_remote_instance(instance: Dictionary) -> bool:
 	if gameplay_tunnel != null: gameplay_tunnel.close()
 	gameplay_tunnel = tunnel
 	current_origin = origin
-	if peer != null and peer.peer != null: peer.peer.peer_disconnect_now()
+	if peer != null and peer.peer != null and peer.is_connected_to_relay: peer.peer.peer_disconnect_now()
 	if peer != null: peer.disconnected_from_relay()
 	relay_ip = "127.0.0.1"
 	relay_port = tunnel.local_port

@@ -56,7 +56,7 @@ func run():
 	var packed = PackedScene.new()
 	packed.pack(shell)
 	shell.free()
-	packed.take_over_path("res://scenes/world.tscn")
+	if OS.get_environment("COMUNICARE_UI_ORIGINAL_WORLD") != "1": packed.take_over_path("res://scenes/world.tscn")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var save = root.get_node("SaveData")
 	root.get_node("DataLoader").get_asset_cache().enabled = false
@@ -106,6 +106,44 @@ func run():
 	check(await wait_until(func(): return network.current_session_id == host.current_session_id and not network.session_busy), "signal-level real Join callback activates acknowledged instance through actual coordinator")
 	var original = network.current_session_id
 	check(relay.sessions[0][0].peers.size() == 2, "origin sees both admitted accounts after UI join")
+	var joined_peer = network.peer
+	var same_summary: Dictionary = directory.instances()[0].duplicate(true)
+	check(await network.join_remote_instance(same_summary), "same-origin rejoin succeeds without duplicate-account authentication")
+	check(network.peer == joined_peer and relay.sessions[0][0].peers.size() == 2, "same-origin join reuses authenticated transport without duplicate membership")
+	var old_instance: String = host.current_session_id
+	host.create_session(0, "Second UI room", "", "default_wold")
+	check(await wait_until(func(): return host.current_session_id != old_instance), "same origin hosts distinct second instance")
+	var second_summary = same_summary.duplicate(true)
+	second_summary.instance_id = host.current_session_id
+	check(await network.join_remote_instance(second_summary), "same-origin instance switch admits on existing authenticated transport")
+	check(network.peer == joined_peer and network.current_session_id == host.current_session_id and relay.sessions.size() == 1,
+		"same-origin switch deletes empty previous room without duplicate account/membership")
+	original = network.current_session_id
+	same_summary = second_summary
+	service.set_local_instances([second_summary])
+	# Closing the actual browser while its async callback runs must not cancel
+	# the stable coordinator or resume into freed Control state.
+	menu.current_tab = 2
+	browser.create_world_info_menue({"url": "default_wold"})
+	var joining = button(browser.instance_list, "Join")
+	if joining != null: joining.pressed.emit()
+	menu.queue_free()
+	await process_frame
+	check(await wait_until(func(): return not network.session_busy), "closing full menu during join leaves coordinator recoverable")
+	menu = load("res://scenes/GUI/menue.tscn").instantiate()
+	root.add_child(menu)
+	browser = menu.get_node("world_explorer")
+	check(network.current_session_id == original, "menu recreation does not lose acknowledged membership")
+	# Forced loss is detected by the production process, not a hand-written
+	# disconnected label. Restore through fresh origin authentication afterward.
+	network.gameplay_tunnel.link.close()
+	network.gameplay_tunnel.link.last_error = "UI fixture injected route loss"
+	check(await wait_until(func(): return network.current_session_id.is_empty() and not network.session_busy), "route failure clears real coordinator membership and busy state")
+	# Let origin process disconnect/liveness before reauthenticating this account.
+	var owner: String = save.profile.get_local_fingerprint()
+	check(await wait_until(func(): return not relay.key_mapping.values().any(func(value): return value.fingerprint == owner), 12.0), "origin eventually removes lost-route account rather than restoring stale authorization")
+	check(await network.join_remote_instance(same_summary), "fresh join recovers after route failure without restarting UI")
+	original = network.current_session_id
 	menu.current_tab = 3
 	var settings = menu.get_node("settings_menue")
 	settings.select_category("Network")
@@ -115,6 +153,29 @@ func run():
 	check(panel != null, "real Settings Network mounts actual preferences panel")
 	check(not settings.controls.has("network.relay_address") and not settings.controls.has("network.relay_port"), "legacy migration fields are not presented as effective connection controls")
 	check(panel.has_method("edit_entry"), "Network panel provides selected-row endpoint editing")
+	cert.save("user://ui-origin.crt")
+	panel.host_input.text = "127.0.0.1"
+	panel.identity_input.text = service.relay_id
+	panel.tls_port.value = service.local_port
+	panel.certificate_input.text = "user://ui-origin.crt"
+	button(panel, "Trust directory certificate for address above").pressed.emit()
+	check(network.directory_trust.entries.any(func(entry): return entry.relay_id == service.relay_id), "actual certificate-import UI persists explicitly selected origin trust")
+	panel.identity_input.text = "invalid"
+	button(panel, "Trust directory certificate for address above").pressed.emit()
+	check(network.directory_trust.entries.size() == 1 and not network.last_session_error.is_empty(), "invalid trust UI submission preserves existing certificate store")
+	panel.identity_input.text = ""
+	var muted_before = save.voice.is_muted()
+	panel.host_input.grab_focus()
+	for code in [KEY_E, KEY_V, KEY_B]:
+		var typed = InputEventKey.new()
+		typed.keycode = code
+		typed.physical_keycode = code
+		typed.unicode = code
+		typed.pressed = true
+		root.push_input(typed, true)
+		await process_frame
+	check(save.voice.is_muted() == muted_before and menu.visible, "typing E/V/B in actual relay field does not toggle microphone or dismiss menu")
+	panel.host_input.release_focus()
 	browser._on_request_completed(HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray())
 	check(not menu.find_children("*", "AcceptDialog", true, false).any(func(dialog): return dialog.visible), "catalog failure remains nonmodal while local instance UI works")
 	await screenshot("network-before-edit")
@@ -137,6 +198,20 @@ func run():
 	preferences.remove_entry(added.entry_id)
 	await process_frame
 	check(network.current_session_id == original, "removing unrelated fallback preserves live federated membership")
+	var prefs_path: String = preferences.path
+	check(preferences.save_preferences().ok, "actual UI preferences persist before reload")
+	var restored = load("res://scripts/multiplayer/federation/relay_preferences.gd").new()
+	restored.configure(prefs_path)
+	check(restored.load_preferences().ok and restored.snapshot() == preferences.snapshot(), "reopened store retains exact user order and independent blocks")
+	# Stage mismatch fails before transport switching and keeps live membership.
+	var wrong_hash = same_summary.duplicate(true)
+	wrong_hash.world_revision = "f".repeat(64)
+	# Use another origin marker to exercise remote preflight instead of same-origin
+	# transport reuse. Advertised content hash still must be validated first.
+	wrong_hash.origin_relay_id = "e".repeat(64)
+	directory.links[service.relay_id].instances.append(wrong_hash)
+	check(not await network.join_remote_instance(wrong_hash) and network.current_session_id == original, "invalid pinned content fails staging without discarding current membership")
+	directory.links[service.relay_id].instances.erase(wrong_hash)
 	if soak_seconds > 0:
 		var deadline = Time.get_ticks_msec() + soak_seconds * 1000
 		var rounds = 0
@@ -182,24 +257,35 @@ func run():
 func test_pointer_navigation(settings):
 	menu.current_tab = 3
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	for dimensions in [Vector2i(640, 480), Vector2i(1000, 700)]:
+	for scenario in [{"size": Vector2i(640, 480), "scale": 1.0}, {"size": Vector2i(1000, 700), "scale": 1.0}, {"size": Vector2i(1440, 900), "scale": 1.5}]:
+		var dimensions: Vector2i = scenario.size
 		root.size = dimensions
+		root.content_scale_factor = scenario.scale
 		settings.select_category("Assets")
 		await process_frame
 		await process_frame
+		await create_timer(0.05).timeout
 		var control: Control = settings.category_buttons.Network
 		var logical = control.get_global_rect().get_center()
-		var physical = root.get_final_transform() * logical
+		# push_input consumes viewport coordinates directly; unlike OS input it
+		# must not be rescaled through the physical-window final transform.
+		var physical = logical
+		var motion = InputEventMouseMotion.new()
+		motion.position = physical
+		motion.global_position = physical
+		root.push_input(motion, true)
+		await process_frame
 		for pressed in [true, false]:
 			var event = InputEventMouseButton.new()
 			event.button_index = MOUSE_BUTTON_LEFT
 			event.position = physical
 			event.global_position = physical
 			event.pressed = pressed
-			Input.parse_input_event(event)
+			root.push_input(event, true)
 			await process_frame
-		check(settings.selected_category == "Network", "hit-tested pointer selects real Network tab at " + str(dimensions))
+		check(settings.selected_category == "Network", "hit-tested pointer selects real Network tab at %s scale %s" % [dimensions, scenario.scale])
 		await screenshot("network-pointer-%sx%s" % [dimensions.x, dimensions.y])
+	root.content_scale_factor = 1.0
 
 func cleanup(network):
 	# Hidden avatar preview viewports still allocate render targets on a real GPU.

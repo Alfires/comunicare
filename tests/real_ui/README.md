@@ -1,5 +1,31 @@
 # Production UI acceptance — initial roadmap execution
 
+## Expanded fault and layout coverage
+
+The current UI suite passes **39 assertions** in headless and rendered X11 modes:
+same-origin rejoin and instance switching reuse the authenticated transport; menu
+close/recreate while joining remains recoverable; injected route loss clears busy/
+membership, origin liveness removes the old account and a fresh join works. Real
+form certificate import/invalid submission, E/V/B text-input safety, preference
+reload and preflight content-hash failure are covered. Viewport-local pointer
+injection passes 640×480/1000×700 at 1× and 1440×900 at 1.5× scale. This is Godot
+hit testing, not OS-level keyboard/mouse automation. Certificate submission is
+signal-driven; native file-picker/confirmation pointer coverage remains open.
+
+`--original-world` removes the trusted shell fixture. It reproduced original-world
+VR-panel render-target leaks on shutdown despite its 38 then-current assertions
+passing; this mode **fails infrastructure validation** and remains an explicit
+release blocker. Do not hide it or treat passing example-world rendering as proof
+that built-in-world teardown is clean.
+
+`--two-clients --rendered --soak-seconds 1200` now supports a real two-process,
+two-window sustained carrying soak. The 1,200-second rendered run completed:
+host 10/guest 11 assertions passed, approximately 2,491/2,490 motion samples,
+membership/lease preserved, remote movement observed, physics restored on drop,
+and both processes exited 0. Local evidence: `/tmp/opencode/ui-two-window-20-minute.log`.
+This closes the example-world carry soak gate, not original-world teardown or
+native certificate-dialog pointer acceptance.
+
 ## Verified extended gates (supersedes historical limitations below)
 
 ```sh

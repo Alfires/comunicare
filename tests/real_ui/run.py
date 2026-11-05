@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--plugins", action="store_true", help="Import with production editor plugins enabled (compatibility gate)")
     parser.add_argument("--soak-seconds", type=int, default=0, help="Extend UI membership/edit soak (1200 for 20 minutes)")
     parser.add_argument("--two-clients", action="store_true", help="Run two isolated processes with real UI join and HTTP example world")
+    parser.add_argument("--original-world", action="store_true", help="Use unmodified built-in world rather than lifecycle shell fixture")
     args = parser.parse_args()
     if args.soak_seconds < 0 or args.soak_seconds > 3600: parser.error("soak duration must be 0..3600 seconds")
     godot = shutil.which(os.environ.get("GODOT", "godot"))
@@ -62,6 +63,7 @@ def main():
         shutil.copy2(HERE / filename, project / filename)
     env = {**os.environ, "XDG_DATA_HOME": str(artifacts / "data"), "XDG_CONFIG_HOME": str(artifacts / "config"), "XDG_CACHE_HOME": str(artifacts / "cache")}
     env["COMUNICARE_UI_SOAK_SECONDS"] = str(args.soak_seconds)
+    env["COMUNICARE_UI_ORIGINAL_WORLD"] = "1" if args.original_world else "0"
     command = [godot, "--path", str(project), "--rendering-method", "gl_compatibility", "--xr-mode", "off"]
     try:
         imported = subprocess.run([*command, "--headless", "--editor", "--import"], capture_output=True, text=True, timeout=120, env=env)
@@ -134,7 +136,7 @@ def run_two_clients(command, display, artifacts, env):
         status = 0
         for role, client in zip(("host", "guest"), clients):
             try:
-                code = client.wait(timeout=75)
+                code = client.wait(timeout=75 + int(env.get("COMUNICARE_UI_SOAK_SECONDS", "0")))
             except subprocess.TimeoutExpired:
                 code = 2
             output = (shared / (role + ".log")).read_text()

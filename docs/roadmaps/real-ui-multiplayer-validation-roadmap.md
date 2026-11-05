@@ -1,5 +1,18 @@
 # Real UI multiplayer investigation and acceptance roadmap
 
+**2026-11-05 fault-matrix update:** same-origin duplicate-account reauthentication
+was reproduced and fixed by reusing current authenticated origin transport; route
+loss recovery also exposed and fixed a disconnect call on an already-retired ENet
+peer. The expanded suite now passes 39 headless/rendered assertions covering
+same-origin instance switches, menu lifetime, fresh recovery after route loss,
+trust form invalid/valid submissions, typing safety, store reload and three size/
+scale scenarios. Actual original-world mode is now available and reproduces
+VR-panel render-target leaks at teardown, so that release gate remains failed.
+The 1,200-second two-window rendered carrying run completed successfully (10 host/
+11 guest assertions; both exit 0, about 2,490 remote motion samples), closing the
+example-world carrying soak gate. Native certificate-dialog pointer confirmation and exhaustive mid-join
+failure combinations are not claimed complete by these checks.
+
 **Extended verification update:** production VRM editor-plugin imports now pass
 after four Godot 4.7 Error-return compatibility fixes. Real X11 Network input tests
 finish cleanly after removing an unnecessary original-world load from the fixture.

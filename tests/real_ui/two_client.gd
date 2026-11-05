@@ -114,6 +114,17 @@ func run():
 		hand.position = Vector3(1, 1.5, 0)
 		write_state("moved", true)
 		check(await wait_for(func(): return read_state("observed") != null), "other actual client observed held cube movement")
+		var soak = maxi(0, int(OS.get_environment("COMUNICARE_UI_SOAK_SECONDS")))
+		if soak > 0:
+			var until = Time.get_ticks_msec() + soak * 1000
+			var samples = 0
+			while Time.get_ticks_msec() < until:
+				hand.position = Vector3(sin(samples * 0.1), 1.5, 0)
+				await create_timer(0.1).timeout
+				if network.current_session_id.is_empty() or not pickups.held_by_local("virtual"): break
+				samples += 1
+			check(not network.current_session_id.is_empty() and pickups.held_by_local("virtual"), "two-window %ss carry soak retained membership and exclusive holder (%s samples)" % [soak, samples])
+			write_state("soak-finished", true)
 		check(pickups.release_grip("virtual"), "drop uses production relay path")
 		write_state("released", true)
 		await create_timer(0.3).timeout
@@ -125,6 +136,19 @@ func run():
 			var image = root.get_texture().get_image()
 			image.save_png(shared.path_join("remote-held-cube.png"))
 		write_state("observed", true)
+		var soak = maxi(0, int(OS.get_environment("COMUNICARE_UI_SOAK_SECONDS")))
+		if soak > 0:
+			var until = Time.get_ticks_msec() + (soak + 15) * 1000
+			var samples = 0
+			var low = cube.global_position.x
+			var high = low
+			while read_state("soak-finished") == null and Time.get_ticks_msec() < until:
+				await create_timer(0.1).timeout
+				low = minf(low, cube.global_position.x)
+				high = maxf(high, cube.global_position.x)
+				if network.current_session_id.is_empty(): break
+				samples += 1
+			check(not network.current_session_id.is_empty() and high - low > 1.0, "two-window %ss receiver soak observes sustained real remote motion (%s samples)" % [soak, samples])
 		check(await wait_for(func(): return read_state("released") != null and not cube.freeze), "remote drop restores cube physics")
 	finish()
 

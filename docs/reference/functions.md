@@ -873,6 +873,10 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+Remote joins targeting the already-authenticated current origin now reuse the
+existing transport via ordinary acknowledged join, preventing duplicate-account
+authentication races and duplicate membership. A retired/disconnected transport
+is not force-disconnected again during route-loss recovery.
 `connect_initial_relay` owns one background startup coroutine on the stable autoload
 while the local player/menu loads immediately. `cancel_relay_connection` ends the
 current selection/auth wait without creating duplicate players or restoring old

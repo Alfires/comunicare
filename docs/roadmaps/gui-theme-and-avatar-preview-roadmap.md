@@ -2,14 +2,19 @@
 
 ## Status and scope
 
-**Planned — 2026-11-05.** Nothing in this document is implemented yet. It plans
-three connected outcomes:
+**Planned — 2026-11-05 (revised same day: tablet form factor).** Nothing in
+this document is implemented yet. It plans four connected outcomes:
 
-1. One shared **Theme resource** (`themes/default.tres`) that styles every menu,
+1. A **tablet-style menu by default** that mixes the familiar social-VR layout
+   (VRChat-like quick menu, launch-pad tiles, status bar) with a modern, flat
+   app design. One shared layout is used on both platforms:
+   - **VR:** a floating tablet that you can grab, move, rotate, pin and summon.
+   - **PC:** the same tablet content drawn as a 2D overlay menu.
+2. One shared **Theme resource** (`themes/default.tres`) that styles every menu,
    desktop and VR, with **several selectable color schemes** and an accent color.
-2. A **hand-made, calm look** that does not read as generic AI output, plus
+3. A **hand-made, calm look** that does not read as generic AI output, plus
    targeted rewrites to make the menus easier to use.
-3. A **much better avatar preview** (orbit/pitch/pan, floor, lighting, loading
+4. A **much better avatar preview** (orbit/pitch/pan, floor, lighting, loading
    and error states) and a cleaner avatar browser layout.
 
 Out of scope: new networking, profile/settings ownership changes, world
@@ -45,6 +50,14 @@ authoring UI, VR IK/FBT (see the [VR roadmap](vr-controls-menus-ik-fbt-roadmap.m
   (`scripts/GUI/vr_gui.gd`, `scripts/player/player_vr.gd`). Theme inheritance
   does **not** cross a SubViewport, so the theme must be set project-wide or on
   each root.
+- `player_vr.gd::_toggle_main_menu()` creates a flat 1.2 × 0.9 m quad
+  (800 px/m) placed 1.2 m in front of the head, facing the camera. It cannot be
+  grabbed, moved, rotated or resized. "VR tracker setup" and "Comfort preset"
+  buttons are added on top at absolute pixel positions, outside the menu
+  layout. Controller lasers go through `vr_pointer_router.gd`; text fields open
+  `vr_keyboard.gd`.
+- Desktop: `player_desktop.tscn` instances `menue.tscn` as a TabContainer
+  anchored 10 %–90 % of the window, toggled by `open_menue` with mouse capture.
 - `project.godot`: stretch mode `canvas_items`, aspect `expand`.
 - Bundled icons: `themes/icons/{microphone,microphone_muted,profile,back,edit}.svg`.
 
@@ -73,6 +86,104 @@ centered everything, and vague, cheerful copy. Rules for this project:
   recorded in `THIRD_PARTY_ASSETS.md`. One family only.
 - **Minimal motion.** Only hover/press color transitions and the preview's
   camera damping; no bouncing or sliding panels (also better for VR comfort).
+
+## Default form factor: the tablet
+
+The default menu is a **tablet**: a 4:3 landscape screen with a thin device
+frame. The layout is the same on VR and PC; only the host differs.
+
+Mix of social-VR familiarity and modern app design:
+
+| Taken from social-VR (VRChat-like) | Taken from modern app design |
+| --- | --- |
+| Quick menu first: big tiles for the things used every minute | Flat surfaces, neutral colors, one accent, clear typography |
+| Persistent status bar: instance, people count, mic, clock | Left navigation rail with icons + labels, like a tablet app |
+| Launch-pad grid on the Quick page; avatar/world cards with thumbnails | Detail panes, inline progress, toasts instead of modal dialogs |
+| Safety/mute actions always one tap away | Search, empty states, consistent spacing grid |
+
+Only the interaction ideas are borrowed. No VRChat names, icons, artwork,
+fonts or color schemes are copied.
+
+### Screen layout (1600 × 1200 px reference at UI scale 1.0)
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Status bar: instance name · [people] 7 · [mic] · 12:41 · [x]  │ 56 px
+├────────┬─────────────────────────────────────────────────────┤
+│ Nav    │ Page header: title · back (nested pages) · actions  │
+│ rail   ├─────────────────────────────────────────────────────┤
+│ Quick  │                                                     │
+│ Friends│                 Page content                        │
+│ Worlds │                                                     │
+│ Avatars│                                                     │
+│ Instance                                                     │
+│ Settings                                                     │
+└────────┴─────────────────────────────────────────────────────┘
+```
+Bracketed names are icons from the SVG icon set.
+
+- **Quick page (default when opening):** a tile grid with Mute mic, Emotes,
+  Change avatar (thumbnail of the current avatar), Invite / Share instance,
+  Respawn / Go home, Hide avatars, Mirror and Camera, plus an "Online friends"
+  strip. Each tile is large (≥ 160 × 120 px) and has an icon and a short label.
+- **Nav rail:** 96 px wide, icon above label, active item marked with the
+  accent bar. It never scrolls at the default scale.
+- **Status bar:** always visible. In VR it doubles as the **grab handle**.
+- Desktop and VR pages are the same scenes. No page builds its own back button
+  or tabs; the shell owns navigation.
+
+### VR: floating, movable tablet
+
+- `scenes/GUI/vr_tablet.tscn` (replaces direct use of `vr_gui.tscn`): a
+  `Node3D` with a thin rounded box frame mesh, the screen quad (SubViewport)
+  and grab zones on the frame/status bar.
+- **Open/close:** the existing menu button (`input.xr_main_menu_action`). On
+  first open the tablet appears 0.55 m in front, slightly below eye height and
+  tilted toward the face (like holding a tablet). Later opens restore the last
+  placement **relative to the player's yaw**, so it stays where you put it
+  after you turn or move.
+- **Grab and move:** press grip while a hand touches the frame or points at the
+  status bar. The tablet follows that hand with its relative offset and
+  rotation, smoothed. Releasing leaves it floating in place. Two-hand grab
+  scales it within 0.6×–1.6×. Grip already picks up world items
+  (`scripts/worlds/world_pickup_controller.gd`). While the menu is open and a
+  hand is inside a tablet grab zone, the tablet wins and no world grab is
+  requested. Outside the zone, world pickup behaves as today.
+- **Pin modes** (button in the status bar): *Pinned in world* (stays where
+  placed, default) or *Follow* (lazily re-centers in front when it is more than
+  ~45° out of view). A **Summon** gesture or a double press of the menu button
+  brings it back in front.
+- **Interaction:** both controller lasers keep working via
+  `vr_pointer_router.gd`. Optional **direct touch** with the index fingertip
+  when a hand is within 3 cm of the screen, with a press threshold and haptic
+  tick. The laser hides while the hand is touching.
+- **Readability:** default 0.55 × 0.41 m screen at about 2900 px/m, which keeps
+  the 1600 × 1200 layout sharp at arm's length. Unshaded screen, no bloom;
+  a slight frame shadow helps depth perception.
+- **Comfort:** the tablet never locks to the head. Smoothing respects
+  `interface.reduce_motion`. Opening the menu still dismisses the emote wheel
+  and re-arms movement exactly as today.
+- The tracker-setup and comfort-preset buttons move into **Settings → VR** as
+  normal rows instead of floating over the menu.
+- `vr_keyboard.gd` docks under the tablet and moves with it.
+- New settings (category **VR Menu**): `vr.menu_pin_mode` (pinned/follow),
+  `vr.menu_scale` (0.6–1.6), `vr.menu_direct_touch` (bool),
+  `vr.menu_hand` (left/right/either for summoning). The placement itself is
+  session state, not a saved setting.
+
+### PC: 2D overlay menu
+
+- The same tablet shell is drawn in a `CanvasLayer` over the game, centered,
+  keeping 4:3 and filling up to 86 % of the window height. On wide or small
+  windows it switches to a full-height layout with the rail collapsed to icons.
+- A 2D frame in the theme (rounded panel, 1 px border, subtle drop shadow) gives
+  the tablet feel without a 3D model. Behind it the game is dimmed (no blur).
+- `open_menue` (Esc) toggles it as today, with mouse capture/release
+  unchanged. Esc first goes back from nested pages, then closes.
+  `blocks_global_shortcuts` keeps working.
+- Keyboard: Tab/arrow focus, Enter activates, number keys 1–6 select rail
+  items. Mouse wheel scrolls pages; nothing requires hover.
+- The PC overlay is **not** movable. It stays a fixed 2D menu.
 
 ## Color options
 
@@ -169,29 +280,57 @@ themes/icons/       # completed icon set
   search, rotate, zoom, reset, folder, warning, check. Replace Unicode-glyph
   buttons everywhere.
 
-### Part 6 — Menu shell rewrite (navigation)
-- Replace "bottom tabs + Home grid + Submenu" with one shell:
-  **left navigation rail** (Home, Friends, Worlds, Avatars, Settings) +
-  **page header** (title, back button only for nested pages, mic/status on the
-  right) + content area.
-- Home becomes a summary: current instance, quick actions (Invite, Emotes,
-  Change avatar), online friends — not a duplicate of the nav.
-- Keyboard/controller focus order, `Esc` = back then close; VR hit targets
-  ≥ 48 px at default scale.
-- Keep `menue.tscn` path/UID and public node names used by tests
-  (`home_menue`, `world_explorer`, `settings_menue`, `friends_menue`) or update
-  `tests/real_ui`, `tests/friends`, `tests/microphone_settings`,
-  `tests/profile` in the same commit. `blocks_global_shortcuts` and the
-  `vr_menu` meta behavior must not change.
+### Part 6 — Tablet shell (shared layout)
+- New `scenes/GUI/tablet_shell.tscn` / `scripts/GUI/tablet_shell.gd`: status
+  bar, nav rail (Quick, Friends, Worlds, Avatars, Instance, Settings), page
+  header with a navigation stack (`open_page`, `back`, `reset`) and content.
+  It replaces "bottom tabs + Home grid + Submenu".
+- New Quick page with the tile grid and online-friends strip. Tiles call the
+  existing services (`SaveData.voice` for mute, emote controller, share
+  session, avatar visibility), so no new state is introduced.
+- `menue.tscn` keeps its path/UID and becomes a thin wrapper around the shell
+  so `player_desktop.tscn`, `player_vr.gd` and tests keep loading it. Keep the
+  public node names (`home_menue`, `world_explorer`, `settings_menue`,
+  `friends_menue`) reachable or update `tests/real_ui`, `tests/friends`,
+  `tests/microphone_settings`, `tests/profile` in the same commit.
+- Hit targets ≥ 48 px at UI scale 1.0 (≥ 64 px for Quick tiles).
+- Tests: navigation stack, back/reset, Quick-tile actions reach the right
+  service, mute stays in sync with `SaveData.voice`.
 
-### Part 7 — Settings page rewrite
+### Part 7 — PC 2D overlay host
+- `scenes/GUI/desktop_overlay.tscn`: `CanvasLayer` + dim background + the
+  shell at 4:3, responsive collapse for narrow or short windows.
+- Same `open_menue` toggle and mouse-capture behavior as today; Esc = back,
+  then close; number-key rail shortcuts; `blocks_global_shortcuts` honored.
+- Tests (`tests/real_ui`): open/close, focus order, back-before-close, layout
+  at 1280×720, 1920×1080 and 1024×768.
+
+### Part 8 — VR floating tablet host
+- `scenes/GUI/vr_tablet.tscn` + `scripts/GUI/vr_tablet.gd`: frame mesh, screen
+  quad (reuse `VRViewport2D` raycast/inject logic), grab zones, pin button,
+  docked keyboard slot. Keep `vr_menu` viewport meta.
+- `player_vr.gd`: `_toggle_main_menu()` instantiates the tablet instead of
+  `vr_gui.tscn`. Grip near the frame grabs it; placement is stored relative to
+  player yaw; summon brings it back in front; follow/pinned modes; two-hand
+  scale. Move the tracker-setup and comfort-preset buttons into Settings → VR.
+- Optional fingertip direct touch with a press threshold and haptics; the
+  lasers stay the default.
+- Register the `vr.menu_*` settings.
+- Tests (`tests/vr_controls`, synthetic trackers): open in front at the
+  expected distance/tilt, grab follows the hand offset, release keeps the
+  pose, reopen restores yaw-relative placement, summon re-centers, the laser
+  hits the correct pixel after moving/scaling, the menu still dismisses the
+  emote wheel and re-arms motion. Headset comfort and readability remain
+  manual gates.
+
+### Part 9 — Settings page rewrite
 - Row layout: label + caption on the left, control on the right; Reset is a
   small icon that appears only when the value differs from default; error text
   only takes space when present.
 - Search box filtering labels/descriptions across categories.
 - Category list uses `NavButton`; registry, store and validation unchanged.
 
-### Part 8 — Avatar preview rewrite
+### Part 10 — Avatar preview rewrite
 Split into a reusable stage and a thin UI:
 
 - `scenes/GUI/avatar_stage.tscn` / `avatar_stage.gd`: SubViewport, camera rig,
@@ -227,7 +366,7 @@ Improvements:
   `profile_menue.gd`, `profile_edit_popup.gd`, `avatar_browser.gd` and
   `tests/profile/suite.gd`.
 
-### Part 9 — Avatar browser layout and split
+### Part 11 — Avatar browser layout and split
 - Layout: left filters, **card grid** of thumbnails in the middle, **detail
   pane** on the right with the new preview, license/source info and a single
   primary "Use this avatar" button. The preview no longer appears inside the
@@ -239,7 +378,7 @@ Improvements:
   `scripts/discovery/avatars/` unchanged. `tests/avatar_discovery` and
   `tests/real_ui/avatar_suite.gd` must stay green.
 
-### Part 10 — Remaining pages and polish
+### Part 12 — Remaining pages and polish
 - Friends, World Explorer, Active Instance, Profile, Credits and popups moved
   to the shared row/list patterns; empty states with one sentence + action.
 - Toasts (`Toast` variation) for non-blocking messages instead of
@@ -255,9 +394,10 @@ Improvements:
   `python3 tools/check_repository.py` for docs.
 - Contrast check for every preset × accent pair is automated.
 - Manual gates (not covered by headless tests): visual review of every preset
-  on desktop at 720p/1080p/1440p; VR panel readability and pointer hit-testing
-  on a headset; preview performance with a heavy VRM; reviewer check against
-  the "made by people" rules above.
+  on desktop at 720p/1080p/1440p; VR tablet readability, grab/move/scale feel,
+  direct touch accuracy and pointer hit-testing on a headset; seated and
+  standing placement; preview performance with a heavy VRM; reviewer check
+  against the "made by people" rules above.
 
 ## Risks
 
@@ -266,5 +406,11 @@ Improvements:
 - Mutating the shared Theme triggers relayout of all open controls; switching
   presets is rare, but measure it in VR.
 - A bundled font increases export size (~200–400 KB) — acceptable.
+- A 1600 × 1200 SubViewport for the VR tablet costs fill-rate. It renders only
+  while open, and its update rate drops when nothing changes.
+- Grip conflicts between tablet grab and world pickup; covered by the
+  grab-zone priority rule and the `vr_controls` tests.
+- "VRChat-like" must stay at the level of interaction patterns. Do not copy
+  protected names, icons, artwork or exact layouts.
 - Preview environment/shadows cost GPU time; keep them inside the preview's
   own world and only render when needed.

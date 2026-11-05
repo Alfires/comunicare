@@ -59,6 +59,10 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "interface.theme_preset", "category": "Interface", "label": "Color scheme", "type": "enum", "options": {"graphite": "Graphite", "paper": "Paper", "forest": "Forest", "sand": "Sand", "night": "Night", "high_contrast": "High contrast"}, "default": "graphite", "order": -4},
+		{"id": "interface.accent", "category": "Interface", "label": "Accent color", "type": "enum", "options": {"teal": "Teal", "blue": "Blue", "amber": "Amber", "green": "Green", "rose": "Rose", "violet": "Violet", "match_highlight": "Match 3D highlight"}, "default": "teal", "order": -3},
+		{"id": "interface.ui_scale", "category": "Interface", "label": "Interface size", "description": "Scales menus on desktop and the VR tablet.", "type": "number", "default": 1.0, "min": 0.75, "max": 1.5, "step": 0.05, "unit": "×", "order": -2},
+		{"id": "interface.reduce_motion", "category": "Interface", "label": "Reduce motion", "description": "Turns off easing for the tablet, menus and avatar preview.", "type": "boolean", "default": false, "order": -1},
 		{"id": "interface.hover_color", "category": "Interface", "label": "Selectable item highlight color", "type": "enum", "options": {"cyan": "Cyan", "yellow": "Yellow", "green": "Green", "magenta": "Magenta", "white": "White"}, "default": "cyan", "order": 8},
 		{"id": "interface.mirror_quality", "category": "Interface", "label": "Mirror reflection quality", "description": "Local mirror resolution: Low 384px, Medium 768px, High 1536px on the longest edge. Higher quality uses more GPU time.", "type": "enum", "options": {"low": "Low", "medium": "Medium", "high": "High"}, "default": "medium", "order": 5},
 		{"id": "interface.mirror_width", "category": "Interface", "label": "Mirror width (X)", "type": "number", "default": 1.0, "min": 0.4, "max": 3.0, "step": 0.1, "unit": "m", "order": 6},

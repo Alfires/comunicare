@@ -172,8 +172,29 @@ func select_category(category: String):
 		category_buttons[name].set_pressed_no_signal(name == category)
 	$Layout/Content/ScrollContainer.scroll_vertical = 0
 
+const SWATCH_SETTINGS = ["interface.theme_preset", "interface.accent"]
+
+func _swatch_colors(id: String) -> Dictionary:
+	var palette = load("res://scripts/GUI/theme/palette.gd").new()
+	var preset = str(SaveData.store.get_value("interface.theme_preset"))
+	var accent = str(SaveData.store.get_value("interface.accent"))
+	var highlight = str(SaveData.store.get_value("interface.hover_color"))
+	var result := {}
+	for key in SaveData.registry.get_definition(id).options:
+		if id == "interface.theme_preset":
+			var tokens = palette.tokens(key, accent, highlight)
+			result[key] = [tokens.background, tokens.surface_raised, tokens.accent, tokens.text]
+		else:
+			result[key] = [palette.tokens(preset, key, highlight).accent]
+	return result
+
 func _create_control(definition: Dictionary) -> Control:
 	var id: String = definition.id
+	if id in SWATCH_SETTINGS and ResourceLoader.exists("res://scripts/GUI/theme/swatch_picker.gd"):
+		var picker = load("res://scripts/GUI/theme/swatch_picker.gd").new()
+		picker.set_options(definition.options, _swatch_colors(id))
+		picker.value_selected.connect(_commit.bind(id))
+		return picker
 	match definition.type:
 		"boolean":
 			var control = CheckButton.new()
@@ -230,7 +251,12 @@ func _update_value(id: String, value: Variant):
 	if not controls.has(id):
 		return
 	var control: Control = controls[id]
-	if control is CheckButton:
+	if id in ["interface.theme_preset", "interface.hover_color"] and controls.has("interface.accent") \
+		and controls["interface.accent"].has_method("set_options"):
+		controls["interface.accent"].set_options(SaveData.registry.get_definition("interface.accent").options, _swatch_colors("interface.accent"))
+	if control.has_method("swatch_buttons"):
+		control.value = str(value)
+	elif control is CheckButton:
 		control.set_pressed_no_signal(value)
 	elif control is SpinBox:
 		control.set_value_no_signal(value)

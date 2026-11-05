@@ -34,6 +34,18 @@ func run():
 	await process_frame
 	var wrong = record.duplicate(true)
 	wrong.sha256 = "f".repeat(64)
+	var applied_before = loader.get_avatar_configuration().model.duplicate(true)
+	await browser._apply_avatar(wrong)
+	check(browser.loading_bar.value < 100 and not browser.applying_avatar and "digest" in browser.loading_label.text.to_lower()
+		and loader.get_avatar_configuration().model == applied_before, "failed one-click Apply releases busy state and preserves equipped avatar")
+	browser.loading_popup.queue_free()
+	await process_frame
+	var removed = record.duplicate(true)
+	removed.provider = "removed-provider"
+	await browser._apply_avatar(removed)
+	check(not browser.applying_avatar and "provider" in browser.loading_label.text.to_lower(), "removed provider returns actionable Apply failure instead of crashing")
+	if is_instance_valid(browser.loading_popup): browser.loading_popup.queue_free()
+	await process_frame
 	await browser._preview_record(wrong)
 	check("digest" in browser.status.text.to_lower(), "preview rejects mismatched catalog digest just like import")
 	await browser._import_record(record)
@@ -57,6 +69,9 @@ func run():
 			configuration.last_error = ""
 			check(not await configuration.apply(missing, []) and not configuration.last_error.is_empty() and configuration.model == previous,
 				"missing cached avatar gives actionable Apply error without replacing current avatar")
+			configuration.last_error = ""
+			check(not await configuration.apply(previous, [{"hash": "bad"}]) and not configuration.last_error.is_empty(),
+				"invalid animation source returns nonempty Apply error")
 	browser.queue_free()
 	await process_frame
 	check(save.use_temporary_identity(), "duplicate-window temporary identity can be configured")

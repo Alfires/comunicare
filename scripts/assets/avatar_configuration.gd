@@ -213,7 +213,9 @@ func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
 		last_error = "Invalid avatar selection. Import and validate the model again."
 		return false
 	for source in candidate_sources:
-		if not _valid_source(source): return false
+		if not _valid_source(source):
+			last_error = "Invalid animation source. Import and validate the animation again."
+			return false
 	var ticket = generation
 	for source in candidate_sources:
 		var source_handle = loader.get_asset_cache().revision_handle(source.hash)

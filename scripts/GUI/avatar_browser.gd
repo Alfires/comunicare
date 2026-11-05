@@ -454,6 +454,9 @@ func _convert_animation(bytes: PackedByteArray) -> PackedByteArray:
 	return converted
 
 func _preview_record(record: Dictionary):
+	if not registry.sources.has(record.get("provider", "")):
+		status.text = "This provider was removed. Search again before previewing."
+		return
 	var source: Dictionary = registry.sources[record.provider]
 	if source.auth != "none":
 		status.text = "Authenticated model preview is available after validated import; credentials never enter the preview URL cache."
@@ -507,6 +510,9 @@ func _preview_record(record: Dictionary):
 
 func _import_record(record: Dictionary, equip: bool = false):
 	if editor_open: return
+	if not registry.sources.has(record.get("provider", "")):
+		status.text = "This provider was removed. Search again before applying."
+		return
 	var loader = get_node_or_null("/root/DataLoader")
 	var save = get_node_or_null("/root/SaveData")
 	if loader == null or save == null or save.profile.get_local_fingerprint() != account_owner: return

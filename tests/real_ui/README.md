@@ -2,6 +2,11 @@
 
 ## Avatar preview and Apply integration
 
+Failure-path regressions cover one-click digest rejection (busy state released,
+equipped model preserved), results whose provider has been removed, and invalid
+animation-source Apply errors. Removed-provider preview/import must return an
+actionable error before indexing the registry.
+
 Avatar details now provide a single **Apply avatar** action. The modal reports
 download progress over 0–70% when Content-Length is available (otherwise byte
 count), then validation at 75%, commit at 90%, and completion at 100%. These are

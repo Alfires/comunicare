@@ -33,7 +33,7 @@ func inspect_package(path: String, overrides: Dictionary = {}) -> Dictionary:
 		return _failure("Unsupported world/script API")
 	if not manifest.get("script_capabilities", []) is Array: return _failure("Invalid script capabilities")
 	for capability in manifest.get("script_capabilities", []):
-		if not capability in ["entity.read", "entity.visual", "interaction.events"]: return _failure("Forbidden script capability")
+		if not capability in ["entity.read", "entity.visual", "interaction.events", "storage.local"]: return _failure("Forbidden script capability")
 	var extensions = Extensions.new().validate_requirements(manifest.get("extensions", []), {}, files.keys())
 	if not extensions.ok: return extensions
 	var document = {"entities": {}, "materials": {}, "scenes": {}, "textures": {}, "manifest": manifest, "resources": {}, "programs": {}}

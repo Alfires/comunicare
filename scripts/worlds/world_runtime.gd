@@ -10,6 +10,7 @@ var enabled := false
 var world: WeakRef
 var tick_elapsed := 0.0
 var last_error := ""
+var local_store: RefCounted
 
 func configure(root_node: Node, document: Dictionary) -> Dictionary:
 	stop_scripts()
@@ -39,7 +40,8 @@ func dispatch(event: String, entity: String) -> Dictionary:
 	for id in bindings:
 		if not entity.is_empty() and id != entity: continue
 		operations.append_array(programs[bindings[id]].events.get(event, []))
-	var result = VM.new().run_event(operations, {"capabilities": capabilities, "entities": entities.keys()}, {})
+	var saved = local_store.values.duplicate(true) if local_store != null else {}
+	var result = VM.new().run_event(operations, {"capabilities": capabilities, "entities": entities.keys(), "saved": saved}, {})
 	if not result.ok:
 		last_error = result.error
 		stop_scripts()
@@ -47,12 +49,22 @@ func dispatch(event: String, entity: String) -> Dictionary:
 	commands = result.commands
 	# Resolve the whole transaction before mutating any scene state.
 	for command in commands:
+		if command.op in ["save_set", "save_add", "save_delete"]:
+			if local_store == null: return Data.failure("Local storage unavailable")
+			if command.op == "save_set": saved[command.key] = command.get("value")
+			elif command.op == "save_delete": saved.erase(command.key)
+			else:
+				var previous = saved.get(command.key, 0)
+				if not (previous is int or previous is float): return Data.failure("Saved counter is not numeric")
+				saved[command.key] = previous + command.value
+			continue
 		var target = entities.get(command.entity)
 		if target == null or not target.get_ref() is Node3D:
 			stop_scripts()
 			return Data.failure("Visual target is unavailable")
+	if saved != (local_store.values if local_store != null else {}) and not local_store.commit(saved): return Data.failure("Local save failed or exceeded quota")
 	for command in commands:
-		entities[command.entity].get_ref().visible = command.value
+		if command.op == "command": entities[command.entity].get_ref().visible = command.value
 	return {"ok": true, "commands": commands.size()}
 
 func stop_scripts():

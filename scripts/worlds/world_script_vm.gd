@@ -24,6 +24,17 @@ func _execute(operations: Variant, context: Dictionary, state: Dictionary, depth
 		if state.fuel < 0: return "Script fuel exhausted"
 		if not operation is Dictionary: return "Invalid instruction"
 		match operation.get("op", ""):
+			"save_set", "save_add", "save_delete":
+				if not "storage.local" in context.get("capabilities", []): return "Denied local storage capability"
+				if not Data.keys_only(operation, ["op", "key", "value"]) or not operation.get("key") is String or operation.key.is_empty() or operation.key.length() > 64: return "Invalid save key"
+				if operation.op == "save_add" and not (operation.get("value") is int or operation.get("value") is float): return "Invalid save increment"
+				if state.commands.size() >= state.max_commands: return "Script command budget exhausted"
+				state.commands.append(operation.duplicate(true))
+			"if_saved":
+				if not "storage.local" in context.get("capabilities", []) or not Data.keys_only(operation, ["op", "key", "equals", "then", "else"]) or not operation.get("key") is String: return "Invalid saved-data condition"
+				var branch = operation.get("then", []) if context.get("saved", {}).get(operation.key) == operation.get("equals") else operation.get("else", [])
+				var error = _execute(branch, context, state, depth + 1)
+				if not error.is_empty(): return error
 			"repeat":
 				if not Data.keys_only(operation, ["op", "count", "body"]) or not Data.integer(operation.get("count"), 0, 2147483647): return "Invalid repeat"
 				if operation.count > state.fuel: return "Script fuel exhausted"

@@ -339,6 +339,9 @@ func activate_world(staged: Dictionary) -> bool:
 		get_tree().current_scene.add_child(world_runtime)
 		var configured = world_runtime.configure(get_tree().current_scene, staged.document)
 		var save = get_node_or_null("/root/SaveData")
+		if "storage.local" in world_runtime.capabilities and save != null and save.get("profile") != null:
+			world_runtime.local_store = preload("res://scripts/worlds/world_local_store.gd").new()
+			world_runtime.local_store.configure(save.profile.get_local_fingerprint(), str(staged.get("source_url", "")), save.get("temporary_identity") == true)
 		if save != null and save.get("store") != null and not save.store.setting_changed.is_connected(_cache_setting_changed):
 			save.store.setting_changed.connect(_cache_setting_changed)
 		var enabled = save == null or save.get("store") == null or save.store.get_value("world.scripts_enabled") != false

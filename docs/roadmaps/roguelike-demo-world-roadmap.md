@@ -212,6 +212,46 @@ both desktop and VR presentations; never duplicate leveling rules in UI callback
   Global menus, focus loss and level-up panels must not leave enemies ticking
   while the player cannot act; keep pause state consistent on resume/unload.
 
+#### Expanded leveling menu collection
+
+Make the progression interaction beside spawn a **Leveling** hub with distinct
+pages, not one overloaded panel. In-run pages are accessible from a compact
+progression button while paused; entrance-only actions stay disabled during a run.
+Use the same visual language, Back navigation and desktop/VR controls throughout.
+
+| Menu / page | Contents and actions | Progression boundary |
+| --- | --- | --- |
+| **Player overview** | Persistent player level, lifetime XP, next milestone, equipped cosmetic and save status; links to the pages below | Read-only summary; opening it never awards XP |
+| **Character stats** | Base versus current damage, attack cooldown, maximum/current health, run level and upgrade stacks; show each modifier's source | Clearly distinguish temporary run bonuses from permanent cosmetic progression |
+| **Upgrade library** | Browse the three upgrade families, inspect each rank's exact effects and caps, and preview current → next values | Informational; browsing is not purchasing or granting an upgrade |
+| **Level-up selection** | Three large upgrade cards, details/preview, confirm button and number of pending choices | Consume one pending run-level choice per confirmation; prevent duplicate selection |
+| **Current run build** | Chosen upgrades in acquisition order, stack counts and combined effects; empty-state explanation for a fresh run | Bounded to this short run; no respec, extra currency or permanent upgrade purchase |
+| **Player-level milestones** | Small fixed track of lifetime-XP thresholds and their cosmetic rewards; mark reached, next and locked milestones | Rewards unlock once when eligible; never require repeatedly clicking Claim |
+| **Unlocked cosmetics** | Inspect/preview available spell colors or world-owned cosmetic accents and equip one; show locked item's required player level | Persist selection as a bounded approved ID; do not replace the user's social avatar or sell stat boosts |
+| **XP breakdown** | Explain encounter/guardian XP, show this run's earned versus successfully saved lifetime XP, and the next player-level threshold | Use bounded current-run totals, not a permanent event log; retrying/reopening cannot re-award XP |
+| **Run results / level recap** | Before → after XP/level, new milestones/cosmetics, selected run build and victory/death; Retry seed, New run, Return home | Resolve results once; save failure does not disguise itself as a successful award |
+| **Progression data** | Local-save explanation, saved/pending/error state, temporary-identity warning and a separate confirmed Reset player progression action | Reset only at the safe entrance; cancel changes nothing, confirm affects this world/player only |
+
+Keep all pages backed by one progression model and small declarative definitions.
+Do not introduce independent XP counters, skill points, a shop, equipment inventory
+or an additional save file just to populate more menus. Cosmetic equipment adds
+only a bounded `equipped_cosmetic_id` to the proposed saved record; validate it
+against unlocked IDs and use a safe default for an unavailable cosmetic without
+discarding otherwise valid progress.
+
+Preserve selected tab/focus only for the current menu session. Opening nested
+pages must not unpause combat or release attack input suppression; closing the
+last modal restores the prior pause/input state. Level-up choices take priority
+over informational pages, with Back returning to the pending choice rather than
+discarding it. Never stack multiple floating panels over the VR player's view.
+
+**Additional menu acceptance:** every page has a meaningful empty/locked/capped
+state, works with keyboard and VR pointer, and can return to the hub. Test
+multi-level XP gains, double confirmations, repeated navigation, cosmetic equip
+and relaunch, reset cancel/confirm, missing cosmetic IDs, and saving errors across
+all pages. Review the full flow in desktop and headset views, not just screenshots
+of individual panels. Include these pages in parts 05–06's implementation gates.
+
 ### 2.3. Asset-creator credits beside spawn
 
 Place a clearly labeled **Credits** interaction on a detailed lectern or wall panel

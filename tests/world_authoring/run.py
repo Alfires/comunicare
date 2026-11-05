@@ -41,6 +41,16 @@ def main():
                 return 2
             if result.returncode:
                 return result.returncode
+        # Real editor lifecycle smoke: enable only inside this disposable project.
+        config = project / "project.godot"
+        config.write_text(config.read_text() + '\n[editor_plugins]\nenabled=PackedStringArray("res://addons/comunicare_world_tools/plugin.cfg")\n')
+        result = subprocess.run([godot, "--headless", "--path", directory, "--editor", "--quit-after", "10"],
+                                capture_output=True, text=True, timeout=90, env=env)
+        output = result.stdout + result.stderr
+        print(output, end="")
+        if result.returncode or "ERROR:" in output:
+            return 2
+        print("Editor plugin enable/disable smoke: PASS")
     return 0
 
 

@@ -1,5 +1,11 @@
 # World-authoring plugin acceptance tests (RED)
 
+Implementation update: initial production services now pass **34 assertions**, no
+blocked groups, exit 0. Runner also enables the plugin in the disposable editor
+and checks clean startup/shutdown. Historical absent-plugin baseline below is
+retained as test-first evidence. Actual dock interaction/player launches remain
+outside these tests. Current primitives-only scope is in the addon README.
+
 Run explicitly from the repository root:
 
 ```sh

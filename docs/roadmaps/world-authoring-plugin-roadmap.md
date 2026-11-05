@@ -1,7 +1,10 @@
 # Godot world-authoring plugin roadmap
 
-Status: **proposal, not implemented**. No plugin, new world API or optimization
-guarantee is delivered by this document.
+Status: **initial primitive-authoring plugin implemented; broader roadmap pending**.
+See [plugin usage and limits](../../addons/comunicare_world_tools/README.md).
+Current verification: 34 service assertions pass plus a headless editor lifecycle
+smoke. Actual isolated PC/VR launching, model import UI, undo/redo and geometry
+optimization are not implemented. No performance guarantee is implied.
 
 Test-first update: opt-in [acceptance contracts](../../tests/world_authoring/README.md)
 now exist. Verified missing-plugin baseline: 0 passed, 6 failed, 6 dependent groups

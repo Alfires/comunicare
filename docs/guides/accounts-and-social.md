@@ -5,7 +5,12 @@
 In **Active Instance**, use **Hide avatar** beside another player's entry. Only
 your client hides that player's model; voice, nameplates, profiles, collision and
 instance access are unchanged. Other players using the same model remain visible.
-Avatar changes stay hidden; **Show avatar** reveals the latest model. Downloads
+Avatar changes stay hidden; **Show avatar** reveals the latest model. A bundled
+offline humanoid stands in for loading or blocked avatars: blue with animated
+dots for loading, amber with an X for a local block. Above the username it says
+**Downloading model** or **Model blocked**; reported import failures show
+**Model unavailable**. Successful attachment removes the stand-in unless blocked.
+The status label respects the nameplate visibility preference. Downloads
 and animation processing are not blocked.
 
 The choice lasts for the current session, including that player's reconnect.

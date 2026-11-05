@@ -507,6 +507,9 @@ func _send_chunk():
 
 func _prepare_remote_model(id: int, state: Dictionary):
 	if loader == null or model_loading.has(id): return
+	var pending_remote = coordinator.get_node_or_null(str(id))
+	if pending_remote != null and pending_remote.has_method("begin_avatar_loading"):
+		pending_remote.begin_avatar_loading()
 	var handle = loader.get_asset_cache().revision_handle(state.model_hash)
 	if handle.is_empty():
 		if not model_incoming.has(id) and model_incoming.size() < 2:
@@ -521,6 +524,7 @@ func _prepare_remote_model(id: int, state: Dictionary):
 		return
 	var remote = coordinator.get_node_or_null(str(id))
 	if remote == null or model == null:
+		if remote != null and remote.has_method("avatar_load_failed"): remote.avatar_load_failed()
 		if model != null: model.queue_free()
 		return
 	model.set_meta("asset_lease", handle.lease)

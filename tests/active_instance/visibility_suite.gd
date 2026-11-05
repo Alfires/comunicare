@@ -33,6 +33,9 @@ func run():
 	remote.attach_avatar(first)
 	remote.set_avatar_hidden(true)
 	check(not first.visible, "hide existing avatar only")
+	check(remote.get("placeholder") is Node3D, "blocked player has local placeholder")
+	if remote.get("placeholder") is Node3D:
+		check(remote.placeholder.visible and remote.avatar_status.text == "Model blocked", "blocked placeholder explains local block above name")
 	check(other_model.visible and other_model.mesh == mesh.mesh, "shared mesh remains visible for another player")
 	check(nameplate.visible, "nameplate outside avatar remains enabled")
 	var second = Node3D.new()
@@ -40,6 +43,17 @@ func run():
 	check(not second.visible, "replacement model stays hidden before attachment")
 	remote.set_avatar_hidden(false)
 	check(second.visible, "show reveals newest model")
+	if remote.get("placeholder") is Node3D:
+		check(not remote.placeholder.visible and not remote.avatar_status.visible, "loaded unblocked avatar removes placeholder and status")
+	check(remote.has_method("begin_avatar_loading"), "loading has an explicit placeholder lifecycle")
+	if remote.has_method("begin_avatar_loading"):
+		remote.begin_avatar_loading()
+		check(remote.placeholder.visible and not second.visible and remote.avatar_status.text == "Downloading model", "loading displays local stand-in instead of previous model")
+		remote.set_avatar_hidden(true)
+		check(remote.avatar_status.text == "Model blocked", "block takes precedence over loading status")
+		remote.set_avatar_hidden(false)
+		remote.avatar_load_failed()
+		check(remote.placeholder.visible and remote.avatar_status.text == "Model unavailable", "failed import keeps offline stand-in with honest failure status")
 	remote.free()
 	other.free()
 	service.set_scope("session-b", "self")

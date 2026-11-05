@@ -512,6 +512,18 @@ disconnects store signal. Audio helper feeds only its generator, not microphone.
 | `load_player_model` | Await URL model, keep old avatar on failure, discard stale/detached completion, attach independent tree and update label. Never reuse a live model node across peers. |
 | `set_avatar_hidden` | Sets this remote node's local avatar visibility only, leaving root/nameplate/voice untouched. |
 | `attach_avatar` | Applies current hidden state before tree attachment, retires previous model and sets the compatible avatar reference. Used by URL and transferred-model paths. |
+| `begin_avatar_loading` | Enables bundled local stand-in and downloading status, hiding the previous model. A local block takes precedence. |
+| `avatar_load_failed` | Keeps stand-in with unavailable status on reported import failure; does not reveal an old model. |
+
+<!-- module: scripts/assets/avatar_placeholder.gd -->
+### [Avatar placeholder](../../scripts/assets/avatar_placeholder.gd)
+
+Original bundled primitive humanoid; no runtime asset fetch or imported resources.
+Instance-owned materials prevent cross-player appearance mutation.
+
+| Functions | Contract |
+| --- | --- |
+| `set_state` | Selects amber/X for blocked, red/! for unavailable, or blue/animated dots for loading; does not affect player/network policy. |
 
 <!-- module: scripts/assets/avatar_visibility.gd -->
 ### [Avatar visibility](../../scripts/assets/avatar_visibility.gd)

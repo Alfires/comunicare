@@ -8,10 +8,45 @@ var avatar: Node = null
 var avatar_generation := 0
 var avatar_url := ""
 var avatar_hidden := false
+var avatar_loading := true
+var avatar_failed := false
+var placeholder: Node3D
+var avatar_status: Label3D
+
+func _ensure_placeholder():
+	if is_instance_valid(placeholder): return
+	placeholder = preload("res://scripts/assets/avatar_placeholder.gd").new()
+	placeholder.name = "AvatarPlaceholder"
+	add_child(placeholder)
+	avatar_status = Label3D.new()
+	avatar_status.name = "AvatarStatus"
+	avatar_status.position = Vector3(0, 2.75, 0)
+	avatar_status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	avatar_status.font_size = 32
+	add_child(avatar_status)
+
+func _update_avatar_display():
+	_ensure_placeholder()
+	var stand_in = avatar_hidden or avatar_loading or avatar_failed or not is_instance_valid(avatar)
+	placeholder.visible = stand_in
+	placeholder.set_state(avatar_hidden, avatar_failed)
+	if is_instance_valid(avatar): avatar.visible = not stand_in
+	avatar_status.text = "Model blocked" if avatar_hidden else ("Model unavailable" if avatar_failed else "Downloading model")
+	avatar_status.visible = stand_in and (not is_instance_valid(user_name_label) or user_name_label.visible)
+
+func begin_avatar_loading():
+	avatar_loading = true
+	avatar_failed = false
+	_update_avatar_display()
+
+func avatar_load_failed():
+	avatar_loading = false
+	avatar_failed = true
+	_update_avatar_display()
 
 func set_avatar_hidden(value: bool):
 	avatar_hidden = value
-	if is_instance_valid(avatar): avatar.visible = not value
+	_update_avatar_display()
 
 func attach_avatar(model: Node3D):
 	# Apply before tree attachment: async model changes cannot flash visible.
@@ -22,12 +57,19 @@ func attach_avatar(model: Node3D):
 	avatar = model
 	avatar.name = "avatar"
 	add_child(avatar)
+	avatar_loading = false
+	avatar_failed = false
+	_update_avatar_display()
 var buffer_threshold = 3
 var audio_buffers = []
 
 var audio_playback: AudioStreamGeneratorPlayback
 
 func _ready() -> void:
+	user_name_label.text = user_name
+	user_name_label.position = Vector3(0, 2.5, 0)
+	user_name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_update_avatar_display()
 	if DataLoader.has_signal("asset_revision_available"):
 		DataLoader.asset_revision_available.connect(_asset_updated)
 	if SaveData.get("store") != null:
@@ -40,6 +82,7 @@ func _ready() -> void:
 func _setting_changed(id: String, value: Variant):
 	if id == "interface.show_nameplates":
 		user_name_label.visible = value != false
+		_update_avatar_display()
 
 func _exit_tree():
 	if DataLoader.has_signal("asset_revision_available") and DataLoader.asset_revision_available.is_connected(_asset_updated):
@@ -53,8 +96,10 @@ func load_player_model(model_url: String):
 	avatar_url = model_url
 	avatar_generation += 1
 	var ticket = avatar_generation
+	begin_avatar_loading()
 	var result = await DataLoader.load_vrm_from_url(model_url)
 	if result == null:
+		if ticket == avatar_generation and is_inside_tree(): avatar_load_failed()
 		return
 	if ticket != avatar_generation or not is_inside_tree():
 		result.queue_free()

@@ -1621,42 +1621,42 @@
     {
       "kind": "func",
       "name": "_store_remote_model",
-      "line": 537,
+      "line": 541,
       "signature": "func _store_remote_model(id: int, request: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_receive_chunk",
-      "line": 551,
+      "line": 555,
       "signature": "func _receive_chunk(value: Dictionary)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_remove_remote",
-      "line": 602,
+      "line": 606,
       "signature": "func _remove_remote(id: int)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "clear",
-      "line": 621,
+      "line": 625,
       "signature": "func clear()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 644,
+      "line": 648,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_tracking",
-      "line": 651,
+      "line": 655,
       "signature": "func _update_tracking(delta: float)",
       "visibility": "private"
     }
@@ -2113,6 +2113,29 @@
       "line": 263,
       "signature": "func load_model(fallback: String) -> Node3D",
       "visibility": "public"
+    }
+  ],
+  "scripts/assets/avatar_placeholder.gd": [
+    {
+      "kind": "func",
+      "name": "_init",
+      "line": 8,
+      "signature": "func _init()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "set_state",
+      "line": 33,
+      "signature": "func set_state(blocked: bool, failed: bool)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_process",
+      "line": 39,
+      "signature": "func _process(delta: float)",
+      "visibility": "private"
     }
   ],
   "scripts/assets/avatar_tracking.gd": [
@@ -4596,64 +4619,92 @@
   "scripts/player/remote_player.gd": [
     {
       "kind": "func",
+      "name": "_ensure_placeholder",
+      "line": 16,
+      "signature": "func _ensure_placeholder()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_update_avatar_display",
+      "line": 28,
+      "signature": "func _update_avatar_display()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "begin_avatar_loading",
+      "line": 37,
+      "signature": "func begin_avatar_loading()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "avatar_load_failed",
+      "line": 42,
+      "signature": "func avatar_load_failed()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
       "name": "set_avatar_hidden",
-      "line": 12,
+      "line": 47,
       "signature": "func set_avatar_hidden(value: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "attach_avatar",
-      "line": 16,
+      "line": 51,
       "signature": "func attach_avatar(model: Node3D)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_ready",
-      "line": 30,
+      "line": 68,
       "signature": "func _ready() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_setting_changed",
-      "line": 40,
+      "line": 82,
       "signature": "func _setting_changed(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 44,
+      "line": 87,
       "signature": "func _exit_tree()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "load_player_model",
-      "line": 52,
+      "line": 95,
       "signature": "func load_player_model(model_url: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_asset_updated",
-      "line": 69,
+      "line": 114,
       "signature": "func _asset_updated(source: String, _previous: String, _revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_setup_playback",
-      "line": 74,
+      "line": 119,
       "signature": "func _setup_playback() -> void",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_play_audio",
-      "line": 84,
+      "line": 129,
       "signature": "func _play_audio(samples: PackedFloat32Array) -> void",
       "visibility": "private"
     }

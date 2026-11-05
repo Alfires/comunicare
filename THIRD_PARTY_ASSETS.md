@@ -1,5 +1,17 @@
 # Bundled animation provenance
 
+## Original offline avatar placeholder
+
+`scripts/assets/avatar_placeholder.gd` is an original block humanoid constructed
+from Godot BoxMesh primitives, with a local loading/blocked indicator. No external
+model, texture, font file or downloaded asset is bundled for this placeholder.
+The implementation is shipped with the game and follows the repository license.
+
+Research considered Kenney's CC0 Blocky Characters:
+https://kenney.nl/assets/blocky-characters . Its download endpoint returned HTTP
+403 in the development environment, so no Kenney asset is included or claimed as
+the source of this original placeholder.
+
 ## Quaternius Universal Animation Library — Standard-1.0
 
 - **Creator:** Quaternius.

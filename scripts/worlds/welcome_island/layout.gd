@@ -65,7 +65,7 @@ func _build_land():
 	var mesh = tool.commit()
 	var instance = MeshInstance3D.new()
 	instance.mesh = mesh
-	instance.material_override = _material(Color(0.36, 0.47, 0.29))
+	instance.material_override = _surface_material("sparse_grass", 2.5)
 	body.add_child(instance)
 	var collision = CollisionShape3D.new()
 	collision.shape = mesh.create_trimesh_shape()
@@ -79,7 +79,7 @@ func _build_land():
 	cone.radial_segments = 15
 	underside.mesh = cone
 	underside.position.y = -16
-	underside.material_override = _material(Color(0.29, 0.29, 0.28))
+	underside.material_override = _surface_material("rock_01", 4.0)
 	add_child(underside)
 
 func _material(color: Color) -> StandardMaterial3D:
@@ -89,6 +89,19 @@ func _material(color: Color) -> StandardMaterial3D:
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return material
 
+func _surface_material(id: String, meters: float) -> StandardMaterial3D:
+	var material = _material(Color.WHITE)
+	var prefix = "res://assets/welcome_island/textures/" + id + "/" + id
+	material.albedo_texture = load(prefix + "_diff_1k.jpg")
+	material.normal_enabled = true
+	material.normal_texture = load(prefix + "_nor_gl_1k.jpg")
+	material.roughness_texture = load(prefix + "_rough_1k.jpg")
+	material.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+	material.uv1_triplanar = true
+	material.uv1_world_triplanar = true
+	material.uv1_scale = Vector3.ONE / meters
+	return material
+
 func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3D:
 	var node = MeshInstance3D.new()
 	node.name = label
@@ -96,6 +109,9 @@ func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bo
 	mesh.size = size
 	node.mesh = mesh
 	node.material_override = _material(color)
+	if label == "Path": node.material_override = _surface_material("rock_path", 2.0)
+	elif label in ["HouseBack", "HouseLeft", "HouseRight", "DeckFootprint", "DockFootprint"]:
+		node.material_override = _surface_material("weathered_planks", 2.0)
 	node.position = center
 	add_child(node)
 	if solid:

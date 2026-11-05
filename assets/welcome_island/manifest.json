@@ -203,6 +203,146 @@
           "download": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr"
         }
       ]
+    },
+    {
+      "id": "polyhaven.sparse_grass",
+      "title": "Sparse Grass",
+      "author": "Amal Kumar",
+      "source": "https://polyhaven.com/a/sparse_grass",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-05",
+      "attribution": "",
+      "modifications": "Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.",
+      "files": [
+        {
+          "path": "assets/welcome_island/textures/sparse_grass/sparse_grass_diff_1k.jpg",
+          "sha256": "ae94f2b34597b9108eefd88217f55eccaec6d6b382e858a478ee92df90e66617",
+          "original_name": "sparse_grass_diff_1k.jpg",
+          "original_sha256": "ae94f2b34597b9108eefd88217f55eccaec6d6b382e858a478ee92df90e66617",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/sparse_grass/sparse_grass_nor_gl_1k.jpg",
+          "sha256": "1c840a24807346ddaaf94a5057aee4078fcec3a4cd84bfe45da7d3b480ef460b",
+          "original_name": "sparse_grass_nor_gl_1k.jpg",
+          "original_sha256": "1c840a24807346ddaaf94a5057aee4078fcec3a4cd84bfe45da7d3b480ef460b",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/sparse_grass/sparse_grass_rough_1k.jpg",
+          "sha256": "9ebe6d03a9551c17d1802835c92c1442acb8f5d38d4874ee8c37770f11c4bed1",
+          "original_name": "sparse_grass_rough_1k.jpg",
+          "original_sha256": "9ebe6d03a9551c17d1802835c92c1442acb8f5d38d4874ee8c37770f11c4bed1",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_rough_1k.jpg"
+        }
+      ]
+    },
+    {
+      "id": "polyhaven.rock_path",
+      "title": "Rock Path",
+      "author": "Amal Kumar",
+      "source": "https://polyhaven.com/a/rock_path",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-05",
+      "attribution": "",
+      "modifications": "Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.",
+      "files": [
+        {
+          "path": "assets/welcome_island/textures/rock_path/rock_path_diff_1k.jpg",
+          "sha256": "6e5e805b8a40d49f516919a256be246fea2ed46707e3f9ff124140774508180e",
+          "original_name": "rock_path_diff_1k.jpg",
+          "original_sha256": "6e5e805b8a40d49f516919a256be246fea2ed46707e3f9ff124140774508180e",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_path/rock_path_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/rock_path/rock_path_nor_gl_1k.jpg",
+          "sha256": "4a9b260df57d70b564a8f65a6584546f4bf6f439fd5863964b2226ed9d54a17c",
+          "original_name": "rock_path_nor_gl_1k.jpg",
+          "original_sha256": "4a9b260df57d70b564a8f65a6584546f4bf6f439fd5863964b2226ed9d54a17c",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_path/rock_path_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/rock_path/rock_path_rough_1k.jpg",
+          "sha256": "2155182f95da50dc6c3b065f46d6435968c7932b300b1764b1e5f0267908f6ab",
+          "original_name": "rock_path_rough_1k.jpg",
+          "original_sha256": "2155182f95da50dc6c3b065f46d6435968c7932b300b1764b1e5f0267908f6ab",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_path/rock_path_rough_1k.jpg"
+        }
+      ]
+    },
+    {
+      "id": "polyhaven.rock_01",
+      "title": "Rock 01",
+      "author": "Rob Tuytel",
+      "source": "https://polyhaven.com/a/rock_01",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-05",
+      "attribution": "",
+      "modifications": "Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.",
+      "files": [
+        {
+          "path": "assets/welcome_island/textures/rock_01/rock_01_diff_1k.jpg",
+          "sha256": "0b5f0418eb1e686190c5d33bb54c400b1f9ed58813b5e34aa5e573a5197302b5",
+          "original_name": "rock_01_diff_1k.jpg",
+          "original_sha256": "0b5f0418eb1e686190c5d33bb54c400b1f9ed58813b5e34aa5e573a5197302b5",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_01/rock_01_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/rock_01/rock_01_nor_gl_1k.jpg",
+          "sha256": "7a7146f51159a7667233c2c14c34ff18a9f4374cc8869d53a1162648d0941023",
+          "original_name": "rock_01_nor_gl_1k.jpg",
+          "original_sha256": "7a7146f51159a7667233c2c14c34ff18a9f4374cc8869d53a1162648d0941023",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_01/rock_01_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/rock_01/rock_01_rough_1k.jpg",
+          "sha256": "e98b9c8ffb35513bd7b36a8730bf9745d05325376a85fae87ebf56a7c071a123",
+          "original_name": "rock_01_rough_1k.jpg",
+          "original_sha256": "e98b9c8ffb35513bd7b36a8730bf9745d05325376a85fae87ebf56a7c071a123",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_01/rock_01_rough_1k.jpg"
+        }
+      ]
+    },
+    {
+      "id": "polyhaven.weathered_planks",
+      "title": "Weathered Planks",
+      "author": "Dario Barresi; Dimitrios Savva",
+      "source": "https://polyhaven.com/a/weathered_planks",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-05",
+      "attribution": "",
+      "modifications": "Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.",
+      "files": [
+        {
+          "path": "assets/welcome_island/textures/weathered_planks/weathered_planks_diff_1k.jpg",
+          "sha256": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
+          "original_name": "weathered_planks_diff_1k.jpg",
+          "original_sha256": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/weathered_planks/weathered_planks_nor_gl_1k.jpg",
+          "sha256": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
+          "original_name": "weathered_planks_nor_gl_1k.jpg",
+          "original_sha256": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/textures/weathered_planks/weathered_planks_rough_1k.jpg",
+          "sha256": "a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3",
+          "original_name": "weathered_planks_rough_1k.jpg",
+          "original_sha256": "a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_rough_1k.jpg"
+        }
+      ]
     }
   ]
 }

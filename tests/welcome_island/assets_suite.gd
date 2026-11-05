@@ -37,6 +37,11 @@ func run():
 	if not FileAccess.file_exists(path):
 		finish(); return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(path))
+	for id in ["sparse_grass", "rock_path", "rock_01", "weathered_planks"]:
+		var matches = data.assets.filter(func(entry): return entry.id == "polyhaven." + id)
+		check(matches.size() == 1, "realistic surface palette exists: " + id)
+		if matches.size() == 1:
+			check(matches[0].files.size() == 3, "surface has diffuse/OpenGL normal/roughness maps: " + id)
 	for entry in data.assets:
 		for file in entry.files:
 			var resource_path = "res://" + file.path

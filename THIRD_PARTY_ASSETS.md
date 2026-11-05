@@ -153,4 +153,64 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - Shipped: `assets/welcome_island/sky/kloofendal_48d_partly_cloudy_puresky/kloofendal_48d_partly_cloudy_puresky_1k.hdr`; SHA-256 `fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798`
   Original: `kloofendal_48d_partly_cloudy_puresky_1k.hdr`; SHA-256 `fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798`; download: https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr
 
+### polyhaven.sparse_grass — Sparse Grass
+
+- Author: Amal Kumar
+- Source: https://polyhaven.com/a/sparse_grass
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.
+- Shipped: `assets/welcome_island/textures/sparse_grass/sparse_grass_diff_1k.jpg`; SHA-256 `ae94f2b34597b9108eefd88217f55eccaec6d6b382e858a478ee92df90e66617`
+  Original: `sparse_grass_diff_1k.jpg`; SHA-256 `ae94f2b34597b9108eefd88217f55eccaec6d6b382e858a478ee92df90e66617`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_diff_1k.jpg
+- Shipped: `assets/welcome_island/textures/sparse_grass/sparse_grass_nor_gl_1k.jpg`; SHA-256 `1c840a24807346ddaaf94a5057aee4078fcec3a4cd84bfe45da7d3b480ef460b`
+  Original: `sparse_grass_nor_gl_1k.jpg`; SHA-256 `1c840a24807346ddaaf94a5057aee4078fcec3a4cd84bfe45da7d3b480ef460b`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/textures/sparse_grass/sparse_grass_rough_1k.jpg`; SHA-256 `9ebe6d03a9551c17d1802835c92c1442acb8f5d38d4874ee8c37770f11c4bed1`
+  Original: `sparse_grass_rough_1k.jpg`; SHA-256 `9ebe6d03a9551c17d1802835c92c1442acb8f5d38d4874ee8c37770f11c4bed1`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_rough_1k.jpg
+
+### polyhaven.rock_path — Rock Path
+
+- Author: Amal Kumar
+- Source: https://polyhaven.com/a/rock_path
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.
+- Shipped: `assets/welcome_island/textures/rock_path/rock_path_diff_1k.jpg`; SHA-256 `6e5e805b8a40d49f516919a256be246fea2ed46707e3f9ff124140774508180e`
+  Original: `rock_path_diff_1k.jpg`; SHA-256 `6e5e805b8a40d49f516919a256be246fea2ed46707e3f9ff124140774508180e`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_path/rock_path_diff_1k.jpg
+- Shipped: `assets/welcome_island/textures/rock_path/rock_path_nor_gl_1k.jpg`; SHA-256 `4a9b260df57d70b564a8f65a6584546f4bf6f439fd5863964b2226ed9d54a17c`
+  Original: `rock_path_nor_gl_1k.jpg`; SHA-256 `4a9b260df57d70b564a8f65a6584546f4bf6f439fd5863964b2226ed9d54a17c`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_path/rock_path_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/textures/rock_path/rock_path_rough_1k.jpg`; SHA-256 `2155182f95da50dc6c3b065f46d6435968c7932b300b1764b1e5f0267908f6ab`
+  Original: `rock_path_rough_1k.jpg`; SHA-256 `2155182f95da50dc6c3b065f46d6435968c7932b300b1764b1e5f0267908f6ab`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_path/rock_path_rough_1k.jpg
+
+### polyhaven.rock_01 — Rock 01
+
+- Author: Rob Tuytel
+- Source: https://polyhaven.com/a/rock_01
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.
+- Shipped: `assets/welcome_island/textures/rock_01/rock_01_diff_1k.jpg`; SHA-256 `0b5f0418eb1e686190c5d33bb54c400b1f9ed58813b5e34aa5e573a5197302b5`
+  Original: `rock_01_diff_1k.jpg`; SHA-256 `0b5f0418eb1e686190c5d33bb54c400b1f9ed58813b5e34aa5e573a5197302b5`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_01/rock_01_diff_1k.jpg
+- Shipped: `assets/welcome_island/textures/rock_01/rock_01_nor_gl_1k.jpg`; SHA-256 `7a7146f51159a7667233c2c14c34ff18a9f4374cc8869d53a1162648d0941023`
+  Original: `rock_01_nor_gl_1k.jpg`; SHA-256 `7a7146f51159a7667233c2c14c34ff18a9f4374cc8869d53a1162648d0941023`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_01/rock_01_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/textures/rock_01/rock_01_rough_1k.jpg`; SHA-256 `e98b9c8ffb35513bd7b36a8730bf9745d05325376a85fae87ebf56a7c071a123`
+  Original: `rock_01_rough_1k.jpg`; SHA-256 `e98b9c8ffb35513bd7b36a8730bf9745d05325376a85fae87ebf56a7c071a123`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_01/rock_01_rough_1k.jpg
+
+### polyhaven.weathered_planks — Weathered Planks
+
+- Author: Dario Barresi; Dimitrios Savva
+- Source: https://polyhaven.com/a/weathered_planks
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-05
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K JPEG diffuse, OpenGL normal and roughness maps; no displacement geometry.
+- Shipped: `assets/welcome_island/textures/weathered_planks/weathered_planks_diff_1k.jpg`; SHA-256 `01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349`
+  Original: `weathered_planks_diff_1k.jpg`; SHA-256 `01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_diff_1k.jpg
+- Shipped: `assets/welcome_island/textures/weathered_planks/weathered_planks_nor_gl_1k.jpg`; SHA-256 `381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25`
+  Original: `weathered_planks_nor_gl_1k.jpg`; SHA-256 `381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/textures/weathered_planks/weathered_planks_rough_1k.jpg`; SHA-256 `a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3`
+  Original: `weathered_planks_rough_1k.jpg`; SHA-256 `a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3`; download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_rough_1k.jpg
+
 <!-- welcome-island-assets:end -->

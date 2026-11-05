@@ -1,5 +1,24 @@
 # Welcome island asset sample and provenance
 
+## Realistic surface palette — 2026-11-05
+
+Four additional Poly Haven CC0 PBR sets are bundled and applied to the graybox:
+[Sparse Grass](https://polyhaven.com/a/sparse_grass) and
+[Rock Path](https://polyhaven.com/a/rock_path) by Amal Kumar,
+[Rock 01](https://polyhaven.com/a/rock_01) by Rob Tuytel, and
+[Weathered Planks](https://polyhaven.com/a/weathered_planks) by Dario Barresi
+(processing) / Dimitrios Savva (photography). Each uses unchanged 1K JPEG diffuse,
+OpenGL normal and roughness maps. Exact sources/hashes/notices are in the manifest
+and generated inventory; Credits discovers the additions automatically.
+
+World-space triplanar mapping uses approximately 2–4 metre tiles to avoid stretched
+untextured graybox surfaces; roughness reads the red channel. Texture variation,
+terrain blending and final timber alignment remain the later landscape pass.
+These materials are not imported island/house presets or a displacement/collision
+change. Test-first missing-palette assertions failed before acquisition; afterward
+90 asset assertions and 34 rendered layout checks passed. Spawn-view screenshot
+inspected on Compatibility/Intel UHD 630; no Forward Plus/XR quality claim.
+
 ## Optimized runtime variants — 2026-11-05
 
 Use `models/runtime/*.scn` when assembling the future island, not the source glTF

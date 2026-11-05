@@ -39,6 +39,9 @@ def main():
         shutil.copytree(HERE / "fixtures", project / "fixtures")
         for folder in ("scenes/worlds/welcome_island", "scripts/worlds/welcome_island"):
             if (ROOT / folder).exists(): shutil.copytree(ROOT / folder, project / folder)
+        for id in ("sparse_grass", "rock_path", "rock_01", "weathered_planks"):
+            source = ROOT / "assets/welcome_island/textures" / id
+            if source.exists(): shutil.copytree(source, project / "assets/welcome_island/textures" / id, ignore=shutil.ignore_patterns("*.import"))
         # The legacy world-mounted VRPanel holds a viewport-texture/material cycle
         # on repeated unloading. This startup suite uses player menu probes, not
         # that unrelated legacy panel. Keep terrain/environment/reset production

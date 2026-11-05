@@ -25,6 +25,9 @@ def main():
             shutil.copy2(ROOT / name, target)
         for folder in ['scenes/worlds/welcome_island', 'scripts/worlds/welcome_island']:
             if (ROOT / folder).exists(): shutil.copytree(ROOT / folder, project / folder)
+        for id in ['sparse_grass', 'rock_path', 'rock_01', 'weathered_planks']:
+            source = ROOT / 'assets/welcome_island/textures' / id
+            if source.exists(): shutil.copytree(source, project / 'assets/welcome_island/textures' / id, ignore=shutil.ignore_patterns('*.import'))
         # Baseline legacy dependency; not loaded after the island scene replaces it.
         for name in ['scenes/GUI/vr_gui.tscn', 'scripts/GUI/vr_gui.gd']:
             target = project / name

@@ -14,8 +14,9 @@ See the [mandatory test-first workflow](README.md) and [pond design](../offline-
 
 ## 2. Build only after the tests exist
 
-- [ ] Sculpt the pond in the same single island; assemble cleared individual dock
-  parts, collision proxies and shoreline borders. No second landmass destination.
+- [ ] Sculpt the pond in the same single island; integrate a cleared whole dock
+  asset or individual parts, collision proxies and shoreline borders. A premade
+  dock is allowed; a complete island/map preset is not. No second landmass destination.
 - [ ] Add restrained water and safe pond recovery using the shared reset contract.
   Ship behavior belongs to part 08, not an untested decorative substitute here.
 

@@ -33,6 +33,10 @@ materials and lighting within a deliberately fantastical floating-island setting
 - Assemble the terrain, paths, vegetation and props ourselves using individual
   free premade assets. **Do not import a complete island, environment demo or
   large scene preset as the map.** An asset pack is a parts library, not a layout.
+- Complete objects and small structures, including an **entire premade dock**,
+  are allowed when freely redistributable and credited appropriately. “Assemble
+  ourselves” concerns the island composition, not rebuilding every object from
+  textures or planks. The prohibition is a complete island/map preset.
 - Include actual interactive objects, not only signs describing interactions.
 - No generic tutorial stations, floating control billboards, numbered objectives,
   material test displays or forced sightseeing route. No visible debug primitives
@@ -232,8 +236,8 @@ mismatched prop collection.
 ### Pond and working ship
 
 - Use a small pond-scale launch/ship rather than a full-size ocean vessel. Obtain
-  a free, redistribution-cleared premade hull and suitable dock parts separately;
-  assemble the dock, shore and pond ourselves. Exact asset selection is pending
+  a free, redistribution-cleared premade hull and dock (a whole dock is allowed);
+  integrate it with our own shore, pond and island composition. Exact selection is pending
   the same provenance/license gate as trees and materials.
 - Provide explicit board, steer/throttle, stop, disembark and reset actions with
   current desktop/VR bindings. Do not call a ship “working” just because it bobs

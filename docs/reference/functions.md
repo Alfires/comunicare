@@ -1,5 +1,12 @@
 # Production function contracts
 
+Local pickup `_local_carry_clear` sweeps held collision shapes against original
+world masks and checks destination overlaps before accepting a hand transform.
+Blocked/nonfinite hand updates keep the last clear pose; release restores physics
+there instead of teleporting props through walls. Rotation has endpoint overlap
+validation only; this does not certify continuous rotating-shape clearance.
+
+
 ## Trusted local home interaction additions
 
 `activate_local` on the shared pickup controller accepts a trusted current-world

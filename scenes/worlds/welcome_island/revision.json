@@ -40,6 +40,6 @@
     "scripts/worlds/welcome_island/home_contract.gd": "7d27de848676fb27c9a3487020dae418bcbb82035908e2150fc2571ab13631a6",
     "scripts/worlds/welcome_island/layout.gd": "7453e6b0a6aef7f9d2c338a95baa3fc7ed4521f6aba0af8c392d93f86a2563ff",
     "scripts/worlds/world_data.gd": "49237f4c25f6a5fecab622a5d09e144af0b06de8c7ecbe7f7763b46c25c15b16",
-    "scripts/worlds/world_pickup_controller.gd": "86a19a710fc527041b8e98954eb692cf69d6e376da9ad3c55fa2248f847b84cd"
+    "scripts/worlds/world_pickup_controller.gd": "a485e2fda9f945f4aca4778c68da25f0f5cc9cfa966e6458f4417d4d9b206c45"
   }
 }

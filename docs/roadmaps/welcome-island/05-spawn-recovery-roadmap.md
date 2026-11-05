@@ -1,6 +1,9 @@
 # 05 — Spawn, recovery and built-in revision
 
 **Status:** Implemented with manual/export gates — 2026-11-05. **Prerequisites:** 04.
+Latest follow-up: isolated official Linux debug standalone export now passes;
+rendered recovery also passes. This supersedes the missing-template blocker below
+for that specific platform/debug test only. Real-headset recovery remains open.
 Follow-up: rendered recovery and isolated exported-PCK revision/load checks pass.
 Standalone-template export (templates unavailable) and real-headset recovery
 (no configured OpenXR runtime) remain open; do not infer them from the PCK test.

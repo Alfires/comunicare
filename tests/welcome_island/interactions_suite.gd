@@ -57,6 +57,14 @@ func run():
 	await physics_frame
 	check(not controller.request_grab("cup", "right", anchor), "wall blocks pickup")
 	check(not controller.activate_nearest(anchor, 2), "wall blocks activation")
+	anchor.position = item.position + Vector3(0, 0, 0.1)
+	check(controller.request_grab("cup", "virtual", anchor), "can acquire item before carry-wall test")
+	var safe_position = item.position
+	anchor.position = Vector3(0, 1, 1)
+	controller._process(0.016)
+	check(item.position.is_equal_approx(safe_position), "held item cannot cross a wall when hand jumps behind it")
+	controller.release_grip("virtual")
+	check(item.position.is_equal_approx(safe_position), "drop restores collision only at last safe pose")
 	wall.queue_free()
 	await physics_frame
 	anchor.position = item.position + Vector3(0, 0, 0.2)
@@ -75,6 +83,28 @@ func run():
 	check(not controller.request_grab("cup", "virtual", second), "downloaded-world activation does not grant offline authority")
 	check(not controller.local_only and controller.local_actions.is_empty(), "remote activation clears local actions and authority")
 	controller.reset()
+	if OS.get_environment("ISLAND_INTERACTIONS_RENDERED") == "1":
+		var mesh = MeshInstance3D.new()
+		mesh.mesh = SphereMesh.new()
+		mesh.scale = Vector3.ONE * 0.25
+		item.add_child(mesh)
+		var camera = Camera3D.new()
+		world.add_child(camera)
+		camera.look_at_from_position(Vector3(0, 2, 4), Vector3(0, 1, -1))
+		var light = DirectionalLight3D.new()
+		world.add_child(light)
+		controller.activate_local(world, {"cup": item})
+		second.position = item.position + Vector3(0, 0, 0.1)
+		for index in 30:
+			check(controller.request_grab("cup", "virtual", second), "rendered repeated pickup: " + str(index))
+			second.position.x += 0.01
+			controller._process(0.016)
+			await process_frame
+			check(item.position.is_equal_approx(second.position), "rendered held pose stable: " + str(index))
+			controller.release_grip("virtual")
+		await RenderingServer.frame_post_draw
+		check(root.get_texture().get_image().save_png("/tmp/opencode/island-carry.png") == OK, "rendered carry screenshot captured")
+		controller.reset()
 	controller.free()
 	world.free()
 	await process_frame

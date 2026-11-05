@@ -260,7 +260,10 @@ func _process(delta: float):
 			if not is_instance_valid(hand) or not is_instance_valid(item):
 				release_grip(state.grip)
 				continue
-			item.global_transform = hand.global_transform
+			# Disabled held collision must not let a controller teleport props through
+			# walls or restore physics inside geometry. Retain the last safe pose.
+			if hand.global_transform.is_finite() and _local_carry_clear(item, hand.global_transform):
+				item.global_transform = hand.global_transform
 		return
 	if coordinator == null or loader == null: return
 	_attach_peer()
@@ -299,3 +302,26 @@ func _process(delta: float):
 func _exit_tree():
 	reset()
 	if peer != null and peer.world_data.is_connected(receive): peer.world_data.disconnect(receive)
+
+func _local_carry_clear(item: RigidBody3D, target: Transform3D) -> bool:
+	var space = item.get_world_3d().direct_space_state
+	var mask := 1
+	# Use the original mask: the held body's live mask is intentionally zero.
+	for id in items:
+		if items[id].get_ref() == item:
+			mask = originals[id].get("mask", 1)
+			break
+	for child in item.find_children("*", "CollisionShape3D", true, false):
+		if child.disabled or child.shape == null: continue
+		var query = PhysicsShapeQueryParameters3D.new()
+		query.shape = child.shape
+		query.collision_mask = mask
+		query.exclude = [item.get_rid()]
+		var relative = item.global_transform.affine_inverse() * child.global_transform
+		query.transform = item.global_transform * relative
+		query.motion = target.origin - item.global_position
+		if query.motion.length_squared() > 0.000001 and space.cast_motion(query)[0] < 1.0: return false
+		query.transform = target * relative
+		query.motion = Vector3.ZERO
+		if not space.intersect_shape(query).is_empty(): return false
+	return true

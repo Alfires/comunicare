@@ -1,6 +1,9 @@
 # 06 — Offline pickup and activation
 
 **Status:** Implemented with manual interaction/headset gates — 2026-11-05.
+Follow-up: rendered synthetic carry/drop checks pass; wall-crossing/drop regression
+is fixed with swept shape and endpoint clearance tests. Actual-headset reach and
+production rendered comfort still require hardware. Linux debug standalone export passes.
 **Prerequisites:** 05 (standalone export/headset gates remain open).
 See [test evidence and limitations](../../../tests/welcome_island/README.md).
 See the [mandatory test-first workflow](README.md) and [home interaction design](../offline-welcome-island-roadmap.md#home-first-freedom-and-unobtrusive-learning).

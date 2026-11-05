@@ -7113,8 +7113,15 @@
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 299,
+      "line": 302,
       "signature": "func _exit_tree()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_local_carry_clear",
+      "line": 306,
+      "signature": "func _local_carry_clear(item: RigidBody3D, target: Transform3D) -> bool",
       "visibility": "private"
     }
   ],

@@ -1,5 +1,38 @@
 # Welcome island startup contracts
 
+## Follow-up: carry obstruction and standalone export — 2026-11-05
+
+Two new assertions reproduced held objects crossing a wall and dropping on its
+far side. Local carry now sweeps each collision shape using its original mask,
+checks the destination overlap and retains the last safe transform when blocked.
+This also rejects nonfinite hand transforms. Held-player collision remains disabled;
+drop restores original collision at the safe pose. Rotation uses endpoint overlap
+checks, not a continuous rotational sweep; complex rotating cookware still needs
+manual testing. Remote relay-authorized carrying is unchanged.
+
+`python3 tests/welcome_island/run_interactions.py --rendered`: **85 passed**, including
+30 carry/drop repetitions; screenshot inspected at `/tmp/opencode/island-carry.png`.
+This fixture render is a basic sphere/camera view, not production-headset validation.
+World safety/example/real UDP suites: **126 + 25 + 16 passed**. Recovery: **22 passed**.
+
+Standalone export now passes using a matching **official Godot 4.7.2 Linux debug
+x86_64 template**, extracted to `/tmp/opencode` without modifying installed templates.
+The exact template SHA-256 is
+`1a291d3d15e4180b60b0af96cf6458f11fe143636d76575ddf1e23d1a3f24f2e`.
+Source: <https://downloads.godotengine.org/?version=4.7.2&flavor=stable&slug=export_templates.tpz>.
+Only that archive member was downloaded via HTTP ranges; archive CRC was checked.
+
+```sh
+python3 tests/welcome_island/run_export.py --template /tmp/opencode/godot-4.7.2-linux-debug.x86_64
+```
+
+The disposable standalone binary runs its actual main scene (no editor-only path
+override), loads home and verifies the expected revision after source unmounting.
+Pack-host mode without `--template` also passes. This closes the isolated Linux
+debug standalone-load gate, **not** production dedicated-server export, release
+template/platform coverage or Forward Plus/XR certification. Actual headset access
+remains unavailable (no configured OpenXR runtime); comfort/reach gates stay open.
+
 ## Part 06 offline interaction and open-gate follow-up — 2026-11-05
 
 `python3 tests/welcome_island/run_interactions.py` tests trusted local activation

@@ -3,6 +3,11 @@
 Status: **proposal, not implemented**. No plugin, new world API or optimization
 guarantee is delivered by this document.
 
+Test-first update: opt-in [acceptance contracts](../../tests/world_authoring/README.md)
+now exist. Verified missing-plugin baseline: 0 passed, 6 failed, 6 dependent groups
+blocked, exit 1 without engine errors. Proposed service/schema seams do not establish
+editor UI, actual player-launch or hardware functionality.
+
 ## Goal
 
 Provide a Godot 4.7 editor plugin that lets creators build, test and export a

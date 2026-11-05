@@ -5,6 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
+| [Public avatar and animation discovery](public-avatar-discovery-roadmap.md) | Planned: Home Avatar Browser tile; left Home/Search sidebar, category feeds, unified filtered search, public API adapters and explicit licensed preview/import-to-draft flow; provider/auth/format feasibility gates remain open |
 | [Client-only per-player avatar visibility](client-avatar-visibility-roadmap.md) | Implemented with manual gates: beside-row Hide/Show, session/fingerprint policy, replacement-model enforcement and same-resource independence; rendered mirror/shadow and headset checks remain open |
 | [Desktop and VR sprinting](sprinting-roadmap.md) | Implemented with manual gates: hold left joystick click in VR or Ctrl on desktop for 1.5× horizontal speed; rebindable Ctrl, suppression/rearming and relative walk/run selection; hardware comfort and visual two-client validation remain open |
 | [Documentation system](documentation-system-roadmap.md) | Documentation/tooling delivered with explicit operating limits; current guides, function/schema reference and local Git release checks linked from docs home |

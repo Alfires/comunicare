@@ -216,7 +216,7 @@ Sizes are **logical pixels** at `interface.ui_scale` 1.0.
   - `open_menue` (Esc): if a nested page is open, go back one level; otherwise close the menu. When the menu is closed, Esc opens it on Quick.
   - Keys 1–6 select rail pages unless a text field has focus.
   - A focused control with the `blocks_global_shortcuts` meta keeps Esc.
-- Signals `opened` / `closed`. The desktop player sets `MOUSE_MODE_VISIBLE` / `MOUSE_MODE_CAPTURED` in response; movement and looking stay suppressed while visible (D6).
+- Signals `opened` / `closed`. Like the previous menu, the overlay itself switches between `MOUSE_MODE_VISIBLE` and `MOUSE_MODE_CAPTURED` (`manage_mouse`, on by default), so the desktop player script needs no change; movement and looking stay suppressed while the mouse is visible (D6). The overlay keeps the node name `menue` in `player_desktop.tscn`.
 - Not draggable. No open/close animation. With reduce motion off, a 120 ms fade of `%Dim` *(tunable)* is allowed.
 
 ### 4.3 VR tablet

@@ -101,9 +101,47 @@ func run():
 	left.set_input("grip", 0.0)
 	player._update_world_grips()
 	check(not player.world_grip_pressed.left, "emulated grip release clears pickup input latch")
+	# Exercise the actual frame/physics paths, not only input helpers. A broad
+	# synthetic floor isolates locomotion from downloaded-world geometry.
+	var floor = StaticBody3D.new()
+	var collision = CollisionShape3D.new()
+	var box = BoxShape3D.new()
+	box.size = Vector3(200, 0.2, 200)
+	collision.shape = box
+	floor.add_child(collision)
+	floor.position.y = -0.1
+	root.add_child(floor)
+	player.position = Vector3(0, 1.4, 0)
+	player.focused = true
+	player._process(0.016)
+	for frame in 90:
+		await physics_frame
+		player.focused = true # Emulated XR focus, independent of desktop window focus.
+		player._physics_process(1.0 / 60.0)
+	var start = player.position
+	left.set_input("primary", Vector2(0, -1))
+	for frame in 90:
+		await physics_frame
+		player.focused = true
+		player._physics_process(1.0 / 60.0)
+	check(player.position.distance_to(start) > 2.0 and player.position.is_finite(), "production VR physics moves tracked rig across collidable floor")
+	left.set_input("primary", Vector2.ZERO)
+	for frame in 60:
+		await physics_frame
+		player._physics_process(1.0 / 60.0)
+	check(Vector2(player.velocity.x, player.velocity.z).length() < 0.05, "production VR physics brakes after joystick release")
+	var network = root.get_node("NetworkHandler")
+	network.session_busy = true
+	left.set_input("primary", Vector2(0, -1))
+	for frame in 20:
+		await physics_frame
+		player._physics_process(1.0 / 60.0)
+	check(Vector2(player.velocity.x, player.velocity.z).length() < 0.05, "world transition suppresses actual VR body movement")
+	network.session_busy = false
+	left.set_input("primary", Vector2.ZERO)
+	floor.queue_free()
 	player.queue_free()
 	for tracker in trackers: XRServer.remove_tracker(tracker)
-	var network = root.get_node("NetworkHandler")
 	if is_instance_valid(network.animation_controller): network.animation_controller.queue_free(); network.animation_controller = null
 	if network.directory_browser != null: network.directory_browser.stop()
 	if network.lan_discovery != null: network.lan_discovery.stop()

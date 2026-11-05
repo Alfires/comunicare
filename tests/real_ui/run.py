@@ -12,6 +12,7 @@ import threading
 import functools
 import http.server
 import zipfile
+import json
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -105,6 +106,16 @@ def run_two_clients(command, display, artifacts, env):
             for path in sorted((example / folder).rglob("*")):
                 if path.is_file() and path.suffix not in (".uid", ".import"):
                     archive.write(path, path.relative_to(example).as_posix())
+    with zipfile.ZipFile(shared / "world.cworld") as source:
+        with zipfile.ZipFile(shared / "second.cworld", "w", zipfile.ZIP_DEFLATED) as target:
+            for name in source.namelist():
+                data = source.read(name)
+                if name == "manifest.json":
+                    manifest = json.loads(data)
+                    manifest["world_id"] = "23be948d-e15c-44e5-ae01-aa168940c478"
+                    manifest["title"] = "Second test courtyard"
+                    data = json.dumps(manifest).encode()
+                target.writestr(name, data)
     class QuietHandler(http.server.SimpleHTTPRequestHandler):
         def log_message(self, *args):
             pass

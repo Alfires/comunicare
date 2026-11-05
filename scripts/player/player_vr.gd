@@ -107,7 +107,7 @@ func _process(delta: float):
 			if targets.has(role): body_targets[role] = skeleton.global_transform.affine_inverse() * targets[role]
 		tracking_modifier.set_body_targets(body_targets)
 	var menu_action = str(SaveData.store.get_value("input.xr_main_menu_action"))
-	if _menu_open() and (not focused or not xr_camera.get_is_active()): _close_main_menu()
+	if _menu_open() and (not focused or not _head_tracking_active()): _close_main_menu()
 	var suppressed = not focused or SaveData.voice.input_blocked
 	if input_router.menu_toggle(left_controller.is_button_pressed(menu_action), right_controller.is_button_pressed(menu_action), suppressed):
 		_toggle_main_menu()
@@ -133,6 +133,12 @@ func _process(delta: float):
 func _get_movement_input() -> Vector2:
 	return left_controller.get_vector2("primary").limit_length(1.0)
 
+func _head_tracking_active() -> bool:
+	var tracker = XRServer.get_tracker("head")
+	if not tracker is XRPositionalTracker or not tracker.has_pose("default"): return false
+	var pose = tracker.get_pose("default")
+	return pose != null and pose.has_tracking_data
+
 func _update_world_grips():
 	if not DataLoader.has_method("get_world_pickups"): return
 	var pickups = DataLoader.get_world_pickups()
@@ -154,10 +160,10 @@ func _physics_process(delta):
 	for role in ["leftFoot", "rightFoot"]:
 		if grounded_body_targets.has(role):
 			grounded_body_targets[role] = foot_grounding.resolve(role, grounded_body_targets[role], get_world_3d().direct_space_state, [get_rid()], collision_mask)
-	if focused and xr_camera.get_is_active(): room_scale.reconcile(self, origin_node, xr_camera)
+	if focused and _head_tracking_active(): room_scale.reconcile(self, origin_node, xr_camera)
 	var movement_input = _get_movement_input()
 	var turn_axis = right_controller.get_vector2("primary").x
-	var blocked = not focused or not xr_camera.get_is_active() or _menu_open() or SaveData.voice.input_blocked or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty() or NetworkHandler.session_busy
+	var blocked = not focused or not _head_tracking_active() or _menu_open() or SaveData.voice.input_blocked or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty() or NetworkHandler.session_busy
 	if not left_controller.get_is_active(): movement_input = Vector2.ZERO
 	if not right_controller.get_is_active(): turn_axis = 0
 	if blocked:
@@ -354,7 +360,8 @@ func _publish_tracking():
 	if not InstanceState.valid_fingerprint(revision): return
 	var targets: Dictionary = {}
 	for pair in [["head", xr_camera], ["leftHand", left_controller], ["rightHand", right_controller]]:
-		if pair[1].get_is_active(): targets[pair[0]] = TrackingPose.encode_target(global_transform.affine_inverse() * pair[1].global_transform)
+		var active = _head_tracking_active() if pair[0] == "head" else pair[1].get_is_active()
+		if active: targets[pair[0]] = TrackingPose.encode_target(global_transform.affine_inverse() * pair[1].global_transform)
 	var body = grounded_body_targets
 	for role in body: targets[role] = TrackingPose.encode_target(global_transform.affine_inverse() * body[role])
 	tracking_sequence += 1

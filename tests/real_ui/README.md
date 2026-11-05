@@ -1,5 +1,28 @@
 # Production UI acceptance — initial roadmap execution
 
+## Expanded movement and world-switch checks
+
+The VR emulator additionally invokes the production frame and physics methods on
+a synthetic collision floor: tracked-rig walking, braking and transition blocking.
+Head tracking uses the XRServer head tracker's default pose; XRCamera3D does not
+provide XRController3D's `get_is_active`. Rendered automation explicitly supplies
+emulated application focus while driving locomotion. This is not OpenXR validation.
+
+The two-client runner now alternates four times between two loopback HTTP packages
+with distinct world IDs/content revisions, creating a new instance each time. Both
+clients verify acknowledged activation, loaded scene, stable authenticated transport,
+cleared transition busy state and convergence on exactly two members. The packages
+share courtyard geometry; this does not test every world's collision layout.
+The initial Create/Join is pointer-driven; subsequent hops call production coordinator
+methods. Shutdown clears the client transport state before disconnecting ENet so
+periodic friend ticks cannot send after teardown.
+
+Desktop movement is covered separately by `tests/vr_controls` production-physics
+checks. An attempted two-window body-input extension was not retained: headless
+mouse capture is unavailable and simultaneous rendered players contend for X11's
+mouse grab. Do not claim a continuous PC/VR mixed-client gameplay journey from
+these separate passing groups.
+
 ## Duplicate-window identity fallback
 
 The UI relay host now deliberately uses the same saved key as the production client.

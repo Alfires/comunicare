@@ -150,12 +150,34 @@ func run():
 				samples += 1
 			check(not network.current_session_id.is_empty() and high - low > 1.0, "two-window %ss receiver soak observes sustained real remote motion (%s samples)" % [soak, samples])
 		check(await wait_for(func(): return read_state("released") != null and not cube.freeze), "remote drop restores cube physics")
+	await transition_checks(network)
 	finish()
 
+func transition_checks(network):
+	var original_session: String = network.current_session_id
+	var transport = network.peer
+	for hop in 4:
+		var target_url = url.get_base_dir() + "/second.cworld" if hop % 2 == 0 else url
+		if role == "host":
+			check(await network.host_world(target_url), "transition %s creates and activates acknowledged world" % hop)
+			write_state("hop-%s" % hop, {"id": network.current_session_id, "url": target_url})
+			check(await wait_for(func(): return read_state("joined-%s" % hop) != null), "transition %s admits second client after world switch" % hop)
+		else:
+			check(await wait_for(func(): return read_state("hop-%s" % hop) != null), "transition %s receives distinct target instance" % hop)
+			var target = read_state("hop-%s" % hop)
+			if target == null: return
+			check(await network.join_session(target.id, target.url), "transition %s joins exact instance in alternate world" % hop)
+			write_state("joined-%s" % hop, true)
+		check(network.peer == transport and not network.session_busy and network.current_world_url == target_url,
+			"transition %s preserves authenticated transport and clears busy state" % hop)
+		check(network.current_session_id != original_session and current_scene.get_node_or_null("PickupCube") != null,
+			"transition %s installs actual downloaded scene in a distinct instance" % hop)
+		check(await wait_for(func(): return network.peer.session_peers.size() == 1), "transition %s converges on exactly two members" % hop)
 func finish():
 	write_state(role + "-result", {"passed": passed, "failed": failed})
 	var network = root.get_node("NetworkHandler")
 	if network.peer != null:
+		network.peer.disconnected_from_relay()
 		if network.peer.peer != null: network.peer.peer.peer_disconnect()
 		await create_timer(0.2).timeout
 		if network.peer.connection != null: network.peer.connection.destroy(); network.peer.connection = null

@@ -17,6 +17,9 @@ func resize_capsule(body: CharacterBody3D, node: CollisionShape3D, height: float
 	if not node.shape is CapsuleShape3D or not is_finite(height): return false
 	var capsule: CapsuleShape3D = node.shape
 	height = clampf(height, capsule.radius * 2, 2.6)
+	# Tracking noise is not a meaningful crouch. Reassigning shape dimensions
+	# wakes/rebuilds physics geometry and triggers needless clearance queries.
+	if absf(height - capsule.height) < 0.005: return true
 	if height > capsule.height and not clearance(body, body.global_position, height, capsule.radius): return false
 	capsule.height = height
 	node.position.y = height * 0.5
@@ -36,8 +39,10 @@ func head_obstructed(body: CharacterBody3D, position: Vector3) -> bool:
 func destination(body: CharacterBody3D, ray_origin: Vector3, direction: Vector3, height: float, radius: float) -> Dictionary:
 	if not ray_origin.is_finite() or not direction.is_finite() or direction.length_squared() < 0.001: return {}
 	var ray = PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + direction.normalized() * 8, body.collision_mask, [body.get_rid()])
+	ray.collide_with_areas = true
 	var hit = body.get_world_3d().direct_space_state.intersect_ray(ray)
 	if hit.is_empty() or hit.normal.dot(Vector3.UP) < 0.85: return {}
+	if hit.collider.get_meta("teleport_disabled", false): return {}
 	if absf(hit.position.y - body.global_position.y) > 1.5: return {}
 	return hit if clearance(body, hit.position + Vector3.UP * 0.02, height, radius) else {}
 

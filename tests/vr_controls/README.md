@@ -1,5 +1,12 @@
 # RED VR controls acceptance tests
 
+Movement regressions cover partial desktop analog strength, consistent acceleration
+at 30/60/144 physics Hz, focus-loss mouse input, and collision-shape change signals
+under submillimeter VR height jitter. Desktop acceleration/braking use exponential
+rate-independent weights; VR capsule changes under 5 mm are ignored to avoid noisy
+shape rebuilds and clearance queries. These are behavior/workload assertions, not
+a measured production FPS or real-headset comfort guarantee.
+
 Desktop camera regressions additionally check render-frame translation between
 physics positions, immediate pitch retention and teleport history reset. These
 are deterministic transform assertions, not a visual blur/performance measurement.

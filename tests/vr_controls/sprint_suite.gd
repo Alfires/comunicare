@@ -119,6 +119,27 @@ func desktop_checks():
 	player._physics_process(0.1)
 	check(is_equal_approx(player.velocity.x, 1.8), "production desktop opposing air input has reduced steering")
 	Input.action_release("left")
+	player.grounded = true
+	player.velocity = Vector3.ZERO
+	Input.action_press("forward", 0.6)
+	for i in 120: player._physics_process(1.0 / 60.0)
+	var analog_speed = Vector2(player.velocity.x, player.velocity.z).length()
+	check(analog_speed > 0.1 and analog_speed < player.get_walk_speed() * 0.8, "desktop analog input preserves magnitude instead of jumping to full speed")
+	Input.action_release("forward")
+	var speeds: Array = []
+	for fps in [30, 60, 144]:
+		player.velocity = Vector3.ZERO
+		Input.action_press("forward")
+		for frame in int(fps / 10): player._physics_process(1.0 / fps)
+		speeds.append(Vector2(player.velocity.x, player.velocity.z).length())
+		Input.action_release("forward")
+	check(absf(speeds[0] - speeds[2]) < 0.1, "desktop acceleration stays consistent across physics rates")
+	var before_yaw = player.rotation.y
+	player.focused = false
+	var mouse = InputEventMouseMotion.new()
+	mouse.relative = Vector2(100, 0)
+	player._input(mouse)
+	check(is_equal_approx(player.rotation.y, before_yaw), "unfocused mouse events cannot rotate desktop body")
 	player.free()
 	await process_frame
 

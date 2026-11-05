@@ -107,7 +107,9 @@ func _update_camera_position(fraction: float):
 	camera.position = camera_rest_position + global_basis.inverse() * (rendered - global_position)
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+	if event is InputEventMouseMotion and focused and not SaveData.voice.input_blocked \
+		and not NetworkHandler.session_busy and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
+		and get_tree().get_nodes_in_group("emote_wheel_input").is_empty():
 		# Horizontal rotation (body rotates around Y-axis)
 		rotate_y(-event.relative.x * float(SaveData.store.get_value("controls.mouse_sensitivity")))
 		
@@ -164,17 +166,19 @@ func _physics_process(delta):
 	var right = global_transform.basis.x     # Camera right direction
 	
 	# Calculate movement direction relative to camera
-	var direction = (forward * input_direction.y + right * input_direction.x).normalized()
+	var direction = (forward * input_direction.y + right * input_direction.x).limit_length(1.0)
 	
 	# Apply movement
 	if not _movement_grounded() and not blocked:
 		velocity = air_control.steer(velocity, direction * target_speed, acceleration, delta)
 	elif direction:
-		velocity.x = lerp(velocity.x, direction.x * target_speed, minf(acceleration * delta, 1.0))
-		velocity.z = lerp(velocity.z, direction.z * target_speed, minf(acceleration * delta, 1.0))
+		var weight = 1.0 - exp(-acceleration * delta)
+		velocity.x = lerp(velocity.x, direction.x * target_speed, weight)
+		velocity.z = lerp(velocity.z, direction.z * target_speed, weight)
 	else:
-		velocity.x = lerp(velocity.x, 0.0, minf(friction * delta, 1.0))
-		velocity.z = lerp(velocity.z, 0.0, minf(friction * delta, 1.0))
+		var weight = 1.0 - exp(-friction * delta)
+		velocity.x = lerp(velocity.x, 0.0, weight)
+		velocity.z = lerp(velocity.z, 0.0, weight)
 	
 	# Apply gravity
 	velocity.y -= gravity * delta

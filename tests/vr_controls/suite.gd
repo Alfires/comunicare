@@ -336,6 +336,10 @@ func test_safety_and_teleport():
 	await physics_frame
 	check(not safety.resize_capsule(body, collider, 2.0) and is_equal_approx(capsule.height, 1.2), "capsule cannot grow through a low ceiling")
 	check(safety.resize_capsule(body, collider, 1.0), "capsule can shrink safely while crouching")
+	var shape_changes: Array = []
+	capsule.changed.connect(func(): shape_changes.append(true))
+	for frame in 120: safety.resize_capsule(body, collider, 1.0001)
+	check(shape_changes.is_empty(), "tiny headset-height jitter does not rebuild collision geometry every physics tick")
 	check(safety.head_obstructed(body, Vector3(0, 1.6, 0)), "head overlap with ceiling requests protective fade")
 	check(not safety.head_obstructed(body, Vector3(0, 0.8, 0)), "clear head space never requests overlap fade")
 	check(not safety.clearance(body, Vector3.ZERO, 2.0, 0.2), "teleport destination under low ceiling is rejected")

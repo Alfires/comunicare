@@ -354,7 +354,7 @@
       "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
       "retrieved": "2026-11-05",
       "attribution": "",
-      "modifications": "Unmodified boat-row-large.glb extracted from Watercraft Kit 2.1. Runtime hull uniformly scaled to pond size; independent collision/controls. Publisher notice: assets/welcome_island/licenses/Kenney-Watercraft.txt. Archive SHA-256 cd1470c1cf441c7f46d0944ae6d0d897242365dc97677c5079b3238965d659f3. Official download returned 403; same archive obtained via Asset Commons mirror.",
+      "modifications": "Unmodified boat-row-large.glb extracted from Watercraft Kit 2.1. Runtime hull uniformly scaled to pond size; independent collision/controls. Publisher notice: assets/welcome_island/licenses/Kenney-Watercraft.txt. Archive SHA-256 cd1470c1cf441c7f46d0944ae6d0d897242365dc97677c5079b3238965d659f3. Official download returned 403; same archive obtained via Asset Commons mirror. Runtime hull meshes use independent weathered-timber PBR overrides from the separately credited Poly Haven set; source geometry/texture bytes remain unchanged.",
       "files": [
         {
           "path": "assets/welcome_island/models/ship/boat-row-large.glb",

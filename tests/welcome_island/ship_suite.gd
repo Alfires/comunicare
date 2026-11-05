@@ -39,6 +39,35 @@ func run():
 	check(not ship.disembark(), "disembark rejected away from dock")
 	ship.position = Vector3(40, 9, 40); ship.rotation = Vector3(1, 2, 1)
 	ship.return_to_dock()
+	var blocker = StaticBody3D.new(); world.add_child(blocker)
+	var corner = CollisionShape3D.new(); corner.shape = BoxShape3D.new(); corner.shape.size = Vector3(0.2, 2, 0.2)
+	blocker.add_child(corner); blocker.position = ship.position + Vector3(0.7, 0.3, -1.6)
+	await physics_frame
+	check(not ship._hull_clear(ship.position), "hull collision covers bow corners beyond old sphere proxy")
+	blocker.queue_free(); await physics_frame
+	var hull = ship.get_node_or_null("Hull")
+	check(hull != null, "hull has independent named presentation")
+	if hull != null:
+		var meshes = hull.find_children("*", "MeshInstance3D", true, false)
+		check(meshes.all(func(mesh): return mesh.material_override is StandardMaterial3D and mesh.material_override.roughness > 0.4),
+			"hull uses instance-owned subdued PBR finish rather than bright shared palette")
+	# Exercise actual confirmation UI, not just the board service.
+	rider.position = Vector3(16, 0.1, 23)
+	world._confirm_ship_boarding(ship)
+	await process_frame
+	var dialogs = world.find_children("*", "ConfirmationDialog", true, false)
+	check(dialogs.size() == 1 and ship.rider == null, "boarding dialog requires explicit consent before rider attachment")
+	if not dialogs.is_empty():
+		dialogs[0].canceled.emit()
+		await process_frame
+		check(ship.rider == null, "cancel boarding leaves player unattached")
+	world._confirm_ship_boarding(ship)
+	await process_frame
+	dialogs = world.find_children("*", "ConfirmationDialog", true, false)
+	if not dialogs.is_empty(): dialogs[0].confirmed.emit()
+	await process_frame
+	check(ship.rider != null, "real confirmation signal boards nearby player")
+	ship.return_to_dock()
 	check(ship.position == ship.BERTH and ship.rotation == Vector3.ZERO and ship.speed == 0, "stranded or overturned ship resets to berth")
 	check(rider.position == Vector3(9, 1, 23) and not rider.has_meta("home_ship"), "reset safely releases rider to bank")
 	rider.position = Vector3(16, 0.1, 23); ship.board(rider)
@@ -75,6 +104,10 @@ func run():
 		camera.look_at_from_position(Vector3(13, 4, 29), ship.position)
 		await process_frame; await RenderingServer.frame_post_draw
 		check(root.get_texture().get_image().save_png("/tmp/opencode/island-ship.png") == OK, "rendered ship/dock captured")
+	rider.position = Vector3(16, 0.1, 23); ship.board(rider)
+	ship.queue_free(); await process_frame
+	check(not rider.has_meta("home_ship") and rider.velocity == Vector3.ZERO,
+		"ship removal clears rider state and motion before next world")
 	rider.queue_free(); world.queue_free(); await process_frame; await process_frame
 	finish()
 func finish():

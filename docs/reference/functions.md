@@ -1,5 +1,12 @@
 # Production function contracts
 
+Ship `_hull_clear` now uses a full hull-sized box for translation sweeps and four
+sampled rotation/translation overlaps instead of a small sphere. `step` commits
+yaw only with an accepted target; berth is offset clear of dock collision. Hull
+materials are per-instance PBR timber overrides, never mutations of shared GLB
+materials. Pond ripple shading is opaque/world-space with no screen/depth reads;
+the revision generator includes `.gdshader` dependencies.
+
 <!-- module: scripts/worlds/welcome_island/pond_ship.gd -->
 ## Local pond ship
 

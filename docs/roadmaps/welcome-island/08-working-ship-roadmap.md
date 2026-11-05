@@ -1,6 +1,11 @@
 # 08 — Player-operated ship
 
 **Status:** Implemented constrained local ship with manual XR/UI gates — 2026-11-05.
+Follow-up: real confirmation cancel/confirm signals, bow-sized swept collision,
+sampled turn overlap, independent timber PBR finish and rider-removal cleanup are
+tested. Desktop render and standalone Linux debug export pass. Physical controller
+hit-testing, tracked comfort transitions and human seated reach remain blocked
+without configured XR hardware/runtime; none is marked certified.
 **Prerequisites:** 06, 07. See [scope/evidence](../../../tests/welcome_island/README.md).
 See the [mandatory test-first workflow](README.md) and [ship contract](../offline-welcome-island-roadmap.md#pond-and-working-ship).
 

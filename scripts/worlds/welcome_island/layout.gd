@@ -60,9 +60,8 @@ func _build_pond():
 			surface.add_vertex(point)
 	surface.generate_normals()
 	visual.mesh = surface.commit()
-	var material = _material(Color(0.12, 0.32, 0.36, 1))
-	material.roughness = 0.3
-	material.metallic = 0.15
+	var material = ShaderMaterial.new()
+	material.shader = load("res://scenes/worlds/welcome_island/pond_water.gdshader")
 	visual.material_override = material
 	water.add_child(visual)
 	# Trigger-only water: players cannot stand on it, ray queries still see it.

@@ -63,6 +63,8 @@ func run():
 		"physical player walks from bank to dock end without falling or reset")
 	var surface = pond.get_node_or_null("Surface")
 	check(surface != null and surface.mesh is ArrayMesh, "water uses shore-clipped surface instead of cylinder side wall")
+	check(surface != null and surface.material_override is ShaderMaterial,
+		"water uses restrained world-space ripple finish")
 	check(world.has_method("recover_from_pond"), "water recovery uses trusted shared reset")
 	if world.has_method("recover_from_pond"):
 		for index in 3:

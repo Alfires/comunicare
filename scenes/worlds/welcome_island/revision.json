@@ -39,9 +39,10 @@
     "scenes/world.gd": "b021ece56c66cb43eb5ad529275fb11cbf9aa282897778e5b329ee1c70adc303",
     "scenes/world.tscn": "a631d68e4aeac5e5865883a5dec2b1c57542d1f0979570909970c737874a2e65",
     "scenes/worlds/welcome_island/layout.tscn": "5e41b2fec15f9cff0a95fe60d9c2651f13c4a997c6f0720d4ab77429e5c2a838",
+    "scenes/worlds/welcome_island/pond_water.gdshader": "51a277f0c93e982c92a1808b3cc790920d4bfa0e5c3aba692aaee070ce8a00f3",
     "scripts/worlds/welcome_island/home_contract.gd": "7d27de848676fb27c9a3487020dae418bcbb82035908e2150fc2571ab13631a6",
-    "scripts/worlds/welcome_island/layout.gd": "b3f100e52b4c4d08e4aa3eccd134c259de7e500678fb36ba8665ed023986b9ed",
-    "scripts/worlds/welcome_island/pond_ship.gd": "86b543de8d284bae59dd912ebf79cbef74d5db4f639fd6958be2649de70f7e4c",
+    "scripts/worlds/welcome_island/layout.gd": "5b042963ee610f38b2e04843b184dbeb1dc9746892feb65e5a63f21943246c46",
+    "scripts/worlds/welcome_island/pond_ship.gd": "6c531e04bd1936b282b942239c47db900b6c20325bf5612291d872439e198b28",
     "scripts/worlds/world_data.gd": "49237f4c25f6a5fecab622a5d09e144af0b06de8c7ecbe7f7763b46c25c15b16",
     "scripts/worlds/world_pickup_controller.gd": "a485e2fda9f945f4aca4778c68da25f0f5cc9cfa966e6458f4417d4d9b206c45"
   }

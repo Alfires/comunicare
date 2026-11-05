@@ -220,7 +220,7 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
 - Retrieved: 2026-11-05
 - Attribution: Not required (CC0); voluntary acknowledgement above.
-- Modifications: Unmodified boat-row-large.glb extracted from Watercraft Kit 2.1. Runtime hull uniformly scaled to pond size; independent collision/controls. Publisher notice: assets/welcome_island/licenses/Kenney-Watercraft.txt. Archive SHA-256 cd1470c1cf441c7f46d0944ae6d0d897242365dc97677c5079b3238965d659f3. Official download returned 403; same archive obtained via Asset Commons mirror.
+- Modifications: Unmodified boat-row-large.glb extracted from Watercraft Kit 2.1. Runtime hull uniformly scaled to pond size; independent collision/controls. Publisher notice: assets/welcome_island/licenses/Kenney-Watercraft.txt. Archive SHA-256 cd1470c1cf441c7f46d0944ae6d0d897242365dc97677c5079b3238965d659f3. Official download returned 403; same archive obtained via Asset Commons mirror. Runtime hull meshes use independent weathered-timber PBR overrides from the separately credited Poly Haven set; source geometry/texture bytes remain unchanged.
 - Shipped: `assets/welcome_island/models/ship/boat-row-large.glb`; SHA-256 `25eed6585c7398654522d338ec575509615443887362ca8e598559b4eca142a3`
   Original: `Models/GLB format/boat-row-large.glb`; SHA-256 `25eed6585c7398654522d338ec575509615443887362ca8e598559b4eca142a3`; download: https://youraiagent.biz/api/assets/kenney-watercraft-kit/download
 - Shipped: `assets/welcome_island/models/ship/Textures/colormap.png`; SHA-256 `311138350e74e35c5497a1bd8076a01740b7c302bed11027639fa553459a68de`

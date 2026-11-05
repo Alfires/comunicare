@@ -1,6 +1,9 @@
 # 07 — Pond and dock
 
 **Status:** Implemented with manual headset/final-water gates — 2026-11-05.
+Follow-up: shore-clipped surface, dry-dock capsule traversal and restrained opaque
+ripple shader are tested/rendered on desktop. Actual two-eye/headset readability
+and final shoreline dressing/performance remain open; no SSR/refraction is required.
 **Prerequisites:** 02, 04, 05. See [evidence](../../../tests/welcome_island/README.md).
 See the [mandatory test-first workflow](README.md) and [pond design](../offline-welcome-island-roadmap.md#pond-and-working-ship).
 

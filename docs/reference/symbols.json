@@ -8387,28 +8387,28 @@
     {
       "kind": "func",
       "name": "_build_land",
-      "line": 97,
+      "line": 96,
       "signature": "func _build_land()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_material",
-      "line": 147,
+      "line": 146,
       "signature": "func _material(color: Color) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_surface_material",
-      "line": 154,
+      "line": 153,
       "signature": "func _surface_material(id: String, meters: float) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_box",
-      "line": 167,
+      "line": 166,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3D",
       "visibility": "private"
     }
@@ -8440,91 +8440,91 @@
     {
       "kind": "func",
       "name": "board",
-      "line": 24,
+      "line": 35,
       "signature": "func board(player: CharacterBody3D) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "drive",
-      "line": 35,
+      "line": 46,
       "signature": "func drive(input: Vector2, blocked: bool)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "step",
-      "line": 44,
+      "line": 55,
       "signature": "func step(delta: float)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_physics_process",
-      "line": 58,
+      "line": 70,
       "signature": "func _physics_process(delta: float)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 60,
+      "line": 72,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "stop",
-      "line": 63,
+      "line": 75,
       "signature": "func stop()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "disembark",
-      "line": 66,
+      "line": 78,
       "signature": "func disembark() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_exit_clear",
-      "line": 74,
+      "line": 86,
       "signature": "func _exit_clear(player: CharacterBody3D) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_hull_clear",
-      "line": 80,
-      "signature": "func _hull_clear(target: Vector3) -> bool",
+      "line": 92,
+      "signature": "func _hull_clear(target: Vector3, target_yaw: float = rotation.y) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "return_to_dock",
-      "line": 94,
+      "line": 113,
       "signature": "func return_to_dock()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_release",
-      "line": 102,
+      "line": 121,
       "signature": "func _release(player: CharacterBody3D, target: Vector3)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_show_controls",
-      "line": 108,
+      "line": 127,
       "signature": "func _show_controls()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 116,
+      "line": 135,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }

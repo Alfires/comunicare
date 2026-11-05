@@ -1,5 +1,32 @@
 # Welcome island startup contracts
 
+## Ship/pond remaining-gate follow-up — 2026-11-05
+
+New test-first failures exposed the sphere collision proxy missing bow corners and
+the lack of an independent PBR hull finish. Replaced it with a hull-sized box,
+translation sweep and four sampled yaw/position overlap checks; moved berth outward
+to avoid dock overlap. This is a conservative proxy, not exact hull geometry or
+continuous rotational collision. Instance-owned weathered-timber materials replace
+the bright source palette without modifying the source GLB. Original author/license
+records remain valid; runtime appearance modification is described in the manifest.
+
+The water now uses a shore-clipped opaque mesh with modest world-space ripple
+normals/color variation. No screen/depth texture, refraction, SSR, vertex displacement
+or view bob. Shader changes are included in built-in revisions. Final natural
+shore dressing and whole-map performance still belong to part 13, not this fix.
+
+Ship tests now also invoke real ConfirmationDialog cancel/confirm signals, test
+the bow obstacle and verify rider cleanup on ship removal. Rendered pond/ship
+and official Linux debug standalone-load tests pass. Screenshots inspected on
+X11/Compatibility/Intel UHD 630, not stereo XR. Dialog signals are automated, not
+physical controller hit-testing or user comfort validation.
+
+**Hardware blocker rechecked:** `/etc/openxr` and `~/.config/openxr` are absent.
+No accessible configured runtime/headset can perform human two-eye, seated-reach,
+boarding-view-transition or motion-comfort acceptance here. Those gates remain
+unchecked. They require a person wearing a configured headset; synthetic viewports
+or installing a headless runtime would not honestly close them.
+
 ## Part 08 ship and pond follow-up — 2026-11-05
 
 `run_layout.py --pond --rendered`: 18 checks pass, including physical dock walking

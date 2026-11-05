@@ -13,7 +13,7 @@ def collect(root=ROOT):
     paths = {root / "scenes/world.tscn", root / "scenes/world.gd"}
     paths.update(root / name for name in ("scripts/worlds/world_pickup_controller.gd", "scripts/worlds/world_data.gd"))
     for folder in ("scenes/worlds/welcome_island", "scripts/worlds/welcome_island"):
-        paths.update(path for path in (root / folder).rglob("*") if path.suffix in (".gd", ".tscn", ".tres", ".scn"))
+        paths.update(path for path in (root / folder).rglob("*") if path.suffix in (".gd", ".tscn", ".tres", ".scn", ".gdshader"))
     # The built-in layout uses shared textures through dynamically composed paths.
     # Include all bundled island payloads conservatively so future placements
     # cannot silently keep an old revision. Exclude import metadata and notices.

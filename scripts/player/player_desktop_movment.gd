@@ -118,7 +118,12 @@ func _input(event: InputEvent) -> void:
 		var tilt = camera.rotation.x - (event.relative.y * float(sensitivity) * invert)
 		camera.rotation.x = clamp(tilt, -max_tilt, max_tilt)
 		if head_idx != null and head_idx > -1:
-			skeleton.set_bone_pose_rotation(head_idx, Quaternion.from_euler(camera.rotation))
+			var rest = skeleton.get_bone_global_rest(head_idx).basis.orthonormalized()
+			var frame = avatar_model.get_meta("tracking_rest_frame", Basis.IDENTITY)
+			var desired = skeleton.global_basis.orthonormalized().inverse() * camera.global_basis.orthonormalized() * frame * rest
+			var parent = skeleton.get_bone_parent(head_idx)
+			var parent_basis = skeleton.get_bone_global_pose(parent).basis if parent >= 0 else Basis.IDENTITY
+			skeleton.set_bone_pose_rotation(head_idx, (parent_basis.inverse() * desired).orthonormalized().get_rotation_quaternion())
 
 	#camara switch
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F5:

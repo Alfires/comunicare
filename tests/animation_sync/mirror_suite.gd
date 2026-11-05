@@ -7,6 +7,42 @@ func check(ok: bool, title: String):
 func run():
 	var robot = preload("res://scripts/assets/default_robot.gd").create()
 	check(robot != null and not robot.get_meta("humanoid_bones", {}).is_empty(), "bundled default robot has humanoid bone mapping without network")
+	var reader = load("res://scripts/assets/humanoid_animation.gd").new()
+	for role in ["walk", "run", "jump", "dance", "interact"]:
+		check(reader.bind_clip(load("res://scripts/assets/default_animations.gd").clip(role), robot) != null, "default robot binds animation: " + role)
+	var rig = reader._skeleton(robot)
+	check(load("res://scripts/assets/humanoid_rig_adapter.gd").new().validate_mapping(rig, robot.get_meta("humanoid_bones")).valid, "default robot has complete valid tracking chains")
+	root.add_child(robot)
+	var mapping: Dictionary = robot.get_meta("humanoid_bones")
+	var targets: Array = []
+	var complete = ["head", "leftHand", "rightHand"].all(func(role): return mapping.has(role))
+	if complete:
+		for role in ["head", "leftHand", "rightHand"]:
+			var target = Node3D.new()
+			root.add_child(target)
+			target.global_position = rig.global_transform * rig.get_bone_global_rest(rig.find_bone(mapping[role])).origin
+			targets.append(target)
+		var head_index = rig.find_bone(mapping.head)
+		var neutral_basis = (rig.global_basis * rig.get_bone_global_rest(head_index).basis).orthonormalized()
+		var tracking = load("res://scripts/assets/avatar_tracking.gd").new()
+		rig.add_child(tracking)
+		tracking.configure(mapping, targets[0], targets[1], targets[2])
+		tracking._process_modification()
+		var solved_basis = (rig.global_basis * rig.get_bone_global_pose(head_index).basis).orthonormalized()
+		check(neutral_basis.get_rotation_quaternion().angle_to(solved_basis.get_rotation_quaternion()) < 0.03, "neutral headset preserves robot head facing instead of flipping it")
+		targets[0].global_position += Vector3(0.02, 0.02, -0.02)
+		targets[0].rotation.y = 0.25
+		for index in [1, 2]: targets[index].global_position += Vector3(0, 0.015, -0.015)
+		tracking._process_modification()
+		var head_position = rig.global_transform * rig.get_bone_global_pose(head_index).origin
+		check(head_position.distance_to(targets[0].global_position) < 0.01, "default robot head follows headset position")
+		var moved_basis = (rig.global_basis * rig.get_bone_global_pose(head_index).basis).orthonormalized()
+		check((Basis(Vector3.UP, 0.25) * neutral_basis).get_rotation_quaternion().angle_to(moved_basis.get_rotation_quaternion()) < 0.03, "default robot head follows headset yaw in world space")
+		for index in [1, 2]:
+			var role = "leftHand" if index == 1 else "rightHand"
+			var wrist = rig.global_transform * rig.get_bone_global_pose(rig.find_bone(mapping[role])).origin
+			check(wrist.distance_to(targets[index].global_position) < 0.025, "default robot wrist follows controller: " + role)
+		for target in targets: target.free()
 	robot.free()
 	var path = "res://scripts/assets/local_mirror.gd"
 	check(ResourceLoader.exists(path), "local mirror component exists")

@@ -7,6 +7,11 @@ request. The previous shipped Alicia default URL resolves to this local robot as
 well; custom avatar selections are preserved. Loading/blocked stand-ins still
 use their status indicators independently of this normal default avatar.
 
+The robot maps its actual imported head/chest/palm bones for animation and
+tracking, with bind-preserving foot hierarchy adaptation and corrected forward
+orientation. Tracking calibration includes the imported rig frame. Head and wrist
+alignment has synthetic regression coverage; real headset fit still needs checking.
+
 Nearby selectable pickup items and the local mirror receive a translucent local
 hover overlay on desktop/VR. **Settings → Interface → Selectable item highlight
 color** offers cyan, yellow, green, magenta and white. Hints are suppressed during

@@ -45,10 +45,17 @@ func configure(mapping: Dictionary, head: Node3D, left: Node3D, right: Node3D):
 	var rig = get_skeleton()
 	if rig == null: return
 	body_solver.configure(rig, mapping)
+	var reference = Basis.IDENTITY
+	var ancestor: Node = rig
+	while ancestor != null:
+		if ancestor.has_meta("tracking_rest_frame"):
+			reference = ancestor.get_meta("tracking_rest_frame")
+			break
+		ancestor = ancestor.get_parent()
 	for role in ["head", "leftHand", "rightHand"]:
 		var index = rig.find_bone(humanoid.get(role, ""))
 		if index >= 0:
-			calibration[role] = rig.get_bone_global_rest(index).basis.get_rotation_quaternion()
+			calibration[role] = (reference * rig.get_bone_global_rest(index).basis).orthonormalized().get_rotation_quaternion()
 
 func _process_modification():
 	var rig = get_skeleton()

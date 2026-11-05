@@ -3,6 +3,11 @@
 Status: **proposal, not implemented**. Multiplayer editing, project synchronization
 and project recovery described here are not current runtime features.
 
+Test-first update: opt-in [editor acceptance contracts](../../tests/map_editor/README.md)
+exist with a verified absent-editor baseline of 0 passed, 7 failed, 7 dependent
+groups blocked, exit 1 without engine errors. These proposed service seams do not
+establish real networking, editor UI or hardware VR support.
+
 ## Goal
 
 Create and edit maps locally in desktop or VR, optionally together with friends,

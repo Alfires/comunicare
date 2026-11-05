@@ -1679,238 +1679,273 @@
     {
       "kind": "class",
       "name": "Lease",
-      "line": 30,
+      "line": 33,
       "signature": "class Lease extends RefCounted",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 33,
+      "line": 36,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "initialize",
-      "line": 39,
+      "line": 42,
       "signature": "func initialize(root_path: String = \"\") -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
+      "name": "_inspect_index",
+      "line": 67,
+      "signature": "func _inspect_index() -> Dictionary",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_accept_inspection",
+      "line": 105,
+      "signature": "func _accept_inspection(result: Dictionary) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_check_index_health",
+      "line": 137,
+      "signature": "func _check_index_health()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_process",
+      "line": 143,
+      "signature": "func _process(delta: float)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_exit_tree",
+      "line": 159,
+      "signature": "func _exit_tree()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_valid_record",
-      "line": 72,
+      "line": 164,
       "signature": "func _valid_record(value: Variant) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "valid_hash",
-      "line": 80,
+      "line": 172,
       "signature": "func valid_hash(value: Variant) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "blob_path",
-      "line": 88,
+      "line": 180,
       "signature": "func blob_path(revision: String) -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "world_path",
-      "line": 91,
+      "line": 183,
       "signature": "func world_path(revision: String) -> String",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "revision_handle",
-      "line": 94,
+      "line": 186,
       "signature": "func revision_handle(revision: String) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "pin_revision",
-      "line": 99,
+      "line": 191,
       "signature": "func pin_revision(revision: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "remove_revision",
-      "line": 109,
+      "line": 201,
       "signature": "func remove_revision(revision: String) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_key",
-      "line": 119,
+      "line": 211,
       "signature": "func _key(source: String, kind: String) -> String",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_hash_file",
-      "line": 122,
+      "line": 214,
       "signature": "func _hash_file(path: String) -> String",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_usable",
-      "line": 125,
+      "line": 217,
       "signature": "func _usable(record: Dictionary) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "retain",
-      "line": 134,
+      "line": 226,
       "signature": "func retain(revision: String) -> RefCounted",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "release",
-      "line": 143,
+      "line": 235,
       "signature": "func release(revision: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_result",
-      "line": 149,
+      "line": 241,
       "signature": "func _result(record: Dictionary, stale: bool = false) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "fetch",
-      "line": 153,
+      "line": 245,
       "signature": "func fetch(source: String, kind: String, validator: Callable, force: bool = false) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_fetch",
-      "line": 185,
+      "line": 277,
       "signature": "func _fetch(source: String, kind: String, key: String, validator: Callable, force: bool) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "class",
       "name": "TemporaryFile",
-      "line": 267,
+      "line": 359,
       "signature": "class TemporaryFile extends RefCounted",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 269,
+      "line": 361,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "import_file",
-      "line": 273,
+      "line": 365,
       "signature": "func import_file(path: String, kind: String, validator: Callable, pin_original: bool = true) -> Dictionary",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_fallback",
-      "line": 310,
+      "line": 402,
       "signature": "func _fallback(key: String, record: Dictionary, usable: bool, message: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_allowed_url",
-      "line": 316,
+      "line": 408,
       "signature": "func _allowed_url(source: String) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_headers",
-      "line": 324,
+      "line": 416,
       "signature": "func _headers(lines: PackedStringArray) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_save",
-      "line": 332,
+      "line": 424,
       "signature": "func _save() -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "usage_bytes",
-      "line": 345,
+      "line": 439,
       "signature": "func usage_bytes() -> int",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_make_room",
-      "line": 348,
+      "line": 442,
       "signature": "func _make_room(additional: int) -> bool",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "clear_unused",
-      "line": 365,
+      "line": 459,
       "signature": "func clear_unused() -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_collect_orphans",
-      "line": 377,
+      "line": 471,
       "signature": "func _collect_orphans()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_delete_unreferenced",
-      "line": 385,
+      "line": 479,
       "signature": "func _delete_unreferenced(revision: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_directory_size",
-      "line": 397,
+      "line": 491,
       "signature": "func _directory_size(path: String) -> int",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_clear_directory",
-      "line": 412,
+      "line": 506,
       "signature": "func _clear_directory(path: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_remove_file",
-      "line": 426,
+      "line": 520,
       "signature": "func _remove_file(path: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_error",
-      "line": 430,
+      "line": 524,
       "signature": "func _error(message: String) -> bool",
       "visibility": "private"
     }

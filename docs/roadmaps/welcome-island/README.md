@@ -11,7 +11,8 @@ the pond/dock with synthetic safety checks; part 08 adds constrained local ship
 operation with manual XR/UI gates. Part 09 adds the initial furnished house and
 side spaces; part 10 adds adjustable local room lighting with XR/performance gates.
 Part 11 has a tested kitchen foundation with placeholder kitchenware and open
-art/hardware gates. Parts 12–14 remain planned.
+art/hardware gates. Part 12 adds optional Help with manual XR/playtest and settings
+fixture gates. Parts 13–14 remain planned.
 The [shared design overview](../offline-welcome-island-roadmap.md) owns the home-first
 requirements, ASCII concepts, asset candidates and compatibility boundaries.
 This index and the small roadmaps below replace its original five broad milestones.
@@ -51,7 +52,8 @@ with manual/export gates**; part 06 is **implemented with manual interaction/hea
 gates**; part 07 is **implemented with manual headset/final-water gates**;
 part 08 is **implemented with manual XR/UI gates**; part 09 is **implemented initial
 furnished structure with manual XR/art gates**; part 10 is **implemented with manual
-XR/performance gates**; part 11 is **partially implemented**; parts 12–14 remain **planned**.
+XR/performance gates**; part 11 is **partially implemented**; part 12 is **implemented
+with manual XR/playtest gates**; parts 13–14 remain **planned**.
 
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
@@ -66,7 +68,7 @@ XR/performance gates**; part 11 is **partially implemented**; parts 12–14 rema
 | [09](09-house-spaces-roadmap.md) | Initial furnished house/lounge/two beds/side hangouts implemented; optional rest action and manual XR/art gates open | 02, 04, 06 |
 | [10](10-room-lighting-roadmap.md) | Three independent local zones with shared UI implemented; manual XR/GPU profiling open | 06, 09 |
 | [11](11-kitchen-roadmap.md) | Partial: tested local controls/reset and eight movable placeholders; final premade kitchenware and seated VR checks pending | 06, 09 |
-| [12](12-optional-help-roadmap.md) | Minimal contextual actions and opt-in Help | 06; final text after 08–11 |
+| [12](12-optional-help-roadmap.md) | Optional live-binding menu Help/session highlight toggle implemented; full settings fixture and manual XR/playtests open | 06; final text after 08–11 |
 | [13](13-landscape-rendering-roadmap.md) | Hand-built landscape, atmosphere and optimization | 02, 07–11 |
 | [14](14-release-acceptance-roadmap.md) | Full offline/home/online-return acceptance | 01–13 |
 

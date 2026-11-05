@@ -405,7 +405,8 @@ part 08 adds the constrained local ship with manual XR/UI gates;
 part 09 adds the initial furnished house and side spaces with manual XR/art gates;
 part 10 adds adjustable room lighting with manual XR/performance gates;
 part 11 has a tested functional kitchen foundation with final kitchenware/art/XR
-gates open; parts 12–14 remain planned. See the
+gates open; part 12 adds optional Help with manual XR/playtest gates;
+parts 13–14 remain planned. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

@@ -95,6 +95,9 @@ func _render():
 		category_pages.Network.add_child(panel)
 		panel.configure(NetworkHandler.get_relay_preferences())
 	if category_pages.has("Controls"):
+		var help = preload("res://scripts/GUI/home_help.gd").new()
+		category_pages.Controls.add_child(help)
+		category_pages.Controls.move_child(help, 1)
 		var local_notice = Label.new()
 		local_notice.text = "Home objects are local to this client; changes are not synchronized with other players."
 		local_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

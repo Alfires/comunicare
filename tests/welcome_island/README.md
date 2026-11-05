@@ -1,5 +1,29 @@
 # Welcome island startup contracts
 
+## Part 12 optional Help — 2026-11-05
+
+`python3 tests/welcome_island/run_credits.py --help-suite --rendered` tests the
+production Settings Controls Help component with isolated settings and inert
+network/data fixtures. Missing Help assertion failed before implementation.
+Help starts collapsed; show/hide and highlight visibility stay session-local.
+Live pickup/sprint/emote/mic bindings and VR mode/menu action are read from the
+settings owner. No progress tracking, proximity lessons, task locks, arrival modal,
+automatic microphone change or session creation is added. Gameplay services never
+consult Help visibility. Existing reachable highlights can be hidden; no new
+floating text or broad proximity lesson system is introduced.
+
+14 rendered checks pass; source/world service regressions pass. A detached-page
+settings callback found during regression was guarded. The microphone/settings
+runner still reports an unrelated production `menue.gd` expecting `Shell` in its
+old TabContainer fixture; the latest rerun no longer has that infrastructure error,
+but still fails one unrelated status-bar microphone-position assertion (110 passed,
+1 failed). Thus the full suite is not certified passing here. Actual headset
+Help/controller readability and free-exploration user playtesting remain open.
+Help is placed near the top of Controls, wraps inside the shared scroll area and
+uses 44-pixel actions. Inspect `/tmp/opencode/island-help.png`; turn Help/highlights
+off and verify house/ship/kitchen remain usable without any “tutorial finished” event.
+Part 11's primitive kitchenware and art/XR limitations remain pending separately.
+
 ## Part 11 kitchen foundation — 2026-11-05
 
 `run_layout.py --kitchen` initially failed on the missing kitchen, then passes

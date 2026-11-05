@@ -13,6 +13,9 @@ func _ready():
 	material.no_depth_test = false
 
 func _physics_process(_delta):
+	if not get_tree().root.get_meta("home_action_hints", true):
+		show_targets([])
+		return
 	var save = get_node_or_null("/root/SaveData")
 	if save == null or save.get("store") == null: return
 	var colors = {"cyan": Color(0.2, 0.8, 1, 0.35), "yellow": Color(1, 0.85, 0.1, 0.35), "green": Color(0.2, 1, 0.3, 0.35), "magenta": Color(1, 0.2, 0.8, 0.35), "white": Color(1, 1, 1, 0.35)}

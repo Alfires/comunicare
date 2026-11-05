@@ -1,5 +1,15 @@
 # Production function contracts
 
+<!-- module: scripts/GUI/home_help.gd -->
+## Optional home Help
+
+`refresh_help` builds wrapping opt-in menu text from the current settings store or
+an explicit test store. It reads bindings, XR mode and menu action without writes,
+network calls or microphone changes. Private ready builds a 44-pixel toggle and
+session-only highlight switch; `_setting_changed` refreshes attached UI only.
+Expanded state is process-local; highlight state lives on the current tree root.
+Help visibility never grants/blocks gameplay, records progress or spawns lessons.
+
 <!-- module: scripts/worlds/welcome_island/kitchen.gd -->
 ## Local kitchen foundation
 

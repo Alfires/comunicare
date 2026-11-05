@@ -1140,105 +1140,105 @@
     {
       "kind": "func",
       "name": "_add_cache_actions",
-      "line": 135,
+      "line": 138,
       "signature": "func _add_cache_actions(page: VBoxContainer)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "select_category",
-      "line": 169,
+      "line": 172,
       "signature": "func select_category(category: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_swatch_colors",
-      "line": 181,
+      "line": 184,
       "signature": "func _swatch_colors(id: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_create_control",
-      "line": 195,
+      "line": 198,
       "signature": "func _create_control(definition: Dictionary) -> Control",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_commit",
-      "line": 236,
+      "line": 239,
       "signature": "func _commit(value: Variant, id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_value",
-      "line": 243,
+      "line": 246,
       "signature": "func _reset_value(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_category",
-      "line": 249,
+      "line": 252,
       "signature": "func _reset_category(category: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_value",
-      "line": 254,
+      "line": 257,
       "signature": "func _update_value(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_begin_binding",
-      "line": 278,
+      "line": 281,
       "signature": "func _begin_binding(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 284,
+      "line": 287,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_cancel_binding",
-      "line": 305,
+      "line": 308,
       "signature": "func _cancel_binding()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 312,
+      "line": 315,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_show_error",
-      "line": 316,
+      "line": 319,
       "signature": "func _show_error(message: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_saved",
-      "line": 320,
+      "line": 323,
       "signature": "func _on_saved()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 323,
+      "line": 326,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -8651,6 +8651,66 @@
       "name": "_exit_tree",
       "line": 103,
       "signature": "func _exit_tree()",
+      "visibility": "private"
+    }
+  ],
+  "scripts/GUI/home_help.gd": [
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 7,
+      "signature": "func _ready()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_setting_changed",
+      "line": 32,
+      "signature": "func _setting_changed(_id: String, _value: Variant)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "refresh_help",
+      "line": 34,
+      "signature": "func refresh_help(store = null)",
+      "visibility": "public"
+    }
+  ],
+  "scripts/assets/interaction_highlight.gd": [
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 6,
+      "signature": "func _ready()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_physics_process",
+      "line": 15,
+      "signature": "func _physics_process(_delta)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "show_targets",
+      "line": 58,
+      "signature": "func show_targets(targets: Array)",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_exit_tree",
+      "line": 75,
+      "signature": "func _exit_tree()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_clear_path",
+      "line": 78,
+      "signature": "func _clear_path(player: Node3D, start: Vector3, end: Vector3, target: Node3D = null) -> bool",
       "visibility": "private"
     }
   ]

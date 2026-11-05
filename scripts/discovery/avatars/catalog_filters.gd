@@ -10,12 +10,14 @@ func apply(records: Array, query: Dictionary) -> Array:
 		var text = (str(record.get("title", "")) + " " + str(record.get("author", "")) + " " + str(record.get("tags", []))).to_lower()
 		if not term.is_empty() and not term in text: continue
 		var tag = str(query.get("tag", "")).strip_edges().to_lower()
-		if not tag.is_empty() and not tag in str(record.get("tags", [])).to_lower(): continue
+		if not tag.is_empty():
+			var tags = record.get("tags", [])
+			if not tags is Array or not tags.any(func(value): return value is String and value.strip_edges().to_lower() == tag): continue
 		var category = str(query.get("asset_category", query.get("category", "all")))
 		if category not in ["", "all", "Humanoid avatars", "Robots", "Animations and emotes"] and record.get("category") != category: continue
 		var license_filter = str(query.get("license", "all"))
 		var license_name = str(record.get("license", ""))
-		if license_filter == "CC0" and not license_name.begins_with("CC0"): continue
+		if license_filter == "CC0" and license_name not in ["CC0", "CC0-1.0", "CC0 1.0 Universal"]: continue
 		if license_filter == "attribution" and not license_name.begins_with("CC-BY"): continue
 		if license_filter == "unknown" and not license_name in ["", "Unknown"]: continue
 		if query.get("compatibility", "all") != "all" and record.get("compatibility", "unknown") != query.compatibility: continue

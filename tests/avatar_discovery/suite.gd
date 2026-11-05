@@ -75,6 +75,10 @@ func test_advanced_filters():
 	check(filters.apply(records, {"compatibility": "verified"}).is_empty(), "unknown assets never match verified filter")
 	check(filters.apply(records, {"category": "emotes", "loop": "yes"}).size() == 1, "animation category and loop filters combine")
 	check(filters.apply(records, {"shareable": "yes"}).size() == 1, "redistribution filter is independent of download availability")
+	check(filters.apply(records, {"tag": "rob"}).is_empty(), "tag filter matches whole tags rather than substrings")
+	var misleading = records[0].duplicate(true)
+	misleading.license = "CC0-not-actually-a-license"
+	check(filters.apply([misleading], {"license": "CC0"}).is_empty(), "license filter rejects misleading CC0 prefixes")
 
 func test_thumbnail_bounds():
 	var path = BASE + "thumbnail_cache.gd"

@@ -127,10 +127,27 @@ func delete_group(id: String) -> bool:
 	candidate.erase(id)
 	for group in candidate.values():
 		group.entries = group.entries.filter(func(entry): return not (entry.type == "group" and entry.id == id))
+	# Remove only descendants orphaned by this deletion. Shared groups still
+	# reachable from root keep their shortcuts and identity.
+	var descendants: Array = []
+	_collect_groups(groups, id, descendants)
+	var reachable: Array = []
+	_collect_groups(candidate, "root", reachable)
+	for descendant in descendants:
+		if not descendant in reachable: candidate.erase(descendant)
 	return commit(candidate)
+
+static func _collect_groups(value: Dictionary, id: String, result: Array):
+	if id in result or not value.has(id): return
+	result.append(id)
+	for entry in value[id].entries:
+		if entry.type == "group": _collect_groups(value, entry.id, result)
 
 func add_emote(group: String, id: String, title: String) -> bool:
 	if not groups.has(group):
+		return false
+	if groups[group].entries.any(func(entry): return entry.type == "emote" and entry.id == id):
+		last_error = "This emote is already in the selected group."
 		return false
 	var candidate = groups.duplicate(true)
 	candidate[group].entries.append({"type": "emote", "id": id, "name": title.left(128)})
@@ -138,6 +155,10 @@ func add_emote(group: String, id: String, title: String) -> bool:
 
 func move_entry(group: String, index: int, destination: String, position: int) -> bool:
 	if not groups.has(group) or not groups.has(destination) or index < 0 or index >= groups[group].entries.size():
+		return false
+	var source_entry: Dictionary = groups[group].entries[index]
+	if group != destination and groups[destination].entries.any(func(entry): return entry.type == source_entry.type and entry.id == source_entry.id):
+		last_error = "This shortcut is already in the destination group."
 		return false
 	var candidate = groups.duplicate(true)
 	var entry: Dictionary = candidate[group].entries.pop_at(index)

@@ -559,6 +559,24 @@ func test_ui(bytes: PackedByteArray):
 	await process_frame
 
 func test_avatar_dimensions():
+	var layout = load("res://scripts/assets/emote_layout.gd").new()
+	check(not layout.add_emote("root", "builtin:dance", "Duplicate Dance"), "layout service rejects duplicate emote in same group")
+	var custom = layout.add_group("root", "Custom")
+	layout.add_emote(custom, "builtin:dance", "Dance")
+	var original = layout.groups.duplicate(true)
+	check(not layout.move_entry(custom, 0, "root", 0) and layout.groups == original, "moving emote into group that already contains it preserves source")
+	var child = layout.add_group(custom, "Nested")
+	layout.add_emote(child, "builtin:interact", "Interact")
+	layout.delete_group(custom)
+	check(not layout.groups.has(child), "deleting parent group removes orphaned descendant groups")
+	var parent_a = layout.add_group("root", "Parent A")
+	var parent_b = layout.add_group("root", "Parent B")
+	var shared = layout.add_group(parent_a, "Shared child")
+	var linked = layout.groups.duplicate(true)
+	linked[parent_b].entries.append({"type": "group", "id": shared, "name": "Shared child"})
+	layout.commit(linked)
+	layout.delete_group(parent_a)
+	check(layout.groups.has(shared) and layout.groups[parent_b].entries[0].id == shared, "group deletion preserves descendants reachable from another parent")
 	var dimensions = load("res://scripts/assets/avatar_dimensions.gd")
 	var model = Node3D.new()
 	model.scale = Vector3.ONE * 2

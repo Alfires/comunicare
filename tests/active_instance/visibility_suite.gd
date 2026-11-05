@@ -35,6 +35,7 @@ func run():
 	check(not first.visible, "hide existing avatar only")
 	check(remote.get("placeholder") is Node3D, "blocked player has local placeholder")
 	if remote.get("placeholder") is Node3D:
+		check(remote.placeholder.get_node_or_null("RobotModel") != null, "placeholder uses bundled authored robot instead of primitive boxes")
 		check(remote.placeholder.visible and remote.avatar_status.text == "Model blocked", "blocked placeholder explains local block above name")
 	check(other_model.visible and other_model.mesh == mesh.mesh, "shared mesh remains visible for another player")
 	check(nameplate.visible, "nameplate outside avatar remains enabled")

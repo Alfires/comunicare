@@ -1,16 +1,23 @@
 # Bundled animation provenance
 
-## Original offline avatar placeholder
+## Offline robot avatar placeholder — RobotExpressive
 
-`scripts/assets/avatar_placeholder.gd` is an original block humanoid constructed
-from Godot BoxMesh primitives, with a local loading/blocked indicator. No external
-model, texture, font file or downloaded asset is bundled for this placeholder.
-The implementation is shipped with the game and follows the repository license.
+- Creator: Tomás Laulhé / Quaternius; CC0 1.0 Universal.
+- Publisher: https://quaternius.com/packs/animatedrobot.html
+- Redistribution/conversion: Don McCurdy; facial morph targets, FBX2GLTF
+  conversion, duplicate-material removal and reduced metalness.
+- Source: https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf/RobotExpressive
+- Retrieved 2026-11-05; original attribution preserved in
+  `assets/avatars/placeholder/SOURCE.md`.
+- Bundled `RobotExpressive.glb` SHA-256:
+  `047f5e5fb3bb6d378bd1df16ca6137f2a596c99b3a1b5690b4020c05aaf6f319`.
+- Full CC0 terms: `assets/animations/CC0-1.0.txt`.
 
-Research considered Kenney's CC0 Blocky Characters:
-https://kenney.nl/assets/blocky-characters . Its download endpoint returned HTTP
-403 in the development environment, so no Kenney asset is included or claimed as
-the source of this original placeholder.
+`scripts/assets/avatar_placeholder.gd` normalizes the model to 1.75 m and applies
+instance-owned status materials/indicators. Tangent generation is disabled because
+the untextured source has no UVs. The binary is unmodified and bundled locally;
+no runtime download is required. This replaces the original primitive box model.
+It is not VRChat's robot asset and no VRChat assets are included.
 
 ## Quaternius Universal Animation Library — Standard-1.0
 

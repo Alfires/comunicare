@@ -518,7 +518,7 @@ disconnects store signal. Audio helper feeds only its generator, not microphone.
 <!-- module: scripts/assets/avatar_placeholder.gd -->
 ### [Avatar placeholder](../../scripts/assets/avatar_placeholder.gd)
 
-Original bundled primitive humanoid; no runtime asset fetch or imported resources.
+Bundled CC0 Quaternius RobotExpressive humanoid; no runtime asset fetch.
 Instance-owned materials prevent cross-player appearance mutation.
 
 | Functions | Contract |

@@ -49,6 +49,9 @@ to a platform file picker; native filesystem browsing varies by runtime/platform
 - **Movement speed (PC and VR)** under VR Movement is shared with desktop:
   full-stick walking/sprinting uses the same maximum speed as PC. Existing saved
   values are preserved; partial-stick movement is still proportionally slower.
+- Airborne smooth locomotion preserves momentum with a neutral stick and uses
+  20% of ground acceleration for steering. Ground control, turning, teleport and
+  physical room-scale motion are unchanged; blocked input still brakes safely.
 - A/X on either hand toggles one shared main-menu viewport. Optional jump is right
   stick click and off by default; B/Y retains the separate emote wheel.
 - Controller aim/trigger operates UI, with press capture/release on drag-off/close.

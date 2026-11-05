@@ -278,6 +278,17 @@ func test_transition_blending():
 	check(middle.angle_to(rig.get_bone_pose_rotation(0)) < 0.02, "interrupting a blend starts from the currently visible pose")
 	animator.player.advance(0.4)
 	check(rig.get_bone_pose_rotation(0).angle_to(before) < 0.02, "blend converges to the requested animation")
+	var jump_pose = first.duplicate(true)
+	jump_pose.motion_role = "jump"
+	var standing_pose = second.duplicate(true)
+	standing_pose.motion_role = "neutral"
+	animator.play_clip(jump_pose)
+	animator.player.advance(0.4)
+	animator.play_clip(standing_pose)
+	animator.player.advance(0.25)
+	check(rig.get_bone_pose_rotation(0).angle_to(Quaternion(Vector3.FORWARD, -0.8)) > 0.1, "jump to standing remains blended beyond ordinary transition duration")
+	animator.player.advance(0.35)
+	check(rig.get_bone_pose_rotation(0).angle_to(Quaternion(Vector3.FORWARD, -0.8)) < 0.02, "jump to standing settles within six tenths of a second")
 	var desktop_camera = Camera3D.new()
 	var xr_origin = XROrigin3D.new()
 	var xr_camera = XRCamera3D.new()

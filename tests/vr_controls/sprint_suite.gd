@@ -19,6 +19,15 @@ func run():
 		quit(1)
 		return
 	var policy = load(path).new()
+	var air_path = "res://scripts/player/air_control.gd"
+	check(ResourceLoader.exists(air_path), "shared reduced air steering exists")
+	if ResourceLoader.exists(air_path):
+		var air = load(air_path).new()
+		var initial = Vector3(3, 5, 0)
+		var steered: Vector3 = air.steer(initial, Vector3(-3, 0, 0), 20.0, 0.1)
+		check(is_equal_approx(steered.x, 2.6), "air steering uses only twenty percent acceleration")
+		check(steered.y == 5, "air steering preserves vertical velocity")
+		check(air.steer(initial, Vector3.ZERO, 20.0, 0.1) == initial, "released air input preserves horizontal momentum")
 	check(policy.target_speed(3.0, true, false) == 4.5, "held sprint multiplies walking speed once")
 	for i in 20: policy.target_speed(3.0, true, false)
 	check(policy.target_speed(3.0, true, false) == 4.5, "sprint never compounds")
@@ -44,7 +53,7 @@ func desktop_checks():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Input.action_press("forward")
 	Input.action_press("sprint")
-	for i in 40: player._physics_process(0.016)
+	for i in 240: player._physics_process(0.016)
 	check(is_equal_approx(Vector2(player.velocity.x, player.velocity.z).length(), 3.0), "production desktop physics reaches shared default sprint speed")
 	Input.action_press("right")
 	for i in 40: player._physics_process(0.016)
@@ -72,6 +81,14 @@ func desktop_checks():
 	for i in 80: player._physics_process(0.016)
 	check(Vector2(player.velocity.x, player.velocity.z).length() < 0.001, "sprint without direction does not move")
 	Input.action_release("sprint")
+	player.grounded = false
+	player.velocity = Vector3(2, 0, 0)
+	player._physics_process(0.1)
+	check(is_equal_approx(player.velocity.x, 2.0), "production desktop preserves airborne momentum without input")
+	Input.action_press("left")
+	player._physics_process(0.1)
+	check(is_equal_approx(player.velocity.x, 1.6), "production desktop opposing air input cannot instantly reverse movement")
+	Input.action_release("left")
 	player.free()
 	await process_frame
 
@@ -122,7 +139,7 @@ func vr_checks():
 			if running: Input.action_press("sprint")
 			else: Input.action_release("sprint")
 			Input.action_press("forward")
-			for i in 60: desktop._physics_process(0.016)
+			for i in 240: desktop._physics_process(0.016)
 			var vr_speed: float = motion.desired_velocity(Vector2(0, -1), Basis.IDENTITY, player._sprint_speed(false, false), 0.1).length()
 			check(absf(Vector2(desktop.velocity.x, desktop.velocity.z).length() - vr_speed) < 0.001, "PC physics and full-stick VR speed match at %s, sprint=%s" % [walk_speed, running])
 	Input.action_release("forward")

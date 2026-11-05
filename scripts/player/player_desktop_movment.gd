@@ -23,6 +23,7 @@ var avatar_url := ""
 var world_grip: Node3D
 var focused := true
 var sprint = preload("res://scripts/player/sprint_policy.gd").new()
+var air_control = preload("res://scripts/player/air_control.gd").new()
 
 func get_walk_speed() -> float:
 	return float(SaveData.store.get_value("vr.move_speed"))
@@ -107,6 +108,9 @@ func _movement_blocked() -> bool:
 	return not focused or Input.mouse_mode == Input.MOUSE_MODE_VISIBLE or SaveData.voice.input_blocked \
 		or NetworkHandler.session_busy or not get_tree().get_nodes_in_group("emote_wheel_input").is_empty()
 
+func _movement_grounded() -> bool:
+	return is_on_floor()
+
 func _physics_process(delta):
 	# Get input
 	var input_direction = Vector3(0,0,0)
@@ -121,7 +125,9 @@ func _physics_process(delta):
 	var direction = (forward * input_direction.y + right * input_direction.x).normalized()
 	
 	# Apply movement
-	if direction:
+	if not _movement_grounded() and not blocked:
+		velocity = air_control.steer(velocity, direction * target_speed, acceleration, delta)
+	elif direction:
 		velocity.x = lerp(velocity.x, direction.x * target_speed, minf(acceleration * delta, 1.0))
 		velocity.z = lerp(velocity.z, direction.z * target_speed, minf(acceleration * delta, 1.0))
 	else:

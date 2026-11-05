@@ -61,3 +61,9 @@ walking speed. The existing `vr.move_speed` saved key is retained, including any
 custom value; desktop no longer has an independent fixed speed. Full-stick VR
 matches desktop's maximum walk/sprint speed, while partial stick input stays
 proportionally slower. Acceleration behavior remains platform-specific.
+
+While airborne, both players retain horizontal momentum when movement input is
+released. Steering toward a new direction uses 20% of ground acceleration, so
+midair reversals are slower. Ground movement and jump height are unchanged;
+menus/focus/session suppression still brake movement. Jump animation blends back
+to standing over 0.55 seconds instead of the normal 0.22-second transition.

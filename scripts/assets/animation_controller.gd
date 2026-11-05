@@ -196,7 +196,8 @@ func cancel_emote():
 	locomotion_elapsed = 1.0
 
 func _apply_resolved(item: Dictionary, kind: String, action_id: String) -> bool:
-	var clip: Dictionary = item.clip
+	var clip: Dictionary = item.clip.duplicate(true)
+	clip.motion_role = action_id if kind == "locomotion" else ""
 	if kind == "locomotion" and action_id in ["strafe_left", "strafe_right"]:
 		clip = strafe_pose(clip)
 	if _is_vr():
@@ -479,6 +480,8 @@ func _apply_remote(id: int):
 		if absf(animator.player.current_animation_position - position) > 0.1:
 			animator.player.seek(position, true)
 		return
+	clip = clip.duplicate(true)
+	clip.motion_role = str(value.get("role", "")) if value.get("kind") == "locomotion" else ""
 	if not animator.play_clip(clip, value.loop, value.speed, position):
 		last_error = animator.last_error
 		return

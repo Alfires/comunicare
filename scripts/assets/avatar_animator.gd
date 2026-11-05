@@ -9,6 +9,9 @@ var descriptor: Dictionary = {}
 var reader = Reader.new()
 var last_error := ""
 const BLEND_SECONDS = 0.22
+const JUMP_RETURN_SECONDS = 0.55
+var blend_seconds := BLEND_SECONDS
+var motion_role := ""
 var owned_bones: Dictionary = {}
 var blend_from: Dictionary = {}
 var blend_elapsed := 0.0
@@ -33,6 +36,9 @@ func play_clip(clip: Dictionary, looping: bool = true, speed: float = 1.0, offse
 		last_error = reader.last_error
 		return false
 	var transitioning = player.is_playing()
+	var next_role = str(clip.get("motion_role", ""))
+	blend_seconds = JUMP_RETURN_SECONDS if motion_role == "jump" and next_role == "neutral" else BLEND_SECONDS
+	motion_role = next_role
 	blend_from.clear()
 	# Reset only bones owned by this motion layer, never tracked XR head/hands.
 	var reset = Animation.new()
@@ -83,14 +89,15 @@ func _blend_pose():
 	if elapsed < 0: elapsed += player.current_animation_length
 	blend_position = position
 	blend_elapsed += maxf(0, elapsed) / maxf(absf(player.speed_scale), 0.001)
-	var weight = smoothstep(0.0, BLEND_SECONDS, blend_elapsed)
+	var weight = smoothstep(0.0, blend_seconds, blend_elapsed)
 	var skeleton = reader._skeleton(avatar)
 	for index in blend_from:
 		skeleton.set_bone_pose_rotation(index, blend_from[index].slerp(skeleton.get_bone_pose_rotation(index), weight))
-	if blend_elapsed >= BLEND_SECONDS: blend_from.clear()
+	if blend_elapsed >= blend_seconds: blend_from.clear()
 
 func stop():
 	blend_from.clear()
+	motion_role = ""
 	if is_instance_valid(player):
 		player.play("RESET")
 		player.advance(0)

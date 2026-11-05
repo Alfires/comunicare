@@ -64,6 +64,7 @@ var foot_grounding = preload("res://scripts/assets/foot_grounding.gd").new()
 var grounded_body_targets: Dictionary = {}
 var world_grip_pressed := {"left": false, "right": false}
 var sprint = preload("res://scripts/player/sprint_policy.gd").new()
+var air_control = preload("res://scripts/player/air_control.gd").new()
 
 func get_walk_speed() -> float:
 	return float(SaveData.store.get_value("vr.move_speed"))
@@ -183,8 +184,11 @@ func _physics_process(delta):
 	velocity.y -= gravity * delta
 	if not blocked and not motion_rearm and SaveData.store.get_value("vr.jump_enabled") and right_controller.is_button_pressed("primary_click") and is_on_floor():
 		velocity.y = jump_force
-	velocity.x = move_toward(velocity.x, desired.x, acceleration * delta)
-	velocity.z = move_toward(velocity.z, desired.z, acceleration * delta)
+	if not is_on_floor() and not blocked and not motion_rearm and not teleport_mode:
+		velocity = air_control.steer(velocity, desired, acceleration, delta)
+	else:
+		velocity.x = move_toward(velocity.x, desired.x, acceleration * delta)
+		velocity.z = move_toward(velocity.z, desired.z, acceleration * delta)
 	move_and_slide()
 	blink_remaining = maxf(0, blink_remaining - delta)
 	var strength = comfort.update_vignette(Vector2(velocity.x, velocity.z).length(), rad_to_deg(yaw) / maxf(delta, 0.001), delta, SaveData.store.get_value("vr.comfort_vignette"))

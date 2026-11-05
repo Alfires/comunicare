@@ -481,6 +481,15 @@ model does not replace working avatar. Hardware checks are manual.
 | `get_bone_by_array` | Returns first existing candidate name or empty string; helper for legacy naming, not a substitute for validated humanoid metadata. |
 | `get_walk_speed` | Returns the current registry-backed VR walking speed, without sprint boost. Left primary click boosts smooth locomotion only; existing neutral rearm plus sprint release protects recovery. Teleport and physical room-scale motion are not boosted. |
 
+<!-- module: scripts/player/air_control.gd -->
+### [Air control](../../scripts/player/air_control.gd)
+
+Shared by desktop and VR smooth locomotion; no persistence or network state.
+
+| Functions | Contract |
+| --- | --- |
+| `steer` | Moves horizontal velocity toward nonzero input targets at 20% of ground acceleration, bounded by vector distance. Zero input preserves takeoff momentum; vertical velocity is unchanged. Blocked-input braking bypasses this helper. |
+
 <!-- module: scripts/player/sprint_policy.gd -->
 ### [Sprint policy](../../scripts/player/sprint_policy.gd)
 
@@ -622,7 +631,7 @@ authority. Shared local/remote renderer; it is not a separate network player.
 | Functions | Contract |
 | --- | --- |
 | `attach` | Creates dedicated AnimationPlayer/root/reset library on supplied model; call once per animator. Caller attaches animator/model on main thread. |
-| `play_clip` | Binds validated clip, preserves visible pose for transition, installs bounded current/reset libraries, seeks requested phase and starts; bool with last_error on binding failure. Does not move camera/body. |
+| `play_clip` | Binds validated clip, preserves visible pose for transition, installs bounded current/reset libraries, seeks requested phase and starts; bool with last_error on binding failure. Uses 0.55 s for tagged jump→neutral standing transitions, otherwise 0.22 s. The controller tags local/remote resolved roles without mutating cached source clips. Does not move camera/body. |
 | `stop` | Clears fade, applies owned RESET, stops and clears descriptor; immediate lifecycle reset, not an emote network command. |
 | `set_paused` | Internal renderer pause/resume primitive; not exposed as manual protocol/UI control. Requires attached player. |
 

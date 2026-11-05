@@ -1,4 +1,8 @@
 extends "res://scripts/player/player_desktop_movment.gd"
+var grounded := true
+
+func _movement_grounded() -> bool:
+	return grounded
 
 func _ready():
 	set_physics_process(false)

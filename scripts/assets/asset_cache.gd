@@ -26,6 +26,9 @@ var initialized := false
 var writable := true
 var serial := 0
 var running_jobs := 0
+var health_thread: Thread
+var health_elapsed := 0.0
+const HEALTH_INTERVAL = 60.0
 
 class Lease extends RefCounted:
 	var owner: WeakRef
@@ -50,24 +53,113 @@ func initialize(root_path: String = "") -> bool:
 			return _error("Cannot create asset cache folder.")
 	var index = directory.path_join("index.json")
 	if FileAccess.file_exists(index):
-		var file = FileAccess.open(index, FileAccess.READ)
-		if file == null or file.get_length() > 16 * 1024 * 1024:
-			writable = false
-			return _error("Asset cache index unreadable; original preserved.")
-		var parser = JSON.new()
-		var error = parser.parse(file.get_as_text())
-		var value = parser.data
-		if error != OK or not value is Dictionary or value.get("schema") != SCHEMA or not value.get("sources") is Dictionary:
+		var inspection = _inspect_index()
+		if not _accept_inspection(inspection):
 			writable = false
 			return _error("Asset cache index corrupt or unsupported; original preserved.")
-		for key in value.sources:
-			if not key is String or not _valid_record(value.sources[key]):
-				writable = false
-				return _error("Invalid asset cache entry; original preserved.")
-		records = value.sources
+		records = inspection.value.sources
 	# Only managed staging children are disposable. Never follow symlinks.
 	_clear_directory(directory.path_join("staging"))
 	return true
+
+# Pure file inspection runs on a worker during periodic checks. It never touches
+# the scene tree or mutates cache state. Recover only an intact first JSON object.
+func _inspect_index() -> Dictionary:
+	var path = directory.path_join("index.json")
+	if FileAccess.get_size(path) > 16 * 1024 * 1024: return {}
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null: return {}
+	var bytes = file.get_buffer(file.get_length())
+	var text = bytes.get_string_from_utf8()
+	var parser = JSON.new()
+	var error = parser.parse(text)
+	var clean = text
+	if error != OK:
+		var depth := 0
+		var quoted := false
+		var escaped := false
+		var end := -1
+		if not text.strip_edges().begins_with("{"): return {}
+		for i in text.length():
+			var c = text[i]
+			if quoted:
+				if escaped: escaped = false
+				elif c == "\\": escaped = true
+				elif c == "\"": quoted = false
+			elif c == "\"": quoted = true
+			elif c == "{" or c == "[": depth += 1
+			elif c == "}" or c == "]":
+				depth -= 1
+				if depth == 0:
+					end = i + 1
+					break
+		if end < 0: return {}
+		clean = text.left(end)
+		if parser.parse(clean) != OK: return {}
+	var value = parser.data
+	if not value is Dictionary or value.get("schema") != SCHEMA or not value.get("sources") is Dictionary: return {}
+	for key in value.sources:
+		if not key is String or not _valid_record(value.sources[key]): return {}
+	return {"value": value, "original": bytes, "clean": clean, "repair": error != OK}
+
+func _accept_inspection(result: Dictionary) -> bool:
+	if result.is_empty(): return false
+	if not result.repair: return true
+	var path = directory.path_join("index.json")
+	var folder = DirAccess.open(directory)
+	if folder == null or folder.is_link("index.json"): return false
+	# If another process wrote since inspection, leave its version alone.
+	if FileAccess.get_file_as_bytes(path) != result.original: return false
+	var digest = HashingContext.new()
+	digest.start(HashingContext.HASH_SHA256)
+	digest.update(result.original)
+	var backup = path + ".corrupt-" + digest.finish().hex_encode() + ".bak"
+	if FileAccess.file_exists(backup):
+		if folder.is_link(backup.get_file()) or FileAccess.get_file_as_bytes(backup) != result.original: return false
+	else:
+		if DirAccess.copy_absolute(path, backup) != OK: return false
+		if FileAccess.get_file_as_bytes(backup) != result.original: return false
+	var temporary = path + ".repair-" + str(OS.get_process_id()) + "-" + str(Time.get_ticks_usec())
+	var file = FileAccess.open(temporary, FileAccess.WRITE)
+	if file == null: return false
+	file.store_string(result.clean + "\n")
+	file.flush()
+	var error = file.get_error()
+	file.close()
+	if error != OK or FileAccess.get_file_as_bytes(path) != result.original:
+		DirAccess.remove_absolute(temporary)
+		return false
+	if DirAccess.rename_absolute(temporary, path) != OK:
+		DirAccess.remove_absolute(temporary)
+		return false
+	return true
+
+func _check_index_health():
+	if health_thread != null or not initialized or not enabled or not jobs.is_empty(): return
+	if not FileAccess.file_exists(directory.path_join("index.json")): return
+	health_thread = Thread.new()
+	if health_thread.start(_inspect_index) != OK: health_thread = null
+
+func _process(delta: float):
+	if health_thread != null and not health_thread.is_alive():
+		var inspection: Dictionary = health_thread.wait_to_finish()
+		health_thread = null
+		if jobs.is_empty() and not inspection.is_empty():
+			var accepted = _accept_inspection(inspection)
+			if accepted and not writable:
+				records = inspection.value.sources
+				writable = true
+				last_error = ""
+				status_changed.emit()
+	health_elapsed += delta
+	if health_elapsed >= HEALTH_INTERVAL:
+		health_elapsed = 0.0
+		_check_index_health()
+
+func _exit_tree():
+	if health_thread != null:
+		health_thread.wait_to_finish()
+		health_thread = null
 
 func _valid_record(value: Variant) -> bool:
 	return value is Dictionary and LIMITS.has(value.get("kind")) \
@@ -331,14 +423,16 @@ func _headers(lines: PackedStringArray) -> Dictionary:
 
 func _save() -> bool:
 	var path = directory.path_join("index.json")
-	var file = FileAccess.open(path + ".tmp", FileAccess.WRITE)
+	var temporary = path + ".tmp-" + str(OS.get_process_id()) + "-" + str(Time.get_ticks_usec())
+	var file = FileAccess.open(temporary, FileAccess.WRITE)
 	if file == null:
 		return _error("Cannot write asset cache index.")
 	file.store_string(JSON.stringify({"schema": SCHEMA, "sources": records}))
 	file.flush()
 	var error = file.get_error()
 	file.close()
-	if error != OK or DirAccess.rename_absolute(path + ".tmp", path) != OK:
+	if error != OK or DirAccess.rename_absolute(temporary, path) != OK:
+		DirAccess.remove_absolute(temporary)
 		return _error("Cannot replace asset cache index.")
 	return true
 

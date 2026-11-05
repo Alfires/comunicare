@@ -34,13 +34,29 @@ URL content for an already pinned instance.
 
 ### Asset-cache index trailing-data repair
 
+The normal project now checks the index before the first asset load and inspects
+it every 60 seconds on a background worker while the cache is idle. An intact
+schema-1 document followed by trailing junk is repaired automatically, without
+dialogs, after saving an exact `.corrupt-<hash>.bak` beside the index. All records
+are retained; account/settings/profile files are excluded. Periodic results are
+applied only when no cache job is active and the file still matches the inspected
+bytes. Index writes use process-specific temporary names to avoid shared `.tmp`
+collisions. This is not a complete multi-process cache transaction/locking system.
+
+Truncation, unsupported schemas and invalid records remain read-only: background
+maintenance must not guess or discard potentially valuable data. Repairs do not
+change URL validation, model format limits or permissions. Startup inspection is
+bounded to 16 MiB; recurring inspection runs off the frame thread.
+
+The optional standalone Python tool remains available for offline diagnostics:
+
 Close **all Comunicare clients** before repair. The standalone Python script
 detects a complete, valid schema-1 cache index followed by junk and automatically
 removes only that trailing junk. It preserves every record and first writes an
 exact, content-hashed `.bak` of the original beside the index; replacement uses a
 unique temporary file and atomic rename. It does not edit keys, settings,
-profiles, avatar configuration or model blobs, and does not run automatically at
-game startup.
+profiles, avatar configuration or model blobs. This standalone command is optional;
+the equivalent safe recovery is built into the cache as described above.
 
 ```sh
 python3 tools/repair_asset_cache.py --dry-run

@@ -431,7 +431,7 @@ func _apply_remote(id: int):
 		and remote.avatar.get_meta("asset_revision", "") != value.avatar_revision:
 		return # Wait for the profile-selected avatar rather than animate a stale rig.
 	var clip: Dictionary
-	if value.get("builtin") in Defaults.IDS:
+	if value.get("builtin") in AnimationState.BUILTINS:
 		clip = Defaults.clip(value.builtin)
 	else:
 		if not assets.has(value.hash):

@@ -10,6 +10,14 @@ checks; headless pose assertions do not validate their visual quality.
 
 ## Authored default animation regressions
 
+The production receiver is exercised with every protocol built-in, including
+`neutral`, with both full and tracked-head/hands masks and no custom asset fields.
+The standing-player join regression reproduced a `Dictionary.size` error before
+the receiver was changed to dispatch using `AnimationState.BUILTINS` rather than
+the selectable-default list (which excludes neutral). Custom states without a
+declared size are rejected before dispatch. These checks use a synthetic humanoid
+rig, not a physical headset.
+
 Defaults now use the free CC0 Quaternius Standard pack, not generated motion.
 The suite checks sampled/changing chest, elbows, arms and hands. To additionally
 check real-avatar retargeting without bundling a third-party avatar, run:

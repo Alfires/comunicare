@@ -505,6 +505,10 @@ func test_controller(parsed: Dictionary):
 	skeleton.add_bone("Hips")
 	remote.avatar.add_child(skeleton)
 	remote.avatar.set_meta("humanoid_bones", {"hips": "Hips"})
+	for track in Defaults.clip("neutral").tracks:
+		if track.bone == "hips": continue
+		skeleton.add_bone(track.bone)
+		remote.avatar.get_meta("humanoid_bones")[track.bone] = track.bone
 	remote.add_child(remote.avatar)
 	network.add_child(remote)
 	var controller = load("res://scripts/assets/animation_controller.gd").new()
@@ -536,6 +540,32 @@ func test_controller(parsed: Dictionary):
 	check(not controller.has_method("pause") and not controller.has_method("play"), "controller exposes no parallel manual player API")
 	controller.clear()
 	check(controller.remote_states.is_empty() and controller.assets.is_empty(), "client transition removes motion and asset session state")
+	var neutral = {"op": "state", "session_id": "test", "version": 2, "peer_id": 7,
+		"generation": "a".repeat(32), "sequence": 4, "action": "resolved", "kind": "locomotion", "role": "neutral", "mask": "full", "avatar_revision": "", "configuration_revision": 0,
+		"offset": 0.0, "speed": 1.0, "loop": true, "duration": 1.0, "builtin": "neutral", "library": AnimationState.LIBRARY, "hash": "", "started": controller.now()}
+	controller.receive(neutral)
+	check(not controller.incoming.has(7), "newly joined standing player never requests nonexistent remote animation size")
+	check(controller.remote_animators.has(7), "standing remote player gets built-in neutral animation without downloadable payload")
+	for builtin in AnimationState.BUILTINS:
+		for mask in ["full", "tracked_head_hands"]:
+			var state = neutral.duplicate(true)
+			state.builtin = builtin
+			state.role = builtin
+			state.duration = AnimationState.DURATIONS[builtin]
+			state.mask = mask
+			state.sequence = controller.remote_states[7].sequence + 1
+			controller.receive(state)
+			check(controller.remote_animators[7].descriptor.get("sequence") == state.sequence and controller.incoming.is_empty(),
+				"remote builtin %s with %s mask plays without custom asset fields" % [builtin, mask])
+	var malformed = neutral.duplicate(true)
+	malformed.sequence = controller.remote_states[7].sequence + 1
+	malformed.builtin = ""
+	malformed.hash = "b".repeat(64)
+	malformed.clip = 0
+	controller.receive(malformed)
+	check(controller.remote_states[7].sequence < malformed.sequence and controller.incoming.is_empty(),
+		"custom animation without size is rejected before remote dispatch")
+	controller.clear()
 	controller.queue_free()
 	network.queue_free()
 	await process_frame

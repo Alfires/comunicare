@@ -67,7 +67,23 @@ var sprint = preload("res://scripts/player/sprint_policy.gd").new()
 var air_control = preload("res://scripts/player/air_control.gd").new()
 
 func get_walk_speed() -> float:
-	return float(SaveData.store.get_value("vr.move_speed")) * sprint.MOVEMENT_SCALE
+	return float(SaveData.store.get_value("vr.move_speed")) * sprint.MOVEMENT_SCALE * avatar_size
+
+var avatar_size := 1.0
+
+func set_avatar_size(value: float):
+	if not is_finite(value): return
+	var next = clampf(value, 0.25, 3.0)
+	var ratio = next / avatar_size
+	avatar_size = next
+	if is_instance_valid(origin_node): origin_node.scale *= ratio
+	if is_instance_valid(vrm_model): vrm_model.scale *= ratio
+	var collision = get_node_or_null("CollisionShape3D")
+	if collision != null and collision.shape is CapsuleShape3D:
+		collision.shape = collision.shape.duplicate()
+		collision.shape.radius *= ratio
+		collision.shape.height *= ratio
+		collision.position *= ratio
 
 func _sprint_speed(blocked: bool, teleport_mode: bool) -> float:
 	var active = left_controller.get_is_active()
@@ -208,7 +224,7 @@ func _physics_process(delta):
 		comfort_material.set_shader_parameter("blink", 1.0 if blink_remaining > 0 or clipped else 0.0)
 	var shape_node = get_node_or_null("CollisionShape3D")
 	if shape_node != null and shape_node.shape is CapsuleShape3D:
-		var height = 1.2 if SaveData.store.get_value("vr.seated_mode") else clampf(xr_camera.position.y + 0.15, 1.0, 2.4)
+		var height = (1.2 if SaveData.store.get_value("vr.seated_mode") else clampf(xr_camera.position.y + 0.15, 1.0, 2.4)) * avatar_size
 		safety.resize_capsule(self, shape_node, height)
 
 func _update_teleport(enabled: bool, stick: Vector2):
@@ -415,6 +431,7 @@ func load_vrm_model():
 		vrm_model.queue_free()
 
 	vrm_model = model
+	vrm_model.scale *= avatar_size
 	add_child(vrm_model)
 	preload("res://scripts/assets/first_person_avatar.gd").apply(vrm_model, xr_camera)
 	# Keep the headset's real tracked pose. Move the avatar shell behind it

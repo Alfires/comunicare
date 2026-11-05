@@ -179,6 +179,7 @@ func _wheel_layout():
 	layout.groups["__local_mirror_tools__"] = {"name": "Mirror", "entries": []}
 	for id in _mirror_actions(): layout.groups["__local_mirror_tools__"].entries.append({"type": "emote", "id": id, "name": _mirror_actions()[id].name})
 	layout.groups.root.entries.append({"type": "group", "id": "__local_mirror_tools__", "name": "Mirror"})
+	layout.groups.root.entries.append({"type": "emote", "id": "__avatar_size__", "name": "Avatar size"})
 	return layout
 
 func _mirror_action(id: String):
@@ -207,12 +208,14 @@ func emote_catalog() -> Dictionary:
 		var actions: Dictionary = configuration.emotes.duplicate()
 		actions["__cancel_emote__"] = {"name": "Return to movement"}
 		actions.merge(_mirror_actions())
+		actions["__avatar_size__"] = {"name": "Avatar size"}
 		return actions
 	var catalog: Dictionary = {}
 	for id in ["dance", "interact"]:
 		catalog["builtin:" + id] = {"name": id.capitalize(), "clip": Defaults.clip(id), "builtin": id,
 			"handle": {}, "index": 0, "share": true, "loop": id == "dance"}
 	catalog.merge(_mirror_actions())
+	catalog["__avatar_size__"] = {"name": "Avatar size"}
 	return catalog
 
 func request_emote(id: String) -> bool:
@@ -253,6 +256,8 @@ func _apply_resolved(item: Dictionary, kind: String, action_id: String) -> bool:
 	local_state.configuration_revision = configuration.revision if configuration != null else 0
 	local_state.configuration_owner = configuration.account_owner if configuration != null else ""
 	local_state.share = item.get("share", false)
+	for player in get_tree().get_nodes_in_group("player"):
+		if player.get("avatar_size") != null: local_state.avatar_scale = player.avatar_size
 	local_model_handle = {}
 	if configuration != null and not configuration.model.is_empty() and configuration.model.get("share", false):
 		local_model_handle = loader.get_asset_cache().revision_handle(configuration.model.hash)
@@ -297,6 +302,14 @@ func toggle_emote_menu():
 	wheel.open(menu_layout, emote_catalog())
 
 func _choose_emote(id: String):
+	if id == "__avatar_size__":
+		for player in get_tree().get_nodes_in_group("player"):
+			if player.has_method("set_avatar_size") and is_instance_valid(wheel):
+				wheel.open_value_popup("Avatar size", player.avatar_size, 0.25, 3.0, 0.05, "×", func(value):
+					if is_instance_valid(player): player.set_avatar_size(value)
+					active_role = ""
+					active_emote = "")
+				return
 	if _mirror_actions().has(id):
 		_mirror_action(id)
 		return
@@ -467,6 +480,7 @@ func _apply_remote(id: int):
 	var remote = coordinator.get_node_or_null(str(id))
 	if remote == null or not remote.get("avatar") is Node3D:
 		return
+	remote.scale = Vector3.ONE * float(value.get("avatar_scale", 1.0))
 	if not value.get("model_hash", "").is_empty() and remote.avatar.get_meta("asset_revision", "") != value.model_hash:
 		_prepare_remote_model(id, value)
 		return

@@ -26,11 +26,27 @@ var camera_rest_position := Vector3.ZERO
 var camera_previous_position := Vector3.ZERO
 var camera_current_position := Vector3.ZERO
 var camera_motion_ready := false
+var avatar_size := 1.0
 var sprint = preload("res://scripts/player/sprint_policy.gd").new()
 var air_control = preload("res://scripts/player/air_control.gd").new()
 
 func get_walk_speed() -> float:
-	return float(SaveData.store.get_value("vr.move_speed")) * sprint.MOVEMENT_SCALE
+	return float(SaveData.store.get_value("vr.move_speed")) * sprint.MOVEMENT_SCALE * avatar_size
+
+func set_avatar_size(value: float):
+	if not is_finite(value): return
+	var next = clampf(value, 0.25, 3.0)
+	var ratio = next / avatar_size
+	avatar_size = next
+	var collision = get_node_or_null("CollisionShape3D")
+	if collision != null and collision.shape is CapsuleShape3D:
+		collision.shape = collision.shape.duplicate()
+		collision.shape.radius *= ratio
+		collision.shape.height *= ratio
+		collision.position *= ratio
+	if is_instance_valid(avatar_model): avatar_model.scale *= ratio
+	camera_rest_position *= ratio
+	if is_inside_tree(): _reset_camera_motion()
 
 func _notification(what):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -190,21 +206,18 @@ func load_player_model():
 	if is_instance_valid(avatar_model):
 		avatar_model.queue_free()
 	avatar_model = vrm_model
+	vrm_model.scale *= avatar_size
 	skeleton = null
 	head_idx = -1
 	add_child(vrm_model)
 	preload("res://scripts/assets/first_person_avatar.gd").apply(vrm_model, camera)
 	await get_tree().process_frame
 	
-	skeleton = vrm_model.find_child("Skeleton3D")
-	if skeleton:
-		head_idx = skeleton.find_bone("Head")
-		# Calibrate once from REST geometry, never follow animated head poses.
-		var eye_bone_idx = _find_eye_bone()
-		if eye_bone_idx >= 0:
-			camera.position = vrm_model.transform * skeleton.transform * skeleton.get_bone_global_rest(eye_bone_idx).origin
-			camera.position += Vector3.FORWARD * first_person_forward_offset
-	camera_rest_position = camera.position
+	skeleton = preload("res://scripts/assets/humanoid_animation.gd").new()._skeleton(vrm_model)
+	if skeleton != null:
+		head_idx = skeleton.find_bone(str(vrm_model.get_meta("humanoid_bones", {}).get("head", "Head")))
+	camera_rest_position = preload("res://scripts/assets/avatar_dimensions.gd").eye_position(vrm_model)
+	camera_rest_position += Vector3.FORWARD * first_person_forward_offset * avatar_size
 	_reset_camera_motion()
 
 

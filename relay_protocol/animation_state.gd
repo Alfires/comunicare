@@ -16,6 +16,7 @@ static func number(value: Variant, minimum: float, maximum: float) -> bool:
 	return (value is int or value is float) and is_finite(float(value)) and value >= minimum and value <= maximum
 
 static func valid(value: Dictionary) -> bool:
+	if not number(value.get("avatar_scale", 1.0), 0.25, 3.0): return false
 	if value.get("version") != VERSION or not value.get("session_id") is String \
 		or value.session_id.length() > 128 or value.session_id.is_empty() \
 		or not integer(value.get("sequence"), 1, 2147483647) \

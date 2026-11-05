@@ -66,7 +66,7 @@ func handle(server: Node, sender: int, value: Dictionary):
 				if requests[key].owner == sender and requests[key].hash != value.get("model_hash" if requests[key].kind == "avatar" else "hash"):
 					requests.erase(key)
 			var state: Dictionary = {}
-			for field in ["version", "session_id", "sequence", "action", "kind", "role", "mask", "avatar_revision", "configuration_revision", "model_hash", "model_size", "offset", "speed", "loop", "duration", "builtin", "library", "hash", "size", "clip"]:
+			for field in ["version", "session_id", "sequence", "action", "kind", "role", "mask", "avatar_revision", "configuration_revision", "avatar_scale", "model_hash", "model_size", "offset", "speed", "loop", "duration", "builtin", "library", "hash", "size", "clip"]:
 				if value.has(field):
 					state[field] = value[field]
 			state.merge({"op": "state", "peer_id": sender, "generation": generations[sender], "started": now})

@@ -61,6 +61,7 @@ func pack(json: Dictionary, binary: PackedByteArray) -> PackedByteArray:
 	return bytes
 
 func run():
+	test_avatar_dimensions()
 	test_remote_motion()
 	await test_walk_to_standing()
 	var standing_source = Defaults.clip("neutral")
@@ -493,6 +494,31 @@ func test_ui(bytes: PackedByteArray):
 	menu.queue_free()
 	await process_frame
 
+func test_avatar_dimensions():
+	var dimensions = load("res://scripts/assets/avatar_dimensions.gd")
+	var model = Node3D.new()
+	model.scale = Vector3.ONE * 2
+	var container = Node3D.new()
+	container.position.y = 0.25
+	model.add_child(container)
+	var rig = Skeleton3D.new()
+	container.add_child(rig)
+	rig.add_bone("custom_head")
+	rig.set_bone_rest(0, Transform3D(Basis.IDENTITY, Vector3(0, 0.75, 0)))
+	model.set_meta("humanoid_bones", {"head": "custom_head"})
+	check(dimensions.eye_position(model).is_equal_approx(Vector3(0, 2, 0)), "camera uses mapped head through nested scaled skeleton transforms")
+	rig.set_bone_pose_position(0, Vector3(0, 10, 0))
+	check(dimensions.eye_position(model).is_equal_approx(Vector3(0, 2, 0)), "animated head pose never changes calibrated camera height")
+	container.free()
+	var mesh = MeshInstance3D.new()
+	var box = BoxMesh.new()
+	box.size = Vector3(1, 3, 1)
+	mesh.mesh = box
+	mesh.position.y = 1.5
+	model.add_child(mesh)
+	check(is_equal_approx(dimensions.eye_position(model).y, 5.52), "headless model camera falls back near transformed mesh top")
+	model.free()
+
 func test_remote_motion():
 	check(PlayerData.create(1, Vector3.ZERO, Vector3.ZERO).flag == 0,
 		"movement uses sequenced unreliable delivery rather than reordered unsequenced packets")
@@ -580,6 +606,13 @@ func test_controller(parsed: Dictionary):
 		"generation": "a".repeat(32), "sequence": 4, "action": "resolved", "kind": "locomotion", "role": "neutral", "mask": "full", "avatar_revision": "", "configuration_revision": 0,
 		"offset": 0.0, "speed": 1.0, "loop": true, "duration": 1.0, "builtin": "neutral", "library": AnimationState.LIBRARY, "hash": "", "started": controller.now()}
 	controller.receive(neutral)
+	var scaled_state = neutral.duplicate(true)
+	scaled_state.sequence += 1
+	scaled_state.avatar_scale = 2.0
+	controller.receive(scaled_state)
+	check(remote.scale == Vector3.ONE * 2, "remote avatar receives validated size from animation state")
+	scaled_state.avatar_scale = 100.0
+	check(not AnimationState.valid(scaled_state), "wire rejects out of bounds avatar sizes")
 	check(not controller.incoming.has(7), "newly joined standing player never requests nonexistent remote animation size")
 	check(controller.remote_animators.has(7), "standing remote player gets built-in neutral animation without downloadable payload")
 	var completed_standing = neutral.duplicate(true)

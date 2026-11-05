@@ -48,6 +48,19 @@ func desktop_checks():
 	var player = load("res://desktop_fixture.gd").new()
 	check(is_equal_approx(player.jump_force, 9.0), "desktop uses higher jump impulse")
 	check(is_equal_approx(player.get_walk_speed(), 4.0), "desktop walking speed doubles for existing default settings")
+	check(player.has_method("set_avatar_size"), "desktop exposes avatar size control")
+	if player.has_method("set_avatar_size"):
+		var collider = CollisionShape3D.new()
+		collider.name = "CollisionShape3D"
+		collider.shape = CapsuleShape3D.new()
+		player.add_child(collider)
+		var original_height: float = collider.shape.height
+		player.set_avatar_size(2.0)
+		check(is_equal_approx(player.get_walk_speed(), 8.0), "avatar size doubles movement speed")
+		check(player.scale == Vector3.ONE and player.avatar_size == 2, "avatar size keeps physics body transform unscaled")
+		check(is_equal_approx(collider.shape.height, original_height * 2), "avatar resizing scales actual capsule geometry")
+		player.set_avatar_size(1.0)
+		check(is_equal_approx(collider.shape.height, original_height), "size reset restores original capsule without compounding")
 	var camera = Camera3D.new()
 	camera.name = "Camera3D"
 	player.add_child(camera)

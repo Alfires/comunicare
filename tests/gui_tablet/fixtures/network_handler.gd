@@ -1,0 +1,6 @@
+extends Node
+
+var peer: RelayPeer
+var current_session_id := ""
+var session_busy := false
+var last_session_error := ""

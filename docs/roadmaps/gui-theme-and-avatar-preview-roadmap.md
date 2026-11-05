@@ -245,6 +245,12 @@ themes/icons/       # completed icon set
 
 ## Parts (each one commit, test-first where behavior changes)
 
+Acceptance tests for all twelve parts already exist as an opt-in RED suite:
+`python3 tests/gui_tablet/run.py [--part N]`. Every check is tagged `[P1]`…`[P12]`.
+[tests/gui_tablet/README.md](../../tests/gui_tablet/README.md) lists the
+proposed component interfaces the tests assume. A part is done when its checks
+pass without Godot errors and the affected existing suites stay green.
+
 ### Part 1 — Baseline screenshots and inventory
 - Extend `tests/real_ui` with a capture mode that saves PNGs of Home, Friends,
   World Explorer, Settings, Profile, Avatar Browser and the preview at
@@ -259,7 +265,7 @@ themes/icons/       # completed icon set
   defines all tokens.
 - `theme_builder.gd` fills `default.tres`; wire `gui/theme/custom`.
 - Remove the `menue.gd` stylebox hack (theme sets the TabContainer margins).
-- New suite `tests/gui_theme/run.py` following the existing runner pattern.
+- Acceptance: `tests/gui_tablet/run.py --part 2`.
 
 ### Part 3 — Color settings, live switching, UI scale
 - Register the four settings; Settings → Interface shows a **preset swatch
@@ -276,9 +282,9 @@ themes/icons/       # completed icon set
 
 ### Part 5 — Font and icon set
 - Bundle one OFL font; add license to `THIRD_PARTY_ASSETS.md`.
-- Complete the icon set: home, friends, world, settings, avatar, emote, close,
-  search, rotate, zoom, reset, folder, warning, check. Replace Unicode-glyph
-  buttons everywhere.
+- Complete the icon set: home, quick, friends, world, avatar, instance,
+  settings, emote, close, search, rotate, zoom, reset, folder, warning, check,
+  people, pin. Replace Unicode-glyph buttons everywhere.
 
 ### Part 6 — Tablet shell (shared layout)
 - New `scenes/GUI/tablet_shell.tscn` / `scripts/GUI/tablet_shell.gd`: status
@@ -388,7 +394,7 @@ Improvements:
 
 ## Verification and release gates
 
-- Automated per part: `tests/gui_theme` (new), plus the affected suites
+- Automated per part: `tests/gui_tablet --part N` (opt-in RED suite), plus the affected suites
   (`real_ui`, `profile`, `microphone_settings`, `friends`, `active_instance`,
   `avatar_discovery`, `avatar_loading`, `animation_sync`, `vr_controls`) and
   `python3 tools/check_repository.py` for docs.

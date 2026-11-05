@@ -10,7 +10,17 @@ and press your world-grab key (E by default); press again to release. In VR, squ
 grip close to the blue handle, move it, then release grip. Mirror interaction takes
 priority over ordinary pickups only at the handle. Session cleanup removes it.
 
-The camera is bounded to 768×1152 maximum and excludes the mirror surface and
+Use **Width X + / −** and **Height Y + / −** in the Mirror subgroup to resize each
+axis independently. Exact values are available in **Settings → Interface → Mirror
+width (X) / Mirror height (Y)**, saved for the next mirror. Width is bounded to
+0.4–3 m; height to 0.6–4.5 m. Uniform Larger/Smaller remains available.
+
+**Settings → Interface → Mirror reflection quality** selects **Low (384px)**,
+**Medium (768px, default)** or **High (1536px)** on the longest texture edge.
+Changes affect an open mirror immediately. Resolution preserves its X/Y aspect
+ratio instead of stretching the reflection; higher quality costs more GPU time.
+
+The camera is bounded to 1536 pixels per edge and excludes the mirror surface and
 first-person-only mesh derivative, preserving the original third-person avatar.
 Reflection camera/frustum and handle behavior have automated checks; renderer/XR
 stereo, arbitrary viewing angles and headset comfort still need visual validation.

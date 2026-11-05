@@ -5,6 +5,9 @@
 
 `place_in_front` places the local panel relative to the current camera, without
 network or physics state. `resize_by` clamps panel dimensions/render target size.
+`set_dimensions` clamps independent X/Y meters and updates geometry, handle and
+aspect-preserving target. `set_quality` selects bounded low/medium/high longest-edge
+resolution; registry signals apply live, teardown disconnects the setting listener.
 `try_grab` accepts a nearby handle anchor, captures relative transform and reserves
 one local grip; `release` clears only the matching grip without throw simulation.
 Private process reflects the source eye across the panel and updates off-axis

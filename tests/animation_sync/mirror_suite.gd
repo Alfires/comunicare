@@ -20,6 +20,19 @@ func run():
 	check(mirror.find_children("*", "CollisionObject3D", true, false).is_empty(), "mirror creates no physics bodies or areas")
 	mirror.resize_by(10)
 	check(mirror.dimensions.x <= 3.0, "mirror resizing stays bounded")
+	check(mirror.has_method("set_dimensions"), "mirror supports independent X and Y sizing")
+	if mirror.has_method("set_dimensions"):
+		mirror.set_dimensions(Vector2(2.5, 0.8))
+		check(mirror.dimensions.is_equal_approx(Vector2(2.5, 0.8)), "mirror may be wide and short rather than uniform scale")
+		check(absf(float(mirror.viewport.size.x) / mirror.viewport.size.y - 2.5 / 0.8) < 0.03, "reflection render target preserves resized aspect ratio")
+	check(mirror.has_method("set_quality"), "mirror exposes bounded render quality")
+	if mirror.has_method("set_quality"):
+		mirror.set_quality("low")
+		var low: Vector2i = mirror.viewport.size
+		mirror.set_quality("high")
+		check(mirror.viewport.size.x > low.x and mirror.viewport.size.y > low.y, "higher quality increases reflection resolution")
+		mirror.set_quality("invalid")
+		check(maxi(mirror.viewport.size.x, mirror.viewport.size.y) <= 1536, "invalid quality cannot create unbounded viewport")
 	var hand = Node3D.new()
 	root.add_child(hand)
 	hand.global_position = mirror.handle.global_position
@@ -32,7 +45,7 @@ func run():
 	var controller = load("res://scripts/assets/animation_controller.gd").new()
 	var layout = controller._wheel_layout()
 	check(layout.groups.root.entries.any(func(entry): return entry.type == "group" and entry.name == "Mirror"), "emote wheel includes Mirror subgroup")
-	check(layout.groups["__local_mirror_tools__"].entries.size() == 4, "Mirror subgroup offers toggle resize and reposition actions")
+	check(layout.groups["__local_mirror_tools__"].entries.size() == 8, "Mirror subgroup offers independent width and height controls")
 	controller.free()
 	mirror.free(); hand.free(); camera.free()
 	print("Mirror failures: ", failed)

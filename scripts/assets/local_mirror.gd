@@ -11,6 +11,8 @@ var held_grip := ""
 var anchor: Node3D
 var grab_offset := Transform3D.IDENTITY
 var notice: Label3D
+var quality := "medium"
+var settings: Node
 
 func _ready():
 	viewport = SubViewport.new()
@@ -53,7 +55,13 @@ func _ready():
 	notice.pixel_size = 0.002
 	notice.layers = MIRROR_LAYER
 	add_child(notice)
-	resize_by(1.0)
+	var save = get_node_or_null("/root/SaveData")
+	if save != null and save.get("store") != null:
+		settings = save.store
+		settings.setting_changed.connect(_setting_changed)
+		for id in ["interface.mirror_quality", "interface.mirror_width", "interface.mirror_height"]:
+			_setting_changed(id, settings.get_value(id))
+	set_dimensions(dimensions)
 
 func place_in_front(camera: Camera3D):
 	if not is_instance_valid(camera): return
@@ -62,12 +70,35 @@ func place_in_front(camera: Camera3D):
 	look_at(camera.global_position, Vector3.UP, true)
 
 func resize_by(factor: float):
-	dimensions = Vector2(clampf(dimensions.x * factor, 0.4, 3.0), clampf(dimensions.y * factor, 0.6, 4.5))
+	set_dimensions(dimensions * factor)
+
+func set_dimensions(size: Vector2):
+	if not size.is_finite(): return
+	dimensions = Vector2(clampf(size.x, 0.4, 3.0), clampf(size.y, 0.6, 4.5))
 	if panel == null: return
 	panel.mesh.size = dimensions
 	handle.position = Vector3(0, -dimensions.y * 0.5 - 0.1, 0.04)
 	notice.position = Vector3(0, dimensions.y * 0.5 + 0.08, 0.03)
-	viewport.size = Vector2i(768, clampi(int(768 * dimensions.y / dimensions.x), 256, 1152))
+	_update_resolution()
+
+func set_quality(value: String):
+	quality = value if value in ["low", "medium", "high"] else "medium"
+	_update_resolution()
+
+func _update_resolution():
+	if viewport == null: return
+	var pixels = {"low": 384, "medium": 768, "high": 1536}[quality]
+	var scale = float(pixels) / maxf(dimensions.x, dimensions.y)
+	viewport.size = Vector2i(maxi(1, roundi(dimensions.x * scale)), maxi(1, roundi(dimensions.y * scale)))
+
+func _setting_changed(id: String, value: Variant):
+	if value == null: return
+	if id == "interface.mirror_quality": set_quality(str(value))
+	elif id == "interface.mirror_width": set_dimensions(Vector2(float(value), dimensions.y))
+	elif id == "interface.mirror_height": set_dimensions(Vector2(dimensions.x, float(value)))
+
+func _exit_tree():
+	if is_instance_valid(settings) and settings.setting_changed.is_connected(_setting_changed): settings.setting_changed.disconnect(_setting_changed)
 
 func try_grab(node: Node3D, grip: String, distance: float) -> bool:
 	if not held_grip.is_empty() or not is_instance_valid(node) or node.global_position.distance_to(handle.global_position) > distance: return false

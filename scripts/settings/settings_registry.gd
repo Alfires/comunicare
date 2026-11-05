@@ -59,6 +59,9 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "interface.mirror_quality", "category": "Interface", "label": "Mirror reflection quality", "description": "Local mirror resolution: Low 384px, Medium 768px, High 1536px on the longest edge. Higher quality uses more GPU time.", "type": "enum", "options": {"low": "Low", "medium": "Medium", "high": "High"}, "default": "medium", "order": 5},
+		{"id": "interface.mirror_width", "category": "Interface", "label": "Mirror width (X)", "type": "number", "default": 1.0, "min": 0.4, "max": 3.0, "step": 0.1, "unit": "m", "order": 6},
+		{"id": "interface.mirror_height", "category": "Interface", "label": "Mirror height (Y)", "type": "number", "default": 1.5, "min": 0.6, "max": 4.5, "step": 0.1, "unit": "m", "order": 7},
 		{"id": "input.sprint", "category": "Controls", "label": "Sprint (hold)", "description": "Hold while moving to travel 1.5 times faster. VR: hold left joystick click.", "type": "key_binding", "allowed_modifier_keys": [KEY_CTRL], "default": KEY_CTRL, "order": 9},
 		{"id": "network.lan_discovery", "category": "Network", "label": "Discover relays on local network", "description": "Receive local multicast hints. Only explicitly certificate-trusted directories are queried; advertisements never log in or change your saved relay order. Changes take effect after restart.", "type": "boolean", "default": true, "order": 2},
 		{"id": "network.relay_address", "category": "Network", "label": "Legacy relay address (migration only)", "visible": false, "type": "text", "default": "127.0.0.1", "min_length": 1, "max_length": 253, "order": 0},

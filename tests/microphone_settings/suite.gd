@@ -41,6 +41,7 @@ func run():
 	await test_home_in_tab_panel()
 	test_current_settings_scene()
 	test_category_navigation()
+	test_mirror_settings()
 	test_sprint_binding()
 	test_legacy_persistence()
 	test_registry_store()
@@ -174,6 +175,22 @@ func test_category_navigation():
 	check(not scene.category_buttons.has("Video") and scene.category_pages.has(scene.selected_category)
 		and scene.category_pages[scene.selected_category].visible,
 		"removing selected category falls back to an available page")
+	scene.free()
+
+func test_mirror_settings():
+	var save = root.get_node("SaveData")
+	var scene = load("res://scenes/GUI/settings_menue.tscn").instantiate()
+	root.add_child(scene)
+	check(scene.controls.has("interface.mirror_quality") and scene.controls.has("interface.mirror_width") and scene.controls.has("interface.mirror_height"), "real settings UI exposes mirror quality and independent X/Y dimensions")
+	check(save.store.set_value("interface.mirror_quality", "high"), "high mirror quality is valid")
+	check(not save.store.set_value("interface.mirror_quality", "ultra-unbounded"), "unknown mirror quality rejected")
+	save.store.set_value("interface.mirror_width", 2.7)
+	save.store.set_value("interface.mirror_height", 0.8)
+	save.store.save_settings()
+	save.store.reset_value("interface.mirror_width")
+	save.store.load_settings()
+	check(is_equal_approx(save.store.get_value("interface.mirror_width"), 2.7) and is_equal_approx(save.store.get_value("interface.mirror_height"), 0.8), "mirror X/Y dimensions persist independently")
+	for id in ["interface.mirror_quality", "interface.mirror_width", "interface.mirror_height"]: save.store.reset_value(id)
 	scene.free()
 
 func test_sprint_binding():

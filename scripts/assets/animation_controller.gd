@@ -170,7 +170,7 @@ static func strafe_pose(clip: Dictionary) -> Dictionary:
 var local_mirror: Node3D
 
 func _mirror_actions() -> Dictionary:
-	return {"__mirror_toggle__": {"name": "Show / hide mirror"}, "__mirror_larger__": {"name": "Larger"}, "__mirror_smaller__": {"name": "Smaller"}, "__mirror_reset__": {"name": "Move in front"}}
+	return {"__mirror_toggle__": {"name": "Show / hide mirror"}, "__mirror_larger__": {"name": "Larger"}, "__mirror_smaller__": {"name": "Smaller"}, "__mirror_reset__": {"name": "Move in front"}, "__mirror_wider__": {"name": "Width X +"}, "__mirror_narrower__": {"name": "Width X −"}, "__mirror_taller__": {"name": "Height Y +"}, "__mirror_shorter__": {"name": "Height Y −"}}
 
 func _wheel_layout():
 	var layout = preload("res://scripts/assets/emote_layout.gd").new()
@@ -189,6 +189,13 @@ func _mirror_action(id: String):
 	elif id == "__mirror_toggle__": local_mirror.visible = not local_mirror.visible
 	if id == "__mirror_larger__": local_mirror.resize_by(1.2)
 	if id == "__mirror_smaller__": local_mirror.resize_by(1.0 / 1.2)
+	if id == "__mirror_wider__": local_mirror.set_dimensions(local_mirror.dimensions + Vector2(0.1, 0))
+	if id == "__mirror_narrower__": local_mirror.set_dimensions(local_mirror.dimensions - Vector2(0.1, 0))
+	if id == "__mirror_taller__": local_mirror.set_dimensions(local_mirror.dimensions + Vector2(0, 0.1))
+	if id == "__mirror_shorter__": local_mirror.set_dimensions(local_mirror.dimensions - Vector2(0, 0.1))
+	if id in ["__mirror_larger__", "__mirror_smaller__", "__mirror_wider__", "__mirror_narrower__", "__mirror_taller__", "__mirror_shorter__"]:
+		SaveData.store.set_value("interface.mirror_width", local_mirror.dimensions.x)
+		SaveData.store.set_value("interface.mirror_height", local_mirror.dimensions.y)
 	if id == "__mirror_reset__": local_mirror.place_in_front(get_viewport().get_camera_3d())
 
 func emote_catalog() -> Dictionary:

@@ -12,6 +12,9 @@ func run():
 	check(is_equal_approx(dial.value, 0.35), "circular step grid is anchored to configured minimum")
 	dial.set_fraction(0.2)
 	check(changes.size() == 1, "unchanged dial position does not repeat settings callbacks")
+	dial.configure("Uneven range", 0.0, 0.0, 1.0, 0.3, "", Callable())
+	dial.set_fraction(1.0)
+	check(is_equal_approx(dial.value, 1.0), "circular dial reaches exact maximum even when step does not divide range")
 	var adapter_path = "res://scripts/assets/avatar_rig_profile.gd"
 	check(ResourceLoader.exists(adapter_path), "generic avatar rig profile exists")
 	if ResourceLoader.exists(adapter_path):

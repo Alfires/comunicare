@@ -94,7 +94,7 @@ def main():
                 def log_message(self, *args): pass
             server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(QuietAvatarHandler, directory=str(project)))
             threading.Thread(target=server.serve_forever, daemon=True).start()
-            env["COMUNICARE_AVATAR_TEST_URL"] = f"http://127.0.0.1:{server.server_port}/browser-avatar.vrm"
+            env["COMUNICARE_AVATAR_TEST_URL"] = os.environ.get("COMUNICARE_LIVE_AVATAR_URL", f"http://127.0.0.1:{server.server_port}/browser-avatar.vrm")
             try:
                 result = subprocess.run([*command, *display, "--script", "res://avatar_suite.gd"], capture_output=True, text=True, timeout=90, env=env)
                 output = result.stdout + result.stderr

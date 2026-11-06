@@ -13,6 +13,13 @@ Test accounts/settings/cache are disposable; this does not reproduce a user's
 existing corrupt/read-only stores, external provider outages or every avatar.
 Local file import leaves redistribution unchecked and verifies private Apply
 replaces both real player models without granting sharing permission.
+Rendered avatar runs also compare preview pixels with the model shown and hidden
+so an allocated-but-invisible model cannot satisfy the preview assertion. The
+visible preview image is stored inside the disposable user-data directory.
+For an explicit live download reproduction, set `COMUNICARE_LIVE_AVATAR_URL` to
+the permitted model URL alongside `AVATAR_FIXTURE`; otherwise all downloads stay
+on loopback. A gateway may cache negotiated response representations, so record
+the exact URL and response type when investigating a live failure.
 
 Selection regression additionally clicks the actual result card without a fallback,
 waits for automatic independent preview, checks the detail fits at 640×480, then

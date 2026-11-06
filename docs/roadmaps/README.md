@@ -5,6 +5,7 @@ mix implemented milestones, superseded proposals and manual release gates.
 
 | Roadmap | Status / authority |
 | --- | --- |
+| [Friends usability, invites and descriptions](friends-usability-roadmap.md) | Current-system findings and planned social refresh: direct roster friendship and copy-code Quick Invite initial implementation; in-app invite protocol and signed friend-description revision sync remain planned |
 | [Godot world-authoring plugin](world-authoring-plugin-roadmap.md) | Proposed: shared authoring schema, production PC/VR playtesting, safe model import, pickup/interaction tools, structured script wiring and reversible optimization; not implemented |
 | [Collaborative in-game map editor](collaborative-map-editor-roadmap.md) | Proposed: local projects/recovery, desktop/VR editing, authenticated friend collaboration, ordered operations/leases, isolated playtest and safe export; not implemented |
 | [Roguelike demo world](roguelike-demo-world-roadmap.md) | Expanded proposal: connected field/ruins/crypt map, working enemy patrols/combat, four leveling stations, local progression, detailed non-low-poly art, fitting animations and spawn-side creator Credits; safe API verification explicit, co-op deferred |

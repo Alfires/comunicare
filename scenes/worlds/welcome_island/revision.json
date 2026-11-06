@@ -95,7 +95,7 @@
     "scenes/worlds/welcome_island/layout.tscn": "5e41b2fec15f9cff0a95fe60d9c2651f13c4a997c6f0720d4ab77429e5c2a838",
     "scenes/worlds/welcome_island/pond_water.gdshader": "51a277f0c93e982c92a1808b3cc790920d4bfa0e5c3aba692aaee070ce8a00f3",
     "scripts/worlds/welcome_island/home_contract.gd": "7d27de848676fb27c9a3487020dae418bcbb82035908e2150fc2571ab13631a6",
-    "scripts/worlds/welcome_island/house_spaces.gd": "4f383463d99af5857d13532149ccf76bfa6b99bcbd3dbec483c23cfc178bfbe1",
+    "scripts/worlds/welcome_island/house_spaces.gd": "aea9c186570d1e2b6015199f6204054a0f6f86f11d44e3f44a4726e4bcbc02e8",
     "scripts/worlds/welcome_island/kitchen.gd": "f0f28496f0b23c26fdaa768bb6703a82461648354fe9a9b298609cfe129330e3",
     "scripts/worlds/welcome_island/landscape.gd": "e42d45d6e2c892a4aa9960cd96902b7409a8f00ff4219bc69567b28099e858fb",
     "scripts/worlds/welcome_island/layout.gd": "855e7760b161bd6367caf74a9130c6a451f2120fac4c4ffba4dff11f50e81010",

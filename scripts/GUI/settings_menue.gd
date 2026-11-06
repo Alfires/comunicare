@@ -1,7 +1,7 @@
 extends Control
 
 @onready var rows: VBoxContainer = $Layout/Content/ScrollContainer/Rows
-@onready var categories: VBoxContainer = $Layout/Content/CategoryScroll/Categories
+@onready var categories: VBoxContainer = $Layout/Content/Side/CategoryScroll/Categories
 @onready var status: Label = $Layout/Status
 var controls: Dictionary = {}
 var errors: Dictionary = {}
@@ -9,8 +9,15 @@ var binding_id := ""
 var selected_category := ""
 var category_pages: Dictionary = {}
 var category_buttons: Dictionary = {}
+var resets: Dictionary = {}
+var searching := false
+@onready var search: LineEdit = %Search
+@onready var no_results: Label = %NoResults
+const RESET_ICON = preload("res://themes/icons/reset.svg")
 
 func _ready():
+	search.set_meta("blocks_global_shortcuts", true)
+	search.text_changed.connect(_search_changed)
 	SaveData.registry.definitions_changed.connect(_render)
 	SaveData.store.setting_changed.connect(_update_value)
 	SaveData.store.persistence_error.connect(_show_error)
@@ -25,10 +32,13 @@ func _render():
 		categories.remove_child(child)
 		child.queue_free()
 	for child in rows.get_children():
+		if child == no_results:
+			continue
 		rows.remove_child(child)
 		child.queue_free()
 	controls.clear()
 	errors.clear()
+	resets.clear()
 	category_pages.clear()
 	category_buttons.clear()
 	var group = ButtonGroup.new()
@@ -40,20 +50,14 @@ func _render():
 		if category != definition.category:
 			category = definition.category
 			page = VBoxContainer.new()
-			page.add_theme_constant_override("separation", 16)
+			page.theme_type_variation = "SectionVBox"
 			rows.add_child(page)
 			category_pages[category] = page
-			var tab = Button.new()
-			tab.text = category
-			tab.custom_minimum_size = Vector2(140, 44)
-			tab.toggle_mode = true
-			tab.button_group = group
-			tab.pressed.connect(select_category.bind(category))
-			categories.add_child(tab)
-			category_buttons[category] = tab
+			categories.add_child(_category_button(category, group))
 			var header = HBoxContainer.new()
 			var title = Label.new()
 			title.text = category
+			title.theme_type_variation = "HeaderLabel"
 			title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			header.add_child(title)
 			var reset = Button.new()
@@ -61,32 +65,7 @@ func _render():
 			reset.pressed.connect(_reset_category.bind(category))
 			header.add_child(reset)
 			page.add_child(header)
-		var row = VBoxContainer.new()
-		row.set_meta("setting_id", definition.id)
-		var label = Label.new()
-		label.text = definition.label
-		row.add_child(label)
-		if not definition.get("description", "").is_empty():
-			var description = Label.new()
-			description.text = definition.description
-			description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			row.add_child(description)
-		var line = HBoxContainer.new()
-		var control = _create_control(definition)
-		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		control.custom_minimum_size.y = 40
-		line.add_child(control)
-		controls[definition.id] = control
-		var reset = Button.new()
-		reset.text = "Reset"
-		reset.pressed.connect(_reset_value.bind(definition.id))
-		line.add_child(reset)
-		row.add_child(line)
-		var error = Label.new()
-		error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		row.add_child(error)
-		errors[definition.id] = error
-		page.add_child(row)
+		page.add_child(_setting_row(definition))
 		_update_value(definition.id, SaveData.store.get_value(definition.id))
 	if category_pages.has("Assets") and DataLoader.has_method("get_asset_cache"):
 		_add_cache_actions(category_pages.Assets)
@@ -125,17 +104,101 @@ func _render():
 	credits.source_requested.connect(func(url): OS.shell_open(url))
 	rows.add_child(credits)
 	category_pages["Credits"] = credits
-	var credits_tab = Button.new()
-	credits_tab.text = "Credits"
-	credits_tab.custom_minimum_size = Vector2(140, 44)
-	credits_tab.toggle_mode = true
-	credits_tab.button_group = group
-	credits_tab.pressed.connect(select_category.bind("Credits"))
-	categories.add_child(credits_tab)
-	category_buttons["Credits"] = credits_tab
+	categories.add_child(_category_button("Credits", group))
 	if not category_pages.has(selected_category):
 		selected_category = "" if category_pages.is_empty() else str(category_pages.keys()[0])
 	select_category(selected_category)
+
+func _category_button(category: String, group: ButtonGroup) -> Button:
+	var tab = Button.new()
+	tab.text = category
+	tab.theme_type_variation = "NavButton"
+	tab.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	tab.custom_minimum_size = Vector2(150, 48)
+	tab.toggle_mode = true
+	tab.button_group = group
+	tab.pressed.connect(select_category.bind(category))
+	category_buttons[category] = tab
+	return tab
+
+## Row: Title (+ Caption) on the left, Value on the right, Reset only when changed, Error only when set.
+func _setting_row(definition: Dictionary) -> Control:
+	var row = VBoxContainer.new()
+	row.theme_type_variation = "FlushVBox"
+	row.set_meta("setting_id", definition.id)
+	row.set_meta("search_text", (str(definition.label) + " " + str(definition.get("description", ""))).to_lower())
+	var line = HBoxContainer.new()
+	line.theme_type_variation = "WideHBox"
+	row.add_child(line)
+	var info = VBoxContainer.new()
+	info.theme_type_variation = "FlushVBox"
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_stretch_ratio = 0.82
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	line.add_child(info)
+	var title = Label.new()
+	title.name = "Title"
+	title.text = definition.label
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.add_child(title)
+	if not str(definition.get("description", "")).is_empty():
+		var caption = Label.new()
+		caption.name = "Caption"
+		caption.text = definition.description
+		caption.theme_type_variation = "CaptionLabel"
+		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.add_child(caption)
+	var control = _create_control(definition)
+	control.name = "Value"
+	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	control.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	control.custom_minimum_size.y = maxf(control.custom_minimum_size.y, 40)
+	line.add_child(control)
+	controls[definition.id] = control
+	var reset = Button.new()
+	reset.name = "Reset"
+	reset.theme_type_variation = "IconButton"
+	reset.icon = RESET_ICON
+	reset.tooltip_text = "Reset to default"
+	reset.custom_minimum_size = Vector2(40, 40)
+	reset.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	reset.pressed.connect(_reset_value.bind(definition.id))
+	line.add_child(reset)
+	resets[definition.id] = reset
+	var error = Label.new()
+	error.name = "Error"
+	error.theme_type_variation = "ErrorLabel"
+	error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	error.visible = false
+	row.add_child(error)
+	errors[definition.id] = error
+	return row
+
+func _set_error(id: String, message: String):
+	if errors.has(id):
+		errors[id].text = message
+		errors[id].visible = not message.is_empty()
+
+func _search_changed(query: String):
+	var text = query.strip_edges().to_lower()
+	searching = not text.is_empty()
+	var any := false
+	for name in category_pages:
+		var page: Control = category_pages[name]
+		var page_match := false
+		for child in page.get_children():
+			if child.has_meta("setting_id"):
+				var hit = not searching or str(child.get_meta("search_text")).contains(text)
+				child.visible = hit
+				page_match = page_match or hit
+			elif child.get_index() > 0:
+				child.visible = not searching
+		page.visible = (page_match and searching) or (not searching and name == selected_category)
+		any = any or (page_match and searching)
+	no_results.text = "No settings match \"%s\"." % query.strip_edges()
+	no_results.visible = searching and not any
+	for name in category_buttons:
+		category_buttons[name].set_pressed_no_signal(not searching and name == selected_category)
 
 func _add_cache_actions(page: VBoxContainer):
 	var cache = DataLoader.get_asset_cache()
@@ -209,6 +272,9 @@ func select_category(category: String):
 		return
 	_cancel_binding()
 	selected_category = category
+	if searching:
+		search.text = ""
+		_search_changed("")
 	for name in category_pages:
 		category_pages[name].visible = name == category
 		category_buttons[name].set_pressed_no_signal(name == category)
@@ -273,10 +339,10 @@ func _create_control(definition: Dictionary) -> Control:
 
 func _commit(value: Variant, id: String):
 	if not SaveData.store.set_value(id, value):
-		errors[id].text = "Invalid value; change was not applied."
+		_set_error(id, "Invalid value; change was not applied.")
 		_show_error(errors[id].text)
 	else:
-		errors[id].text = ""
+		_set_error(id, "")
 
 func _reset_value(id: String):
 	SaveData.store.reset_value(id)
@@ -310,8 +376,9 @@ func _update_value(id: String, value: Variant):
 				control.select(index)
 	elif control is Button:
 		control.text = OS.get_keycode_string(value)
-	if errors.has(id):
-		errors[id].text = ""
+	_set_error(id, "")
+	if resets.has(id):
+		resets[id].visible = value != SaveData.registry.get_definition(id).get("default")
 
 func _begin_binding(id: String):
 	_cancel_binding()
@@ -331,11 +398,11 @@ func _input(event: InputEvent):
 	candidate.physical_keycode = code
 	for action in InputMap.get_actions():
 		if action != binding_id.trim_prefix("input.") and InputMap.event_is_action(candidate, action):
-			errors[binding_id].text = "Key already used by " + action + ". Choose another key or Escape."
+			_set_error(binding_id, "Key already used by " + action + ". Choose another key or Escape.")
 			return
 	var definition = SaveData.registry.get_definition(binding_id)
 	if code in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META] and code not in definition.get("allowed_modifier_keys", []):
-		errors[binding_id].text = "Choose a non-modifier key."
+		_set_error(binding_id, "Choose a non-modifier key.")
 		return
 	_commit(code, binding_id)
 	_cancel_binding()

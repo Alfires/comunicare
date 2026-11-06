@@ -26,14 +26,25 @@ autowrap_mode = 3
 [node name="Content" type="HBoxContainer" parent="Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 20
+theme_type_variation = &"WideHBox"
 
-[node name="CategoryScroll" type="ScrollContainer" parent="Layout/Content"]
-custom_minimum_size = Vector2(150, 0)
+[node name="Side" type="VBoxContainer" parent="Layout/Content"]
+custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
+
+[node name="Search" type="LineEdit" parent="Layout/Content/Side"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+placeholder_text = "Search settings"
+clear_button_enabled = true
+
+[node name="CategoryScroll" type="ScrollContainer" parent="Layout/Content/Side"]
+layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Categories" type="VBoxContainer" parent="Layout/Content/CategoryScroll"]
+[node name="Categories" type="VBoxContainer" parent="Layout/Content/Side/CategoryScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -45,3 +56,10 @@ horizontal_scroll_mode = 0
 [node name="Rows" type="VBoxContainer" parent="Layout/Content/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="NoResults" type="Label" parent="Layout/Content/ScrollContainer/Rows"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3

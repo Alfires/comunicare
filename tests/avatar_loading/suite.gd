@@ -3,6 +3,10 @@ extends SceneTree
 var passed := 0
 var failed := 0
 var completed: Array = []
+var world_completed: Array = []
+
+func prepare_test_world(loader):
+	world_completed.append(await loader.prepare_world_async("isolated-test-package"))
 
 func _initialize():
 	call_deferred("run")
@@ -24,6 +28,13 @@ func run():
 	var bytes = JSON.stringify(json).to_utf8_buffer()
 	var loader = load("res://slow_loader.gd").new()
 	root.add_child(loader)
+	prepare_test_world(loader)
+	var world_frames := 0
+	while world_completed.is_empty():
+		await create_timer(0.005).timeout
+		world_frames += 1
+	check(world_frames >= 10 and world_completed[0].worker, "world preparation keeps frame heartbeat responsive on worker thread")
+	check(not loader.world_prepare_busy and loader.world_thread == null, "world preparation joins completed worker and releases queue")
 	load_model(loader, bytes)
 	load_model(loader, bytes)
 	var frames := 0

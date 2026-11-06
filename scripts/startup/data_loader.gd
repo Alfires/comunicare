@@ -15,6 +15,10 @@ var animation_import_error := ""
 var avatar_configuration: Node
 var world_runtime: Node
 var world_pickups: Node
+var world_thread: Thread
+var world_prepare_busy := false
+var world_prepare_waiters := 0
+signal world_loading_progress(stage: String, fraction: float)
 
 func get_world_pickups() -> Node:
 	if not is_instance_valid(world_pickups):
@@ -249,6 +253,9 @@ func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D:
 	return model
 
 func _exit_tree():
+	if world_thread != null and world_thread.is_started():
+		world_thread.wait_to_finish()
+		world_thread = null
 	if animation_thread != null and animation_thread.is_started():
 		animation_thread.wait_to_finish()
 		animation_thread = null
@@ -286,7 +293,7 @@ func prepare_world_from_url(url: String, expected_revision: String = "") -> Dict
 		return {}
 	# Never activate old extracted resource graphs or .ready markers. Rebuild
 	# application-owned nodes from the exact verified immutable archive instead.
-	var staged = prepare_world(handle.path, "")
+	var staged = await prepare_world_async(handle.path)
 	if not staged.is_empty():
 		staged["asset_handle"] = handle
 		staged["revision"] = handle.hash
@@ -309,13 +316,13 @@ class TemporaryWorld extends RefCounted:
 					DirAccess.remove_absolute(path)
 
 func _validate_world_archive(path: String) -> bool:
-	var result = preload("res://scripts/worlds/world_package_reader.gd").new().inspect_package(path)
+	var result = await _world_job(path, false)
 	if not result.ok: get_asset_cache().last_error = result.error
 	return result.ok
 
 func load_world(cne_word_path: String) -> bool:
 	var extract_path = "user://worlds/" + str(Time.get_ticks_usec()) + "/content/"
-	var staged = prepare_world(cne_word_path, extract_path)
+	var staged = await prepare_world_async(cne_word_path)
 	return await activate_world(staged) if not staged.is_empty() else false
 
 func prepare_world(archive_path: String, _extract_path: String) -> Dictionary:
@@ -324,6 +331,37 @@ func prepare_world(archive_path: String, _extract_path: String) -> Dictionary:
 		get_asset_cache().last_error = result.error
 		return {}
 	return result
+
+func prepare_world_async(path: String) -> Dictionary:
+	world_loading_progress.emit("Preparing validated world", 0.0)
+	var result = await _world_job(path, true)
+	if not result.get("ok", false):
+		get_asset_cache().last_error = result.get("error", "World preparation failed")
+		return {}
+	world_loading_progress.emit("World prepared", 0.8)
+	return result
+
+func _world_job(path: String, build: bool) -> Dictionary:
+	if not is_inside_tree() or world_prepare_waiters >= 4: return {"ok": false, "error": "World preparation queue full"}
+	world_prepare_waiters += 1
+	while world_prepare_busy: await get_tree().process_frame
+	world_prepare_waiters -= 1
+	world_prepare_busy = true
+	world_thread = Thread.new()
+	if world_thread.start(_build_world_job.bind(path, build)) != OK:
+		world_thread = null
+		world_prepare_busy = false
+		return {"ok": false, "error": "Cannot start world preparation worker"}
+	while world_thread.is_alive(): await get_tree().process_frame
+	var result: Dictionary = world_thread.wait_to_finish()
+	world_thread = null
+	world_prepare_busy = false
+	return result
+
+func _build_world_job(path: String, build: bool) -> Dictionary:
+	# All nodes remain detached; no SceneTree or global extension registration.
+	if build: return preload("res://scripts/worlds/world_builder.gd").new().build_package(path)
+	return preload("res://scripts/worlds/world_package_reader.gd").new().inspect_package(path)
 
 func _prepare_extracted_world(_extract_path: String) -> Dictionary:
 	# Compatibility entry point deliberately fails closed: unpacked legacy
@@ -337,6 +375,26 @@ func activate_world(staged: Dictionary) -> bool:
 	if get_tree().change_scene_to_packed(staged.scene) != OK:
 		return false
 	await get_tree().scene_changed
+	var activating_scene = get_tree().current_scene
+	# Collision is installed with the scene before visual reveal. Bound first
+	# visibility/upload work across frames rather than revealing every mesh at once.
+	var reveal: Array = []
+	if staged.get("document") is Dictionary:
+		for mesh in get_tree().current_scene.find_children("*", "MeshInstance3D", true, false):
+			if mesh.visible:
+				mesh.hide()
+				reveal.append(mesh)
+		var spawn_position = staged.get("spawn_point", [0, 0, 0])
+		var center = Vector3(spawn_position[0], spawn_position[1], spawn_position[2])
+		reveal.sort_custom(func(a, b): return a.global_position.distance_squared_to(center) < b.global_position.distance_squared_to(center))
+		for player in get_tree().get_nodes_in_group("player"):
+			if player.has_method("set_player_pos"): player.set_player_pos(center)
+		for index in reveal.size():
+			if is_instance_valid(reveal[index]): reveal[index].show()
+			if index % 8 == 7:
+				world_loading_progress.emit("Revealing nearby world", 0.8 + 0.2 * float(index + 1) / reveal.size())
+				await get_tree().process_frame
+				if not is_instance_valid(activating_scene) or get_tree().current_scene != activating_scene: return false
 	active_world = staged.duplicate()
 	if staged.get("document") is Dictionary:
 		world_runtime = preload("res://scripts/worlds/world_runtime.gd").new()
@@ -358,6 +416,7 @@ func activate_world(staged: Dictionary) -> bool:
 	for player in get_tree().get_nodes_in_group("player"):
 		if player is Node3D:
 			preload("res://scripts/worlds/welcome_island/home_contract.gd").reset_player(player, Vector3(spawn[0], spawn[1], spawn[2]))
+	world_loading_progress.emit("Ready", 1.0)
 	return true
 
 func stop_world_scripts():

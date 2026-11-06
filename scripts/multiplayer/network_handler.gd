@@ -574,7 +574,7 @@ func load_local_map(path: String) -> bool:
 		last_session_error = "Another world transition is in progress"
 		return false
 	session_busy = true
-	var staged = DataLoader.prepare_world(path, "")
+	var staged = await DataLoader.prepare_world_async(path)
 	if staged.is_empty():
 		return _transition_failed(DataLoader.get_asset_cache().last_error)
 	# Validate before leaving multiplayer. Local filesystem paths never become

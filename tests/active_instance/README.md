@@ -1,5 +1,26 @@
 # Active Instance acceptance tests
 
+## Voice routing fixture follow-up — 2026-11-06
+
+The prior exactly-once single unsequenced packet assertion failed intermittently.
+A recording relay proved it received the voice packet and forwarded a copy to the
+admin while the member sometimes received none. The production transport remains
+unreliable/unsequenced; no production relay, wire ID or voice reliability policy
+was changed to make the test pass.
+
+The routing fixture now disables only adaptive throttle **deceleration** on its
+ephemeral loopback relay peers (`throttle_configure(5000, 2, 0)`). RSA/setup jitter
+is not the subject of this instance-routing test. A bounded 20-frame stream must
+reach the intended member with correctly decoded sample lengths; the relay must
+observe the authenticated sender and the outsider must receive zero raw/decoded
+voice packets. Exclusive eviction tests remain unchanged. This does not validate
+congestion, WAN loss recovery or audible multi-client playback.
+
+Three consecutive runs: **138 passed, 0 failed**, no skipped groups, all 20 frames
+received with relay throttle 32. Tests still fail on absent delivery or outsider
+leakage. Registry/store fixtures were added for the production avatar preview's
+new reduce-motion dependency, without reading/writing real account settings.
+
 These tests specify the behavior in [`docs/roadmaps/active-instance-roadmap.md`](../../docs/roadmaps/active-instance-roadmap.md). The suite was written red before implementation and now checks the production implementation. Production files are copied unchanged into a disposable Godot project.
 
 ## Run

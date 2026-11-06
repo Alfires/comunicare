@@ -185,7 +185,18 @@ func test_coordinator_and_connected_menu():
 	check("Latest title" in texts(scene), "open menu reflects new instance metadata without reopening")
 	var bob_row = row(scene, bob)
 	check(bob_row != null, "live authoritative roster creates Bob's row")
+	check(scene.has_method("focus_invite"), "Quick Invite has a working Active Instance destination")
+	if scene.has_method("focus_invite"):
+		scene.focus_invite()
+		check(scene.session_id.has_focus() and not scene.session_id.text.is_empty(), "Invite focuses selectable current instance code")
 	if bob_row != null:
+		var add_friend = button(bob_row, "Add friend")
+		check(add_friend != null and not add_friend.disabled, "participant row offers direct Add friend action")
+		if add_friend != null:
+			add_friend.pressed.emit()
+			check(root.get_node("SaveData").friends.relationship(bob).get("status") == "outgoing", "row Add friend creates client-owned consent request")
+			check(button(row(scene, bob), "Request sent") != null, "roster reflects pending friend request")
+			bob_row = row(scene, bob)
 		var hide_avatar = button(bob_row, "Hide avatar")
 		check(hide_avatar != null, "remote roster row offers client-only Hide avatar")
 		if hide_avatar != null:
@@ -455,7 +466,7 @@ func denied(client, payload: Dictionary) -> bool:
 
 func test_wire_management():
 	var files_before = list_files("res://")
-	var relay = load("res://scripts/multiplayer/relay.gd").new()
+	var relay = load("res://fixtures/recording_relay.gd").new()
 	relay.connection = ENetConnection.new()
 	if relay.connection.create_host_bound("127.0.0.1", 0) != OK:
 		push_error("Could not bind loopback test relay")
@@ -524,10 +535,16 @@ func exercise_management(relay: Node, clients: Array, a: String, b: String):
 	target.voice_data.connect(func(value): target_voices.append(value.audio))
 	outsider.voice_data.connect(func(value): outside_voices.append(value.audio))
 	var samples = PackedFloat32Array([0.0, 0.125, -0.125, 0.25, -0.25])
-	VoiceData.create(255, samples).sent(target.peer)
-	await pump(relay, clients)
-	check(voices.size() == 1 and voices[0].size() == samples.size() and outside_voices.is_empty(),
-		"voice packets reach same-instance client but not another instance")
+	# Model a short real voice stream, not exactly-once delivery of one
+	# unsequenced datagram. ENet's unreliable packet throttle can drop a single
+	# forwarded recipient copy even when another recipient gets the same packet.
+	for frame in 20:
+		VoiceData.create(255, samples).sent(target.peer)
+		await pump(relay, clients, 5)
+	check(relay.voice_received > 0 and relay.voice_bytes == 12 and relay.voice_sender == peer_id(relay, target),
+		"relay observes bounded stream from authenticated sender")
+	check(not voices.is_empty() and voices.all(func(audio): return audio.size() == samples.size()) and outside_voices.is_empty() and outsider.raw_voice_packets == 0,
+		"voice packets reach same-instance client but not another instance (received=%s, outside=%s, relay_throttle=%s)" % [voices.size(), outside_voices.size(), relay.peers[peer_id(relay, member)].get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE)])
 	var target_info = {"fingerprint": fingerprint(target), "peer_id": peer_id(relay, target)}
 	var state = admin.latest("INSTANCE_SNAPSHOT")
 	var members: Array = state.get("members", [])

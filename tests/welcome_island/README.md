@@ -1,5 +1,16 @@
 # Welcome island startup contracts
 
+### Voice routing test resolution — 2026-11-06
+
+The intermittent routing assertion is now isolated from ENet adaptive throttle
+in the test-only relay fixture; production transport is unchanged. A recording
+relay confirmed receipt/partial forwarding before this change. The fixture runs
+a bounded 20-frame unreliable stream with throttle deceleration disabled and
+requires intended delivery, valid decoded sizes, authenticated relay sender and
+zero outsider raw/decoded packets. Three consecutive Active Instance runs passed
+138 assertions. See [routing fixture scope](../active_instance/README.md); this
+closes the flaky routing-test gate, not production WAN loss/audible listening.
+
 ### Latest matrix/voice blocker — 2026-11-06
 
 Matrix artifacts `/tmp/opencode/welcome-release-results-_gxysg0h` recorded 23/24

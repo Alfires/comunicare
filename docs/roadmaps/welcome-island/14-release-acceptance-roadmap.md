@@ -44,3 +44,9 @@ Post-restart follow-up (2026-11-06): isolated Active Instance passed 132 checks.
 The earlier matrix still failed that group; the cause is not established and no
 voice fix is claimed. Matrix logs now use unique directories with an incremental
 machine-readable summary. Final-art, human XR and performance gates remain open.
+
+Routing follow-up: the test-only recording relay isolates membership checks from
+adaptive unreliable-packet throttle deceleration; bounded stream/outsider-isolation
+checks passed three consecutive 138-assertion runs. Production voice semantics
+are unchanged. Historical failures remain recorded; they no longer mean the
+deterministic routing fixture is blocked. WAN loss/listening and human XR gates remain.

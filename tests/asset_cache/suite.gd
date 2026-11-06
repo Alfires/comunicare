@@ -111,10 +111,11 @@ func run():
 		file.store_string(intact + "junk")
 		file.close()
 		recover._check_index_health()
+		var probe = JSON.new()
 		for i in 100:
 			await create_timer(0.01).timeout
-			if JSON.parse_string(FileAccess.get_file_as_string("res://recover/index.json")) is Dictionary: break
-		check(JSON.parse_string(FileAccess.get_file_as_string("res://recover/index.json")) is Dictionary, "background worker repairs later corruption without user action")
+			if probe.parse(FileAccess.get_file_as_string("res://recover/index.json")) == OK: break
+		check(probe.parse(FileAccess.get_file_as_string("res://recover/index.json")) == OK and probe.data is Dictionary, "background worker repairs later corruption without user action")
 	recover.free()
 	for malformed in ['{"schema":2,"sources":{}}xx', '{"schema":1,"sources":{"bad":{}}}xx', '{"schema":1,"sources":']:
 		var unsafe_cache = Cache.new()

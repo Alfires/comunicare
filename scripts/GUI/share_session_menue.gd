@@ -78,6 +78,7 @@ func _ready():
 	if SaveData.get("profile") != null:
 		SaveData.profile.remote_profiles_changed.connect(_render)
 		SaveData.profile.profile_changed.connect(_profile_changed)
+	if SaveData.get("friends") != null: SaveData.friends.changed.connect(_render)
 	visibility_changed.connect(_visibility_changed)
 	_render()
 	if is_visible_in_tree():
@@ -102,6 +103,7 @@ func _visibility_changed():
 		profile_panel.cancel_edit()
 
 func _exit_tree():
+	if SaveData.get("friends") != null and SaveData.friends.changed.is_connected(_render): SaveData.friends.changed.disconnect(_render)
 	if request_peer != null and request_peer.join_requests_changed.is_connected(_render_requests):
 		request_peer.join_requests_changed.disconnect(_render_requests)
 	NetworkHandler.active_instance_changed.disconnect(_render)
@@ -177,7 +179,11 @@ func _render():
 		var profile: Dictionary = SaveData.profile.get_profile(owner) if SaveData.get("profile") != null else {}
 		var title = str(profile.get("profile.username", "Profile loading — " + owner.left(8)))
 		var avatar_hidden = NetworkHandler.get_avatar_visibility().is_hidden(owner)
-		var signature = [title, member.role, member.peer_id, admin, busy, avatar_hidden]
+		var social = SaveData.get("friends")
+		var relation: Dictionary = social.relationship(owner) if social != null else {}
+		var friend_state = str(relation.get("status", "contact"))
+		var blocked_contact = social.contacts().get(owner, {}).get("blocked", false) if social != null else false
+		var signature = [title, member.role, member.peer_id, admin, busy, avatar_hidden, friend_state, blocked_contact, not profile.get("public_key", "").is_empty()]
 		if rows.has(owner) and rows[owner].get_meta("signature") == signature:
 			continue
 		if rows.has(owner):
@@ -197,6 +203,11 @@ func _render():
 		badge.text = ("You · " if owner == local_owner else "") + ("Admin" if member.role == "admin" else "Member")
 		hb.add_child(badge)
 		if owner != local_owner:
+			if social != null:
+				var friend_label = {"friends": "Friends", "outgoing": "Request sent", "incoming": "Accept friend", "accepting": "Accepting…"}.get(friend_state, "Add friend")
+				var friend_button = _button(hb, "Blocked" if blocked_contact else friend_label, _friend_action.bind(session, owner))
+				friend_button.disabled = NetworkHandler.session_busy or blocked_contact or friend_state in ["friends", "outgoing", "accepting"] or profile.get("public_key", "").is_empty()
+				friend_button.tooltip_text = "Send a friend request to this verified player. They must accept. Offline delivery waits on your device, not a server mailbox."
 			var avatar_button = _button(hb, "Show avatar" if avatar_hidden else "Hide avatar",
 				NetworkHandler.set_player_avatar_hidden.bind(session, owner, not avatar_hidden))
 			avatar_button.name = "AvatarVisibility"
@@ -212,6 +223,25 @@ func _render():
 		if not retained.has(owner):
 			_remove_row(owner)
 	count.text = "Players (%d)" % members.size()
+
+func _friend_action(expected_session: String, owner: String):
+	if NetworkHandler.session_busy or expected_session != NetworkHandler.current_session_id: return
+	if not _members().any(func(member): return member.fingerprint == owner): return
+	var social = SaveData.get("friends")
+	if social == null: return
+	var profile: Dictionary = SaveData.profile.get_profile(owner)
+	if social.relationship(owner).get("status") == "incoming":
+		if not social.act(owner, "accept"): status.text = social.last_error
+	elif not social.add_contact(str(profile.get("public_key", "")), "", profile) or not social.send_request(owner): status.text = social.last_error
+
+func focus_invite():
+	_render()
+	if NetworkHandler.current_session_id.is_empty() or NetworkHandler.session_busy:
+		status.text = "Join an instance before creating an invite."
+		return
+	session_id.grab_focus()
+	session_id.select_all()
+	status.text = "Copy this instance code and send it to a friend. They can join using the code; instance access rules still apply."
 
 func _remove_row(owner: String):
 	var node: Node = rows[owner]

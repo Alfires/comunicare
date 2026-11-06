@@ -8,6 +8,7 @@ func check(ok: bool, title: String):
 func run():
 	change_scene_to_file("res://scenes/world.tscn")
 	await process_frame; await process_frame; await physics_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	var kitchen = world.get_node_or_null("Island/House/Kitchen")
 	check(kitchen != null, "usable kitchen replaces reserved counter")
@@ -57,6 +58,7 @@ func run():
 	kitchen.set_faucet(true); kitchen.set_heat(2)
 	change_scene_to_file("res://scenes/world.tscn")
 	await process_frame; await process_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var fresh = current_scene.get_node("Island/House/Kitchen")
 	check(not fresh.water.visible and fresh.heat_level == 0 and fresh.items.size() == 8, "reload shuts down old appliances and restores complete inventory")
 	current_scene.queue_free(); await process_frame; await process_frame

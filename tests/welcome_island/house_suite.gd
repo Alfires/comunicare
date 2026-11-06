@@ -8,6 +8,7 @@ func check(ok: bool, title: String):
 func run():
 	change_scene_to_file("res://scenes/world.tscn")
 	await process_frame; await physics_frame; await physics_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	var house = world.get_node_or_null("Island/House")
 	check(house != null, "house replaces three-wall reserve")

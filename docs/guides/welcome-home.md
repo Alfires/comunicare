@@ -5,6 +5,12 @@ it without waiting for a relay. Spawn is in the middle; exploring never requires
 finishing Help, connecting or enabling a microphone.
 
 ## Things to do
+Home entry builds safe continuous ground first. Textures/models load on background
+threads, with nearby scenery attached incrementally as you move (38 m activation
+radius). The house/kitchen/boat controls become available after their resources
+finish. Loaded objects stay resident to preserve local interaction state. This is
+not individual texture-mipmap streaming, and does not bypass downloaded-map checks.
+
 
 - Walk between the house, left deck, picnic space, grove and pond; no required order.
 - Open Settings → Controls for optional Help/current bindings. Help and reachable

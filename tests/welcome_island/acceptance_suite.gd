@@ -12,6 +12,7 @@ func run():
 	for cycle in 3:
 		change_scene_to_file("res://scenes/world.tscn")
 		await process_frame; await process_frame; await physics_frame
+		await preload("res://streaming_wait.gd").complete(current_scene)
 		var world = current_scene
 		check(player.get_instance_id() == identity and get_nodes_in_group("player").size() == 1 and player.position == Vector3(0,1,0), "home entry preserves player at middle: " + str(cycle))
 		var kitchen = world.get_node("Island/House/Kitchen")

@@ -8,6 +8,7 @@ func check(ok: bool, title: String):
 func run():
 	change_scene_to_file("res://scenes/world.tscn")
 	await process_frame; await process_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var house = current_scene.get_node("Island/House")
 	var lighting = house.get_node_or_null("RoomLighting")
 	check(lighting != null, "house has three-zone lighting owner")
@@ -45,6 +46,7 @@ func run():
 	lighting.set_zone("Lounge", false, 0.1, "neutral")
 	change_scene_to_file("res://scenes/world.tscn")
 	await process_frame; await process_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var fresh = current_scene.get_node("Island/House/RoomLighting")
 	check(fresh.zones.Lounge.enabled and fresh.zones.Lounge.brightness == 0.6, "home reload restores session-local defaults")
 	current_scene.queue_free(); await process_frame; await process_frame

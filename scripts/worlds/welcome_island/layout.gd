@@ -9,13 +9,60 @@ var routes := {
 	"Picnic": [Vector3(-24, 0, 0), Vector3(-24, 0, 17)]
 }
 
+var streaming: Node
+var streaming_materials := false
+signal home_ready
+var home_loaded := false
+
 func _ready():
+	streaming = preload("res://scripts/worlds/welcome_island/streaming.gd").new()
+	streaming.name = "Streaming"; add_child(streaming)
 	_build_land()
 	_build_pond()
 	var landscape = preload("res://scripts/worlds/welcome_island/landscape.gd").new()
 	landscape.name = "Landscape"; add_child(landscape)
+	var paths: Array = []
+	_collect_visual_paths("res://assets/welcome_island/models/architecture", paths)
+	_collect_visual_paths("res://assets/welcome_island/models/style", paths)
+	_collect_visual_paths("res://assets/welcome_island/models/furniture", paths)
+	_collect_visual_paths("res://assets/welcome_island/models/kitchenware", paths)
+	_collect_visual_paths("res://assets/welcome_island/models/ship", paths)
+	_collect_visual_paths("res://assets/welcome_island/textures/weathered_planks", paths)
+	streaming.enqueue(Vector3(24, 0, -20), paths, _build_home)
+	var textures: Array = []
+	_collect_visual_paths("res://assets/welcome_island/textures", textures)
+	streaming.enqueue(Vector3.ZERO, textures, _upgrade_materials)
+
+func _collect_visual_paths(folder: String, paths: Array):
+	for file in DirAccess.get_files_at(folder):
+		# Exported PCKs expose remap/import sidecars instead of source payloads.
+		var source = file.trim_suffix(".remap").trim_suffix(".import")
+		if source.get_extension() in ["gltf", "glb", "jpg"]:
+			# Model imports own their dependent textures. Do not race a separate
+			# top-level texture request against the model's dependency loader.
+			if "/models/" in folder and source.get_extension() == "jpg": continue
+			var path = folder.path_join(source)
+			if not paths.has(path): paths.append(path)
+	for child in DirAccess.get_directories_at(folder): _collect_visual_paths(folder.path_join(child), paths)
+
+func _upgrade_materials():
+	streaming_materials = true
+	var meadow = get_node("Landmass/ContinuousTerrain").get_child(0).material_override
+	var prefix = "res://assets/welcome_island/textures/sparse_grass/sparse_grass_"
+	for entry in [["ground_color", "diff"], ["ground_normal", "nor_gl"], ["ground_roughness", "rough"]]:
+		meadow.set_shader_parameter(entry[0], streaming.resources[prefix + entry[1] + "_1k.jpg"])
+	meadow.set_shader_parameter("textures_ready", true)
+	for node in find_children("*", "MeshInstance3D", true, false):
+		if node.has_meta("home_surface"):
+			var spec = node.get_meta("home_surface")
+			node.material_override = _surface_material(spec[0], spec[1])
+
+func _build_home():
+	# Dependencies are already resident before this main-thread assembly.
 	var house = preload("res://scripts/worlds/welcome_island/house_spaces.gd").new()
 	house.name = "House"; add_child(house)
+	if not house.furnished_ready: await house.furnished
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	_box("DeckFootprint", Vector3(-29, -0.08, -12), Vector3(14, 0.2, 10), Color(0.5, 0.37, 0.24), false)
 	_box("GardenFootprint", Vector3(35, -0.08, 0), Vector3(10, 0.16, 12), Color(0.36, 0.4, 0.22), false)
 	house._furniture("LeftBench", "bench", Vector3.ZERO, Vector3(2.4, 1, 1))
@@ -51,6 +98,8 @@ func _ready():
 						ribbon.add_vertex(point + Vector3.UP*0.035)
 			ribbon.generate_normals(); shoulder.mesh = ribbon.commit(); shoulder.material_override = _surface_material("sparse_grass", 2.5); add_child(shoulder)
 			previous = endpoint
+	home_loaded = true
+	home_ready.emit()
 
 func _height(x: float, z: float) -> float:
 	# Sealed basin; the broad dry west bank connects the dock to the island.
@@ -113,6 +162,7 @@ func _build_pond():
 	for index in 25:
 		var plank = _box("DockPlank", Vector3(8.18 + index * 0.36, 0.025, 23), Vector3(0.34, 0.05, 3.6), Color.WHITE, false)
 		plank.material_override = _surface_material("weathered_planks", 2)
+		plank.set_meta("home_surface", ["weathered_planks", 2.0])
 	for x in [9, 12, 16]:
 		for z in [21.5, 24.5]:
 			var post = _box("DockPost", Vector3(x, -1.05, z), Vector3(0.22, 2.1, 0.22), Color.WHITE)
@@ -162,10 +212,6 @@ func _build_land():
 	instance.mesh = mesh
 	var meadow = ShaderMaterial.new()
 	meadow.shader = load("res://scenes/worlds/welcome_island/meadow.gdshader")
-	var texture_root = "res://assets/welcome_island/textures/sparse_grass/sparse_grass_"
-	meadow.set_shader_parameter("ground_color", load(texture_root + "diff_1k.jpg"))
-	meadow.set_shader_parameter("ground_normal", load(texture_root + "nor_gl_1k.jpg"))
-	meadow.set_shader_parameter("ground_roughness", load(texture_root + "rough_1k.jpg"))
 	instance.material_override = meadow
 	body.add_child(instance)
 	var collision = CollisionShape3D.new()
@@ -196,6 +242,7 @@ func _build_land():
 	rock.generate_normals()
 	underside.mesh = rock.commit()
 	underside.material_override = _surface_material("rock_01", 4.0)
+	underside.set_meta("home_surface", ["rock_01", 4.0])
 	add_child(underside)
 
 func _rim_point(point: Vector3) -> Vector3:
@@ -215,6 +262,9 @@ func _material(color: Color) -> StandardMaterial3D:
 
 func _surface_material(id: String, meters: float) -> StandardMaterial3D:
 	var material = _material(Color.WHITE)
+	if not streaming_materials:
+		material.albedo_color = Color(0.32, 0.38, 0.23) if id == "sparse_grass" else Color(0.42, 0.35, 0.26)
+		return material
 	var prefix = "res://assets/welcome_island/textures/" + id + "/" + id
 	material.albedo_texture = load(prefix + "_diff_1k.jpg")
 	material.normal_enabled = true
@@ -233,9 +283,12 @@ func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bo
 	mesh.size = size
 	node.mesh = mesh
 	node.material_override = _material(color)
-	if label == "Path": node.material_override = _surface_material("rock_path", 2.0)
+	if label == "Path":
+		node.material_override = _surface_material("rock_path", 2.0)
+		node.set_meta("home_surface", ["rock_path", 2.0])
 	elif label in ["HouseBack", "HouseLeft", "HouseRight", "DeckFootprint", "DockFootprint", "DockDeck", "DockPost"]:
 		node.material_override = _surface_material("weathered_planks", 2.0)
+		node.set_meta("home_surface", ["weathered_planks", 2.0])
 	node.position = center
 	add_child(node)
 	if solid:

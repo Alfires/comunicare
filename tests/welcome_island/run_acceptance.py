@@ -17,6 +17,7 @@ def main():
     parser.add_argument('--template', type=Path)
     args = parser.parse_args()
     commands = [
+        ['tests/welcome_island/run_layout.py', '--streaming'],
         ['tools/assets/provenance.py'], ['tests/welcome_island/test_provenance.py'],
         ['tools/assets/build_home_revision.py', '--check'], ['tests/welcome_island/run.py'],
         ['tests/welcome_island/run_assets.py'], ['tests/welcome_island/run_interactions.py'],

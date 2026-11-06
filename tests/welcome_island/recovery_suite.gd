@@ -27,6 +27,7 @@ func run():
 	change_scene_to_file("res://scenes/world.tscn")
 	await process_frame
 	await process_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	check(player.position == Vector3(0, 1, 0) and player.velocity == Vector3.ZERO, "direct home load applies shared spawn and clears player motion")
 	check(world.has_method("return_player_to_spawn"), "home exposes trusted return-to-spawn action")

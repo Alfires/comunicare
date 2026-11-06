@@ -9,6 +9,7 @@ func run():
 	var start = Time.get_ticks_msec()
 	change_scene_to_file("res://scenes/world.tscn")
 	await process_frame; await physics_frame; await physics_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	var landscape = world.get_node_or_null("Island/Landscape")
 	check(landscape != null, "island has original composed landscape rather than bare graybox")

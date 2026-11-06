@@ -1,6 +1,8 @@
 extends Node3D
 ## Individually assembled home structure and cleared furnishings; no prefab scene.
 var resting: Dictionary = {}
+signal furnished
+var furnished_ready := false
 
 func rest_at(label: String, player: CharacterBody3D) -> bool:
 	if label not in ["BedOne", "BedTwo", "Sofa"] or not is_instance_valid(player) or not player.is_in_group("player") or player.has_meta("home_rest") or player.has_meta("home_ship"): return false
@@ -80,11 +82,21 @@ func _ready():
 	_box("DoorLintel", Vector3(0, 3.05, 7), Vector3(4, 0.7, 0.3), true)
 	_box("Roof", Vector3(0, 3.6, 0), Vector3(17, 0.35, 15), true)
 	_box("Porch", Vector3(0, -0.06, 8.5), Vector3(10, 0.16, 3), true)
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	_install_exterior()
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	# Sparse zoning, broad shared circulation; no forced seating/lying head pose.
 	_furniture("BedOne", "bedSingle", Vector3(-5, 0, -4.5), Vector3(1.6, 0.7, 2.3))
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	_furniture("BedTwo", "bedSingle", Vector3(-2, 0, -4.5), Vector3(1.6, 0.7, 2.3))
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	_furniture("Sofa", "loungeSofa", Vector3(-4.5, 0, 2.2), Vector3(3.5, 1, 1.5))
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	_furniture("LowTable", "tableCoffee", Vector3(-4.5, 0, 4.2), Vector3(1.8, 0.5, 0.9))
 	_furniture("Rug", "rugRectangle", Vector3(-4.5, 0.015, 3.6), Vector3(4.5, 0.02, 3.8), false)
 	_furniture("FloorLamp", "lampRoundFloor", Vector3(-6.8, 0, 2), Vector3(0.5, 1.5, 0.5))
@@ -95,6 +107,8 @@ func _ready():
 	var lighting = preload("res://scripts/worlds/welcome_island/room_lighting.gd").new()
 	lighting.name = "RoomLighting"
 	add_child(lighting)
+	furnished_ready = true
+	furnished.emit()
 
 func _furniture(label: String, asset: String, center: Vector3, target: Vector3, solid: bool = true) -> Node3D:
 	var root = Node3D.new(); root.name = label; root.position = center; add_child(root)

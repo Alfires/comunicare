@@ -29,6 +29,10 @@ func _ready():
 
 func _setup_local_objects():
 	if not is_inside_tree() or is_queued_for_deletion(): return
+	var island = get_node("Island")
+	if not island.home_loaded:
+		island.home_ready.connect(_setup_local_objects, CONNECT_ONE_SHOT)
+		return
 	var ship = preload("res://scripts/worlds/welcome_island/pond_ship.gd").new()
 	ship.name = "PondShip"
 	add_child(ship)

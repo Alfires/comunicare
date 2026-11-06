@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 15: dynamic home loading](15-streaming-roadmap.md) records proximity-based
+background loading, entry measurements and remaining rendered hitch limitations.
+
 **In progress — 2026-11-06; release blocked.** Part 01's runner/startup fix is implemented with
 manual headset/lifecycle gates; part 02 delivers tested provenance and a four-entry
 CC0 sample; reduced tree/rock runtime variants now exist. Part 03 Credits is

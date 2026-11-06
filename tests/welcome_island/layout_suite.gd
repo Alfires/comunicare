@@ -25,6 +25,7 @@ func run():
 	await process_frame
 	await physics_frame
 	await physics_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	var layout = world.get_node_or_null("Island")
 	check(layout != null, "built-in world contains authored island layout")

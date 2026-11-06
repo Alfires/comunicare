@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve().parent
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--streaming', action='store_true')
     parser.add_argument('--rendered', action='store_true')
     parser.add_argument('--recovery', action='store_true', help='Run focused spawn/recovery contracts')
     parser.add_argument('--pond', action='store_true', help='Run pond/dock physics contracts')
@@ -26,7 +27,7 @@ def main():
     args = parser.parse_args()
     godot = shutil.which(os.environ.get('GODOT', 'godot'))
     if not godot: return 2
-    with tempfile.TemporaryDirectory(prefix='island-layout-', dir='/tmp/opencode') as directory:
+    with tempfile.TemporaryDirectory(prefix='island-layout-', dir=os.environ.get('ISLAND_TEST_TMP', '/tmp/opencode')) as directory:
         project = Path(directory)
         for name in ['scenes/world.tscn', 'scenes/world.gd', 'scripts/worlds/world_pickup_controller.gd', 'scripts/worlds/world_data.gd', 'scripts/player/vr_safety.gd']:
             target = project / name
@@ -56,6 +57,9 @@ def main():
             if source.exists(): shutil.copytree(source, project / 'assets/welcome_island/models' / name, dirs_exist_ok=True, ignore=shutil.ignore_patterns('*.import', '*.uid'))
         shutil.copy2(HERE / ('acceptance_suite.gd' if args.acceptance else 'landscape_suite.gd' if args.landscape else 'kitchen_suite.gd' if args.kitchen else 'lighting_suite.gd' if args.lighting else 'house_suite.gd' if args.house else 'ship_suite.gd' if args.ship else 'pond_suite.gd' if args.pond else 'recovery_suite.gd' if args.recovery else 'layout_suite.gd'), project / 'suite.gd')
         renderer = 'gl_compatibility' if not args.forward_plus else 'forward_plus'
+        if args.streaming:
+            shutil.copy2(HERE / 'streaming_suite.gd', project / 'suite.gd')
+        shutil.copy2(HERE / 'streaming_wait.gd', project / 'streaming_wait.gd')
         (project / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="Island layout contracts"\n[rendering]\nrenderer/rendering_method="' + renderer + '"\n')
         env = {**os.environ, 'XDG_DATA_HOME': str(project / 'data'), 'XDG_CONFIG_HOME': str(project / 'config'), 'XDG_CACHE_HOME': str(project / 'cache'), 'ISLAND_LAYOUT_RENDERED': '1' if args.rendered else '0'}
         try:

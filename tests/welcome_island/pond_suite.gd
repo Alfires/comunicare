@@ -10,6 +10,7 @@ func run():
 	await process_frame
 	await physics_frame
 	await physics_frame
+	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	var pond = world.get_node_or_null("Island/PondWater")
 	check(pond != null, "island contains bounded pond water")

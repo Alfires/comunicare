@@ -14,6 +14,7 @@ var solved_poses: Dictionary = {}
 const FADE_SECONDS = 0.2
 
 func set_body_targets(targets: Dictionary):
+	if body_targets == targets: return
 	body_targets = targets.duplicate()
 
 func set_calibration(data: Dictionary):
@@ -25,6 +26,7 @@ func set_calibration(data: Dictionary):
 			if offset.is_finite() and offset.length() <= 1: offsets[pair[0]] = offset
 
 func set_tracking_validity(values: Dictionary):
+	if validity == values: return
 	validity = values.duplicate(true)
 
 func tracking_weights() -> Dictionary:

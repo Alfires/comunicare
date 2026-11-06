@@ -1144,6 +1144,9 @@ writes, preserving animation ownership. Solved history remains available for
 smooth reacquisition; active tracking and partially faded chains still solve.
 Fully weighted active chains retain the solver's final pose and record it for
 fade-out without redundantly interpolating and writing that same pose again.
+Validity and body-target setters reuse owned dictionaries when contents are
+unchanged. Changed input is still copied (deeply for nested validity), preserving
+isolation from later caller mutations and honoring explicit target clearing.
 
 ### [AvatarTracking](../../scripts/assets/avatar_tracking.gd)
 

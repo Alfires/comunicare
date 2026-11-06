@@ -57,12 +57,44 @@ func run():
 	test_tracker_roles()
 	test_fbt_solver()
 	test_tracking_fades()
+	test_tracking_state_updates()
 	test_role_calibration()
 	test_foot_stability()
 	test_head_constraints()
 	await test_ground_contact()
 	print("\nRED tracking: %s passed, %s failed" % [passed, failed])
 	quit(1 if failed else 0)
+
+func test_tracking_state_updates():
+	var tracking = load("res://scripts/assets/avatar_tracking.gd").new()
+	var flags = {"head": true, "leftHand": false, "rightHand": true}
+	var targets: Dictionary = {}
+	tracking.set_tracking_validity(flags)
+	tracking.set_body_targets(targets)
+	var start = Time.get_ticks_usec()
+	for i in 30000:
+		tracking.set_tracking_validity(flags)
+		tracking.set_body_targets(targets)
+	print("BENCH: 30000 unchanged tracking state updates: ", Time.get_ticks_usec() - start, " us")
+	var retained_flags = tracking.validity
+	var retained_targets = tracking.body_targets
+	tracking.set_tracking_validity(flags)
+	tracking.set_body_targets(targets)
+	check(is_same(retained_flags, tracking.validity) and is_same(retained_targets, tracking.body_targets), "unchanged tracking state reuses owned dictionaries")
+	flags.head = false
+	tracking.set_tracking_validity(flags)
+	check(not tracking.validity.head, "changed validity is applied")
+	var nested = {"head": {"valid": true, "at": 123}}
+	tracking.set_tracking_validity(nested)
+	nested.head.valid = false
+	check(tracking.validity.head.valid, "nested validity remains isolated from caller mutation")
+	targets.hips = Transform3D.IDENTITY
+	tracking.set_body_targets(targets)
+	targets.clear()
+	check(tracking.body_targets.has("hips"), "body target updates remain isolated from caller mutation")
+	tracking.set_body_targets({})
+	check(tracking.body_targets.is_empty(), "clearing body targets still takes effect")
+	tracking.free()
 
 func test_existing_camera_independence():
 	var rig = fixture_rig()

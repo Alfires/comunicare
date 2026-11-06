@@ -33,6 +33,22 @@ func run():
 		check(safety.clearance(body, point, 1.9, 0.35), "standing/seated-route capsule clearance: " + str(point))
 	var shape = CollisionShape3D.new(); shape.shape = CapsuleShape3D.new(); shape.shape.radius = 0.35; shape.shape.height = 1.9
 	shape.position.y = 0.95; body.add_child(shape)
+	var test_roof = StaticBody3D.new()
+	var roof_shape = CollisionShape3D.new()
+	var roof_box = BoxShape3D.new()
+	roof_box.size = Vector3(4, 0.2, 4)
+	roof_shape.shape = roof_box
+	test_roof.add_child(roof_shape)
+	world.add_child(test_roof)
+	test_roof.position = Vector3(0, 2.5, 0)
+	shape.shape.height = 3.0
+	shape.position.y = 1.5
+	await physics_frame
+	check(not house._rest_clear(body, Vector3(0, 0.1, 0)), "rest clearance uses enlarged player's real capsule under ceiling")
+	shape.shape.height = 1.9
+	shape.position.y = 0.95
+	test_roof.queue_free()
+	await physics_frame
 	body.position = Vector3(24, 0.05, -10)
 	for frame in 120:
 		body.velocity = Vector3(0, -1, -4); body.move_and_slide(); await physics_frame

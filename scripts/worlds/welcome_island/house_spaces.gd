@@ -22,6 +22,15 @@ func _rest_clear(player: CharacterBody3D, point: Vector3, furniture: Node3D = nu
 	var query = PhysicsShapeQueryParameters3D.new()
 	var capsule = CapsuleShape3D.new(); capsule.radius = 0.35; capsule.height = 1.9
 	query.shape = capsule; query.transform.origin = point + Vector3.UP * 0.96; query.exclude = [player.get_rid()]
+	# Resize/crouch geometry belongs to the player. A fixed 1.9 m stand-in
+	# can approve a rest destination that intersects a larger avatar's ceiling.
+	for collision in player.find_children("*", "CollisionShape3D", true, false):
+		if collision.disabled or collision.shape == null: continue
+		query.shape = collision.shape
+		var relative = player.global_transform.affine_inverse() * collision.global_transform
+		query.transform = Transform3D(player.global_basis, point) * relative
+		break
+	query.collision_mask = player.collision_mask
 	if furniture != null:
 		var excluded: Array[RID] = [player.get_rid()]
 		for body in furniture.find_children("*", "CollisionObject3D", true, false): excluded.append(body.get_rid())

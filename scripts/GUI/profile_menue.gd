@@ -210,10 +210,6 @@ func _render_friend_actions():
 	var status = Label.new()
 	status.text = friends.status(profile_owner)
 	friend_actions.add_child(status)
-	var save_contact = Button.new()
-	save_contact.text = "Save contact"
-	save_contact.pressed.connect(func(): friends.add_contact(get_displayed_public_key(), "", snapshot))
-	friend_actions.add_child(save_contact)
 	var add_friend = Button.new()
 	var relationship = friends.relationship(profile_owner)
 	var blocked: bool = friends.contacts().get(profile_owner, {}).get("blocked", false)

@@ -363,10 +363,11 @@ func test_ui():
 		root.add_child(scene)
 	await process_frame
 	var rendered: Array = scene.list.get_children().filter(func(node): return node.has_meta("fingerprint"))
-	check(rendered.size() == services[0].contacts().size() and not rendered.is_empty() and "Offline" in scene.status_label.text,
-		"real Friends page renders every persisted contact as a card while disconnected")
-	check(scene.list.get_children().any(func(node): return node is Label and node.text.begins_with("Saved contacts · ")),
-		"Friends sections show their contact count and empty sections are omitted")
+	check(rendered.all(func(node): return services[0].relationship(node.get_meta("fingerprint")).get("status", "contact") != "contact" or services[0].contacts()[node.get_meta("fingerprint")].blocked),
+		"Friends hides legacy contact-only records without deleting service data")
+	check(not scene.find_children("*", "Button", true, false).any(func(node): return node.text == "Save contact"),
+		"standalone Save contact option is removed")
+	check(scene.find_children("*", "Button", true, false).any(func(node): return node.text == "Invite"), "Friends exposes Invite action")
 	scene.search.text = "zz-no-such-contact"
 	scene.search.text_changed.emit(scene.search.text)
 	check(scene.list.get_children().all(func(node): return not node.has_meta("fingerprint")), "search hides contacts that do not match")
@@ -398,18 +399,18 @@ func test_ui():
 	scene.key_input.text_changed.emit()
 	check(fp(2) in scene.key_review.text, "public-key paste preview shows canonical fingerprint")
 	for candidate in scene.find_children("*", "Button", true, false):
-		if candidate.text == "Save contact":
+		if candidate.text == "Send friend request":
 			candidate.pressed.emit()
 			break
-	check(services[0].contacts().has(fp(2)) and services[0].relationship(fp(2)).is_empty() and not scene.add_panel.visible,
-		"actual Save contact button persists key without sending a request")
+	check(services[0].contacts().has(fp(2)) and services[0].relationship(fp(2)).get("status") == "outgoing" and not scene.add_panel.visible,
+		"public key action sends friend request rather than creating standalone contact")
 	scene._open_profile(fp(2))
 	var request_button = null
 	for candidate in scene.profile_panel.friend_actions.get_children():
-		if candidate is Button and candidate.text == "Send friend request":
+		if candidate is Button and candidate.text == "Friend request sent":
 			request_button = candidate
-	check(request_button != null and not request_button.disabled, "user overview exposes enabled Send friend request button")
-	if request_button != null:
+	check(request_button != null and request_button.disabled, "profile reflects pending friend request")
+	if request_button != null and not request_button.disabled:
 		request_button.pressed.emit()
 		check(services[0].relationship(fp(2)).get("status") == "outgoing" and not services[0].is_friend(fp(2)),
 			"user overview button sends request to selected account without unilateral friendship")

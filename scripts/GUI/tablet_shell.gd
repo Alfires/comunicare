@@ -20,7 +20,7 @@ const TITLES = {"quick": "Quick", "friends": "Friends", "worlds": "Worlds", "ava
 const ICONS = {"quick": "quick", "friends": "friends", "worlds": "world", "avatars": "avatar", "instance": "instance", "settings": "settings"}
 const TOOLTIPS = {
 	"quick": "Quick actions and online friends",
-	"friends": "Contacts, requests and friend profiles",
+	"friends": "Friends, requests and invitations",
 	"worlds": "Browse worlds and join instances",
 	"avatars": "Find, preview and change avatars",
 	"instance": "People, invites and settings of the current instance",

@@ -5,7 +5,7 @@ extends Control
 
 const ToastHost = preload("res://scripts/GUI/toast_host.gd")
 const ContactAvatar = preload("res://scripts/GUI/contact_avatar.gd")
-const SECTIONS = ["Friends", "Incoming requests", "Outgoing requests", "Saved contacts"]
+const SECTIONS = ["Friends", "Incoming requests", "Outgoing requests", "Blocked"]
 const SECTION_OF = {"friends": "Friends", "accepting": "Outgoing requests", "incoming": "Incoming requests", "outgoing": "Outgoing requests", "contact": "Saved contacts"}
 const PRESENCE_ORDER = {"online": 0, "do_not_disturb": 1}
 const PRESENCE_TEXT = {"online": "Online", "do_not_disturb": "Do not disturb"}
@@ -38,7 +38,7 @@ func _ready():
 	var toolbar = HFlowContainer.new()
 	layout.add_child(toolbar)
 	search = LineEdit.new()
-	search.placeholder_text = "Search friends and contacts"
+	search.placeholder_text = "Search friends"
 	search.clear_button_enabled = true
 	search.custom_minimum_size = Vector2(220, 44)
 	search.set_meta("blocks_global_shortcuts", true)
@@ -71,6 +71,7 @@ func _ready():
 		add_panel.visible = not add_panel.visible
 		if add_panel.visible: key_input.grab_focus())
 	add.theme_type_variation = "PrimaryButton"
+	_button(toolbar, "Invite", _invite)
 	preference = OptionButton.new()
 	for text in ["Online", "Do not disturb", "Appear offline"]:
 		preference.add_item(text)
@@ -132,7 +133,6 @@ func _build_add_panel():
 	var add_actions = HBoxContainer.new()
 	add_panel.add_child(add_actions)
 	_button(add_actions, "Send friend request", _save_contact.bind(true)).theme_type_variation = "PrimaryButton"
-	_button(add_actions, "Save contact", _save_contact.bind(false))
 	_button(add_actions, "Cancel", func(): add_panel.hide())
 	add_panel.hide()
 	card.hide()
@@ -189,11 +189,12 @@ func _contacts_view() -> Dictionary:
 	for owner in contacts:
 		var kind: String = service.relationship(owner).get("status", "contact")
 		var blocked: bool = contacts[owner].blocked
+		if kind == "contact" and not blocked: continue
 		var presence := ""
 		if kind == "friends" and not blocked:
 			presence = service.status(owner) if service.status(owner) in ["online", "do_not_disturb"] else "offline"
 		result[owner] = {"kind": kind, "blocked": blocked, "presence": presence,
-			"section": "Saved contacts" if blocked else SECTION_OF.get(kind, "Saved contacts")}
+			"section": "Blocked" if blocked else SECTION_OF.get(kind, "")}
 	return result
 
 func _render():
@@ -229,7 +230,7 @@ func _render():
 	filter_buttons.requests.text = "Requests (%d)" % incoming if incoming > 0 else "Requests"
 	if view.is_empty():
 		var empty = preload("res://scripts/GUI/empty_state.gd").new()
-		empty.configure(preload("res://themes/icons/friends.svg"), "You have no contacts yet.", "Add someone", func():
+		empty.configure(preload("res://themes/icons/friends.svg"), "You have no friends yet.", "Add someone", func():
 			add_panel.show()
 			key_input.grab_focus())
 		list.add_child(empty)
@@ -260,7 +261,7 @@ func _render():
 				title.grab_focus()
 			shown += 1
 	if shown == 0:
-		var message = "No contacts match \"%s\"." % search.text.strip_edges() if not query.is_empty() else (
+		var message = "No friends match \"%s\"." % search.text.strip_edges() if not query.is_empty() else (
 			"None of your friends are online." if filter == "online" else "No open friend requests.")
 		_label(list, message).theme_type_variation = "MutedLabel"
 	scroll.set_deferred("scroll_vertical", previous_scroll)
@@ -327,6 +328,8 @@ func _primary_actions(actions: HBoxContainer, owner: String, entry: Dictionary):
 	match entry.kind:
 		"friends":
 			var location: Dictionary = service.friend_session(owner)
+			var invite = _button(actions, "Invite", _invite)
+			invite.disabled = NetworkHandler.current_session_id.is_empty() or NetworkHandler.session_busy
 			if not location.is_empty():
 				var same = NetworkHandler.current_session_id == location.session_id
 				var join = _button(actions, "Same instance" if same else "Join friend", _join_friend.bind(owner))
@@ -338,8 +341,24 @@ func _primary_actions(actions: HBoxContainer, owner: String, entry: Dictionary):
 			_button(actions, "Decline", service.act.bind(owner, "decline"))
 		"outgoing":
 			_button(actions, "Cancel request", service.act.bind(owner, "cancel"))
-		"contact":
-			_button(actions, "Send friend request", service.send_request.bind(owner))
+
+func _invite():
+	if NetworkHandler.current_session_id.is_empty():
+		status_label.text = "Join an instance before inviting friends."
+		return
+	var ancestor = get_parent()
+	while ancestor != null:
+		if ancestor.has_method("handle_quick_action"):
+			ancestor.handle_quick_action("invite")
+			return
+		ancestor = ancestor.get_parent()
+	var panel = load("res://scenes/GUI/share_session_menue.tscn").instantiate()
+	add_child(panel)
+	panel.focus_invite()
+	var close = Button.new()
+	close.text = "Back to Friends"
+	close.pressed.connect(panel.queue_free)
+	panel.add_child(close)
 
 ## Secondary and destructive actions live in one menu per contact.
 func _more_menu(actions: HBoxContainer, owner: String, entry: Dictionary):

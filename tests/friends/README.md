@@ -15,6 +15,21 @@ Exit 0 means all assertions passed, 1 means assertions failed, and 2 indicates G
 
 ## Verified result
 
+**Expanded verification — 2026-11-06:** **93 passed** headlessly and **97 passed**
+windowed, exit 0 without Godot errors. Related profile **120** and Active Instance
+**138** assertions passed in the current working tree. Older counts below are
+historical, not the current baseline.
+
+Added checks exercise real authenticated ENet joining using a friend's public
+session descriptor; actual Friends Join button → coordinator arguments (fixture
+coordinator, not full world activation); Same instance disabling; busy-transition
+suppression; admission rejection feedback; click-time expiry checks; invalid URL
+clearing; descriptor-copy isolation; block and viewer/subject disconnect cleanup.
+Network request/acceptance/presence still uses production relay/services; UI join
+failure paths use an explicit recording fixture so no game startup or real account
+files are touched. This does not certify full multi-client world downloads,
+cross-relay friend location, invitation delivery or real headset interaction.
+
 Godot 4.7.2: **72 passed, 0 failed** headlessly; **76 passed, 0 failed** with real X11/Intel OpenGL Compatibility display rendering. All commands exited 0 without Godot runtime/import errors. Display startup logged failed NVIDIA driver probes before successfully selecting Intel. Regression checks passed: Active Instance **128**, Active Instance display **27**, profile **110**, discovery **51 + 24 startup**, microphone/settings **92**, avatar loading **10**. The profile suite emitted its ObjectDB leak warning; these results do not certify full-game leak freedom or XR hardware behavior.
 
 ## Verified coverage

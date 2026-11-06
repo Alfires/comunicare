@@ -202,6 +202,15 @@ func test_network():
 		services[0].refresh(); services[1].refresh()
 		await pump()
 	check(services[2].presence.is_empty(), "unrelated connected account receives no friend presence")
+	var join_location: Dictionary = services[0].friend_session(fp(1))
+	if not join_location.is_empty():
+		clients[0].join_session(join_location.session_id, join_location.world_url)
+		await pump()
+		check(clients[0].current_session_id == clients[1].current_session_id, "real friend location joins exact instance over authenticated ENet")
+		clients[0].create_session(0, "A again", "", "default_wold")
+		await pump()
+		services[0].refresh(); services[1].refresh()
+		await pump()
 	var initial_presence: Dictionary = services[0].presence[fp(1)].duplicate()
 	services[0].receive({"op": "presence", "subject": fp(1), "generation": "old-connection", "sequence": 99999, "status": "offline"})
 	services[0].receive({"op": "presence", "subject": fp(1), "generation": services[0].generation, "sequence": 0, "status": "offline"})
@@ -237,9 +246,11 @@ func test_network():
 	clients[1].peer.peer_disconnect()
 	await pump()
 	check(services[0].status(old_fp) == "Offline", "subject disconnect updates surviving friend's status")
+	check(services[0].friend_session(old_fp).is_empty(), "subject disconnect clears surviving friend's join location")
 	var data = JSON.stringify([relay.social.publications, relay.social.grants, relay.social.pending, relay.key_mapping])
 	check(not old_fp in data and not keys[1].save_to_string(true) in data, "disconnect removes social identity/proof references from relay")
 	check(services[1].status(fp(0)) == "Status unavailable" and services[1].is_friend(fp(0)), "viewer disconnect clears live status but preserves friendship locally")
+	check(services[1].friend_session(fp(0)).is_empty(), "viewer disconnect never exposes cached join location")
 	services[1].act(fp(0), "revoke")
 	var revoked_count = services[1].state.outbox.size()
 	var reconnect = RelayPeer.new()
@@ -262,6 +273,63 @@ func test_network():
 	relay.connection.destroy()
 	relay.free()
 
+func test_join_ui(scene):
+	var a = Service.new()
+	var b = Service.new()
+	a.configure(keys[0], "res://join-ui-a.cfg")
+	b.configure(keys[1], "res://join-ui-b.cfg")
+	a.add_contact(keys[1].save_to_string(true), "Join target")
+	a.send_request(fp(1))
+	var request: Dictionary = a.state.outbox.values()[0]
+	b.receive({"op": "event", "event": request})
+	b.act(fp(0), "accept")
+	var accepted: Dictionary = b.state.outbox.values()[0]
+	a.receive({"op": "event", "event": accepted})
+	a.attach(func(_packet): pass, true)
+	var location = {"session_id": "exact-friend-instance", "world_url": "default_wold", "name": "Friend room"}
+	a.receive({"op": "presence", "subject": fp(1), "status": "online", "generation": a.generation, "sequence": 1, "location": location})
+	var save = root.get_node("SaveData")
+	var network = root.get_node("NetworkHandler")
+	save.friends = a
+	scene._bind_service()
+	var join: Button
+	for node in scene.find_children("*", "Button", true, false):
+		if node.text == "Join friend": join = node
+	check(join != null and not join.disabled, "actual Friends UI offers enabled Join friend for fresh public location")
+	if join != null:
+		join.pressed.emit()
+		check(network.join_calls.size() == 1 and network.join_calls[0].session_id == location.session_id and network.join_calls[0].world_url == "default_wold", "Join friend button routes exact identity/content into coordinator")
+	scene._render()
+	check(scene.find_children("*", "Button", true, false).any(func(button): return button.text == "Same instance" and button.disabled), "already joined friend is marked Same instance instead of rejoining")
+	network.current_session_id = ""
+	network.session_busy = true
+	await scene._join_friend(fp(1))
+	check(network.join_calls.size() == 1, "busy transition blocks duplicate join request")
+	network.session_busy = false
+	network.join_result = false
+	await scene._join_friend(fp(1))
+	check("admission denied" in scene.status_label.text, "join rejection displays coordinator error instead of false success")
+	var before = network.join_calls.size()
+	a.presence[fp(1)].received = -20000
+	await scene._join_friend(fp(1))
+	check(network.join_calls.size() == before and "expired" in scene.status_label.text, "stale button click rechecks location and never joins expired instance")
+	a.receive({"op": "presence", "subject": fp(1), "status": "online", "generation": a.generation, "sequence": 2, "location": location})
+	var malformed = location.duplicate()
+	malformed.world_url = "file:///private/world"
+	a.receive({"op": "presence", "subject": fp(1), "status": "online", "generation": a.generation, "sequence": 3, "location": malformed})
+	check(a.friend_session(fp(1)).is_empty(), "invalid location content URL clears joinability rather than retaining older target")
+	a.receive({"op": "presence", "subject": fp(1), "status": "online", "generation": a.generation, "sequence": 4, "location": location})
+	var copied = a.friend_session(fp(1))
+	copied.session_id = "tampered-copy"
+	check(a.friend_session(fp(1)).session_id == location.session_id, "location descriptor is a copy and UI cannot mutate presence ownership")
+	a.block(fp(1))
+	check(a.friend_session(fp(1)).is_empty(), "blocking friend immediately revokes join-location access")
+	save.friends = services[0]
+	scene._bind_service()
+	network.join_result = true
+	network.current_session_id = ""
+	network.join_calls.clear()
+
 func test_ui():
 	var save = root.get_node("SaveData")
 	save.friends = services[0]
@@ -282,6 +350,7 @@ func test_ui():
 		root.add_child(scene)
 	await process_frame
 	check(scene.list.get_child_count() > 4 and "Offline" in scene.status_label.text, "real Friends page renders persisted lists while disconnected")
+	await test_join_ui(scene)
 	check(scene.preference.item_count == 3, "self status selector offers Online/DND/Offline")
 	var shell_script = load("res://scripts/GUI/tablet_shell.gd")
 	check(shell_script.PAGES[1] == "friends" and shell_script.TITLES.friends == "Friends" and "worlds" in shell_script.PAGES

@@ -90,7 +90,7 @@
     "assets/welcome_island/textures/weathered_planks/weathered_planks_diff_1k.jpg": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
     "assets/welcome_island/textures/weathered_planks/weathered_planks_nor_gl_1k.jpg": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
     "assets/welcome_island/textures/weathered_planks/weathered_planks_rough_1k.jpg": "a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3",
-    "scenes/world.gd": "1d525aecb0dfa79ce0144642f4f2cfd3f36b168a0d8476c7f707287e1554b150",
+    "scenes/world.gd": "b4ca562a566740df8d2111b5c52eb216f331d32397bdd4a8dac265fe9f2d46d9",
     "scenes/world.tscn": "a631d68e4aeac5e5865883a5dec2b1c57542d1f0979570909970c737874a2e65",
     "scenes/worlds/welcome_island/layout.tscn": "5e41b2fec15f9cff0a95fe60d9c2651f13c4a997c6f0720d4ab77429e5c2a838",
     "scenes/worlds/welcome_island/pond_water.gdshader": "51a277f0c93e982c92a1808b3cc790920d4bfa0e5c3aba692aaee070ce8a00f3",
@@ -102,6 +102,6 @@
     "scripts/worlds/welcome_island/pond_ship.gd": "6c531e04bd1936b282b942239c47db900b6c20325bf5612291d872439e198b28",
     "scripts/worlds/welcome_island/room_lighting.gd": "7b73a9e83a61da34d06220f285b75d32bef8a1c794ba7437eebaf9f56c59ffb1",
     "scripts/worlds/world_data.gd": "49237f4c25f6a5fecab622a5d09e144af0b06de8c7ecbe7f7763b46c25c15b16",
-    "scripts/worlds/world_pickup_controller.gd": "3e6794dc9594bac1f97870817d2fd1a839225b607ce6aa67fb8bff5495ae2562"
+    "scripts/worlds/world_pickup_controller.gd": "b77a79273c10356b758b3202268bebf4f10f67fa0fa7cbaf06f3317ac46092c0"
   }
 }

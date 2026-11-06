@@ -30,6 +30,7 @@ headset, renderer, microphone or production-network verification.
 - [Troubleshooting](guides/troubleshooting.md)
 - [Verification](development/testing.md)
 - [VR validation status and hardware gates](development/vr-validation.md)
+- [Welcome home human release gates](development/welcome-home-release-gates.md)
 - [Documentation conventions](development/documentation.md)
 - [Local Git-only releases](development/releases.md)
 - [Roadmaps and remaining work](roadmaps/README.md)

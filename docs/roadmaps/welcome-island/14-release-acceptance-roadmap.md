@@ -14,8 +14,12 @@ See the [mandatory test-first workflow](README.md) and [shared completion criter
   local state stays instance-scoped, and session identity/admission/acknowledged
   transitions are unchanged. Include unavailable-network and corrupt-key fixtures.
 - [x] Write regressions reproducing any discovered integration bug before fixing it.
-- [ ] Define the final desktop/headset and Help-hidden free-exploration matrix;
+- [x] Define the final desktop/headset and Help-hidden free-exploration matrix;
   collect open manual gates from every prerequisite before claiming readiness.
+
+The [human release matrix](../../development/welcome-home-release-gates.md) defines
+required setups/pass criteria/evidence; it is not a record of completed hardware tests.
+Rapid DataLoader home roundtrips reproduced/fixed deferred setup after scene removal.
 
 ## 2. Build/fix only after the tests exist
 

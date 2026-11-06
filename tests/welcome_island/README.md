@@ -1,5 +1,21 @@
 # Welcome island startup contracts
 
+## Rapid DataLoader roundtrips and documentation repair — 2026-11-06
+
+New real-DataLoader tests leave home and return three times, checking player
+identity/spawn, removal of old local ship/kitchen owners and fresh appliance state.
+They reproduced deferred `_spawn_players`/`_setup_local_objects` running after a
+scene was detached. Both callbacks now reject detached/queued-for-deletion worlds;
+discovery and combined-home acceptance pass without those infrastructure errors.
+This is real scene lifecycle, not a claim of human WAN or XR validation.
+
+The broken current reference link to retired `home_menue.gd` is replaced with an
+explicit historical note and current Quick/tablet-shell entry points. Local Markdown
+checks pass. Required human checks now have a single
+[device/setup/evidence matrix](../../docs/development/welcome-home-release-gates.md),
+all unverified unless actual evidence is recorded. This does not mark the remaining
+headset/audible-WAN/final-art gates complete.
+
 ## Root/shore and architectural-detail collision — 2026-11-06
 
 New assertions started red on missing Roots/ShoreDetails and architectural detail

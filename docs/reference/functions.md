@@ -1648,19 +1648,14 @@ No footer paging buttons, network calls or model importing.
 | `present` | Displays message and blocks global shortcuts while visible; preserves caller draft. |
 | `dismiss` | Releases popup input state and hides; no data reset. |
 
-<!-- module: scripts/GUI/home_menue.gd -->
-### [Home](../../scripts/GUI/home_menue.gd)
+### Retired Home page (historical)
 
-Ready wires shared mute/profile/presence and Home tiles; exit unsubscribes. Private
-visibility/reset helpers close lazy subpages, not avatar animation. Emotes tile
-uses the production controller factory rather than owning another renderer.
-
-| Functions | Contract |
-| --- | --- |
-| `open_profile` | Creates/reuses profile panel for supplied owner and hides grid; service preserves owner/visitor rights. |
-| `open_home_menu` | Opens allowed lazy explorer/instance page or selects shared Explorer tab; invalid kind ignored. |
-| `close_home_menu` | Detaches/frees subpage and restores grid/focus; no persistent-store mutation. |
-| `reset_home` | Cancels visible profile editor or closes subpage on menu hiding. |
+The old `home_menue.gd` module was removed by the tablet migration. Its lazy
+subpage/profile navigation contract is historical, not a supported runtime API.
+Current entry points are [Quick page](../../scripts/GUI/quick_page.gd), which emits
+explicit tile/friend/page intents and owns shared mute presentation, and the
+[tablet shell](../../scripts/GUI/tablet_shell.gd), which owns navigation. Existing
+profile/friend services retain authorization; changing the menu grants no rights.
 
 <!-- module: scripts/GUI/menue.gd -->
 ### [Main tabs](../../scripts/GUI/menue.gd)

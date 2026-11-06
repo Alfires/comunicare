@@ -28,6 +28,7 @@ func _ready():
 	call_deferred("_setup_local_objects")
 
 func _setup_local_objects():
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	var ship = preload("res://scripts/worlds/welcome_island/pond_ship.gd").new()
 	ship.name = "PondShip"
 	add_child(ship)
@@ -114,6 +115,7 @@ func _confirm_ship_boarding(ship: Node3D):
 	dialog.popup_centered()
 
 func _spawn_players():
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	for player in get_tree().get_nodes_in_group("player"):
 		return_player_to_spawn(player)
 

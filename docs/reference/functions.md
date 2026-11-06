@@ -1125,6 +1125,8 @@ surface indices, including when head-only surfaces are removed. Clearing an
 override restores the original mesh's base material rather than a baked override.
 Instance transparency is copied and synchronized so local body fades match the
 source instead of displaying an opaque first-person copy.
+Material overlays are copied and synchronized, including their removal, so local
+body effects remain consistent with the original avatar.
 
 <!-- module: scripts/assets/avatar_tracking.gd -->
 ### [AvatarTracking](../../scripts/assets/avatar_tracking.gd)

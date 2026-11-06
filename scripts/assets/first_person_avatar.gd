@@ -116,6 +116,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		duplicate.skin = node.skin
 		duplicate.skeleton = node.skeleton
 		duplicate.material_override = node.material_override
+		duplicate.material_overlay = node.material_overlay
 		duplicate.transparency = node.transparency
 		for surface in source_surfaces.size():
 			duplicate.set_surface_override_material(surface, node.get_surface_override_material(source_surfaces[surface]))
@@ -151,6 +152,7 @@ class BlendShapeSync extends Node:
 		if not target.is_visible_in_tree(): return
 		if target.transform != source.transform: target.transform = source.transform
 		if target.material_override != source.material_override: target.material_override = source.material_override
+		if target.material_overlay != source.material_overlay: target.material_overlay = source.material_overlay
 		if target.transparency != source.transparency: target.transparency = source.transparency
 		for surface in source_surfaces.size():
 			var material = source.get_surface_override_material(source_surfaces[surface])

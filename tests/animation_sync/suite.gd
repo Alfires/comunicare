@@ -313,6 +313,8 @@ func test_first_person_body_geometry():
 	var clothing_material = StandardMaterial3D.new()
 	torso.set_surface_override_material(0, clothing_material)
 	torso.transparency = 0.6
+	var overlay = StandardMaterial3D.new()
+	torso.material_overlay = overlay
 	avatar.add_child(torso)
 	check(policy.prepare(avatar), "first-person geometry prepares synthetic combined avatar")
 	var derivative = rig.get_node_or_null("CombinedBody_FirstPerson")
@@ -324,6 +326,7 @@ func test_first_person_body_geometry():
 	policy.apply(avatar, camera)
 	var torso_view = avatar.get_node("Torso_FirstPerson")
 	check(is_equal_approx(torso_view.transparency, torso.transparency), "first-person copy preserves source instance transparency")
+	check(torso_view.material_overlay == overlay, "first-person copy preserves source material overlay")
 	check(torso_view.get_active_material(0) == clothing_material, "unsplit first-person body preserves per-surface clothing material override")
 	var updated_material = StandardMaterial3D.new()
 	mesh.set_surface_override_material(0, updated_material)
@@ -333,6 +336,12 @@ func test_first_person_body_geometry():
 	mesh.transparency = 0.75
 	mesh.get_child(0)._process(0.0)
 	check(is_equal_approx(derivative.transparency, mesh.transparency), "first-person copy follows runtime instance fade changes")
+	mesh.material_overlay = overlay
+	mesh.get_child(0)._process(0.0)
+	check(derivative.material_overlay == overlay, "first-person body follows runtime overlay assignment")
+	mesh.material_overlay = null
+	mesh.get_child(0)._process(0.0)
+	check(derivative.material_overlay == null, "first-person body removes cleared overlay without leaving stale effects")
 	layered.set_surface_override_material(1, updated_material)
 	layered.get_child(0)._process(0.0)
 	var layered_view = rig.get_node("LayeredClothing_FirstPerson")

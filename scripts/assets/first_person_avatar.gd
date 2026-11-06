@@ -4,7 +4,7 @@ const HEAD_LAYER = 1 << 19
 const BODY_LAYER = 1 << 18
 
 static func is_camera_interior_bone(role: String) -> bool:
-	return role in ["hips", "spine", "chest", "upperChest", "neck", "head", "leftEye", "rightEye", "jaw"]
+	return role in ["neck", "head", "leftEye", "rightEye", "jaw"]
 
 static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 	camera.set_meta("first_person_camera", true)
@@ -48,8 +48,8 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		if node.has_meta("first_person_split") or node.mesh == null: continue
 		var mesh: Mesh = node.mesh
 		var visibility: String = annotations.get(str(node.name), "auto")
-		# Even author-marked Both meshes need local interior filtering. Keep the
-		# original intact; only local derivatives lose camera-intersecting torso.
+		# Even author-marked Both meshes need local head filtering. Keep the
+		# original intact and preserve torso/limbs in the local derivative.
 		if visibility == "thirdPersonOnly":
 			node.set_meta("first_person_original", true)
 			continue
@@ -80,7 +80,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 						var bone = rig.find_bone(name) if name != &"" else node.skin.get_bind_bone(bind)
 						if head_bones.has(bone): head_weight += weights[offset]
 					if head_weight >= 0.25: head_vertices[vertex] = true
-			elif node.name.to_lower().contains("head") or node.name.to_lower().contains("hair") or node.name.to_lower().contains("face") or node.name.to_lower().contains("body") or node.name.to_lower().contains("torso"):
+			elif node.name.to_lower().contains("head") or node.name.to_lower().contains("hair") or node.name.to_lower().contains("face"):
 				for vertex in vertices.size(): head_vertices[vertex] = true
 			var indices = arrays[Mesh.ARRAY_INDEX]
 			if indices == null or indices.is_empty():

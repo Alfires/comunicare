@@ -108,8 +108,11 @@ func run():
 	check(not "fall" in Defaults.IDS, "falling clip is removed from default selection")
 	airborne.free()
 	var view_policy = load("res://scripts/assets/first_person_avatar.gd")
-	check(view_policy.is_camera_interior_bone("chest") and view_policy.is_camera_interior_bone("hips") and not view_policy.is_camera_interior_bone("leftUpperArm"), "local camera hides interior torso but preserves arms")
-	check(view_policy.has_method("is_camera_interior_bone"), "first-person filtering excludes camera-intersecting torso as well as head")
+	for role in ["hips", "spine", "chest", "upperChest", "leftUpperArm", "rightUpperLeg"]:
+		check(not view_policy.is_camera_interior_bone(role), "first-person view preserves body role: " + role)
+	for role in ["neck", "head", "leftEye", "rightEye", "jaw"]:
+		check(view_policy.is_camera_interior_bone(role), "first-person view hides head role: " + role)
+	test_first_person_body_geometry()
 	var strafe_service = load("res://scripts/assets/animation_controller.gd").new()
 	check(strafe_service.has_method("strafe_pose"), "sideways animation has a leg-only composition policy")
 	if strafe_service.has_method("strafe_pose"):
@@ -250,6 +253,52 @@ func test_walk_to_standing():
 		var frozen = rig.get_bone_pose_rotation(rig.find_bone("leftUpperLeg"))
 		animator.player.advance(1.5)
 		check(frozen.angle_to(rig.get_bone_pose_rotation(rig.find_bone("leftUpperLeg"))) < 0.002, "standing remains motionless after transition")
+	avatar.free()
+
+func test_first_person_body_geometry():
+	var policy = load("res://scripts/assets/first_person_avatar.gd")
+	var avatar = Node3D.new()
+	var rig = Skeleton3D.new()
+	avatar.add_child(rig)
+	for name in ["hips", "chest", "head", "hair"]: rig.add_bone(name)
+	rig.set_bone_parent(1, 0)
+	rig.set_bone_parent(2, 1)
+	rig.set_bone_parent(3, 2)
+	avatar.set_meta("humanoid_bones", {"hips": "hips", "chest": "chest", "head": "head"})
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	var vertices = PackedVector3Array()
+	var bones = PackedInt32Array()
+	var weights = PackedFloat32Array()
+	for bone in 4:
+		vertices.append_array(PackedVector3Array([Vector3(bone, 0, 0), Vector3(bone, 1, 0), Vector3(bone + 0.5, 0, 0)]))
+		for vertex in 3:
+			bones.append_array(PackedInt32Array([bone, 0, 0, 0]))
+			weights.append_array(PackedFloat32Array([1, 0, 0, 0]))
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_BONES] = bones
+	arrays[Mesh.ARRAY_WEIGHTS] = weights
+	var original = ArrayMesh.new()
+	original.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var mesh = MeshInstance3D.new()
+	mesh.name = "CombinedBody"
+	mesh.mesh = original
+	mesh.skin = Skin.new()
+	for bone in 4: mesh.skin.add_bind(bone, Transform3D.IDENTITY)
+	rig.add_child(mesh)
+	var torso = MeshInstance3D.new()
+	torso.name = "Torso"
+	var torso_arrays: Array = []
+	torso_arrays.resize(Mesh.ARRAY_MAX)
+	torso_arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array([Vector3.ZERO, Vector3.UP, Vector3.RIGHT])
+	torso.mesh = ArrayMesh.new()
+	torso.mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, torso_arrays)
+	avatar.add_child(torso)
+	check(policy.prepare(avatar), "first-person geometry prepares synthetic combined avatar")
+	var derivative = rig.get_node_or_null("CombinedBody_FirstPerson")
+	check(derivative != null and derivative.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX] == PackedInt32Array([0, 1, 2, 3, 4, 5]), "first-person derivative keeps hips/chest triangles and removes head and hair descendants")
+	check(avatar.get_node_or_null("Torso_FirstPerson") != null, "unskinned torso is not hidden by its mesh name")
+	check(mesh.mesh == original and original.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() == 12, "third-person original geometry remains intact")
 	avatar.free()
 
 func test_tracking_targets():

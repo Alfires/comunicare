@@ -1105,12 +1105,13 @@ components; corrupt load keeps original read-only with defaults.
 ### [FirstPersonAvatar](../../scripts/assets/first_person_avatar.gd)
 
 Pure import preparation plus main-thread camera activation; never shares a live
-model across avatars. Current policy deliberately excludes camera-interior torso
-as well as head. Original geometry stays intact for other cameras/shadows.
+model across avatars. Local derivatives preserve torso, hips, arms and legs while
+excluding neck/head/face geometry and head-bone descendants such as hair.
+Original geometry stays intact for other cameras/shadows.
 
 | Functions | Contract |
 | --- | --- |
-| `is_camera_interior_bone` | Pure role membership for hips/spine/chest/neck/head/eyes/jaw filtering. |
+| `is_camera_interior_bone` | Pure role membership for neck/head/eyes/jaw filtering; hips/spine/chest and limbs stay visible. |
 | `prepare` | Detached worker-safe derivative construction from annotations/skin weights; idempotent. Returns whether view was prepared/changed; missing humanoid rig can fail. Unknown geometry filtering is heuristic, not universal visual correctness. |
 | `apply` | Marks local camera, changes cull/layer visibility on already prepared representation; bool false if not prepared. No runtime mesh cutting. |
 | `configure_camera` | Excludes local derivative layer from added non-first-person cameras; callers intentionally selecting special layers must coordinate with this policy. |

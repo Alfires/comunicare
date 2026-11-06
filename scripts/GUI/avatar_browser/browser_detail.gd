@@ -79,6 +79,7 @@ func show_record(next: Dictionary, allowed: Dictionary):
 	ensure_preview()
 	if preview.is_node_ready():
 		preview.set_source("")
+	move_child(preview, actions.get_index() + 1 if actions.get_index() < get_child_count() - 1 else get_child_count() - 1)
 	var animation = record.get("type") == "animation"
 	title_label.text = str(record.get("title", record.get("name", "Asset"))).left(200)
 	info_label.text = "%s\nLicense: %s · Format: %s\nCompatibility is checked when the asset is imported." % [
@@ -134,3 +135,4 @@ func show_error(message: String):
 
 func set_compact(compact: bool):
 	back_button.visible = compact
+	custom_minimum_size.x = 0 if compact else 380

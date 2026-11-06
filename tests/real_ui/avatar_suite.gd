@@ -13,6 +13,7 @@ func run():
 	var browser = load("res://scenes/GUI/avatar_browser.tscn").instantiate()
 	root.add_child(browser)
 	root.size = Vector2i(1000, 800)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	check(browser.has_node("BrowserLayout") and not browser.advanced_filters.visible, "browser starts with uncluttered named navigation and collapsed advanced filters")
 	browser.search_box.text = "robot"
 	var sources = browser.registry.sources.duplicate(true)
@@ -27,6 +28,7 @@ func run():
 	browser._card(record)
 	await process_frame
 	await process_frame
+	await create_timer(0.2).timeout
 	var card = browser.card_buttons["osa:fixture"]
 	var point = root.get_final_transform() * card.get_global_rect().get_center()
 	var motion = InputEventMouseMotion.new()
@@ -42,10 +44,25 @@ func run():
 		Input.parse_input_event(click)
 		await process_frame
 	check(browser.selected_record.get("id") == "fixture", "pointer click on result card selects avatar")
-	if browser.selected_record.is_empty(): browser._details(record)
+	if browser.selected_record.is_empty():
+		browser.queue_free()
+		await process_frame
+		quit(1)
+		return
 	await process_frame
 	check(browser.detail.is_visible_in_tree() and browser.detail.use_button.is_visible_in_tree(),
 		"selecting result reveals detail and Use this avatar through hidden scroll parent")
+	var preview_deadline = Time.get_ticks_msec() + 30000
+	while not is_instance_valid(browser.preview.model) and Time.get_ticks_msec() < preview_deadline:
+		await create_timer(0.01).timeout
+	check(is_instance_valid(browser.preview.model), "selecting avatar card automatically loads its independent preview")
+	browser.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	browser.size = Vector2(640, 480)
+	browser._layout()
+	await process_frame
+	await process_frame
+	check(browser.detail.get_global_rect().end.x <= browser.get_global_rect().end.x + 1,
+		"compact selection detail fits browser instead of pushing Apply offscreen")
 	await browser._preview_record(record)
 	check(browser.preview != null and is_instance_valid(browser.preview.model), "catalog avatar loads in production browser preview: " + browser.status.text)
 	check(loader.get_avatar_configuration().model.is_empty(), "preview never equips model")

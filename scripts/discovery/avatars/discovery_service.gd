@@ -38,6 +38,7 @@ func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0
 	if requests.size() >= 4: return {"error": "Too many pending requests"}
 	var ticket = generation
 	var request = HTTPRequest.new()
+	request.use_threads = true
 	request.timeout = 20
 	request.body_size_limit = limit
 	request.max_redirects = 0

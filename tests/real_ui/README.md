@@ -2,6 +2,12 @@
 
 ## Avatar preview and Apply integration
 
+Selection regression additionally clicks the actual result card without a fallback,
+waits for automatic independent preview, checks the detail fits at 640×480, then
+clicks the real Use button. Rendered runs must pass the whole flow; programmatic
+selection cannot conceal a failed hit test. Compact selection hides the sidebar
+and keeps Apply above the preview. Catalog transfers use threaded HTTP requests.
+
 Failure-path regressions cover one-click digest rejection (busy state released,
 equipped model preserved), results whose provider has been removed, and invalid
 animation-source Apply errors. Removed-provider preview/import must return an

@@ -99,6 +99,7 @@ func _ready():
 	results = results_view.grid
 	results_view.record_selected.connect(_details)
 	var detail_scroll = ScrollContainer.new()
+	detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	detail_scroll.name = "DetailScroll"
 	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	layout.add_child(detail_scroll)
@@ -129,6 +130,7 @@ func _ready():
 func _layout():
 	compact = size.x > 0 and size.x < COMPACT_WIDTH
 	detail.set_compact(compact)
+	sidebar.visible = not (compact and detail.visible)
 	main_column.visible = not (compact and detail.visible)
 
 func _navigate(id: String):
@@ -320,6 +322,8 @@ func _details(record: Dictionary):
 	selected_record = record
 	detail.show_record(record, ImportPolicy.new().evaluate(record))
 	_layout()
+	if record.get("type") == "avatar" and ImportPolicy.new().evaluate(record).can_import:
+		_preview_record.call_deferred(record)
 
 func _restore_results():
 	_cancel_pending()

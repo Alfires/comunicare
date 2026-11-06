@@ -5,11 +5,12 @@ var captured_position := Vector2.ZERO
 var events: Array = []
 
 func hover(hand: String, pixels: Vector2, hit_valid: bool):
+	if hand.is_empty(): return
 	hits[hand] = {"position": pixels, "valid": hit_valid and pixels.is_finite() and pixels.x >= 0 and pixels.y >= 0}
 	if captured == hand and hits[hand].valid: captured_position = pixels
 
 func press(hand: String):
-	if not captured.is_empty() or not hits.get(hand, {}).get("valid", false): return
+	if hand.is_empty() or not captured.is_empty() or not hits.get(hand, {}).get("valid", false): return
 	captured = hand
 	captured_position = hits[hand].position
 	events.append({"hand": hand, "position": captured_position, "pressed": true})

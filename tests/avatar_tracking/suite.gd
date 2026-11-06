@@ -115,6 +115,9 @@ func test_calibration():
 	var data = {"schema": 1, "eye_height": 1.65, "scale": 1.0,
 		"head_offset": [0.0, 0.0, 0.0], "left_grip_offset": [0.0, 0.0, 0.0], "right_grip_offset": [0.0, 0.0, 0.0]}
 	check(calibration.save_calibration(data), "valid calibration saves to isolated owner/avatar scope")
+	var oversized = data.duplicate(true)
+	oversized.head_offset = [0.8, 0.8, 0.8]
+	check(not calibration.save_calibration(oversized), "calibration rejects offset vectors longer than runtime solver accepts")
 	check(calibration.load_calibration().get("eye_height") == 1.65, "calibration round-trips eye height")
 	var invalid = data.duplicate(true)
 	invalid.scale = -1.0

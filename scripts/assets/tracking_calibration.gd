@@ -23,6 +23,7 @@ func _valid(data: Variant) -> bool:
 		if not values is Array or values.size() != 3: return false
 		for value in values:
 			if not (value is int or value is float) or not is_finite(value) or absf(value) > 1: return false
+		if Vector3(values[0], values[1], values[2]).length() > 1: return false
 	var offsets = data.get("role_offsets", {})
 	if not offsets is Dictionary or offsets.size() > 6: return false
 	for role in offsets:

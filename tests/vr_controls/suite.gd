@@ -201,6 +201,9 @@ func test_pointer_capture():
 	var empty_pointer = load("res://scripts/GUI/vr_pointer_router.gd").new()
 	empty_pointer.release("")
 	check(empty_pointer.drain_events().is_empty(), "empty pointer identity cannot synthesize release without a capture")
+	empty_pointer.hover("", Vector2(10, 10), true)
+	empty_pointer.press("")
+	check(empty_pointer.drain_events().is_empty() and empty_pointer.hits.is_empty(), "empty hover identity cannot create an unowned press that never releases")
 	var pointer = component("res://scripts/GUI/vr_pointer_router.gd", ["hover", "press", "release", "cancel", "drain_events"])
 	if pointer == null: return
 	pointer.hover("right", Vector2(100, 80), true)

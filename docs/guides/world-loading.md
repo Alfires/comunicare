@@ -1,5 +1,14 @@
 # Responsive world preparation
 
+Distance-based reveal update: the shared DataLoader activation path now holds
+unrevealed package visuals outside 38 m until the local player approaches. Pending
+work is reprioritized at 10 Hz after at least 0.5 m of movement, using world-space
+mesh bounds rather than origin distance (large floors are not hidden merely because
+their origin is far away). Nearby work retains the eight-mesh/CPU scheduling budget.
+Revealed meshes stay resident; this is not distant-resource unloading or lazy
+construction. Collision and validated assets are prepared before entry. Built-in
+home still additionally uses its own trusted asset/attachment scheduler.
+
 Update: visual reveal is now a scene-owned background scheduler, also applied to
 the built-in scene when activated through DataLoader. Activation no longer awaits
 every visual batch: the nearest batch restores immediately, movement can resume

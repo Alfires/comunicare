@@ -59,6 +59,7 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "assets.avatar_compatibility_check", "category": "Assets", "label": "Check avatar humanoid compatibility", "description": "Require declared humanoid bones before equipping. Disable to try valid unrigged/non-humanoid models; animation, tracking and first-person head hiding may be unavailable. File-size and unsafe/malformed-content checks always remain enabled.", "type": "boolean", "default": true, "order": 9},
 		{"id": "assets.avatar_warning_mib", "category": "Assets", "label": "Large avatar warning", "description": "Ask before importing or previewing an avatar above this file size. Effective threshold never exceeds the avatar size limit.", "type": "number", "default": 256.0, "min": 32.0, "max": 1024.0, "step": 32.0, "unit": "MiB", "order": 10},
 		{"id": "assets.avatar_limit_mib", "category": "Assets", "label": "Maximum avatar file size", "description": "Hard import/loading limit. Large files can require substantially more RAM/VRAM. Maximum supported file size is 1 GiB.", "type": "number", "default": 1024.0, "min": 64.0, "max": 1024.0, "step": 32.0, "unit": "MiB", "order": 11},
 		{"id": "interface.theme_preset", "category": "Interface", "label": "Color scheme", "type": "enum", "options": {"graphite": "Graphite", "paper": "Paper", "forest": "Forest", "sand": "Sand", "night": "Night", "high_contrast": "High contrast"}, "default": "graphite", "order": -4},

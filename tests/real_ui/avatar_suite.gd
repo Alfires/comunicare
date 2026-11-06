@@ -16,6 +16,45 @@ func run():
 	var save = root.get_node("SaveData")
 	save.load_acount()
 	var loader = root.get_node("DataLoader")
+	var compatibility_id = "assets.avatar_compatibility_check"
+	check(save.registry.get_definition(compatibility_id).get("default") == true, "avatar compatibility check is enabled by default and registered in settings")
+	if not save.registry.get_definition(compatibility_id).is_empty():
+		var configuration = loader.get_avatar_configuration()
+		# Keep the real fixture's valid geometry/UVs, removing only humanoid
+		# declarations to isolate compatibility policy from renderer import issues.
+		var fixture = FileAccess.get_file_as_bytes("res://browser-avatar.vrm")
+		var json_length = fixture.decode_u32(12)
+		var document: Dictionary = JSON.parse_string(fixture.slice(20, 20 + json_length).get_string_from_utf8())
+		var extensions: Dictionary = document.get("extensions", {})
+		extensions.erase("VRM")
+		extensions.erase("VRMC_vrm")
+		for field in ["extensionsUsed", "extensionsRequired"]:
+			if document.has(field): document[field] = document[field].filter(func(value): return value not in ["VRM", "VRMC_vrm"])
+		var json_bytes = JSON.stringify(document).to_utf8_buffer()
+		while json_bytes.size() % 4: json_bytes.append(32)
+		var remaining = fixture.slice(20 + json_length)
+		var unrigged = PackedByteArray()
+		unrigged.resize(20)
+		unrigged.encode_u32(0, 0x46546c67)
+		unrigged.encode_u32(4, 2)
+		unrigged.encode_u32(8, 20 + json_bytes.size() + remaining.size())
+		unrigged.encode_u32(12, json_bytes.size())
+		unrigged.encode_u32(16, 0x4e4f534a)
+		unrigged.append_array(json_bytes)
+		unrigged.append_array(remaining)
+		var unrigged_path = "user://unrigged.glb"
+		var unrigged_file = FileAccess.open(unrigged_path, FileAccess.WRITE)
+		unrigged_file.store_buffer(unrigged)
+		unrigged_file.close()
+		save.store.set_value(compatibility_id, true)
+		check(not await configuration._validate_model(unrigged_path), "strict mode rejects a model without declared humanoid mapping")
+		save.store.set_value(compatibility_id, false)
+		check(await configuration._validate_model(unrigged_path), "disabled compatibility check accepts valid self-contained GLB without humanoid mapping")
+		var malformed = FileAccess.open("user://malformed.glb", FileAccess.WRITE)
+		malformed.store_string("not a model")
+		malformed.close()
+		check(not await configuration._validate_model("user://malformed.glb"), "disabling compatibility check never accepts malformed model bytes")
+		save.store.set_value(compatibility_id, true)
 	var fixture_bytes = FileAccess.get_file_as_bytes("res://browser-avatar.vrm")
 	var policy = load("res://scripts/assets/avatar_size_policy.gd")
 	check(policy.classify(fixture_bytes.size(), save.store) == "allow", "actual avatar fixture byte count is below configured warning and hard limits")
@@ -95,6 +134,19 @@ func run():
 	while not is_instance_valid(browser.preview.model) and Time.get_ticks_msec() < preview_deadline:
 		await create_timer(0.01).timeout
 	check(is_instance_valid(browser.preview.model), "selecting avatar card automatically loads its independent preview")
+	if DisplayServer.get_name() != "headless" and is_instance_valid(browser.preview.model):
+		for frame in 4: await process_frame
+		await RenderingServer.frame_post_draw
+		var shown = browser.preview.viewport.get_texture().get_image()
+		shown.save_png("user://avatar-preview-visible.png")
+		browser.preview.model.hide()
+		browser.preview.stage._dirty = true
+		for frame in 4: await process_frame
+		await RenderingServer.frame_post_draw
+		var hidden = browser.preview.viewport.get_texture().get_image()
+		check(shown.get_data() != hidden.get_data(), "rendered preview pixels contain avatar geometry, not only an allocated model node")
+		browser.preview.model.show()
+		browser.preview.stage._dirty = true
 	root.size = Vector2i(640, 480)
 	overlay.apply_layout(Vector2(640, 480))
 	browser._layout()

@@ -203,8 +203,12 @@ func _validate_animation(path_to_file: String) -> bool:
 	return not parsed.is_empty()
 
 func _validate_model(path_to_file: String) -> bool:
-	if not await loader._validate_avatar(path_to_file, true):
-		last_error = "Avatar model validation failed or loading was canceled: expected a self-contained humanoid VRM/GLB within the configured size limit (maximum 1 GiB), with a compatible skeleton and declared mapping."
+	var save = get_node_or_null("/root/SaveData")
+	var strict = true
+	if save != null and save.get("store") != null:
+		strict = save.store.get_value("assets.avatar_compatibility_check") != false
+	if not await loader._validate_avatar(path_to_file, strict):
+		last_error = "Avatar model validation failed or loading was canceled. A valid self-contained VRM/GLB within the configured size limit is required." + (" Humanoid compatibility checking is enabled in Settings → Assets." if strict else " Compatibility checking is disabled, but malformed/unsafe files are still rejected.")
 		return false
 	# Embedded motion is optional. Model validity must not depend on standalone
 	# animation limits (16 MiB/64 clips/rotation-only); _restore skips unsupported
@@ -237,7 +241,6 @@ func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
 			last_error = "Selected avatar is missing from the cache. Import it again before applying."
 			return false
 		if not await _validate_model(handle.path):
-			last_error = "Applied model must contain a compatible humanoid skeleton."
 			return false
 		if ticket != generation: return false
 	if ticket != generation: return false

@@ -86,6 +86,19 @@ for this application session, not saved as permanent consent. Canceling leaves t
 existing/fallback avatar in place. Headless/server runs cannot confirm large files.
 Byte limits do not guarantee sufficient decoded RAM/VRAM or model compatibility.
 
+## Optional humanoid compatibility check
+
+**Settings → Assets → Check avatar humanoid compatibility** is enabled by
+default. Disable it to attempt importing and equipping valid self-contained
+VRM/GLB models without a declared humanoid mapping. Such models may not animate,
+track controllers or hide their head correctly in first person. VR models with no
+skeleton display without a tracking modifier. Re-enable the setting to restore
+strict validation for subsequent imports and Apply actions.
+
+This switch does **not** disable file-size limits, malformed-container checks,
+external-resource restrictions, preview script restrictions or sharing consent.
+It does not repair a failed download or make every model supported.
+
 ## Add a custom API
 
 In **Providers**, enter a name, HTTPS endpoint and optional **Bearer** or

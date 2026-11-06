@@ -507,8 +507,9 @@ func load_vrm_model():
 		model.queue_free()
 		return
 	var new_skeleton = _find_skeleton(model)
-	if new_skeleton == null:
+	if new_skeleton == null and SaveData.store.get_value("assets.avatar_compatibility_check") != false:
 		model.queue_free()
+		avatar_url = ""
 		return
 	if xr_camera.get_parent() != origin_node:
 		xr_camera.reparent(origin_node)
@@ -525,7 +526,8 @@ func load_vrm_model():
 
 	skeleton = _find_skeleton(vrm_model)
 	if skeleton == null:
-		print("ERROR: Skeleton not found")
+		tracking_modifier = null
+		role_offsets.clear()
 		return
 	
 	var tracking = preload("res://scripts/assets/avatar_tracking.gd").new()

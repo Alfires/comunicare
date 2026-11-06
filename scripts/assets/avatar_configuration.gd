@@ -232,9 +232,6 @@ func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
 		if ticket != generation: return false
 	# Build a detached model before committing so a failed candidate never equips.
 	if not candidate_model.is_empty():
-		if not candidate_model.get("share", false):
-			last_error = "Equipped custom models need redistribution permission so instance participants can receive the same avatar."
-			return false
 		var handle = loader.get_asset_cache().revision_handle(candidate_model.hash)
 		if handle.is_empty():
 			last_error = "Selected avatar is missing from the cache. Import it again before applying."

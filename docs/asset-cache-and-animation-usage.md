@@ -103,7 +103,9 @@ source editor, not a playback console:
   HTTPS URL. A model may also contain supported embedded animation clips.
 - Otherwise add one or multiple external `.vrma`/humanoid `.glb` files or URLs.
 - Confirm redistribution permission only for content you are allowed to share.
-  Custom models need that permission to equip; imported emotes without permission
+  Custom models can equip locally without that permission; their model bytes are
+  not offered to instance participants. Other players keep their available avatar
+  representation rather than receiving the private local model. Imported emotes without permission
   cannot be broadcast. Unshared custom movement clips fall back to defaults when
   connected to a compatible relay.
 - **Apply** equips the candidate configuration. **Cancel / Back** leaves the

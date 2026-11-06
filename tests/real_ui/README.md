@@ -11,6 +11,8 @@ FileDialog `file_selected` connection, then scrolls to and pointer-clicks the
 editor's Apply button. File selection itself is injected, not OS-dialog automation.
 Test accounts/settings/cache are disposable; this does not reproduce a user's
 existing corrupt/read-only stores, external provider outages or every avatar.
+Local file import leaves redistribution unchecked and verifies private Apply
+replaces both real player models without granting sharing permission.
 
 Selection regression additionally clicks the actual result card without a fallback,
 waits for automatic independent preview, checks the detail fits at 640×480, then

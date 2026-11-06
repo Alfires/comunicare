@@ -54,7 +54,7 @@ func _ready():
 	model_mode.visible = false # Internal picker mode; users choose a dedicated action.
 	imports.add_child(model_mode)
 	permission = CheckButton.new()
-	permission.text = "I have permission to redistribute these selected assets to instance participants"
+	permission.text = "Allow sharing selected assets with instance participants (only if I have redistribution permission). Unchecked models equip locally only."
 	permission.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	imports.add_child(permission)
 	picker = FileDialog.new()

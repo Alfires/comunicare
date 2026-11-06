@@ -180,8 +180,9 @@ func run():
 			editor.queue_free()
 			await process_frame
 	var local_editor = load("res://scenes/GUI/animation_menue.tscn").instantiate()
+	await loader.get_avatar_configuration().apply({}, [])
 	browser.add_child(local_editor)
-	local_editor.permission.set_pressed_no_signal(true)
+	check(not local_editor.permission.button_pressed, "local import defaults to no redistribution consent")
 	local_editor.choose_model_file()
 	local_editor.picker.hide()
 	# Exercise the actual FileDialog signal wiring, not direct import_source.
@@ -205,6 +206,12 @@ func run():
 		await process_frame
 	while local_editor.busy and Time.get_ticks_msec() < local_deadline: await create_timer(0.01).timeout
 	check(local_editor.status.text.begins_with("Applied."), "local editor Apply button equips imported file: " + local_editor.status.text)
+	check(not loader.get_avatar_configuration().model.get("share", true), "local equip never silently grants permission to share model bytes")
+	var local_equip_deadline = Time.get_ticks_msec() + 15000
+	var local_hash = local_editor.draft_model.get("hash", "")
+	while (not is_instance_valid(local_player.avatar_model) or local_player.avatar_model.get_meta("asset_revision", "") != local_hash or not is_instance_valid(vr_player.vrm_model) or vr_player.vrm_model.get_meta("asset_revision", "") != local_hash) and Time.get_ticks_msec() < local_equip_deadline:
+		await create_timer(0.01).timeout
+	check(not local_hash.is_empty() and is_instance_valid(local_player.avatar_model) and local_player.avatar_model.get_meta("asset_revision", "") == local_hash and is_instance_valid(vr_player.vrm_model) and vr_player.vrm_model.get_meta("asset_revision", "") == local_hash, "private local Apply replaces both real player models after clearing previous selection")
 	local_editor.queue_free()
 	browser.queue_free()
 	overlay.queue_free()

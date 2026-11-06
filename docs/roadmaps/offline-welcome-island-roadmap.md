@@ -400,7 +400,14 @@ Part 01 is implemented with manual gates; part 02 delivers provenance/sample ass
 with runtime limits; part 03 delivers Credits with a manual headset gate;
 part 04 delivers the tested layout graybox; part 05 adds spawn/recovery/revisions;
 part 06 adds shared offline interactions and rendered recovery/PCK checks;
-parts 07–14 remain planned. See the
+part 07 adds the pond/dock and water recovery with manual headset gates;
+part 08 adds the constrained local ship with manual XR/UI gates;
+part 09 adds the initial furnished house and side spaces with manual XR/art gates;
+part 10 adds adjustable room lighting with manual XR/performance gates;
+part 11 has a tested functional kitchen foundation with final kitchenware/art/XR
+gates open; part 12 adds optional Help with manual XR/playtest gates;
+part 13 has an initial tested landscape and part 14 a local release matrix; final
+art/hardware/performance gates remain open and release is blocked. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

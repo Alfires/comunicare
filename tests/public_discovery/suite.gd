@@ -371,6 +371,16 @@ func test_builtin_home_contract():
 	player.velocity = Vector3(3, -4, 5)
 	check(await loader.activate_world(staged), "real DataLoader activates built-in home")
 	check(player.position == Vector3(0, 1, 0) and player.velocity == Vector3.ZERO, "DataLoader activation clears motion at same spawn as direct startup")
+	var identity = player.get_instance_id()
+	for cycle in 3:
+		var outgoing = Node3D.new()
+		outgoing.name = "OtherWorldFixture"
+		var scene = PackedScene.new(); scene.pack(outgoing); outgoing.free()
+		check(await loader.activate_world({"scene": scene, "spawn_point": [3, 1, 2]}), "real loader leaves home for isolated world: " + str(cycle))
+		check(get_nodes_in_group("home_ship").is_empty() and get_nodes_in_group("home_kitchen").is_empty(), "home-local owners removed on world exit: " + str(cycle))
+		check(await loader.activate_world(staged), "real loader returns to acknowledged home content: " + str(cycle))
+		check(player.get_instance_id() == identity and get_nodes_in_group("player").size() == 1 and player.position == Vector3(0,1,0), "world roundtrip keeps one player at home spawn: " + str(cycle))
+		check(current_scene.get_node("Island/House/Kitchen").heat_level == 0, "home kitchen starts fresh after world return: " + str(cycle))
 	player.queue_free()
 	current_scene.queue_free()
 	await process_frame

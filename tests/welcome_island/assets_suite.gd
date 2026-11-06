@@ -45,7 +45,7 @@ func run():
 	for entry in data.assets:
 		for file in entry.files:
 			var resource_path = "res://" + file.path
-			if file.path.ends_with(".gltf"):
+			if file.path.ends_with(".gltf") or file.path.ends_with(".glb"):
 				var packed = load(resource_path)
 				check(packed is PackedScene, entry.id + " imports as a scene")
 				if not packed is PackedScene: continue
@@ -67,7 +67,9 @@ func run():
 						if arrays[Mesh.ARRAY_INDEX] != null: triangles += arrays[Mesh.ARRAY_INDEX].size() / 3
 						var material = node.mesh.surface_get_material(surface)
 						check(material is BaseMaterial3D, entry.id + " has imported PBR material")
-						if material is BaseMaterial3D and material.resource_name.contains("twig"):
+						# Pine uses alpha-card twigs; fir models its needles as actual
+						# opaque geometry. Names alone do not imply transparency.
+						if material is BaseMaterial3D and entry.id == "polyhaven.pine_sapling_small" and material.resource_name.contains("twig"):
 							check(material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR,
 								entry.id + " foliage uses alpha cutout rather than opaque cards")
 							check(material.cull_mode == BaseMaterial3D.CULL_DISABLED, entry.id + " foliage is double-sided")
@@ -75,7 +77,7 @@ func run():
 					entry.id + " has plausible finite meter-scale bounds")
 				print("INSPECT: ", entry.id, " bounds=", bounds.size, " vertices=", vertices, " triangles=", triangles)
 				scene.free()
-			elif file.path.ends_with(".jpg") or file.path.ends_with(".hdr"):
+			elif file.path.ends_with(".jpg") or file.path.ends_with(".hdr") or file.path.ends_with(".png"):
 				var texture = load(resource_path)
 				check(texture is Texture2D and texture.get_width() <= 2048 and texture.get_height() <= 2048,
 					file.original_name + " imports within 2K texture budget")

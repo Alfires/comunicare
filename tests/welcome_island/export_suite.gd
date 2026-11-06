@@ -9,6 +9,8 @@ func run():
 	get_tree().root.add_child(world)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	await preload("res://streaming_wait.gd").complete(world)
+	ok = ok and world.get_node_or_null("PondShip") != null and world.get_node("Island").streaming.failed.is_empty()
 	ok = ok and world.get_node_or_null("Island") != null
 	world.queue_free()
 	await get_tree().process_frame

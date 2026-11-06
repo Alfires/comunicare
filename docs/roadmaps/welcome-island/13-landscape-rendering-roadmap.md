@@ -1,18 +1,30 @@
 # 13 — Original landscape, atmosphere and performance
 
-**Status:** Planned. **Prerequisites:** 02, 07–11.
+**Status:** Initial composition implemented; final art/XR/performance acceptance open — 2026-11-05.
+Vegetation pass (2026-11-06): distinct fir/pine canopies, fern/stump understory,
+clustered secondary trees, meadow variation and irregular path shoulders added.
+Source canopy retained where aggressive simplification failed visual comparison;
+new performance measurements required. Final human art/XR acceptance remains open.
+Detail follow-up (2026-11-06): bounded rim roots and individual shoreline rock/plant
+placements are implemented and regression-tested without blocking dock routes.
+These close missing-detail items, not human final-art approval or XR acceptance.
+Geometry follow-up (2026-11-06): primitive underside replaced by an irregular
+multi-ring mesh; rim contour smoothed and routes/pond regression-tested. This
+supersedes the primitive-cone limitation, not final art, vegetation/root detail,
+human XR or performance acceptance.
+**Prerequisites:** 02, 07–11. See [measurements/limits](../../../tests/welcome_island/README.md).
 See the [mandatory test-first workflow](README.md) and [rendering policy](../offline-welcome-island-roadmap.md#rendering-sound-and-performance).
 
 ## 1. Write tests first — before building
 
-- [ ] Add executable scene/resource tests for shipped dependencies, collision/LOD
+- [x] Add executable scene/resource tests for shipped dependencies, collision/LOD
   setup, approved material/texture budgets, bounded light counts and optional audio
   cleanup/volume ownership. Preserve layout, center spawn and route tests.
-- [ ] Write named camera/view procedures for spawn, grove, deck, house, pond and
+- [x] Write named camera/view procedures for spawn, grove, deck, house, pond and
   underside; require no final debug geometry or test-swatch scenery.
 - [ ] Define named desktop/headset configurations, load/frame/VRAM measurements,
   target refresh budget, both-eye water/reflection checks and a non-SSR fallback.
-- [ ] Record graybox failures and measured baseline before final art/optimization.
+- [x] Record graybox failures and measured baseline before final art/optimization.
   No headless substitute for GPU, art-quality or comfort evidence.
 
 ## 2. Build only after the tests exist
@@ -29,3 +41,14 @@ See the [mandatory test-first workflow](README.md) and [rendering policy](../off
   screenshots and measured desktop/XR results against the prewritten criteria.
 - [ ] Confirm every area is inviting with hints hidden and not a tech-demo exhibit.
   Record unsupported hardware/skips honestly; unmet budgets remain open gates.
+
+Tests and original asset placements are delivered, but screenshots still show sparse
+foliage, geometric terrain edge/underside and unfinished material blending. Do not
+mark final landscape/visual acceptance complete. Compatibility and initial Forward
+Plus views/counters are not headset GPU/VRAM budgets. No cleared audio added yet.
+
+Measured desktop follow-up (2026-11-06): GTX 1070 Forward Plus small-window loop
+median ~8.3 ms / p95 8.5–9.0 ms over 60 samples per view, video memory ~386 MB.
+See test notes for exact values and vsync/scope limits. Human XR, sustained GPU
+profiling and final visual-art quality remain open. These measurements do not
+turn the sparse initial landscape into finished environment art.

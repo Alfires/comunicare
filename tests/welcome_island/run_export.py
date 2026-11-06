@@ -23,7 +23,7 @@ def main():
     args = parser.parse_args()
     godot = shutil.which(os.environ.get("GODOT", "godot"))
     if not godot: return 2
-    with tempfile.TemporaryDirectory(prefix="island-export-", dir="/tmp/opencode") as directory:
+    with tempfile.TemporaryDirectory(prefix="island-export-", dir=os.environ.get('ISLAND_TEST_TMP', '/tmp/opencode')) as directory:
         project = Path(directory) / "project"
         project.mkdir()
         for folder in ("assets/welcome_island", "scenes/worlds/welcome_island", "scripts/worlds/welcome_island"):
@@ -33,6 +33,7 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)
         shutil.copy2(HERE / "export_suite.gd", project / "export_suite.gd")
+        shutil.copy2(HERE / "streaming_wait.gd", project / "streaming_wait.gd")
         (project / "main.tscn").write_text('[gd_scene load_steps=2 format=3]\n[ext_resource type="Script" path="res://export_suite.gd" id="1"]\n[node name="Runner" type="Node"]\nscript = ExtResource("1")\n')
         (project / "project.godot").write_text('config_version=5\n[application]\nconfig/name="Exported island contracts"\nrun/main_scene="res://main.tscn"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
         (project / "export_presets.cfg").write_text('[preset.0]\nname="IsolatedPack"\nplatform="Linux"\nrunnable=true\nexport_filter="all_resources"\ninclude_filter="*.json,*.gd"\nexclude_filter=""\n[preset.0.options]\nbinary_format/architecture="x86_64"\n')

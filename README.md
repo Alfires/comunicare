@@ -85,6 +85,15 @@ and redistribution checks still apply. Previewing alone never equips a model.
 
 ## Create worlds
 
+Enable **Comunicare World Tools** in Godot's **Project Settings → Plugins** to use
+the World Tools dock. Create primitive worlds, select entities, edit their names,
+positions and box sizes, duplicate/delete safely, and undo/redo tool actions.
+Behavior templates bind to the selected entity. Save editable JSON projects and
+export validated `.cworld` packages for local loading.
+
+Start with the **[Godot World Tools walkthrough](docs/guides/godot-world-tools.md)**.
+The plugin does not yet provide 3D gizmos, model-import UI or automatic PC/VR launches.
+
 Use the [safe world-authoring guide](docs/guides/safe-world-authoring.md) for the
 supported authoring, validation and export workflow. Runtime world packages are
 validated data; arbitrary Godot scenes, scripts and native resources are not

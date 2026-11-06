@@ -1,5 +1,8 @@
 # Comunicare World Tools — initial plugin
 
+For the complete editing workflow, see the
+[Godot World Tools walkthrough](../../docs/guides/godot-world-tools.md).
+
 Enable **Project → Project Settings → Plugins → Comunicare World Tools**.
 The **World Tools** dock appears on the right. It is not enabled automatically.
 This addon currently depends on the game's `scripts/worlds/` runtime validators;

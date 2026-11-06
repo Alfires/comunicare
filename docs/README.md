@@ -41,6 +41,7 @@ headset, renderer, microphone or production-network verification.
 ## World creators
 
 - [Safe world authoring](guides/safe-world-authoring.md)
+- [Godot World Tools: step-by-step editing and export](guides/godot-world-tools.md)
 - [Initial Godot authoring plugin](../addons/comunicare_world_tools/README.md)
 - [Current in-game editor implementation](../scripts/editor/README.md)
 - [Static models and scoped checkpoints](guides/downloadable-world-models.md)

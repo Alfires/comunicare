@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 20: house comfort](20-house-comfort-roadmap.md) records lighter interior
+finishes, lived-in details and mesh-by-mesh exterior assembly.
+
 [Part 19: streamed material reuse](19-streamed-material-reuse-roadmap.md) covers
 shared surface materials and incremental upgrades, with current hitch measurements.
 

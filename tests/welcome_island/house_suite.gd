@@ -26,6 +26,9 @@ func run():
 	check(house.get_node("Sofa").get_meta("style_source", "") == "polyhaven.sofa_02", "lounge seating matches realistic material style")
 	check(house.get_node("LowTable").get_meta("style_source", "") == "polyhaven.coffee_table_round_01", "table uses compatible realistic asset")
 	check(house.get_node("BedOne").get_meta("style_source", "") == "polyhaven.vintage_day_bed", "resting furniture uses consistent realistic textured source")
+	for name in ["BedsideTable", "BedroomShelf", "LoungeArtwork", "EntryPlant", "BedroomArtwork"]:
+		check(house.get_node_or_null(NodePath(name)) != null, "lived-in house detail: " + name)
+	check(house.get("exterior_slices") > 10, "exterior adaptation yields across multiple mesh slices")
 	for name in ["LeftBench", "LeftCushions", "PicnicTable", "ShoreBench", "HerbBedOne", "HerbBedTwo"]:
 		check(world.get_node_or_null("Island/" + name) != null, "side spaces include " + name)
 	var body = CharacterBody3D.new(); root.add_child(body)

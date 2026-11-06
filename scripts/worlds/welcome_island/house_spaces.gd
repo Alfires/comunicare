@@ -3,6 +3,7 @@ extends Node3D
 var resting: Dictionary = {}
 signal furnished
 var furnished_ready := false
+var exterior_slices := 0
 
 func rest_at(label: String, player: CharacterBody3D) -> bool:
 	if label not in ["BedOne", "BedTwo", "Sofa"] or not is_instance_valid(player) or not player.is_in_group("player") or player.has_meta("home_rest") or player.has_meta("home_ship"): return false
@@ -84,7 +85,7 @@ func _ready():
 	_box("Porch", Vector3(0, -0.06, 8.5), Vector3(10, 0.16, 3), true)
 	await get_tree().process_frame
 	if not is_inside_tree() or is_queued_for_deletion(): return
-	_install_exterior()
+	await _install_exterior()
 	await get_tree().process_frame
 	if not is_inside_tree() or is_queued_for_deletion(): return
 	# Sparse zoning, broad shared circulation; no forced seating/lying head pose.
@@ -100,15 +101,55 @@ func _ready():
 	_furniture("LowTable", "tableCoffee", Vector3(-4.5, 0, 4.2), Vector3(1.8, 0.5, 0.9))
 	_furniture("Rug", "rugRectangle", Vector3(-4.5, 0.015, 3.6), Vector3(4.5, 0.02, 3.8), false)
 	_furniture("FloorLamp", "lampRoundFloor", Vector3(-6.8, 0, 2), Vector3(0.5, 1.5, 0.5))
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	var kitchen = Marker3D.new(); kitchen.name = "KitchenReserve"; kitchen.position = Vector3(5, 0, -3); add_child(kitchen)
 	var kitchen_node = preload("res://scripts/worlds/welcome_island/kitchen.gd").new()
 	kitchen_node.name = "Kitchen"; add_child(kitchen_node)
 	_furniture("HousePlant", "plantSmall1", Vector3(6, 0, 4.8), Vector3(0.5, 0.75, 0.5))
+	await _comfort_details()
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	var lighting = preload("res://scripts/worlds/welcome_island/room_lighting.gd").new()
 	lighting.name = "RoomLighting"
 	add_child(lighting)
 	furnished_ready = true
 	furnished.emit()
+
+func _comfort_details():
+	_furniture("BedsideTable", "tableCoffee", Vector3(-6.7, 0, -4.6), Vector3(0.65, 0.5, 0.65))
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
+	_furniture("EntryPlant", "plantSmall1", Vector3(6.5, 0, 6), Vector3(0.7, 1.0, 0.7))
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
+	var shelf = _box("BedroomShelf", Vector3(-4, 1.55, -6.6), Vector3(4.6, 0.12, 0.38), false)
+	shelf.material_override = shelf.material_override.duplicate()
+	shelf.material_override.albedo_color = Color(0.5, 0.35, 0.21)
+	for index in 7:
+		var book = _box("ShelfBook", Vector3(-5.6 + index*0.18, 1.77, -6.55), Vector3(0.12, 0.32+(index%3)*0.04, 0.20), false)
+		var material = StandardMaterial3D.new()
+		material.albedo_color = [Color(0.24,0.33,0.27),Color(0.56,0.34,0.19),Color(0.65,0.60,0.44)][index%3]
+		material.roughness = 1; book.material_override = material
+	await get_tree().process_frame
+	if not is_inside_tree() or is_queued_for_deletion(): return
+	_furniture("ShelfPlant", "plantSmall1", Vector3(-2.5, 1.63, -6.55), Vector3(0.35, 0.45, 0.35), false)
+	_artwork("BedroomArtwork", Vector3(-4, 2.2, -6.72), Vector3(2.3, 0.65, 0.06))
+	_artwork("LoungeArtwork", Vector3(-4.5, 1.9, 6.79), Vector3(2.6, 0.85, 0.06))
+
+func _artwork(label: String, center: Vector3, size: Vector3):
+	var frame = _box(label, center, size, false)
+	frame.material_override = frame.material_override.duplicate()
+	frame.material_override.albedo_color = Color(0.28, 0.19, 0.11)
+	for side in [-1, 1]:
+		var print_node = _box(label + "Print", center + Vector3(0,0,side*0.04), size-Vector3(0.14,0.14,0.04), false)
+		var material = StandardMaterial3D.new()
+		material.albedo_color = Color(0.35,0.46,0.37); material.roughness = 1
+		print_node.material_override = material
+		for band in 3:
+			var ridge = _box(label + "LandscapeBand", center + Vector3(0, -size.y*0.2+band*0.14, side*0.065), Vector3(size.x-0.2, 0.10, 0.015), false)
+			var pigment = StandardMaterial3D.new()
+			pigment.albedo_color = [Color(0.19,0.29,0.25),Color(0.46,0.52,0.37),Color(0.72,0.68,0.50)][band]
+			pigment.roughness = 1; ridge.material_override = pigment
 
 func _furniture(label: String, asset: String, center: Vector3, target: Vector3, solid: bool = true) -> Node3D:
 	var root = Node3D.new(); root.name = label; root.position = center; add_child(root)
@@ -148,6 +189,9 @@ func _install_exterior():
 	# Keep the existing proven collision/circulation. Adapt only the visible front
 	# facade to the broad accessible entrance; no closed door or mandatory steps.
 	for mesh in exterior.find_children("*", "MeshInstance3D", true, false):
+		await get_tree().process_frame
+		if not is_inside_tree() or is_queued_for_deletion(): return
+		exterior_slices += 1
 		var label = str(mesh.name).to_lower()
 		if "entrance" in label or "stair tread" in label or "service steps" in label or "grounded landing" in label or "foundation and floor" in label or "front left window" in label or "front right window" in label:
 			mesh.visible = false
@@ -191,7 +235,10 @@ func _install_exterior():
 	# A timber ceiling separates the liveable rooms from the imported roof void.
 	get_node("Roof").mesh.size = Vector3(15.7, 0.2, 13.7)
 	get_node("Roof").position.y = 2.95
-	get_node("Roof").material_override.albedo_color = Color(0.7, 0.65, 0.55)
+	var ceiling = StandardMaterial3D.new()
+	ceiling.albedo_color = Color(0.82, 0.78, 0.68); ceiling.roughness = 0.95
+	get_node("Roof").material_override = ceiling
+	get_node("Floor").material_override.albedo_color = Color(1.15, 1.06, 0.91)
 	for node in find_children("Front*", "MeshInstance3D", false, false):
 		var material = StandardMaterial3D.new(); material.albedo_color = Color(0.73, 0.69, 0.59); material.roughness = 0.85
 		node.material_override = material
@@ -200,6 +247,9 @@ func _install_exterior():
 	for mesh in exterior.find_children("*", "MeshInstance3D", true, false):
 		var label = str(mesh.name).to_lower()
 		if not mesh.is_visible_in_tree() or not ("glazing" in label or "frame" in label or "sill" in label or "post" in label or "beam" in label): continue
+		await get_tree().process_frame
+		if not is_inside_tree() or is_queued_for_deletion(): return
+		exterior_slices += 1
 		# Exact static triangles only for visible, modest architectural details;
 		# never use the whole scene, furnishing or vegetation as physics geometry.
 		var faces = mesh.mesh.get_faces()

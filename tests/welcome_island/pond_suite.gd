@@ -42,10 +42,17 @@ func run():
 		if hit.is_empty() or hit.position.y > -1.2: ship_clear = false
 	check(ship_clear, "central pond reserves a clear twelve-metre ship turning area")
 	var dry := true
+	# Shore/rim stones now have real collision. This check measures the bank
+	# terrain underneath decoration, not the tops of those intentional rocks.
+	var bank_exclusions: Array[RID] = []
+	for node in world.find_children("*", "Node3D", true, false):
+		if node.has_meta("rock_collision"):
+			var rock_body = node.get_meta("rock_collision").get_ref()
+			if is_instance_valid(rock_body): bank_exclusions.append(rock_body.get_rid())
 	for index in 72:
 		var angle = index * TAU / 72
 		var point = Vector3(23 + cos(angle) * 17, 4, 23 + sin(angle) * 15)
-		var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(point, point - Vector3.UP * 8, 1))
+		var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(point, point - Vector3.UP * 8, 1, bank_exclusions))
 		if hit.is_empty() or absf(hit.position.y) > 0.1: dry = false
 	check(dry, "continuous dry shoreline perimeter stays on same island")
 	var dock_clear := true

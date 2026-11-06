@@ -14,6 +14,7 @@ var streaming_materials := false
 signal home_ready
 var home_loaded := false
 var surface_materials: Dictionary = {}
+var ground_samples: Dictionary = {}
 
 func _ready():
 	streaming = preload("res://scripts/worlds/welcome_island/streaming.gd").new()
@@ -118,7 +119,44 @@ func _build_home():
 func _height(x: float, z: float) -> float:
 	# Sealed basin; the broad dry west bank connects the dock to the island.
 	var distance = Vector2((x - 23) / 1.15, z - 23).length()
-	return -2.0 * clampf((13.0 - distance) / 3.0, 0, 1) * clampf((x - 12) / 3, 0, 1)
+	var basin = -2.0 * clampf((13.0 - distance) / 3.0, 0, 1) * clampf((x - 12) / 3, 0, 1)
+	var point = Vector3(x, 0, z)
+	# Preserve the entire pond quadrant, including the outer grid triangles and
+	# existing shore-rock colliders, at its reviewed bank height.
+	if x > 3 and z > 4: return basin
+	var mask = smoothstep(8.0, 14.0, Vector2(x,z).length())
+	mask *= 1.0-smoothstep(45.0, 49.0, Vector2(x,z).length())
+	mask *= smoothstep(19.0, 24.0, distance)
+	# Signed distance from reserved house/social rectangles, with soft shoulders.
+	for area in [[Vector2(24,-20), Vector2(12,11)], [Vector2(-29,-12),Vector2(9,7)], [Vector2(-28,19),Vector2(9,8)], [Vector2(35,0),Vector2(7,8)]]:
+		var delta = (Vector2(x,z)-area[0]).abs()-area[1]
+		mask *= smoothstep(0.0, 5.0, maxf(delta.x, delta.y))
+	for route in routes.values():
+		var previous = Vector3.ZERO
+		for endpoint in route:
+			var clearance = Geometry3D.get_closest_point_to_segment(point, previous, endpoint).distance_to(point)
+			mask *= smoothstep(4.0, 8.0, clearance)
+			previous = endpoint
+	var hills := 0.0
+	for hill in [[Vector2(-21,-27), 13.0, 2.8], [Vector2(-35,7),12.0,1.9], [Vector2(-14,32),13.0,2.2], [Vector2(5,-39),12.0,1.7], [Vector2(40,14),10.0,1.4]]:
+		var falloff = 1.0-smoothstep(0.0, float(hill[1]), Vector2(x,z).distance_to(hill[0]))
+		hills += falloff*float(hill[2])
+	return basin + hills*mask
+
+func _ground_height(x: float, z: float) -> float:
+	# Match the rendered/collision grid's two planar triangles, not only the
+	# analytic hill. Keeps small grass and stones from floating between vertices.
+	var gx = floorf(x/2.0)*2.0; var gz = floorf(z/2.0)*2.0
+	var u = (x-gx)*0.5; var v = (z-gz)*0.5
+	var a = _sample_height(gx,gz); var b = _sample_height(gx+2,gz)
+	var c = _sample_height(gx,gz+2); var d = _sample_height(gx+2,gz+2)
+	if u+v <= 1.0: return a+(b-a)*u+(c-a)*v
+	return d+(c-d)*(1-u)+(b-d)*(1-v)
+
+func _sample_height(x: float, z: float) -> float:
+	var key = Vector2(x,z)
+	if not ground_samples.has(key): ground_samples[key] = _height(x,z)
+	return ground_samples[key]
 
 func _build_pond():
 	var water = StaticBody3D.new()

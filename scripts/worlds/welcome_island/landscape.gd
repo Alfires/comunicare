@@ -49,9 +49,14 @@ func _detail_point(index: int) -> Vector3:
 	var centers = [Vector3(-17,0,-16), Vector3(-23,0,-26), Vector3(-35,0,5), Vector3(-13,0,15), Vector3(-17,0,29), Vector3(3,0,-24), Vector3(9,0,12), Vector3(37,0,14), Vector3(30,0,-37)]
 	var angle = index * 2.399963
 	var radius = 0.8 + sqrt(float((index * 17) % 23) / 23.0) * 5.4
-	return centers[index % centers.size()] + Vector3(cos(angle)*radius, 0, sin(angle)*radius*0.7)
+	return _grounded(centers[index % centers.size()] + Vector3(cos(angle)*radius, 0, sin(angle)*radius*0.7))
+
+func _grounded(point: Vector3) -> Vector3:
+	point.y = get_parent()._ground_height(point.x, point.z)
+	return point
 
 func _planting_clear(point: Vector3) -> bool:
+	point.y = 0 # Exclusions measure horizontal circulation, never height.
 	if Vector2(point.x, point.z).length() < 8 or Vector2(point.x, point.z).length() > 47: return false
 	if point.x > 13 and point.x < 36 and point.z > -31 and point.z < -8: return false
 	if Vector2((point.x-23)/1.15, point.z-23).length() < 16: return false
@@ -113,7 +118,7 @@ func _grass_batch():
 	for index in range(grass_cursor, end):
 		var anchor = _detail_point(index % 180)
 		var angle = index * 2.399963
-		var point = anchor + Vector3(cos(angle),0,sin(angle)) * (0.4 + (index%19)*0.16)
+		var point = _grounded(anchor + Vector3(cos(angle),0,sin(angle)) * (0.4 + (index%19)*0.16))
 		if not _planting_clear(point): continue
 		var basis = Basis(Vector3.UP, angle).scaled(Vector3.ONE * (0.55 + (index%9)*0.09))
 		grass_instances.set_instance_transform(grass_count, Transform3D(basis, point))
@@ -143,7 +148,7 @@ func _tree(index: int, path: String):
 	else:
 		tree = get_parent().streaming.resources[path].instantiate()
 	tree.set_meta("species", species)
-	trees.add_child(tree); tree.position = positions[index]
+	trees.add_child(tree); tree.position = _grounded(positions[index])
 	tree.scale = Vector3.ONE * ((7.0 + (index % 4) * 0.7) if species == "fir" else (4.5 + (index % 4) * 0.5))
 	tree.rotation.y = index * 1.7
 	var tree_meshes = tree.find_children("*", "MeshInstance3D", true, false)
@@ -159,7 +164,7 @@ func _tree(index: int, path: String):
 		var point = original.position + Vector3(-2.5 if index % 2 else 2.5, 0, -2)
 		if not (point.length() > 47 or absf(point.x) < 4 or (point.x > 15 and point.z > -29 and point.z < -9)):
 			var secondary = original.duplicate()
-			trees.add_child(secondary); secondary.position = point
+			trees.add_child(secondary); secondary.position = _grounded(point)
 			secondary.scale *= 0.65 + (index % 3) * 0.1
 			secondary.rotation.y += 1.1
 	for placed in trees.get_children():
@@ -180,7 +185,7 @@ func _exit_tree():
 func _fern_point(index: int) -> Vector3:
 	var cluster: Vector3 = _positions()[index % _positions().size()]
 	var angle = index * 2.39996
-	return cluster + Vector3(cos(angle), 0, sin(angle)) * (1.1 + index % 4 * 0.5)
+	return _grounded(cluster + Vector3(cos(angle), 0, sin(angle)) * (1.1 + index % 4 * 0.5))
 
 func _fern(index: int, point: Vector3):
 	var fern = get_parent().streaming.resources["res://assets/welcome_island/models/nature/fern_02/fern_02_1k.gltf"].instantiate()
@@ -190,7 +195,7 @@ func _fern(index: int, point: Vector3):
 
 func _stump(index: int):
 	var stump = get_parent().streaming.resources["res://assets/welcome_island/models/nature/tree_stump_01/tree_stump_01_1k.gltf"].instantiate()
-	get_node("Understory").add_child(stump); stump.position = _positions()[index * 3] + Vector3(2, 0, 1); stump.scale = Vector3.ONE * 0.65
+	get_node("Understory").add_child(stump); stump.position = _grounded(_positions()[index * 3] + Vector3(2, 0, 1)); stump.scale = Vector3.ONE * 0.65
 
 func _rock_point(index: int) -> Vector3:
 	if index < 28:

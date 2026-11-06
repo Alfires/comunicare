@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 24: gentle terrain relief](24-terrain-relief-roadmap.md) adds grounded
+grove/meadow rises while preserving flat circulation and the pond.
+
 [Part 23: rock hull fit](23-rock-hull-fit-roadmap.md) replaces box-corner collision
 with cached mesh-derived hulls, preserving placement alignment.
 

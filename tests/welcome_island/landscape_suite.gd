@@ -12,6 +12,13 @@ func run():
 	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	var landscape = world.get_node_or_null("Island/Landscape")
+	var island = world.get_node("Island")
+	check(island._height(-21, -26) > 1.0, "grove has visible rolling terrain instead of a flat disc")
+	check(absf(island._height(0, 0)) < 0.01 and absf(island._height(24, -20)) < 0.01, "spawn and house plateau stay level")
+	var grounded := true
+	for tree in landscape.get_node("Trees").get_children():
+		if absf(tree.position.y-island._ground_height(tree.position.x, tree.position.z)) > 0.03: grounded = false
+	check(grounded, "all streamed trees follow terrain relief")
 	check(landscape != null, "island has original composed landscape rather than bare graybox")
 	if landscape == null:
 		world.queue_free(); await process_frame; finish(); return

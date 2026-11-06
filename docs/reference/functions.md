@@ -1071,7 +1071,7 @@ poses are not included in this protocol.
 | `cancel_emote` | Clears intent and schedules automatic reevaluation; does not send legacy Stop. |
 | `toggle_emote_menu` | Opens/closes shared desktop/XR picker; safely declines detached service. Factory must restore attachment. Owns overlay lifetime and mouse/focus restoration. |
 | `open_xr_menu` | Opens stable hand-local wheel from valid tracked nodes; detached/invalid calls ignored. Hardware comfort is not proven by headless geometry. |
-| `receive` | Dispatches authenticated transport data after own schema/scope checks; updates clock/current state or request-bound buffers. Never trust as public arbitrary actor-command interface. |
+| `receive` | Dispatches authenticated transport data after own schema/scope checks; updates clock/current state or request-bound buffers. Tracking requires a 32-character generation. Departure clears tracking-only peers too, but cannot clear caches belonging to a newer generation. Never trust as public arbitrary actor-command interface. |
 | `clear` | Drops session descriptors, queues/assets, motion intent, wheel and clock state; resets local renderer. Does not erase persistent library or user layout. |
 
 Private groups: `_apply_resolved` composes masks/metadata; `_play_resolved` owns

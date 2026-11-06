@@ -963,10 +963,27 @@ func test_controller(parsed: Dictionary):
 	check(not controller.has_method("pause") and not controller.has_method("play"), "controller exposes no parallel manual player API")
 	controller.clear()
 	check(controller.remote_states.is_empty() and controller.assets.is_empty(), "client transition removes motion and asset session state")
+	var tracking_only = {"op": "pose", "version": 1, "session_id": "test", "peer_id": 7,
+		"generation": "b".repeat(32), "sequence": 1, "avatar_revision": "c".repeat(64),
+		"calibration_revision": 0, "targets": {"head": [0, 1.6, 0, 0, 0, 0, 1]}}
+	controller.receive(tracking_only)
+	check(controller.remote_tracking.has(7) and not controller.remote_states.has(7), "tracking can arrive before first animation state")
+	controller.receive({"op": "left", "session_id": "test", "peer_id": 7, "generation": "a".repeat(32)})
+	check(controller.remote_tracking.has(7), "stale departure cannot clear newer tracking-only generation")
+	controller.receive({"op": "left", "session_id": "test", "peer_id": 7, "generation": "b".repeat(32)})
+	check(not controller.remote_tracking.has(7), "departure clears tracking-only peer even without animation state")
+	tracking_only.generation = "invalid"
+	controller.receive(tracking_only)
+	check(not controller.remote_tracking.has(7), "malformed tracking generation is rejected before caching")
 	var neutral = {"op": "state", "session_id": "test", "version": 2, "peer_id": 7,
 		"generation": "a".repeat(32), "sequence": 4, "action": "resolved", "kind": "locomotion", "role": "neutral", "mask": "full", "avatar_revision": "", "configuration_revision": 0,
 		"offset": 0.0, "speed": 1.0, "loop": true, "duration": 1.0, "builtin": "neutral", "library": AnimationState.LIBRARY, "hash": "", "started": controller.now()}
 	controller.receive(neutral)
+	tracking_only.generation = "b".repeat(32)
+	controller.receive(tracking_only)
+	controller.receive({"op": "left", "session_id": "test", "peer_id": 7, "generation": neutral.generation})
+	check(controller.remote_states.has(7) and controller.remote_tracking.has(7), "departure cannot remove a peer with newer tracking than its animation state")
+	controller.remote_tracking.erase(7)
 	var scaled_state = neutral.duplicate(true)
 	var local_size_player = LocalPlayer.new()
 	root.add_child(local_size_player)

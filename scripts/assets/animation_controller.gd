@@ -497,7 +497,7 @@ func receive(value: Dictionary):
 	if value.get("op") == "pose":
 		if not TrackingPose.valid(value) or coordinator.session_busy or value.get("session_id") != coordinator.current_session_id: return
 		var id = int(value.get("peer_id", -1))
-		if not _member(id) or not value.get("generation") is String: return
+		if not _member(id) or not value.get("generation") is String or value.generation.length() != 32: return
 		var previous: Dictionary = remote_tracking.get(id, {})
 		if previous.get("generation") == value.generation and value.sequence <= previous.get("sequence", 0): return
 		var clean = value.duplicate(true)
@@ -513,8 +513,16 @@ func receive(value: Dictionary):
 				clock_ready = true
 		return
 	if value.get("op") == "left":
-		if value.get("session_id") == coordinator.current_session_id and AnimationState.integer(value.get("peer_id"), 0, 255) and remote_states.get(int(value.peer_id), {}).get("generation") == value.get("generation"):
-			_remove_remote(int(value.peer_id))
+		if value.get("session_id") == coordinator.current_session_id and AnimationState.integer(value.get("peer_id"), 0, 255):
+			var id = int(value.peer_id)
+			var generation = value.get("generation")
+			var motion: Dictionary = remote_states.get(id, {})
+			var tracking: Dictionary = remote_tracking.get(id, {})
+			if generation is String and generation.length() == 32 \
+				and (not motion.is_empty() or not tracking.is_empty()) \
+				and (motion.is_empty() or motion.get("generation") == generation) \
+				and (tracking.is_empty() or tracking.get("generation") == generation):
+				_remove_remote(id)
 		return
 	if coordinator.session_busy or value.get("session_id") != coordinator.current_session_id:
 		return

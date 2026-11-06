@@ -1,5 +1,15 @@
 # Avatar sources, automatic motion and emote wheel
 
+Walking, running and strafing cadence now follows actual horizontal velocity,
+not just whether a movement key is held. Authored reference speeds are approximately
+2 m/s for walk/strafe and 4 m/s for run at normal avatar size; larger avatars use
+proportionally longer strides. Playback is bounded to 0.25–2× and quantized in
+0.05× steps. Changing cadence preserves the visible stride phase and uses the
+existing synchronized animation stream, including on receiving clients.
+Jump/emote speed and tracked head/hand ownership are unchanged. These reference
+values are initial tuning, not per-clip foot-contact calibration for arbitrary
+custom animations; visual foot sliding still needs playtesting.
+
 ## Add an emote: quick path
 
 1. Find an animation in **Home → Avatar Browser**, or add a file/URL in your
@@ -12,7 +22,7 @@
    type part of an emote name in **Find an emote**, then click **Add to this group**.
    Already-present shortcuts are marked and disabled. Double-click a subgroup
    in the current entries list to enter it; use the group selector to jump elsewhere.
-5. Press **Done**, then open the wheel with B or Home → Emotes to play.
+5. Press **Done**, then open the wheel with B or the Emotes tile on the Quick page to play.
 
 You can reopen the organizer with **Organize emotes / wheel shortcuts** in the
 Avatar source editor. Layout edits save immediately; removing a shortcut does not
@@ -116,8 +126,8 @@ are preserved and reported rather than silently replaced.
 
 ## Open and customize Emotes
 
-Press **B**, or click **Home → Emotes** in the formerly unused lower-left grid
-cell. Change the key under **Settings → Controls → Emote menu**. Typing, modal
+Press **B**, or click the **Emotes** tile on the menu's Quick page.
+Change the key under **Settings → Controls → Emote menu**. Typing, modal
 dialogs and rebinding suppress the shortcut.
 
 The wheel always has **eight sectors**. Groups with at most eight entries use all

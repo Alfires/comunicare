@@ -396,6 +396,16 @@ func test_authored_upper_body():
 	await process_frame
 
 func test_automatic_playback():
+	var rate_controller = load("res://scripts/assets/animation_controller.gd").new()
+	check(rate_controller.has_method("locomotion_rate"), "locomotion playback adapts to real movement speed")
+	if rate_controller.has_method("locomotion_rate"):
+		check(is_equal_approx(rate_controller.locomotion_rate("walk", 2.0, 1.0), 1.0), "authored walking reference uses natural cadence")
+		check(is_equal_approx(rate_controller.locomotion_rate("walk", 4.0, 1.0), 2.0), "faster walking speeds up step cadence")
+		check(is_equal_approx(rate_controller.locomotion_rate("run", 6.0, 1.0), 1.5), "sprinting scales running cadence to horizontal speed")
+		check(is_equal_approx(rate_controller.locomotion_rate("strafe_left", 1.0, 1.0), 0.5), "slow analog strafing slows leg cadence")
+		check(is_equal_approx(rate_controller.locomotion_rate("walk", 4.0, 2.0), 1.0), "larger avatars account for longer strides")
+		check(is_equal_approx(rate_controller.locomotion_rate("jump", 6.0, 1.0), 1.0), "jump playback speed is independent of horizontal movement")
+	rate_controller.free()
 	var network = Coordinator.new()
 	root.add_child(network)
 	var body = LocalPlayer.new()
@@ -419,6 +429,18 @@ func test_automatic_playback():
 	check(controller.local_state.get("kind") == "locomotion" and controller.local_state.get("action") == "resolved", "actual equipped synthetic avatar receives automatic resolved playback without menu")
 	check(controller.request_emote("builtin:dance") and controller.local_state.kind == "emote", "emote request uses same actual avatar animation layer")
 	var layer = controller.local_animator
+	check(controller.has_method("_update_locomotion_rate"), "cadence updates preserve active layer and playhead")
+	if controller.has_method("_update_locomotion_rate"):
+		controller.local_state.kind = "locomotion"
+		controller.local_state.loop = true
+		controller.local_state.share = false
+		layer.player.advance(0.25)
+		var phase = layer.player.current_animation_position
+		controller._update_locomotion_rate(1.5)
+		check(is_equal_approx(layer.player.speed_scale, 1.5) and absf(layer.player.current_animation_position - phase) < 0.001, "cadence change does not restart stride or recreate animator")
+		var sequence_before = controller.sequence
+		controller._update_locomotion_rate(1.5)
+		check(controller.sequence == sequence_before, "unchanged cadence produces no repeated state updates")
 	body.velocity = Vector3(1, 0, 0)
 	controller._update_locomotion()
 	check(controller.active_emote.is_empty() and controller.local_state.kind == "locomotion" and controller.local_animator == layer, "movement interrupts emote and restores automatic state on same layer")

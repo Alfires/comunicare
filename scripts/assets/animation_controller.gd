@@ -110,6 +110,26 @@ func now() -> float:
 
 var walk_reference_speed := 3.0
 var locomotion_running := false
+var desired_locomotion_rate := 1.0
+
+func locomotion_rate(role: String, horizontal_speed: float, avatar_scale: float = 1.0) -> float:
+	if role not in ["walk", "run", "strafe_left", "strafe_right"]: return 1.0
+	if not is_finite(horizontal_speed) or not is_finite(avatar_scale): return 1.0
+	# Approximate authored in-place clip stride speeds in metres/second.
+	var reference = 4.0 if role == "run" else 2.0
+	return snappedf(clampf(horizontal_speed / (reference * clampf(avatar_scale, 0.25, 3.0)), 0.25, 2.0), 0.05)
+
+func _update_locomotion_rate(rate: float):
+	if local_state.get("kind") != "locomotion" or not is_instance_valid(local_animator): return
+	if absf(float(local_state.get("speed", 1.0)) - rate) < 0.049: return
+	# Rebase timing at the visible phase; changing speed must not reset footsteps.
+	local_state.offset = local_animator.player.current_animation_position
+	local_state.started = now()
+	local_state.speed = rate
+	sequence += 1
+	local_state.sequence = sequence
+	local_animator.player.speed_scale = rate
+	if local_state.get("share", false): _send(local_state.duplicate())
 
 func _update_locomotion():
 	for player in get_tree().get_nodes_in_group("player"):
@@ -124,6 +144,8 @@ func _update_locomotion():
 					return
 			walk_reference_speed = player.get_walk_speed() if player.has_method("get_walk_speed") else 3.0
 			var motion = resolve_motion(player.is_on_floor(), player.global_basis.inverse() * player.velocity, now())
+			var avatar_scale = float(player.get("avatar_size")) if player.get("avatar_size") != null else 1.0
+			desired_locomotion_rate = locomotion_rate(motion, Vector2(player.velocity.x, player.velocity.z).length(), avatar_scale)
 			var revision = configuration.revision if configuration != null else 0
 			var changed_model = not is_instance_valid(local_animator) or local_animator.avatar != _local_model()
 			if active_role != motion or applied_revision != revision or changed_model:
@@ -139,6 +161,8 @@ func _update_locomotion():
 				if applied:
 					active_role = motion
 					applied_revision = revision
+			else:
+				_update_locomotion_rate(desired_locomotion_rate)
 			return
 
 func resolve_motion(grounded: bool, velocity: Vector3, _at_msec: float) -> String:
@@ -255,7 +279,8 @@ func _apply_resolved(item: Dictionary, kind: String, action_id: String) -> bool:
 		if clip.tracks.is_empty():
 			last_error = "This action has no untracked VR animation channels."
 			return false
-	if not _play_resolved(clip, item.get("builtin", ""), item.get("handle", {}), item.get("index", 0), item.get("loop", false), 1.0, item.get("share", false)):
+	var playback_rate = desired_locomotion_rate if kind == "locomotion" else 1.0
+	if not _play_resolved(clip, item.get("builtin", ""), item.get("handle", {}), item.get("index", 0), item.get("loop", false), playback_rate, item.get("share", false)):
 		return false
 	local_state.kind = kind
 	local_state.role = action_id
@@ -544,12 +569,17 @@ func _apply_remote(id: int):
 	if animator.descriptor.get("generation") == value.generation and animator.descriptor.get("sequence") == value.sequence:
 		animator.synchronize(position, value.speed, value.loop, value.duration)
 		return
+	var motion_key = str(value.get("builtin", "")) + ":" + str(value.get("hash", "")) + ":" + str(value.get("clip", 0)) + ":" + str(value.get("role", "")) + ":" + str(value.get("mask", ""))
+	if value.get("kind") == "locomotion" and animator.player.is_playing() and animator.descriptor.get("generation") == value.generation and animator.descriptor.get("motion_key") == motion_key:
+		animator.synchronize(position, value.speed, value.loop, value.duration)
+		animator.descriptor.sequence = value.sequence
+		return
 	clip = clip.duplicate(true)
 	clip.motion_role = str(value.get("role", "")) if value.get("kind") == "locomotion" else ""
 	if not animator.play_clip(clip, value.loop, value.speed, position):
 		last_error = animator.last_error
 		return
-	animator.descriptor = {"generation": value.generation, "sequence": value.sequence}
+	animator.descriptor = {"generation": value.generation, "sequence": value.sequence, "motion_key": motion_key}
 
 func _send_chunk():
 	var request: Dictionary = outgoing.pop_front()

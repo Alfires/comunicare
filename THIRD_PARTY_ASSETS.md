@@ -37,7 +37,7 @@ data SHA-256 hashes and the exact source clip assigned to each role. The bundled
 data is extracted from `AnimationLibrary_Godot_Standard.glb`: Idle_Loop,
 Walk_Loop, Jog_Fwd_Loop, Jump_Start, Jump_Loop, Jump_Land, Dance_Loop and Interact.
 
-`tools/convert_quaternius.py` reproduces the conversion from that free archive.
+`tools/assets/convert_quaternius.py` reproduces the conversion from that free archive.
 It preserves authored rotation samples and source T-pose bases, removes
 translation/scale channels for in-place playback, maps the source rig to humanoid
 bone names and includes finger motion. It does **not** synthesize new motion.

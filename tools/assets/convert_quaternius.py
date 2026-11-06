@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Extract authored CC0 rotations; no generated/synthesized motion keys.
 
-Usage: python3 tools/convert_quaternius.py /path/to/Universal_Animation_LibraryStandard.zip
+Usage: python3 tools/assets/convert_quaternius.py /path/to/Universal_Animation_LibraryStandard.zip
 Source: https://store.godotengine.org/asset/quaternius/universal-animation-library/download/44/
 """
 import hashlib
@@ -12,7 +12,7 @@ import sys
 import zipfile
 import math
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 MEMBER = "Animation Library[Standard]/Godot/AnimationLibrary_Godot_Standard.glb"
 SELECTION = {"neutral": "Idle_Loop", "walk": "Walk_Loop", "run": "Jog_Fwd_Loop", "strafe_left": "Walk_Loop", "strafe_right": "Walk_Loop",
              "jump": "Jump_Start",

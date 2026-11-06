@@ -15,6 +15,13 @@ Exit 0 means all assertions passed, 1 means assertions failed, and 2 indicates G
 
 ## Verified result
 
+**Presence optimization follow-up — 2026-11-06:** 97 headless / 101 windowed
+checks pass. Identical sequenced heartbeats update receive time without emitting
+UI rebuild signals; location/status changes and stale recovery still emit them.
+Unsolicited delivery IDs are ignored and durable receipts remove delivery hints.
+Account-switch assertions verify absence of old identities instead of relying
+on a fixed number of empty-state UI children. No frame-rate benchmark is claimed.
+
 **Expanded verification — 2026-11-06:** **93 passed** headlessly and **97 passed**
 windowed, exit 0 without Godot errors. Related profile **120** and Active Instance
 **138** assertions passed in the current working tree. Older counts below are

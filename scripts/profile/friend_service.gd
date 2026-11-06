@@ -427,8 +427,9 @@ func receive(value: Dictionary):
 			next.outbox.erase(id)
 			if event.kind == "accept" and next.relationships.has(event.relationship_id):
 				next.relationships[event.relationship_id].confirmed = true
-			if _commit(next) and event.kind == "accept":
-				refresh()
+			if _commit(next):
+				delivery.erase(id)
+				if event.kind == "accept": refresh()
 		"presence":
 			var fingerprint = value.get("subject")
 			if value.get("generation") != generation or not is_friend(str(fingerprint)) \
@@ -436,6 +437,8 @@ func receive(value: Dictionary):
 				return
 			if value.sequence <= presence.get(fingerprint, {}).get("sequence", -1):
 				return
+			var previous: Dictionary = presence.get(fingerprint, {})
+			var was_fresh = not previous.is_empty() and Time.get_ticks_msec() - previous.get("received", 0) <= 15000
 			presence[fingerprint] = {"status": value.status, "sequence": value.sequence, "received": Time.get_ticks_msec()}
 			var location = value.get("location", {})
 			if value.status in ["online", "do_not_disturb"] and location is Dictionary \
@@ -443,9 +446,11 @@ func receive(value: Dictionary):
 				and location.get("name") is String and location.name.length() <= 128 \
 				and WorldAddress.is_valid(location.get("world_url", "")):
 				presence[fingerprint].location = {"session_id": location.session_id, "name": location.name, "world_url": location.world_url}
-			changed.emit()
+			if not was_fresh or previous.get("status") != value.status or previous.get("location", {}) != presence[fingerprint].get("location", {}): changed.emit()
 		"delivery":
-			delivery[value.get("event_id", "")] = value.get("status", "unavailable")
+			var id = value.get("event_id")
+			if id is String and state.outbox.has(id) and value.get("status") in ["delivered", "unavailable", "pending"]:
+				delivery[id] = value.status
 
 func _receive_event(value: Dictionary):
 	var event = value.get("event")

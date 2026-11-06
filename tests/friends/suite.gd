@@ -322,6 +322,19 @@ func test_join_ui(scene):
 	var copied = a.friend_session(fp(1))
 	copied.session_id = "tampered-copy"
 	check(a.friend_session(fp(1)).session_id == location.session_id, "location descriptor is a copy and UI cannot mutate presence ownership")
+	var changes: Array = []
+	a.changed.connect(func(): changes.append(true))
+	a.receive({"op": "presence", "subject": fp(1), "status": "online", "generation": a.generation, "sequence": 5, "location": location})
+	check(changes.is_empty() and a.presence[fp(1)].sequence == 5, "unchanged presence heartbeat refreshes freshness without rebuilding Friends UI")
+	a.presence[fp(1)].received = -20000
+	a.receive({"op": "presence", "subject": fp(1), "status": "online", "generation": a.generation, "sequence": 6, "location": location})
+	check(changes.size() == 1, "recovery from stale presence still notifies UI even with identical status")
+	var moved = location.duplicate()
+	moved.session_id = "other-instance"
+	a.receive({"op": "presence", "subject": fp(1), "status": "online", "generation": a.generation, "sequence": 7, "location": moved})
+	check(changes.size() == 2 and a.friend_session(fp(1)).session_id == moved.session_id, "real location change emits one UI refresh")
+	a.receive({"op": "delivery", "event_id": "unknown-event", "status": "delivered"})
+	check(not a.delivery.has("unknown-event"), "unsolicited delivery IDs cannot accumulate client state")
 	a.block(fp(1))
 	check(a.friend_session(fp(1)).is_empty(), "blocking friend immediately revokes join-location access")
 	save.friends = services[0]
@@ -401,7 +414,7 @@ func test_ui():
 	temporary.configure(keys[2], "res://switch.cfg")
 	save.friends = temporary
 	save.account_ready.emit()
-	check(scene.service.owner != previous and scene.key_input.text.is_empty() and scene.list.get_child_count() == 8,
+	check(scene.service.owner != previous and scene.key_input.text.is_empty() and scene.list.get_children().all(func(node): return not node.has_meta("fingerprint")),
 		"account switch removes previous contacts and key drafts immediately")
 	scene.free()
 

@@ -6,7 +6,7 @@ extends Control
 const ToastHost = preload("res://scripts/GUI/toast_host.gd")
 const ContactAvatar = preload("res://scripts/GUI/contact_avatar.gd")
 const SECTIONS = ["Friends", "Incoming requests", "Outgoing requests", "Blocked"]
-const SECTION_OF = {"friends": "Friends", "accepting": "Outgoing requests", "incoming": "Incoming requests", "outgoing": "Outgoing requests", "contact": "Saved contacts"}
+const SECTION_OF = {"friends": "Friends", "accepting": "Outgoing requests", "incoming": "Incoming requests", "outgoing": "Outgoing requests"}
 const PRESENCE_ORDER = {"online": 0, "do_not_disturb": 1}
 const PRESENCE_TEXT = {"online": "Online", "do_not_disturb": "Do not disturb"}
 const FILTERS = [["all", "All"], ["online", "Online"], ["requests", "Requests"]]
@@ -119,7 +119,7 @@ func _build_add_panel():
 	key_input.custom_minimum_size.y = 90
 	key_input.set_meta("blocks_global_shortcuts", true)
 	add_panel.add_child(key_input)
-	key_review = _label(add_panel, "Review the fingerprint before saving or sending.")
+	key_review = _label(add_panel, "Review the fingerprint before sending a friend request.")
 	key_review.theme_type_variation = "CaptionLabel"
 	key_review.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	key_input.text_changed.connect(func():
@@ -132,7 +132,7 @@ func _build_add_panel():
 	add_panel.add_child(nickname)
 	var add_actions = HBoxContainer.new()
 	add_panel.add_child(add_actions)
-	_button(add_actions, "Send friend request", _save_contact.bind(true)).theme_type_variation = "PrimaryButton"
+	_button(add_actions, "Send friend request", _send_friend_request).theme_type_variation = "PrimaryButton"
 	_button(add_actions, "Cancel", func(): add_panel.hide())
 	add_panel.hide()
 	card.hide()
@@ -165,17 +165,17 @@ func _label(parent: Node, text: String) -> Label:
 	parent.add_child(result)
 	return result
 
-func _save_contact(send: bool):
+func _send_friend_request():
 	if service == null:
 		return
 	if service.add_contact(key_input.text, nickname.text):
 		var owner = preload("res://scripts/profile/profile_identity.gd").fingerprint(key_input.text.strip_edges() + "\n")
-		if send and not service.send_request(owner):
+		if not service.send_request(owner):
 			return
 		key_input.clear()
 		nickname.clear()
 		add_panel.hide()
-		ToastHost.notify(self, "Friend request sent." if send else "Contact saved.", "success")
+		ToastHost.notify(self, "Friend request sent.", "success")
 
 func _ask(text: String, action: Callable):
 	pending_action = action
@@ -371,8 +371,6 @@ func _more_menu(actions: HBoxContainer, owner: String, entry: Dictionary):
 	if not entry.blocked:
 		if entry.kind in ["friends", "accepting"]:
 			items.append(["Remove friend…", _ask.bind("Remove friendship with %s?\n%s" % [service.label(owner), owner], service.act.bind(owner, "revoke"))])
-		elif entry.kind == "contact":
-			items.append(["Delete contact…", _ask.bind("Delete saved contact?\n" + owner, service.remove_contact.bind(owner))])
 		items.append(["Block…", _ask.bind("Block account and revoke local friendship?\n" + owner, service.block.bind(owner))])
 	var popup = more.get_popup()
 	for index in items.size():

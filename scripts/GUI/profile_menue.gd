@@ -95,7 +95,7 @@ func _refresh():
 	body.get_node("LoadPicture").visible = not str(snapshot.get("profile.icon_source", "")).is_empty()
 	body.get_node("Status").text = "My profile" if is_editable() else "Read-only • owner-signed public profile"
 	if service == SaveData.get("friends"):
-		body.get_node("Status").text = "Read-only • cached contact; verify fingerprint. Media loads only on request."
+		body.get_node("Status").text = "Read-only • cached profile; verify fingerprint. Media loads only on request."
 	_render_friend_actions()
 	var avatar_source = str(snapshot.get("profile.avatar_url", ""))
 	avatar_source_label.text = "Avatar"

@@ -16,7 +16,9 @@ static func apply(avatar: Node3D, camera: Camera3D) -> bool:
 			node.layers = 0 if node.get_meta("first_person_only", false) else HEAD_LAYER
 		elif node.get_meta("first_person_derivative", false):
 			node.layers = BODY_LAYER
-			node.visible = true
+			node.set_meta("first_person_active", true)
+			var source = node.get_meta("first_person_source").get_ref()
+			node.visible = is_instance_valid(source) and source.visible
 	return true
 
 static func configure_camera(node: Node):
@@ -58,8 +60,9 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 			node.layers = 0
 		var body_mesh = ArrayMesh.new()
 		for target in [body_mesh]:
-			target.blend_shape_mode = mesh.blend_shape_mode
-			for i in mesh.get_blend_shape_count(): target.add_blend_shape(mesh.get_blend_shape_name(i))
+			if mesh is ArrayMesh:
+				target.blend_shape_mode = mesh.blend_shape_mode
+				for i in mesh.get_blend_shape_count(): target.add_blend_shape(mesh.get_blend_shape_name(i))
 		var split := false
 		for surface in mesh.get_surface_count():
 			var arrays: Array = mesh.surface_get_arrays(surface)
@@ -87,12 +90,12 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 				indices = PackedInt32Array(range(vertices.size()))
 			var body_indices = PackedInt32Array()
 			var head_indices = PackedInt32Array()
-			if mesh.surface_get_primitive_type(surface) != Mesh.PRIMITIVE_TRIANGLES: return false
+			if mesh is ArrayMesh and mesh.surface_get_primitive_type(surface) != Mesh.PRIMITIVE_TRIANGLES: return false
 			for triangle in range(0, indices.size() - 2, 3):
 				var is_head = head_vertices.has(indices[triangle]) or head_vertices.has(indices[triangle + 1]) or head_vertices.has(indices[triangle + 2])
 				var destination = head_indices if is_head else body_indices
 				destination.append_array(indices.slice(triangle, triangle + 3))
-			var blends = mesh.surface_get_blend_shape_arrays(surface)
+			var blends = mesh.surface_get_blend_shape_arrays(surface) if mesh is ArrayMesh else []
 			for pair in [[body_mesh, body_indices]]:
 				if pair[1].is_empty(): continue
 				var output = arrays.duplicate()
@@ -117,6 +120,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		duplicate.layers = BODY_LAYER
 		duplicate.visible = false
 		duplicate.set_meta("first_person_derivative", true)
+		duplicate.set_meta("first_person_source", weakref(node))
 		duplicate.set_meta("first_person_split", true)
 		# Keep the same skeleton path and transform by adding a sibling.
 		node.get_parent().add_child(duplicate)
@@ -136,6 +140,8 @@ class BlendShapeSync extends Node:
 	var target: MeshInstance3D
 	func _process(_delta: float):
 		if not is_instance_valid(source) or not is_instance_valid(target): return
+		if not target.get_meta("first_person_active", false): return
+		if target.visible != source.visible: target.visible = source.visible
 		if not target.is_visible_in_tree(): return
 		if target.transform != source.transform: target.transform = source.transform
 		if target.material_override != source.material_override: target.material_override = source.material_override

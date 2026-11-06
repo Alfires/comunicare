@@ -1113,11 +1113,13 @@ Original geometry stays intact for other cameras/shadows.
 | --- | --- |
 | `is_camera_interior_bone` | Pure role membership for neck/head/eyes/jaw filtering; hips/spine/chest and limbs stay visible. |
 | `prepare` | Detached worker-safe derivative construction from annotations/skin weights; idempotent. Returns whether view was prepared/changed; missing humanoid rig can fail. Unknown geometry filtering is heuristic, not universal visual correctness. |
-| `apply` | Marks local camera, changes cull/layer visibility on already prepared representation; bool false if not prepared. No runtime mesh cutting. |
+| `apply` | Marks local camera, activates cull/layer visibility on already prepared representation without revealing hidden source meshes; bool false if not prepared. No runtime mesh cutting. |
 | `configure_camera` | Excludes local derivative layer from added non-first-person cameras; callers intentionally selecting special layers must coordinate with this policy. |
 
 Private BlendShapeSync process copies transform/material override/expression values
-from original to derivative; original remains expression target and shadow caster.
+from original to derivative; activated derivatives follow source visibility even
+while hidden. Inactive preview copies stay hidden. Original remains expression
+target and shadow caster. Primitive meshes need no ArrayMesh blend-shape mode.
 
 <!-- module: scripts/assets/avatar_tracking.gd -->
 ### [AvatarTracking](../../scripts/assets/avatar_tracking.gd)

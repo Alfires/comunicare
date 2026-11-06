@@ -28,6 +28,7 @@ func run():
 	sync._process(0.016)
 	check(target.position.x == 0, "hidden first-person derivatives skip per-frame synchronization")
 	target.show()
+	target.set_meta("first_person_active", true)
 	sync._process(0.016)
 	check(target.position.x == 2, "visible first-person derivatives immediately catch up")
 	placeholder.free()

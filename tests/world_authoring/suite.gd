@@ -48,6 +48,7 @@ func run():
 	test_plugin_descriptor()
 	test_document()
 	test_interactions()
+	test_entity_fields()
 	await test_compiler()
 	test_playtest_plan()
 	test_optimizer()
@@ -100,6 +101,20 @@ func test_interactions():
 	check(not ok(service.bind_behavior(document, "cube", "use", [{"op": "os.execute"}])), "unsupported native behavior cannot be authored as portable script")
 	var copied = service.duplicate_entity(document, "cube")
 	check(ok(copied) and copied.get("entity_id", "") not in ["", "cube", "spawn"] and document == before, "duplicate gets fresh ID without changing original")
+	dispose(service)
+
+func test_entity_fields():
+	var service = component("entity_tools.gd", ["update_entity", "delete_entity"])
+	if service == null: return
+	var source = project_document()
+	var before = source.duplicate(true)
+	var result = service.update_entity(source, "cube", "Renamed", [2, 1, -3], [2, 2, 2])
+	check(ok(result) and source == before and result.document.entities[1].id == "cube", "inspector edit preserves stable ID and source document")
+	check(not ok(service.update_entity(source, "cube", "Invalid", [NAN, 0, 0], [1, 1, 1])), "inspector rejects invalid transform")
+	check(not ok(service.delete_entity(source, "spawn")), "sole spawn is protected from deletion")
+	var bound = preload("res://addons/comunicare_world_tools/interaction_tools.gd").new().bind_behavior(source, "cube", "use", [])
+	check(not ok(service.delete_entity(bound.document, "cube")), "deletion cannot silently drop script bindings")
+	check(ok(service.delete_entity(source, "cube")) and source == before, "unreferenced entity deletes as a validated draft")
 	dispose(service)
 
 func test_compiler():

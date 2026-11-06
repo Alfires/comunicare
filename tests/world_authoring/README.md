@@ -6,6 +6,11 @@ and checks clean startup/shutdown. Historical absent-plugin baseline below is
 retained as test-first evidence. Actual dock interaction/player launches remain
 outside these tests. Current primitives-only scope is in the addon README.
 
+Entity-inspector update: **39 service assertions** now pass, including source/ID
+preservation, invalid transforms and protected deletion. Dock adds selected fields,
+scenery, duplication/deletion and bounded tool-action undo/redo. Headless editor
+lifecycle smoke passes; rendered dock input is not certified by it.
+
 Run explicitly from the repository root:
 
 ```sh

@@ -780,6 +780,28 @@ func is_instance_admin() -> bool:
 			return member.role == "admin"
 	return false
 
+const INSTANCE_MODE_LABELS = ["Public", "Private", "Friends", "Friends+", "Request"]
+
+## Status-bar summary of the acknowledged instance: {title, mode, people}; {} when not in one.
+func get_instance_summary() -> Dictionary:
+	if current_session_id.is_empty():
+		return {}
+	var title := ""
+	var mode := ""
+	var people := 1
+	if not active_instance.is_empty():
+		title = str(active_instance.get("name", "")).strip_edges()
+		var index = int(active_instance.get("mode", -1))
+		mode = INSTANCE_MODE_LABELS[index] if index >= 0 and index < INSTANCE_MODE_LABELS.size() else ""
+		people = active_instance.get("members", []).size()
+	if title.is_empty():
+		if current_world_url == "default_wold":
+			title = "Welcome Island"
+		else:
+			var host = current_world_url.get_slice("://", 1).get_slice("/", 0)
+			title = host if not host.is_empty() else current_world_url
+	return {"title": title, "mode": mode, "people": people}
+
 func refresh_instance():
 	if peer == null or peer.peer == null or current_session_id.is_empty() or not peer.is_authenticated:
 		return

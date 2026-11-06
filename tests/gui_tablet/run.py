@@ -141,6 +141,8 @@ def build_project(project):
             (project / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, project / name)
     shutil.copytree(HERE / "fixtures", project / "fixtures")
+    # network_handler.gd preloads the remote player; no player scene is run here.
+    write(project / "scenes/player/remote_player.tscn", '[gd_scene format=3]\n[node name="Remote" type="Node3D"]\n')
     for name in ["common.gd", *[suite for suite, _ in SUITES]]:
         shutil.copy2(HERE / name, project / name)
     evidence = project / "evidence"

@@ -182,6 +182,14 @@ func _wheel_layout():
 	layout.groups.root.entries.append({"type": "emote", "id": "__avatar_size__", "name": "Avatar size"})
 	return layout
 
+## Shows or hides the client-only mirror (Quick page tile). Returns the new visibility.
+func toggle_local_mirror() -> bool:
+	_mirror_action("__mirror_toggle__")
+	return is_local_mirror_visible()
+
+func is_local_mirror_visible() -> bool:
+	return is_instance_valid(local_mirror) and local_mirror.visible
+
 func _mirror_action(id: String):
 	if not is_instance_valid(local_mirror):
 		local_mirror = preload("res://scripts/assets/local_mirror.gd").new()

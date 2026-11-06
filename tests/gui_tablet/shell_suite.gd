@@ -21,6 +21,7 @@ func run():
 	await test_shell()
 	await test_quick_page()
 	test_menu_wrapper()
+	test_status_sources()
 	await test_overlay()
 
 ## Lightweight page factories keep heavy production pages (network, discovery,
@@ -220,6 +221,24 @@ func test_menu_wrapper():
 		var instance = state.get_node_instance(index)
 		if instance != null and instance.resource_path == SHELL: wraps = true
 	check(wraps, "menue.tscn keeps its path/UID and wraps the tablet shell")
+
+func test_status_sources():
+	if not begin(6): return
+	var network = load("res://scripts/multiplayer/network_handler.gd").new()
+	check(network.get_instance_summary() == {}, "no instance yields an empty summary")
+	network.current_session_id = "s1"
+	network.current_world_url = "default_wold"
+	check(network.get_instance_summary() == {"title": "Welcome Island", "mode": "", "people": 1}, "built-in world before the first snapshot")
+	network.active_instance = {"name": "Evening chat", "mode": 3, "members": [{}, {}, {}]}
+	check(network.get_instance_summary() == {"title": "Evening chat", "mode": "Friends+", "people": 3}, "instance name, mode label and member count")
+	network.active_instance = {"name": "", "mode": 0, "members": [{}]}
+	network.current_world_url = "https://worlds.example.test/courtyard.cworld"
+	check(network.get_instance_summary().title == "worlds.example.test", "unnamed remote instance falls back to the world host")
+	network.free()
+	var animation = load("res://scripts/assets/animation_controller.gd")
+	var controller = animation.new()
+	check(controller.has_method("toggle_local_mirror") and not controller.is_local_mirror_visible(), "mirror tile API exists and starts hidden")
+	controller.free()
 
 # --- Part 7 -----------------------------------------------------------------
 

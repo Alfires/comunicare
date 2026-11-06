@@ -314,7 +314,11 @@ func _details(record: Dictionary):
 	detail.show_record(record, ImportPolicy.new().evaluate(record))
 	_layout()
 	if record.get("type") == "avatar" and ImportPolicy.new().evaluate(record).can_import:
-		_preview_record.call_deferred(record)
+		_preview_selection.call_deferred(record, generation)
+
+func _preview_selection(record: Dictionary, ticket: int):
+	if ticket != generation or selected_record != record or not is_inside_tree(): return
+	await assets.preview_record(record)
 
 func _restore_results():
 	_cancel_pending()

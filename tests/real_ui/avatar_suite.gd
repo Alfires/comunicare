@@ -10,6 +10,10 @@ func run():
 	var save = root.get_node("SaveData")
 	save.load_acount()
 	var loader = root.get_node("DataLoader")
+	var local_player = load("res://scenes/player/player_desktop.tscn").instantiate()
+	root.add_child(local_player)
+	local_player.set_physics_process(false)
+	local_player.set_process(false)
 	var browser = load("res://scenes/GUI/avatar_browser.tscn").instantiate()
 	root.add_child(browser)
 	root.size = Vector2i(1000, 800)
@@ -24,6 +28,14 @@ func run():
 	browser.transport_options = {"allow_loopback_http": true}
 	var record = {"provider": "osa", "id": "fixture", "title": "Fixture avatar", "type": "avatar", "format": "vrm", "license": "CC0-1.0", "redistribution": true,
 		"download_url": OS.get_environment("COMUNICARE_AVATAR_TEST_URL")}
+	var second = record.duplicate(true)
+	second.id = "latest-selection"
+	browser._details(record)
+	browser._details(second)
+	await process_frame
+	await process_frame
+	check(browser.selected_record.id == second.id, "rapid result selections cannot let deferred preview reselect an older avatar")
+	browser._restore_results()
 	browser._clear()
 	browser._card(record)
 	await process_frame
@@ -85,6 +97,11 @@ func run():
 		await create_timer(0.01).timeout
 	check(not loader.get_avatar_configuration().model.is_empty() and browser.loading_bar.value == 100 and not browser.editor_open,
 		"single Apply action validates and equips avatar with completed inline progress, no modal and no editor")
+	var player_deadline = Time.get_ticks_msec() + 15000
+	while (not is_instance_valid(local_player.avatar_model) or local_player.avatar_model.get_meta("asset_revision", "") != loader.get_avatar_configuration().model.get("hash")) and Time.get_ticks_msec() < player_deadline:
+		await create_timer(0.01).timeout
+	check(is_instance_valid(local_player.avatar_model) and local_player.avatar_model.get_meta("asset_revision", "") == loader.get_avatar_configuration().model.get("hash"),
+		"Use button replaces actual production desktop player model, not only saved configuration")
 	check(browser.find_children("*", "AcceptDialog", true, false).all(func(dialog): return not dialog.visible), "Apply never opens a modal dialog")
 	await process_frame
 	var wrong = record.duplicate(true)
@@ -126,6 +143,7 @@ func run():
 			check(not await configuration.apply(previous, [{"hash": "bad"}]) and not configuration.last_error.is_empty(),
 				"invalid animation source returns nonempty Apply error")
 	browser.queue_free()
+	local_player.queue_free()
 	await process_frame
 	check(save.use_temporary_identity(), "duplicate-window temporary identity can be configured")
 	var temporary = loader.get_avatar_configuration()

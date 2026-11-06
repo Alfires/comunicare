@@ -94,7 +94,7 @@ Line spacing is the font default. No italics and no all-caps.
   - Box containers: separation 8.
   - GridContainer: 12 horizontal and vertical.
   - Page padding: 24, or 16 in compact mode.
-- **Radii:**
+- **Radii** (values for the default `subtle` roundness; `interface.roundness` multiplies them by 0, 1, 2 or 3, capped at 24 px):
   - 4 px for buttons, inputs and list rows.
   - 6 px for panels and popups.
   - 12 px for the tablet frame, which is the device outline and the only exception.
@@ -336,6 +336,33 @@ Sizes are **logical pixels** at `interface.ui_scale` 1.0.
   - Toasts never take focus and let clicks pass through, except their own close icon on errors.
 - **Empty state:** a 48 px icon in `text_muted`, a one-sentence message (`MutedLabel`, ≤ 80 characters, ending with a period) and at most one secondary action button. Centered in its area.
 
+### 4.8 Friends page
+
+- **Toolbar** (wraps on narrow screens): search field (name or fingerprint),
+  All / Online / Requests filter (Requests shows the incoming count),
+  Refresh icon, **Add public key** (PrimaryButton) and the presence selector.
+- **Sections** in this order, each with a count, omitted when empty:
+  Friends (online first, then Do not disturb, then offline, then by name),
+  Incoming requests, Outgoing requests, Saved contacts (including blocked).
+- **Contact card** (`ListRow`): 40 px ContactAvatar (initial letter on a color
+  derived from the fingerprint, presence dot for friends), name (opens the
+  profile), one caption line (presence and instance, or request state), one
+  primary action and a "more" menu.
+
+| Contact state | Primary action | More menu |
+| --- | --- | --- |
+| Friend with shared instance | Join friend (or disabled "Same instance") | View profile, Remove friend…, Block… |
+| Friend without shared instance | — | View profile, Remove friend…, Block… |
+| Incoming request | Accept (primary), Decline | View profile, Block… |
+| Outgoing request | Cancel request | View profile, Block… |
+| Saved contact | Send friend request | View profile, Delete contact…, Block… |
+| Blocked | Unblock | View profile |
+
+- Add form (`Card`): public key field with live fingerprint review, optional
+  private nickname, **Send friend request** (primary), **Save contact**, Cancel.
+- Empty texts: "You have no contacts yet." (action Add someone), "None of your
+  friends are online.", "No open friend requests.", "No contacts match "{query}"."
+
 ## 5. Settings definitions
 
 Registry entries are added in `register_defaults()`. All are client-local and
@@ -345,6 +372,7 @@ stored by the existing store.
 | --- | --- | --- | --- | --- | --- | --- |
 | `interface.theme_preset` | Interface | Color scheme | enum | `graphite` | graphite: Graphite, paper: Paper, forest: Forest, sand: Sand, night: Night, high_contrast: High contrast | −4 |
 | `interface.accent` | Interface | Accent color | enum | `teal` | teal: Teal, blue: Blue, amber: Amber, green: Green, rose: Rose, violet: Violet, match_highlight: Match 3D highlight | −3 |
+| `interface.roundness` | Interface | Corner roundness | enum (radius × 0, 1, 2, 3; max 24 px) | `subtle` | square: Square, subtle: Subtle, rounded: Rounded, round: Round | −2.5 |
 | `interface.ui_scale` | Interface | Interface size | number 0.75–1.5, step 0.05, unit "×" | 1.0 | — | −2 |
 | `interface.reduce_motion` | Interface | Reduce motion | boolean | false | — | −1 |
 | `vr.menu_pin_mode` | VR Menu | Tablet placement | enum | `pinned` | pinned: Stay where I put it, follow: Follow my view | 0 |

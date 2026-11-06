@@ -60,11 +60,27 @@ Settings → Interface:
   (7:1 for High contrast).
 - **Accent color:** Teal, Blue, Amber, Green, Rose, Violet, or Match 3D
   highlight, which follows "Selectable item highlight color".
+- **Corner roundness:** Square, Subtle (default), Rounded or Round. Applies to
+  buttons, panels, cards and the tablet frame; round chips stay round unless you
+  choose Square.
 - **Interface size:** 0.75× to 1.5×, for desktop menus and the VR tablet.
 - **Reduce motion:** turns off easing for the tablet, menus and the avatar
   preview.
 
 Changes apply immediately without a restart.
+
+## Friends page
+
+- **Search** finds contacts by name or fingerprint.
+- **All / Online / Requests** filters the list. Requests shows how many incoming
+  requests are waiting.
+- Contacts are grouped (Friends, Incoming requests, Outgoing requests, Saved
+  contacts) with a count per group; online friends come first.
+- Each contact has one main button (Join friend, Accept, Cancel request, Send
+  friend request or Unblock) and a **…** menu for View profile, Remove friend,
+  Delete contact and Block. Removing, deleting and blocking ask for confirmation.
+- **Add public key** opens a form: paste their public key, check the fingerprint,
+  then send a request or just save the contact.
 
 ## Avatar preview
 

@@ -13,11 +13,16 @@ var tokens: Dictionary
 var theme: Theme
 var dark := true
 var semibold: FontVariation
+## Corner roundness multiplier from interface.roundness, set by the theme service.
+var roundness := 1.0
+const ROUNDNESS = {"square": 0.0, "subtle": 1.0, "rounded": 2.0, "round": 3.0}
+const MAX_RADIUS := 24
 
 func build(target: Theme, values: Dictionary) -> Theme:
 	theme = target
 	tokens = values
 	dark = values.get("kind", "dark") != "light"
+	roundness = float(values.get("roundness_scale", roundness))
 	theme.set_block_signals(true)
 	_fonts()
 	_constants()
@@ -50,10 +55,14 @@ func pressed(base: Color) -> Color:
 func faded(color: Color, alpha: float = 0.45) -> Color:
 	return Color(color, color.a * alpha)
 
+## Scales a design radius (spec values at "subtle") by the roundness setting.
+func r(radius: int) -> int:
+	return mini(int(round(radius * roundness)), MAX_RADIUS)
+
 func box(fill: Color, radius: int = 4, margin_x: int = 12, margin_y: int = 8) -> StyleBoxFlat:
 	var style = StyleBoxFlat.new()
 	style.bg_color = fill
-	style.set_corner_radius_all(radius)
+	style.set_corner_radius_all(r(radius))
 	style.content_margin_left = margin_x
 	style.content_margin_right = margin_x
 	style.content_margin_top = margin_y
@@ -79,7 +88,7 @@ func focus_ring(radius: int = 4) -> StyleBoxFlat:
 	style.draw_center = false
 	style.set_border_width_all(2)
 	style.border_color = c("focus")
-	style.set_corner_radius_all(radius)
+	style.set_corner_radius_all(r(radius))
 	style.set_expand_margin_all(2)
 	style.shadow_color = Color(style.shadow_color, 0.0)
 	return style
@@ -327,7 +336,7 @@ func _variations():
 	var sidebar = box(c("surface"), 0, 0, 8)
 	sidebar.border_width_right = 1
 	sidebar.border_color = c("border")
-	sidebar.corner_radius_bottom_left = 12
+	sidebar.corner_radius_bottom_left = r(12)
 	theme.set_stylebox("panel", "Sidebar", sidebar)
 
 	_variation("ListRow", "PanelContainer")
@@ -345,8 +354,8 @@ func _variations():
 
 	_variation("StatusBar", "PanelContainer")
 	var status = box(c("surface"), 0, 8, 4)
-	status.corner_radius_top_left = 12
-	status.corner_radius_top_right = 12
+	status.corner_radius_top_left = r(12)
+	status.corner_radius_top_right = r(12)
 	status.border_width_bottom = 1
 	status.border_color = c("border")
 	theme.set_stylebox("panel", "StatusBar", status)
@@ -442,6 +451,8 @@ func _custom_colors():
 	for kind in ["success", "warning", "danger"]:
 		theme.set_color(kind, "Toast", c(kind))
 	theme.set_color("info", "Toast", c("accent"))
+	# Initials sit on muted mid-tone avatar colors in every preset.
+	theme.set_color("letter", "ContactAvatar", Color(1, 1, 1, 0.95))
 	theme.set_color("online", "Presence", c("success"))
 	theme.set_color("do_not_disturb", "Presence", c("danger"))
 	theme.set_color("offline", "Presence", c("text_muted"))

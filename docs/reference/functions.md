@@ -1939,6 +1939,7 @@ and custom-drawn control colors. No gradients, textures or strong shadows.
 | --- | --- |
 | `build` | Mutates and returns the given Theme and emits changed once, so open controls restyle live. |
 | `c` | Returns one token color. |
+| `r` | Scales a design corner radius by the roundness setting (Square 0×, Subtle 1×, Rounded 2×, Round 3×), capped at 24 px. |
 | `mix` | Linear blend of two colors. |
 | `hover` | Hover tint toward text color. |
 | `pressed` | Pressed tint toward text color. |
@@ -1978,7 +1979,7 @@ and the settings store remains the owner of the value.
 
 | Functions | Contract |
 | --- | --- |
-| `set_options` | Builds one self-drawing button per option; with unchanged options it only updates colors and tooltips. |
+| `set_options` | Builds one self-drawing button per option; with unchanged options it only updates colors and tooltips. Optional shapes (value → radius) draw one rounded preview tile instead of color chips. |
 | `swatch_buttons` | Returns the swatch buttons in option order. |
 | `set_colors` | Updates swatch colors in place and redraws; no nodes are rebuilt. |
 
@@ -2080,8 +2081,25 @@ On desktop without the overlay, Esc goes back, then toggles menu and capture.
 
 No public functions. Private ready/render handlers subscribe to owner friend
 service, show saved/pending/accepted rows, validate public-key input, send explicit
-actions and open read-only cached profiles. Account switch clears drafts/rows;
-exit unsubscribes. Display strings are not target identities.
+actions and open read-only cached profiles. Account switch clears drafts/rows and
+the search; exit unsubscribes. Display strings are not target identities.
+The page offers search (name or fingerprint), an All/Online/Requests filter with
+the incoming-request count, sections with counts (empty ones omitted), friends
+sorted online first, and contact cards with a ContactAvatar, one primary action
+(Join friend, Accept/Decline, Cancel request, Send friend request, Unblock) and a
+"more" menu for View profile, Remove friend, Delete contact and Block (destructive
+actions still ask for confirmation).
+
+<!-- module: scripts/GUI/contact_avatar.gd -->
+### [ContactAvatar](../../scripts/GUI/contact_avatar.gd)
+
+Round initial-letter avatar with an optional presence dot, drawn as RenderingServer
+commands on its own canvas item without child nodes. The color is derived from the
+fingerprint, so it is stable per account; it carries no identity or rights.
+
+| Functions | Contract |
+| --- | --- |
+| `base_color` | Muted color derived from the fingerprint hash; same account, same color. |
 
 <!-- module: scripts/GUI/profile_edit_popup.gd -->
 ### [ProfileEditPopup](../../scripts/GUI/profile_edit_popup.gd)

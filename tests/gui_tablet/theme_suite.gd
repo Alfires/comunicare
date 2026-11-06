@@ -291,6 +291,26 @@ func test_color_settings():
 		save.store.reset_value(id)
 	await frames()
 	check(is_equal_approx(root.content_scale_factor, 1.0), "resetting UI scale restores 1.0")
+	await test_roundness(save, theme)
+
+func test_roundness(save: Node, theme: Theme):
+	var definition: Dictionary = save.registry.get_definition("interface.roundness")
+	check(definition.get("category") == "Interface" and definition.get("default") == "subtle"
+		and definition.get("options", {}).keys() == ["square", "subtle", "rounded", "round"], "Corner roundness setting registered")
+	if definition.is_empty(): return
+	var radius = func(type: String, box := "normal") -> int: return theme.get_stylebox(box, type).corner_radius_top_left
+	check(radius.call("Button") == 4 and radius.call("PanelContainer", "panel") == 6, "Subtle keeps the specified 4/6 px radii")
+	save.store.set_value("interface.roundness", "square")
+	await frames()
+	check(radius.call("Button") == 0 and radius.call("PanelContainer", "panel") == 0 and radius.call("FriendChip") == 0, "Square removes every corner radius live")
+	save.store.set_value("interface.roundness", "round")
+	await frames()
+	check(radius.call("Button") == 12 and radius.call("PanelContainer", "panel") == 18 and radius.call("FriendChip") == 24,
+		"Round triples radii, capped at 24 px so pills stay pills")
+	check(save.theme_service.current_tokens().get("roundness_scale") == null, "roundness is not mixed into color tokens")
+	save.store.reset_value("interface.roundness")
+	await frames()
+	check(radius.call("Button") == 4, "resetting roundness restores Subtle")
 
 func test_swatch_settings_ui():
 	if not begin(3): return
@@ -320,6 +340,8 @@ func test_swatch_settings_ui():
 		check(picker.get("value") == "graphite", "picker reflects external store changes")
 	elif picker != null:
 		check(false, "swatch picker implements swatch_buttons")
+	var shapes = menu.controls.get("interface.roundness")
+	check(shapes != null and shapes.has_method("swatch_buttons") and shapes.swatch_buttons().size() == 4, "roundness uses four shape preview swatches")
 	save.store.reset_value("interface.theme_preset")
 	menu.free()
 

@@ -362,7 +362,22 @@ func test_ui():
 	else:
 		root.add_child(scene)
 	await process_frame
-	check(scene.list.get_child_count() > 4 and "Offline" in scene.status_label.text, "real Friends page renders persisted lists while disconnected")
+	var rendered: Array = scene.list.get_children().filter(func(node): return node.has_meta("fingerprint"))
+	check(rendered.size() == services[0].contacts().size() and not rendered.is_empty() and "Offline" in scene.status_label.text,
+		"real Friends page renders every persisted contact as a card while disconnected")
+	check(scene.list.get_children().any(func(node): return node is Label and node.text.begins_with("Saved contacts · ")),
+		"Friends sections show their contact count and empty sections are omitted")
+	scene.search.text = "zz-no-such-contact"
+	scene.search.text_changed.emit(scene.search.text)
+	check(scene.list.get_children().all(func(node): return not node.has_meta("fingerprint")), "search hides contacts that do not match")
+	scene.search.text = ""
+	scene.search.text_changed.emit("")
+	scene.filter_buttons.requests.pressed.emit()
+	var request_states: Array = scene.list.get_children().filter(func(node): return node.has_meta("fingerprint")).map(
+		func(node): return services[0].relationship(node.get_meta("fingerprint")).get("status", "contact"))
+	check(scene.filter == "requests" and request_states.all(func(state): return state in ["incoming", "outgoing", "accepting"]),
+		"Requests filter shows only open requests")
+	scene.filter_buttons.all.pressed.emit()
 	await test_join_ui(scene)
 	check(scene.preference.item_count == 3, "self status selector offers Online/DND/Offline")
 	var shell_script = load("res://scripts/GUI/tablet_shell.gd")

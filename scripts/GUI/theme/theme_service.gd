@@ -7,7 +7,7 @@ extends RefCounted
 signal applied(tokens: Dictionary)
 
 const THEME_PATH = "res://themes/default.tres"
-const WATCHED = ["interface.theme_preset", "interface.accent", "interface.hover_color", "interface.ui_scale", "interface.reduce_motion"]
+const WATCHED = ["interface.theme_preset", "interface.accent", "interface.hover_color", "interface.ui_scale", "interface.reduce_motion", "interface.roundness"]
 
 var palette = preload("res://scripts/GUI/theme/palette.gd").new()
 var builder = preload("res://scripts/GUI/theme/theme_builder.gd").new()
@@ -38,6 +38,7 @@ func _value(id: String, fallback: Variant) -> Variant:
 func apply():
 	tokens = palette.tokens(str(_value("interface.theme_preset", "graphite")), str(_value("interface.accent", "teal")),
 		str(_value("interface.hover_color", "cyan")))
+	builder.roundness = builder.ROUNDNESS.get(str(_value("interface.roundness", "subtle")), 1.0)
 	reduce_motion = bool(_value("interface.reduce_motion", false))
 	ui_scale = float(_value("interface.ui_scale", 1.0))
 	var target = resolve_theme()

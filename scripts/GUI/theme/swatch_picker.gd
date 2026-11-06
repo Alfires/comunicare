@@ -17,9 +17,12 @@ var value := "":
 var _buttons: Array = []
 var _group := ButtonGroup.new()
 var _colors: Dictionary = {}
+var _shapes: Dictionary = {}
 
 ## options: value → label. colors: value → Array of Colors drawn left to right.
-func set_options(options: Dictionary, colors: Dictionary):
+## shapes (optional): value → corner radius; draws one rounded preview tile instead of chips.
+func set_options(options: Dictionary, colors: Dictionary, shapes: Dictionary = {}):
+	_shapes = shapes.duplicate()
 	if _buttons.map(func(button): return button.get_meta("swatch_value")) == options.keys():
 		set_colors(colors)
 		for button in _buttons:
@@ -61,7 +64,14 @@ func _draw_swatch(button: Button):
 	var font_size: int = button.get_theme_font_size("font_size", "CaptionLabel")
 	var caption_height = font.get_height(font_size)
 	var strip = Rect2(Vector2(PADDING, PADDING), button.size - Vector2(PADDING * 2, PADDING * 2 + caption_height + 4))
-	if not chips.is_empty() and strip.size.x > 0 and strip.size.y > 0:
+	var key = button.get_meta("swatch_value")
+	if _shapes.has(key) and not chips.is_empty() and strip.size.x > 0 and strip.size.y > 0:
+		var tile = StyleBoxFlat.new()
+		tile.bg_color = chips[0]
+		tile.set_corner_radius_all(int(_shapes[key]))
+		tile.anti_aliasing = true
+		tile.draw(item, strip)
+	elif not chips.is_empty() and strip.size.x > 0 and strip.size.y > 0:
 		var width = strip.size.x / chips.size()
 		for index in chips.size():
 			RenderingServer.canvas_item_add_rect(item, Rect2(strip.position + Vector2(width * index, 0), Vector2(width, strip.size.y)), chips[index])

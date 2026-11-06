@@ -347,7 +347,9 @@ func select_category(category: String):
 		category_buttons[name].set_pressed_no_signal(name == category)
 	$Layout/Content/ScrollContainer.scroll_vertical = 0
 
-const SWATCH_SETTINGS = ["interface.theme_preset", "interface.accent"]
+const SWATCH_SETTINGS = ["interface.theme_preset", "interface.accent", "interface.roundness"]
+## Preview corner radius per roundness option (8 px design radius × builder scale).
+const ROUNDNESS_PREVIEW = {"square": 0, "subtle": 6, "rounded": 12, "round": 18}
 
 func _swatch_colors(id: String) -> Dictionary:
 	var palette = load("res://scripts/GUI/theme/palette.gd").new()
@@ -359,6 +361,8 @@ func _swatch_colors(id: String) -> Dictionary:
 		if id == "interface.theme_preset":
 			var tokens = palette.tokens(key, accent, highlight)
 			result[key] = [tokens.background, tokens.surface_raised, tokens.accent, tokens.text]
+		elif id == "interface.roundness":
+			result[key] = [palette.tokens(preset, accent, highlight).accent]
 		else:
 			result[key] = [palette.tokens(preset, key, highlight).accent]
 	return result
@@ -367,7 +371,7 @@ func _create_control(definition: Dictionary) -> Control:
 	var id: String = definition.id
 	if id in SWATCH_SETTINGS and ResourceLoader.exists("res://scripts/GUI/theme/swatch_picker.gd"):
 		var picker = load("res://scripts/GUI/theme/swatch_picker.gd").new()
-		picker.set_options(definition.options, _swatch_colors(id))
+		picker.set_options(definition.options, _swatch_colors(id), ROUNDNESS_PREVIEW if id == "interface.roundness" else {})
 		picker.value_selected.connect(_commit.bind(id))
 		return picker
 	match definition.type:
@@ -429,6 +433,8 @@ func _update_value(id: String, value: Variant):
 	if id in ["interface.theme_preset", "interface.hover_color"] and _controls.has("interface.accent") \
 		and _controls["interface.accent"].has_method("set_options"):
 		_controls["interface.accent"].set_options(SaveData.registry.get_definition("interface.accent").options, _swatch_colors("interface.accent"))
+	if id in ["interface.theme_preset", "interface.accent", "interface.hover_color"] and _controls.has("interface.roundness"):
+		_controls["interface.roundness"].set_colors(_swatch_colors("interface.roundness"))
 	if control.has_method("swatch_buttons"):
 		control.value = str(value)
 	elif control is CheckButton:

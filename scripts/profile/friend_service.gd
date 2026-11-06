@@ -335,6 +335,12 @@ func status(fingerprint: String) -> String:
 		return "Status unavailable"
 	return {"online": "Online", "offline": "Offline", "do_not_disturb": "Do Not Disturb", "unavailable": "Status unavailable"}.get(value.status, "Status unavailable")
 
+func friend_session(fingerprint: String) -> Dictionary:
+	if not connected or not supported or not is_friend(fingerprint): return {}
+	var value: Dictionary = presence.get(fingerprint, {})
+	if value.get("status") not in ["online", "do_not_disturb"] or Time.get_ticks_msec() - value.get("received", 0) > 15000: return {}
+	return value.get("location", {}).duplicate(true)
+
 func attach(send: Callable, capability: bool):
 	disconnect_transport()
 	transport = send
@@ -431,6 +437,12 @@ func receive(value: Dictionary):
 			if value.sequence <= presence.get(fingerprint, {}).get("sequence", -1):
 				return
 			presence[fingerprint] = {"status": value.status, "sequence": value.sequence, "received": Time.get_ticks_msec()}
+			var location = value.get("location", {})
+			if value.status in ["online", "do_not_disturb"] and location is Dictionary \
+				and location.get("session_id") is String and not location.session_id.is_empty() and location.session_id.length() <= 128 \
+				and location.get("name") is String and location.name.length() <= 128 \
+				and WorldAddress.is_valid(location.get("world_url", "")):
+				presence[fingerprint].location = {"session_id": location.session_id, "name": location.name, "world_url": location.world_url}
 			changed.emit()
 		"delivery":
 			delivery[value.get("event_id", "")] = value.get("status", "unavailable")

@@ -184,6 +184,23 @@ func test_network():
 	services[1].refresh()
 	await pump()
 	check(services[0].status(fp(1)) == "Online" and services[1].status(fp(0)) == "Online", "both current authorizations enable Online presence")
+	check(services[0].has_method("friend_session"), "friend presence exposes authenticated session location")
+	if services[0].has_method("friend_session"):
+		var location: Dictionary = services[0].friend_session(fp(1))
+		check(location.get("session_id") == clients[1].current_session_id and location.get("name") == "B", "accepted friend sees exact public session identity and name")
+		check(services[2].friend_session(fp(1)).is_empty(), "unrelated account cannot query friend location")
+		var location_index = relay.get_session_index(clients[1].current_session_id)
+		relay.sessions[location_index][0].mode = PacketInfo.MODE.PRIVAT
+		services[0].refresh(); services[1].refresh()
+		await pump()
+		check(services[0].friend_session(fp(1)).is_empty(), "private instance location is not disclosed through friend presence")
+		relay.sessions[location_index][0].mode = PacketInfo.MODE.PUBLIC
+		services[0].refresh(); services[1].refresh()
+		await pump()
+		services[0].presence[fp(1)].received = -20000
+		check(services[0].friend_session(fp(1)).is_empty(), "expired location cannot remain joinable")
+		services[0].refresh(); services[1].refresh()
+		await pump()
 	check(services[2].presence.is_empty(), "unrelated connected account receives no friend presence")
 	var initial_presence: Dictionary = services[0].presence[fp(1)].duplicate()
 	services[0].receive({"op": "presence", "subject": fp(1), "generation": "old-connection", "sequence": 99999, "status": "offline"})
@@ -209,6 +226,8 @@ func test_network():
 	services[1].set_status("offline")
 	await pump()
 	check(services[0].status(fp(1)) == "Offline" and clients[1].is_authenticated, "appear offline hides presence without disconnecting game")
+	if services[0].has_method("friend_session"):
+		check(services[0].friend_session(fp(1)).is_empty(), "appear offline removes joinable location immediately")
 	var restored = Service.new()
 	restored.configure(keys[1], "res://friends-1.cfg")
 	check(restored.state.preferred_status == "offline" and restored.is_friend(fp(0)) and restored.presence.is_empty(), "restart preserves friend/preference but never restores live presence")

@@ -175,6 +175,14 @@ func _render():
 			_label(row, text).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			var buttons = HFlowContainer.new()
 			row.add_child(buttons)
+			if kind == "friends" and not contacts[owner].blocked:
+				var location: Dictionary = service.friend_session(owner)
+				if not location.is_empty():
+					_label(row, "In: " + location.name + " · " + location.session_id).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+					var same = NetworkHandler.current_session_id == location.session_id
+					var join = _button(buttons, "Same instance" if same else "Join friend", _join_friend.bind(owner))
+					join.disabled = same or NetworkHandler.session_busy
+				else: _label(row, "Instance not shared or unavailable")
 			if contacts[owner].blocked:
 				_button(buttons, "Unblock", service.block.bind(owner, false))
 			elif kind == "incoming":
@@ -194,6 +202,17 @@ func _render():
 		if count == 0:
 			_label(list, "None yet")
 	scroll.set_deferred("scroll_vertical", previous_scroll)
+
+func _join_friend(owner: String):
+	if NetworkHandler.session_busy: return
+	var location: Dictionary = service.friend_session(owner)
+	if location.is_empty():
+		status_label.text = "Friend location expired or is no longer shared. Refresh and try again."
+		return
+	status_label.text = "Joining friend's instance…"
+	if not await NetworkHandler.join_session(location.session_id, location.world_url):
+		status_label.text = NetworkHandler.last_session_error
+	else: status_label.text = "Joined friend's instance."
 
 func _open_profile(owner: String):
 	restore_scroll = scroll.scroll_vertical

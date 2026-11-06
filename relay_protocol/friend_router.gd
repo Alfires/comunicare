@@ -107,8 +107,21 @@ func _presence(relay: Node, viewer: int, subject: String, status: String):
 	if not publications.has(viewer):
 		return
 	sequence += 1
-	_send(relay, viewer, {"op": "presence", "subject": subject, "status": status,
-		"generation": publications[viewer].generation, "sequence": sequence})
+	var value = {"op": "presence", "subject": subject, "status": status,
+		"generation": publications[viewer].generation, "sequence": sequence}
+	# Derive location from live relay membership, never a client's claimed URL.
+	# Only public instances are disclosed initially; private/code-gated worlds
+	# need a separate explicit location-sharing consent flow.
+	if status in ["online", "do_not_disturb"]:
+		for actor in relay.key_mapping:
+			if relay.key_mapping[actor].fingerprint != subject: continue
+			var index = relay.get_user_in_session(int(actor))
+			if index < 0: break
+			var instance: Dictionary = relay.sessions[index][0]
+			if instance.get("mode") == PacketInfo.MODE.PUBLIC:
+				value.location = {"session_id": instance.session_id, "name": str(instance.get("name", "Instance")).left(128), "world_url": instance.world_url}
+			break
+	_send(relay, viewer, value)
 
 func _update_pair(relay: Node, actor: int, target: int):
 	if not relay.key_mapping.has(actor) or not relay.key_mapping.has(target):

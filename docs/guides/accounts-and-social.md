@@ -1,5 +1,15 @@
 # Accounts, profiles, friends and presence
 
+## Find and join a friend
+
+Accepted friends in a **public instance on your connected relay** now show
+**In: instance name · code** in Friends, with **Join friend** (or Same instance).
+Join rechecks fresh presence and uses the ordinary world staging/revision/admission
+flow; friendship never bypasses bans or instance policy. Refresh updates presence
+and location. Offline/expired, private and non-public instance locations are not
+disclosed. Cross-relay location routing and opt-in private-instance sharing are
+not implemented by this initial location feature.
+
 ## Active avatar in your account menu
 
 Avatar setup is now **file-first**: choose **Import avatar model from file…**

@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 17: smaller loading slices](17-loading-hitches-roadmap.md) records progressive
+grass construction, cached queue priorities and outstanding rendered-load limits.
+
 [Part 16: natural density and stone poses](16-natural-density-roadmap.md) records
 the meadow, sheltered planting, young pines and mixed rock placement pass.
 

@@ -78,6 +78,11 @@ func _ground_detail(index: int, point: Vector3, path: String):
 		mesh.visibility_range_end = 48
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
+const GRASS_BATCH = 96
+var grass_cursor := 0
+var grass_count := 0
+var grass_instances: MultiMesh
+
 func _meadow_grass():
 	# One shared draw for short crossed grass clumps, no extra textures or physics.
 	var tool = SurfaceTool.new(); tool.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -97,20 +102,28 @@ func _meadow_grass():
 	material.roughness = 1.0; material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.vertex_color_use_as_albedo = false
 	var mesh = tool.commit(); mesh.surface_set_material(0, material)
-	var transforms: Array[Transform3D] = []
-	for index in 3200:
+	grass_instances = MultiMesh.new(); grass_instances.transform_format = MultiMesh.TRANSFORM_3D
+	grass_instances.mesh = mesh; grass_instances.instance_count = 3200
+	grass_instances.visible_instance_count = 0
+	var grass = MultiMeshInstance3D.new(); grass.name = "MeadowGrass"
+	grass.multimesh = grass_instances; grass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	grass.visibility_range_end = 75; add_child(grass)
+	get_parent().streaming.enqueue(Vector3.ZERO, [], _grass_batch)
+
+func _grass_batch():
+	var end = mini(grass_cursor + GRASS_BATCH, 3200)
+	for index in range(grass_cursor, end):
 		var anchor = _detail_point(index % 180)
 		var angle = index * 2.399963
 		var point = anchor + Vector3(cos(angle),0,sin(angle)) * (0.4 + (index%19)*0.16)
 		if not _planting_clear(point): continue
 		var basis = Basis(Vector3.UP, angle).scaled(Vector3.ONE * (0.55 + (index%9)*0.09))
-		transforms.append(Transform3D(basis, point))
-	var instances = MultiMesh.new(); instances.transform_format = MultiMesh.TRANSFORM_3D
-	instances.mesh = mesh; instances.instance_count = transforms.size()
-	for index in transforms.size(): instances.set_instance_transform(index, transforms[index])
-	var grass = MultiMeshInstance3D.new(); grass.name = "MeadowGrass"
-	grass.multimesh = instances; grass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	grass.visibility_range_end = 75; add_child(grass)
+		grass_instances.set_instance_transform(grass_count, Transform3D(basis, point))
+		grass_count += 1
+	grass_cursor = end
+	grass_instances.visible_instance_count = grass_count
+	if grass_cursor < 3200:
+		get_parent().streaming.enqueue(Vector3.ZERO, [], _grass_batch)
 
 func _positions() -> Array:
 	var positions = [Vector3(-15,0,-30), Vector3(-10,0,-39), Vector3(-5,0,-42), Vector3(5,0,-40), Vector3(13,0,-34), Vector3(-20,0,-35), Vector3(-27,0,-29), Vector3(-35,0,-24), Vector3(-39,0,-18), Vector3(-39,0,-5), Vector3(-40,0,4), Vector3(-35,0,14), Vector3(-33,0,25), Vector3(-26,0,32), Vector3(-16,0,37), Vector3(-6,0,40), Vector3(4,0,38), Vector3(37,0,-17), Vector3(40,0,-9), Vector3(41,0,0), Vector3(40,0,10), Vector3(-15,0,-18), Vector3(-8,0,-26), Vector3(8,0,-32)]

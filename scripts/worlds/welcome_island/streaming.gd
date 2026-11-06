@@ -9,6 +9,8 @@ var failed: Dictionary = {}
 var load_all := false
 var completed := 0
 var last_attachment_usec := 0
+var priority_dirty := true
+var priority_point := Vector3.INF
 
 func _exit_tree():
 	# Drop bound callbacks before scene owners disappear; loader tasks themselves
@@ -18,6 +20,7 @@ func _exit_tree():
 
 func enqueue(point: Vector3, paths: Array, attach: Callable):
 	jobs.append({"point": point, "paths": paths, "attach": attach})
+	priority_dirty = true
 
 func _process(_delta):
 	if is_queued_for_deletion() or get_parent().is_queued_for_deletion(): return
@@ -31,7 +34,10 @@ func _process(_delta):
 	var point = Vector3.ZERO
 	for player in get_tree().get_nodes_in_group("player"):
 		if player is Node3D: point = player.global_position; break
-	jobs.sort_custom(func(a, b): return a.point.distance_squared_to(point) < b.point.distance_squared_to(point))
+	if priority_dirty or point.distance_squared_to(priority_point) > 0.25:
+		jobs.sort_custom(func(a, b): return a.point.distance_squared_to(point) < b.point.distance_squared_to(point))
+		priority_point = point
+		priority_dirty = false
 	for job in jobs:
 		if not load_all and job.point.distance_to(point) > RANGE: continue
 		var ready := true

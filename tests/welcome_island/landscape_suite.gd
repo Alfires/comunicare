@@ -27,7 +27,7 @@ func run():
 	check(tilted >= 30, "stones have varied settled pitch and roll instead of identical upright poses")
 	var ground_details = landscape.get_node_or_null("GroundDetails")
 	var grass = landscape.get_node_or_null("MeadowGrass")
-	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500 and grass.multimesh.instance_count <= 3200, "short meadow grass uses one bounded shared multimesh")
+	check(grass is MultiMeshInstance3D and grass.multimesh.visible_instance_count > 500 and grass.multimesh.instance_count <= 3200, "short meadow grass uses one bounded shared multimesh")
 	check(ground_details != null and ground_details.get_child_count() >= 50 and ground_details.get_child_count() <= 180, "bounded low planting and stone clusters fill open meadow pockets")
 	if ground_details != null:
 		check(ground_details.get_children().all(func(node): return landscape._planting_clear(node.position)), "new meadow accents preserve routes and destination clearances")

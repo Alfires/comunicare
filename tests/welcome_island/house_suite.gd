@@ -37,8 +37,17 @@ func run():
 	for frame in 120:
 		body.velocity = Vector3(0, -1, -4); body.move_and_slide(); await physics_frame
 	check(body.position.z < -17 and body.position.y > -0.1, "physics capsule enters house through accessible flush doorway")
-	check(not safety.clearance(body, Vector3(16, 0.05, -20), 1.9, 0.35), "wall negative control blocks capsule")
+	check(not safety.clearance(body, house.to_global(Vector3(house.get_node("LeftWall").position.x, 0.05, 0)), 1.9, 0.35), "wall negative control blocks capsule")
 	check(house.find_children("*", "Label3D", true, false).is_empty(), "house contains no tutorial labels")
+	# Collision wall planes must remain within 25 cm of the rendered house shell.
+	var shell = house.get_node("AuthoredExterior").find_children("*hollow*", "MeshInstance3D", true, false)
+	check(not shell.is_empty(), "adapted rendered wall shell remains inspectable")
+	if not shell.is_empty():
+		var rendered_bounds: AABB = house.global_transform.affine_inverse() * shell[0].global_transform * shell[0].mesh.get_aabb()
+		for mesh in shell:
+			rendered_bounds = rendered_bounds.merge(house.global_transform.affine_inverse() * mesh.global_transform * mesh.mesh.get_aabb())
+		check(absf(rendered_bounds.position.x - house.get_node("LeftWall").position.x) < 0.25 and absf(rendered_bounds.end.x - house.get_node("RightWall").position.x) < 0.25,
+			"side collision walls align with visible architectural shell")
 	check(house.has_method("rest_at"), "resting furniture supports deliberate rest/leave actions")
 	if house.has_method("rest_at"):
 		body.add_to_group("player")

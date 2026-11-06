@@ -17,6 +17,15 @@ func run():
 	check(landscape.get_node("Trees").get_child_count() >= 20, "grove and side destinations have trees")
 	check(landscape.get_node("Rocks").get_child_count() >= 16, "shore and underside have individual authored rocks")
 	check(landscape.get_node("EdgeBorders").get_child_count() >= 12, "perimeter has readable protective borders")
+	var underside = world.get_node_or_null("Island/RockUnderside")
+	check(underside != null and underside.mesh is ArrayMesh, "island underside is an authored irregular mesh, not a primitive cone")
+	if underside != null:
+		var arrays = underside.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var finite := true
+		for point in vertices:
+			if not point.is_finite(): finite = false
+		check(vertices.size() > 200 and finite, "underside has bounded finite sculpted geometry")
 	check(landscape.get_node("Trees").find_children("*", "MeshInstance3D", true, false).all(func(node): return node.visibility_range_end > 0), "tree visibility range bounded")
 	check(world.find_children("*", "OmniLight3D", true, false).filter(func(light): return light.shadow_enabled).size() <= 2, "at most two shadowed local lights")
 	check(world.find_children("*", "Label3D", true, false).is_empty(), "finished scene has no tutorial billboards")

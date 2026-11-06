@@ -1,6 +1,9 @@
 # 09 — House, beds and side spaces
 
 **Status:** Implemented initial furnished structure with manual XR/art gates — 2026-11-05.
+Collision follow-up (2026-11-06): side proxies fitted to the aggregate transformed
+architectural shell, fixing invisible barriers inside the wider rendered room.
+Decorative window/trim collision is still proxy-based, not exact per-triangle physics.
 Style follow-up (2026-11-06): cleared textured Innerscene bungalow exterior and
 Poly Haven sofa/daybeds/coffee table/picnic table replace the visible box-house
 and mismatched bright low-poly furnishings. Single-level layout/collision retained;

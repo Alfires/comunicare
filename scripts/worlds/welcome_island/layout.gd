@@ -122,6 +122,13 @@ func _build_land():
 			var b = Vector3(x + 2, _height(x + 2, z), z)
 			var c = Vector3(x, _height(x, z + 2), z + 2)
 			var d = Vector3(x + 2, _height(x + 2, z + 2), z + 2)
+			# Move only the outer rim onto its smooth radial contour. Interior grid,
+			# spawn and all tested routes stay unchanged; the silhouette loses its
+			# staircase of alternating two-metre cliff teeth.
+			a = _rim_point(a)
+			b = _rim_point(b)
+			c = _rim_point(c)
+			d = _rim_point(d)
 			for point in [a, b, c, b, d, c]: tool.add_vertex(point)
 			for edge in [[a, b], [b, d], [d, c], [c, a]]:
 				var key = str(edge[0]) + str(edge[1])
@@ -143,17 +150,40 @@ func _build_land():
 	var collision = CollisionShape3D.new()
 	collision.shape = mesh.create_trimesh_shape()
 	body.add_child(collision)
-	# Continuous tapered underside, not separate playable islands.
+	# Deterministic irregular rock strata; no flat-ended primitive cone.
 	var underside = MeshInstance3D.new()
-	var cone = CylinderMesh.new()
-	cone.top_radius = 52
-	cone.bottom_radius = 12
-	cone.height = 24
-	cone.radial_segments = 15
-	underside.mesh = cone
-	underside.position.y = -16
+	underside.name = "RockUnderside"
+	var rock = SurfaceTool.new(); rock.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rings: Array = []
+	for layer in 6:
+		var ring: Array[Vector3] = []
+		for index in 64:
+			var angle = index * TAU / 64
+			var radius_at_layer = [52.3, 49.0, 40.0, 30.0, 16.0, 2.0][layer]
+			var variation = sin(angle * 5 + layer * 0.8) * (1.0 + layer * 0.3) + cos(angle * 9 - layer) * 0.8
+			var radius_value = maxf(0.8, radius_at_layer + variation)
+			var y = [-3.8, -7.0, -12.0, -18.0, -24.0, -28.0][layer] + sin(angle * 4 + layer) * (0.3 + layer * 0.25)
+			ring.append(Vector3(cos(angle) * radius_value, y, sin(angle) * radius_value))
+		rings.append(ring)
+	for layer in 5:
+		for index in 64:
+			var next = (index + 1) % 64
+			for point in [rings[layer][index], rings[layer+1][index], rings[layer][next], rings[layer][next], rings[layer+1][index], rings[layer+1][next]]:
+				rock.add_vertex(point)
+	for index in 64:
+		for point in [rings[5][index], Vector3(0, -29, 0), rings[5][(index+1)%64]]: rock.add_vertex(point)
+	rock.generate_normals()
+	underside.mesh = rock.commit()
 	underside.material_override = _surface_material("rock_01", 4.0)
 	add_child(underside)
+
+func _rim_point(point: Vector3) -> Vector3:
+	var flat = Vector2(point.x, point.z)
+	if flat.length() < 49: return point
+	var angle = atan2(point.z, point.x)
+	var radius = 52.5 + sin(angle * 3) * 0.8 + sin(angle * 7) * 0.5
+	flat = flat.normalized() * radius
+	return Vector3(flat.x, point.y, flat.y)
 
 func _material(color: Color) -> StandardMaterial3D:
 	var material = StandardMaterial3D.new()

@@ -8449,22 +8449,29 @@
     },
     {
       "kind": "func",
+      "name": "_rim_point",
+      "line": 180,
+      "signature": "func _rim_point(point: Vector3) -> Vector3",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_material",
-      "line": 158,
+      "line": 188,
       "signature": "func _material(color: Color) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_surface_material",
-      "line": 165,
+      "line": 195,
       "signature": "func _surface_material(id: String, meters: float) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_box",
-      "line": 178,
+      "line": 208,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3D",
       "visibility": "private"
     }
@@ -8645,7 +8652,7 @@
     {
       "kind": "func",
       "name": "_box",
-      "line": 165,
+      "line": 176,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D",
       "visibility": "private"
     }

@@ -1,5 +1,22 @@
 # Welcome island startup contracts
 
+## Underside/rim and house-proxy follow-up — 2026-11-06
+
+Test-first landscape assertions rejected the old primitive cone. The underside is
+now a deterministic six-ring irregular rock mesh with a pointed bottom; outer-rim
+vertices follow a smooth radial contour instead of the old two-metre cliff teeth.
+Spawn/interior grid and routes are unchanged. Terrain collision uses the same
+authored upper mesh. This improves silhouette, not a claim of completed vegetation,
+natural root detail or a fully art-directed environment.
+
+A transformed-shell assertion reproduced side collision planes inside the larger
+rendered bungalow. Proxies now fit aggregate imported wall-shell bounds; the wall
+negative-control query uses the actual fitted wall rather than the former hardcoded
+location. These are simple static proxies, not exact window/trim collision.
+House rendered tests, layout 30, pond 18, combined home 18 and official Linux debug
+standalone export pass; screenshots inspected under `/tmp/opencode`. Real-headset
+physical walkthrough/comfort and final-art sign-off still require hardware/people.
+
 ### Voice routing test resolution — 2026-11-06
 
 The intermittent routing assertion is now isolated from ENet adaptive throttle

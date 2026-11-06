@@ -1,5 +1,11 @@
 # Production function contracts
 
+Layout `_rim_point` maps only the outer terrain grid to a deterministic radial
+contour, leaving the center and routes unchanged. `_build_land` now constructs
+an irregular six-ring rock underside rather than a CylinderMesh cone. House
+exterior integration fits static side-wall proxies to aggregate transformed wall
+bounds so collision does not remain inside the nominal imported footprint.
+
 House `rest_at` accepts only a nearby local player and named bed/sofa, validates
 target/exit space and stores a weak rest record without changing local tracked
 pose or yaw. It pauses physics walking until `leave_rest`, which validates the

@@ -154,6 +154,17 @@ func _install_exterior():
 				mesh.set_surface_override_material(surface, material)
 	for name in ["BackWall", "LeftWall", "RightWall"]:
 		get_node(NodePath(name)).visible = false
+	# The imported shell includes wall details outside its nominal twelve-metre
+	# footprint. Fit static side proxies to the aggregate transformed shell,
+	# rather than leaving invisible barriers inside the rendered room.
+	var shell_nodes = exterior.find_children("*hollow*", "MeshInstance3D", true, false)
+	var bounds := AABB(); var first := true
+	for mesh in shell_nodes:
+		var box = global_transform.affine_inverse() * mesh.global_transform * mesh.mesh.get_aabb()
+		bounds = box if first else bounds.merge(box); first = false
+	if not first:
+		get_node("LeftWall").position.x = bounds.position.x
+		get_node("RightWall").position.x = bounds.end.x
 	# A timber ceiling separates the liveable rooms from the imported roof void.
 	get_node("Roof").mesh.size = Vector3(15.7, 0.2, 13.7)
 	get_node("Roof").position.y = 2.95

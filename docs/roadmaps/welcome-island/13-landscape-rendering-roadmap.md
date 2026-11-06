@@ -1,6 +1,10 @@
 # 13 — Original landscape, atmosphere and performance
 
 **Status:** Initial composition implemented; final art/XR/performance acceptance open — 2026-11-05.
+Geometry follow-up (2026-11-06): primitive underside replaced by an irregular
+multi-ring mesh; rim contour smoothed and routes/pond regression-tested. This
+supersedes the primitive-cone limitation, not final art, vegetation/root detail,
+human XR or performance acceptance.
 **Prerequisites:** 02, 07–11. See [measurements/limits](../../../tests/welcome_island/README.md).
 See the [mandatory test-first workflow](README.md) and [rendering policy](../offline-welcome-island-roadmap.md#rendering-sound-and-performance).
 

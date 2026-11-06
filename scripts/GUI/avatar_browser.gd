@@ -173,7 +173,7 @@ func _home():
 	status.text = "Public catalogs: opening a category or search contacts the selected providers with your IP address and query. Built-in catalogs never require login."
 	for category in ["Humanoid avatars", "Robots", "Animations and emotes"]:
 		results_view.add_page_button(category, select_category.bind(category))
-	results_view.add_page_button("Load category recommendations (external requests)", _home_feeds)
+	results_view.add_page_button("Load category recommendations (external requests)", func(): assets.home_feeds())
 	results_view.add_page_button("Browse all public catalogs", func(): submit_home_search(""))
 
 func submit_home_search(query: String):
@@ -219,28 +219,6 @@ func _service(source: Dictionary, id: String = "") -> Node:
 func _release(service: Node):
 	services.erase(service)
 	service.queue_free()
-
-func _home_feeds():
-	_cancel_pending()
-	generation += 1
-	var ticket = generation
-	saved_records.clear()
-	cursors.clear()
-	seen_results.clear()
-	_clear()
-	status.text = "Loading public category sections…"
-	for id in registry.sources:
-		var source: Dictionary = registry.sources[id]
-		if not source.enabled: continue
-		var service = _service(source, id)
-		var response: Dictionary = await service.search({"query": "", "type": "all", "cursor": ""})
-		_release(service)
-		if ticket != generation: return
-		for item in response.get("items", []).slice(0, 6):
-			var record: Dictionary = item.duplicate(true)
-			record.provider = id
-			_remember_feed_record(record)
-	status.text = "Samples from enabled public catalogs. Use Search to filter everything."
 
 func _remember_feed_record(record: Dictionary):
 	var key = str(record.get("provider", "")) + ":" + str(record.get("id", ""))

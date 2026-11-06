@@ -2057,6 +2057,7 @@ before equip, and stale generations or account switches discard results.
 | Functions | Contract |
 | --- | --- |
 | `pump_thumbnails` | Starts up to two anonymous thumbnail downloads for the current generation. |
+| `home_feeds` | Loads up to six samples per enabled catalog for the Home recommendations; stale generations are discarded. |
 | `convert_animation` | Converts animation bytes on one worker thread; empty on failure or when busy. |
 | `preview_animation` | Plays a downloaded clip on an isolated copy of the local avatar in the detail preview. |
 | `preview_record` | Downloads, verifies and shows an anonymous-source model in the detail preview without equipping. |

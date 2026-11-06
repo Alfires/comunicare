@@ -36,6 +36,30 @@ func _load_thumbnail(job: Dictionary):
 		if not response.get("no_store", false): browser.thumbnail_cache.store(job.key, texture)
 	pump_thumbnails()
 
+## Home recommendations: up to six samples from every enabled catalog.
+func home_feeds():
+	var b = browser
+	b._cancel_pending()
+	b.generation += 1
+	var ticket = b.generation
+	b.saved_records.clear()
+	b.cursors.clear()
+	b.seen_results.clear()
+	b._clear()
+	_status("Loading public category sections…")
+	for id in b.registry.sources:
+		var source: Dictionary = b.registry.sources[id]
+		if not source.enabled: continue
+		var service = b._service(source, id)
+		var response: Dictionary = await service.search({"query": "", "type": "all", "cursor": ""})
+		b._release(service)
+		if ticket != b.generation: return
+		for item in response.get("items", []).slice(0, 6):
+			var record: Dictionary = item.duplicate(true)
+			record.provider = id
+			b._remember_feed_record(record)
+	_status("Samples from enabled public catalogs. Use Search to filter everything.")
+
 func convert_animation(bytes: PackedByteArray) -> PackedByteArray:
 	if browser.conversion_thread != null: return PackedByteArray()
 	var converter = preload("res://scripts/discovery/avatars/animation_conversion.gd").new()

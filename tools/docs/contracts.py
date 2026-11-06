@@ -27,7 +27,10 @@ def missing(inventory, text):
 
 
 def main():
-    errors = missing(collect(), (ROOT / "docs/reference/functions.md").read_text())
+    text = (ROOT / "docs/reference/functions.md").read_text()
+    supplement = ROOT / "docs/reference/recent-functions.md"
+    if supplement.exists(): text += "\n" + supplement.read_text()
+    errors = missing(collect(), text)
     print("\n".join(errors) if errors else "All production modules/public functions have contract entries")
     return int(bool(errors))
 

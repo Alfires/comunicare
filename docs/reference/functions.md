@@ -1,5 +1,9 @@
 # Production function contracts
 
+Additional editor/world helpers and their operating limits are covered in the
+[supplemental production contracts](recent-functions.md), which are checked by
+the same coverage tool.
+
 House exterior integration builds static collision from visible modest glazing,
 frame, sill, porch-post and beam mesh faces, transformed into house coordinates.
 Hidden source geometry, oversized detail meshes and the widened entry corridor
@@ -70,6 +74,8 @@ three nonshadowed 7 m OmniLight zones and session defaults. State is discarded w
 the house; no network replication, physical dimmer or real-headset certification.
 
 <!-- module: scripts/worlds/welcome_island/house_spaces.gd -->
+`rest_at` validates a local rest spot and records pose while suppressing conflicting motion. `leave_rest` restores deliberate movement safely. `make_rest_controls` builds local rest/leave UI, not a networked seat lease.
+
 ## Built-in house and furnishing assembly
 
 Private ready builds a single-level shell and places individual cleared furniture
@@ -99,7 +105,6 @@ sphere-sweep/shore bounds for collision. This is local-only, not relay ownership
 full buoyancy or verified headset comfort. Explicit boarding confirmation belongs
 to the built-in world/shared Controls UI; ordinary player movement is paused while riding.
 
-
 ## Pond and dock safety additions
 
 `recover_from_pond` on the trusted built-in world defers player-only recovery,
@@ -110,13 +115,11 @@ water surface, trigger volume and timber dock with shared cleared textures.
 VR safety destination rays include areas and reject `teleport_disabled` targets;
 the water surface is not a walkable body. Final XR water rendering is unverified.
 
-
 Local pickup `_local_carry_clear` sweeps held collision shapes against original
 world masks and checks destination overlaps before accepting a hand transform.
 Blocked/nonfinite hand updates keep the last clear pose; release restores physics
 there instead of teleporting props through walls. Rotation has endpoint overlap
 validation only; this does not certify continuous rotating-shape clearance.
-
 
 ## Trusted local home interaction additions
 
@@ -134,7 +137,6 @@ The recovery/PCK follow-up detects editor-source mode only when `project.godot`
 is actually mounted. A pack hosted by the editor executable uses pre-export hashes;
 the isolated pack test does not certify a standalone template or real headset.
 
-
 <!-- module: scripts/worlds/welcome_island/home_contract.gd -->
 ## Built-in home spawn/revision contract
 
@@ -148,6 +150,8 @@ the local generator/check must run before export. This is built-in content ident
 not downloadable-world authorization or session identity.
 
 <!-- module: scenes/world.gd -->
+`recover_from_pond` resets only eligible local players through the shipped home recovery contract, not an externally callable remote-player authority.
+
 ## Built-in world recovery
 
 `return_player_to_spawn` accepts only player-group nodes and delegates to the shared
@@ -157,7 +161,6 @@ Private ready/spawn callbacks place persistent players on direct world entry;
 the void callback defers physics mutations. Registered items restore their own
 pose and clear linear/angular motion; unregistered lost rigid bodies are removed.
 This does not implement a pickup/vehicle ownership service or a public remote API.
-
 
 <!-- module: scripts/worlds/welcome_island/layout.gd -->
 ## Built-in welcome island graybox
@@ -180,7 +183,6 @@ selection uses `WorldPickupController.nearest_available`, the same obstruction/
 unheld/range selection used by `grab_nearest`. The local mirror defers desktop E
 to a held or reachable ordinary pickup instead of swallowing its interaction.
 
-
 <!-- module: scripts/GUI/credits_page.gd -->
 ## Offline asset Credits
 
@@ -192,7 +194,6 @@ and notice checks precede rendering; `source_requested` emits only after an expl
 source button activation. Settings owns the resulting OS browser action. Full terms
 expand/collapse inline inside the existing settings scroll area. `_valid_record`
 and `_add_text` validate local notice fields and build wrapping readable labels.
-
 
 <!-- module: scripts/assets/default_robot.gd -->
 ## Bundled default robot
@@ -207,7 +208,8 @@ retain normal validation/import. No script/account/profile migration is performe
 
 Private process selects nearby unheld pickup candidates using desktop grip/VR
 hand anchors, and bounded mirror surface proximity, with wall/focus/menu checks.
-It adds instance-only transparent mesh overlays, removes stale overlays and reads
+`show_targets` sets/restores instance-only transparent material overlays without
+duplicating geometry. Physics process removes stale overlays and reads
 the registry color live. No shared material edits, physics bodies or wire packets.
 
 <!-- module: scripts/GUI/circular_value_control.gd -->
@@ -219,6 +221,8 @@ to a clamped stepped scalar and calls the consumer. `fraction` returns its norma
 value; `draw_on` draws the ring/value/Back hint in a caller's draw callback.
 
 <!-- module: scripts/assets/local_mirror.gd -->
+`can_grab_at` checks visible unheld surface proximity. `desktop_grab_hit` checks exact camera ray/reach/surface bounds. `grab_range` adapts reach to avatar size; hover/grab use these same predicates, without physics or network state.
+
 ## Client-only mirror
 
 `place_in_front` places the local panel relative to the current camera, without
@@ -486,17 +490,23 @@ generation and rate state. Private send/broadcast paths skip disconnected transp
 No world loading, scripts, simulation or durable data exists on this router.
 
 <!-- module: scripts/worlds/world_pickup_controller.gd -->
+`activate_local` installs home-only items/actions. `cancel_local_input` releases local anchors. `reset_local_item` restores initial pose/motion. `activate_nearest` invokes bounded unobstructed reviewed actions with session/input gates; shared item acquisition still requires relay leases.
+
 ## Client world item adapter
 
 `configure` binds trusted coordinator/loader. `activate` resolves validated pickup
 entities and requests a live snapshot; `reset` restores collision/freeze settings
 and clears world references. `request_grab` checks nearby local entity/grip/anchor;
+`nearest_available` returns the nearest unheld unobstructed candidate for both
+hover and grab, without changing ownership.
 `grab_nearest` selects within a capped range. `release_grip` and `held_by_local` use
 acknowledged leases. `receive` checks scope/sequence and state before changing items.
 Private processing attaches local held props, publishes capped poses and interpolates
 remote transforms. This is initial carrying, not swept collision/two-hand physics.
 
 <!-- module: scripts/worlds/world_runtime.gd -->
+`binding_value` reads saved/state bindings. `dispatch_ui` accepts only active-owned-menu actions and rejects reentrancy. `open_menu` renders validated pages; `close_menu` releases input. `respawn_local_player` validates local player/spawn; no remote movement authority.
+
 ## Restricted world event execution
 
 `configure` resolves stable current-world entities through weak node references and
@@ -780,6 +790,9 @@ availability is outside headless packet tests.
 | `set_muted` | Applies capture state, clears queued samples on mute and starts only eligible capture on unmute; never replays old samples. Called by voice owner. |
 
 <!-- module: scripts/player/player_desktop_movment.gd -->
+`set_avatar_size` applies a finite 0.25–3 multiplier to model, capsule geometry,
+camera rest anchor and walking speed, leaving the CharacterBody transform unscaled.
+Selection is session/process-local, not a signed profile edit.
 ### [Desktop player](../../scripts/player/player_desktop_movment.gd)
 
 Root-owned CharacterBody; ready subscribes profile/config and loads avatar.
@@ -797,6 +810,9 @@ stale loads. Camera forward clearance and rest-eye calibration are local only.
 | `get_walk_speed` | Returns the shared registry-backed `vr.move_speed` for desktop walking and automatic walk/run classification, identical to VR's unboosted reference. Physics applies the shared held-sprint multiplier to horizontal target speed only; focus/UI/rebind/session suppression requires release before sprint can resume. |
 
 <!-- module: scripts/player/player_vr.gd -->
+`set_avatar_size` scales the avatar, XR origin and collision geometry consistently
+with walking speed; tracked poses remain runtime-owned. Capsule height updates
+retain the multiplier. Real-headset comfort still requires manual verification.
 ### [VR player](../../scripts/player/player_vr.gd)
 
 Root-owned CharacterBody; XR origin/camera/controllers remain player-owned. Input
@@ -893,6 +909,8 @@ drops references on avatar/session teardown. Does not move camera/body or prove
 universal gait quality; target stabilization and physical boundary safety differ.
 
 <!-- module: scripts/startup/data_loader.gd -->
+`prepare_world_async` awaits worker safe-package parsing and returns staged scene data without activation or admission; scene attachment stays main-thread/coordinator-owned.
+
 ### [DataLoader](../../scripts/startup/data_loader.gd)
 
 Stable autoload. Camera-added callback excludes local derivative layer for other
@@ -952,6 +970,8 @@ HTTP fields; `_allowed_url` syntax is not DNS destination-policy sandboxing. Lea
 and TemporaryFile destructors are indexed in the declaration inventory.
 
 <!-- module: scripts/assets/avatar_configuration.gd -->
+`active_avatar` returns active cache key/name/public URL or fallback descriptor; cached private models never inherit an outdated profile URL. It does not mutate signed profiles or bypass Apply ownership.
+
 ### [AvatarConfiguration](../../scripts/assets/avatar_configuration.gd)
 
 Client account-owned Node. Applied JSON is separate from signed public profile.
@@ -983,7 +1003,22 @@ conversion rejects cycles/matrices. See supported subset, not full VRMA claims.
 | `bind_clip` | Main-thread avatar binding to a Skeleton3D using humanoid metadata/rest-axis conversion; returns Animation/null. Rejects required missing bones, skips explicit optional channels; legacy VRM orientation correction applies to builtin data. |
 
 <!-- module: scripts/assets/default_animations.gd -->
+## Bundled motion data
+
+`clip` lazily decodes authored Quaternius rotation samples, source-rest quaternions and provenance and returns a named clip or empty. Consumers copy before masking shared data. No root movement or arbitrary downloaded animation code is executed.
+
 ### [DefaultAnimations](../../scripts/assets/default_animations.gd)
+
+Bundled library data is shared lazily; callers must copy before adaptation. Asset
+provenance is recorded separately in THIRD_PARTY_ASSETS.md and the source manifest.
+
+<!-- module: scripts/assets/avatar_dimensions.gd -->
+### [Avatar dimensions](../../scripts/assets/avatar_dimensions.gd)
+
+`eye_position` returns a rest-space camera anchor in the model parent's coordinates:
+averaged mapped eyes, mapped/legacy head, then 92% of finite transformed mesh bounds,
+or a 1.6 m default. Nested rig transforms and model scale are included; animated
+bone poses never drive the camera. First-person derivative meshes are excluded.
 
 | Functions | Contract |
 | --- | --- |
@@ -1006,6 +1041,8 @@ authority. Shared local/remote renderer; it is not a separate network player.
 | `synchronize` | Corrects phase using playback-speed adjustment bounded to ±10%, with shortest cyclic error for loops. Seeks only for errors above 0.5 s. No-op for stopped/unattached players. |
 
 <!-- module: scripts/assets/animation_controller.gd -->
+`locomotion_rate` derives quantized bounded cadence from actual horizontal velocity and avatar stride scale. `locomotion_head_mask` excludes animated gaze/head channels so player-owned tracking/look remains final. Phase-preserving cadence uses the existing resolved animation stream.
+
 ### [AnimationController](../../scripts/assets/animation_controller.gd)
 
 DataLoader-hosted service created/recovered by production coordinator factory.
@@ -1203,6 +1240,8 @@ media reveals client address to host; caller must respect user/request consent.
 | `texture_from_bytes` | Decodes supported bounded image bytes to texture/null; not arbitrary scene loading. |
 
 <!-- module: scripts/profile/friend_service.gd -->
+`friend_session` returns a copy of fresh relay-derived public-instance location for an accepted online/DND friend; offline, blocked/revoked/stale locations return empty. Location grants no admission rights and is not persisted as live state.
+
 ### [FriendService](../../scripts/profile/friend_service.gd)
 
 SaveData-owned RefCounted client persistence. Private `_commit` validates/signs next
@@ -1249,6 +1288,8 @@ fingerprint/source. Weak node records are reclaimed; `clear` resets on session
 teardown. Caller enforces active session/signature; this helper is not authorization.
 
 <!-- module: scripts/multiplayer/network_handler.gd -->
+`load_local_map` awaits validated local safe-package preparation then reviewed transition/activation; reports failures without loading arbitrary native scripts/scenes or joining by world URL alone.
+
 Explicit duplicate-account auth alone can invoke SaveData's one-time temporary
 identity fallback and send a fresh AUTH_HELLO on the unauthenticated connection.
 Temporary moderation uses an empty persistence path; other auth failures do not
@@ -1496,6 +1537,8 @@ membership/rate. Avatar revision mismatch prevents remote application.
 | `valid` | Valid metadata/world/session/revision and unique bounded roster roles/IDs/fingerprints; no mutation. Valid shape does not establish sender authorization. |
 
 <!-- module: relay_protocol/animation_state.gd -->
+`transfer_timeout_msec` computes bounded size-aware budgets for supported assets, with old minimum and allowance for 256 MiB models at conservative throughput. Byte/chunk validation and admission remain separate.
+
 ### [AnimationState](../../relay_protocol/animation_state.gd)
 
 | Functions | Contract |
@@ -1582,6 +1625,8 @@ merely because a menu closes. Evidence: profile/settings/friends/instance and
 animation lifecycle tests, plus manual small-window/XR checks.
 
 <!-- module: scripts/GUI/animation_menue.gd -->
+`import_animation_files` snapshots consent for a whole selected batch, guards concurrent Apply/import and leaves empty selections unchanged. `choose_model_file` opens single VRM/GLB selection; `choose_animation_files` opens multiple VRMA/GLB selection. No implicit upload or manual URL entry.
+
 ### [Avatar source editor](../../scripts/GUI/animation_menue.gd)
 
 Owner-only source editor under profile. Ready creates model/multifile/URL inputs,
@@ -1610,6 +1655,8 @@ Hiding clears model/rendering. Public profile/equipped avatar is never changed.
 | `set_idle_animation` | Plays or stops the bundled neutral stance on a humanoid model; false without a validated rig. |
 
 <!-- module: scripts/GUI/emote_layout_editor.gd -->
+`filter_library` bounds/normalizes the query and rebuilds applied-emote add rows, disabling existing group shortcuts; it does not import or play clips.
+
 ### [EmoteLayoutEditor](../../scripts/GUI/emote_layout_editor.gd)
 
 | Functions | Contract |
@@ -1856,6 +1903,10 @@ or reduce-motion settings change, and sets the root content scale.
 | `current_tokens` | Returns the last applied tokens. |
 
 <!-- module: scripts/GUI/theme/swatch_picker.gd -->
+`set_colors` copies replacement swatch data and queues existing buttons to redraw,
+without rebuilding nodes, changing selection or committing a setting. The caller
+supplies reviewed colors for the enum's stable identities.
+
 ### [SwatchPicker](../../scripts/GUI/theme/swatch_picker.gd)
 
 Labelled color swatches for an enum setting (color scheme, accent). Colors are

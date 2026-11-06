@@ -49,7 +49,7 @@ def declarations(text):
 
 def collect():
     return {p.relative_to(ROOT).as_posix(): declarations(p.read_text())
-            for folder in ["scripts", "relay_protocol"] for p in sorted((ROOT / folder).rglob("*.gd"))}
+            for folder in ["scripts", "relay_protocol", "scenes"] for p in sorted((ROOT / folder).rglob("*.gd"))}
 
 
 def main():

@@ -1,6 +1,8 @@
 import importlib.util
 from pathlib import Path
 import unittest
+import tempfile
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("inventory", Path(__file__).with_name("inventory.py"))
 inventory = importlib.util.module_from_spec(spec)
@@ -8,6 +10,16 @@ spec.loader.exec_module(inventory)
 
 
 class Tests(unittest.TestCase):
+    def test_scene_scripts_are_production(self):
+        with tempfile.TemporaryDirectory(dir="/tmp/opencode") as directory:
+            root = Path(directory)
+            (root / "scenes").mkdir()
+            (root / "scenes/world.gd").write_text("extends Node\nfunc recover(): pass\n")
+            with patch.object(inventory, "ROOT", root):
+                found = inventory.collect()
+            self.assertIn("scenes/world.gd", found)
+            self.assertEqual(found["scenes/world.gd"][0]["name"], "recover")
+
     def test_declarations(self):
         source = '''extends Node
 # func fake():

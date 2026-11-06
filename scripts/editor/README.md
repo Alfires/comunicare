@@ -1,34 +1,37 @@
-# Initial local project editor and collaboration primitives
+# Local project editor and direct-IP collaboration
 
-Update: direct-IP signed editing transport and owner approval UI now exist. See
-[editing with friends](../../docs/guides/editing-with-friends.md) for the current
-workflow and limitations. Translation edits synchronize over real ENet; no project
-is sent until owner approval. Transport is authenticated but not encrypted; use
-trusted LAN/VPN only. The older disabled-transport description below is superseded
-by this update, not a claim of full roadmap completion.
+Open **World Explorer → Edit local project…**. Create/open authoring JSON, edit
+supported primitive entities, save source separately or export a validated `.cworld`.
+Use **Open local map…** to play the exported package. Existing `.cworld` files are
+not reverse-imported into source projects. Save before closing; unsaved-change
+confirmation, viewport gizmos and visual asset authoring are not implemented.
 
-Open **World Explorer → Edit local project…**. Create/open a local authoring JSON,
-edit supported primitive entities, save it or export a validated `.cworld`. Open
-the export through **Open local map…**. Save before closing; there is no unsaved
-changes dialog, visual gizmo or viewport editing yet.
+## Editing with other users
 
-The editor accepts source JSON projects, not reverse import of a packaged map.
-Keep the original authoring project alongside its exported package. Account changes
-block saving through an old panel. Arbitrary GDScript and unsupported assets remain
-rejected by the shared authoring validator.
+The owner can host a separate direct-IP signed ENet editing session. A collaborator
+pins the owner's account fingerprint and proves their own identity, then waits
+for explicit viewer/editor approval. Translation edits synchronize through the
+owner; revocation/disconnect removes live permissions. No project is sent before
+approval. Save/export from the shared session is owner-only in the panel.
 
-`edit_authority` implements local owner/editor/viewer checks, revocation, generation,
-revision and replay rejection. `edit_leases` handles exclusive manipulation expiry.
-These are **not connected to authenticated network routing**. There is currently
-no working friend invitation/join/edit UI, session discovery or project transfer.
-Do not expose these services to packet-provided sender identities. Remote access is
-disabled until reviewed capability negotiation/admission/transport exists.
+See [editing with friends](../../docs/guides/editing-with-friends.md) for addresses,
+ports and limits. Signatures authenticate but **do not encrypt** traffic. Use a
+trusted LAN/VPN. There is no friend-list invitation integration, automatic NAT/relay
+traversal, host migration, arbitrary asset transfer or public editing discovery.
+Normal gameplay membership never grants editing rights.
 
-`editor_playtest` compiles and preserves a snapshot; it does not launch a player or
-switch worlds. No claim of actual progress isolation in a launched game is made.
-`editor_input` currently supports canonical translation only, not rotation/scaling.
+## Services and boundaries
 
-Run `python3 tests/map_editor/run.py`: **36 service assertions pass**, zero blocked
-groups. This validates local services/export, not a collaborative editing journey.
-Broader production UI checks encountered concurrent menu-shell wiring failures;
-the local editor panel has not passed a full rendered acceptance journey.
+- `project_store`: shared authoring validation and atomic JSON save/load; recovery
+  keeps the valid main file rather than preferring an incomplete temporary write.
+- `edit_commands`: derived translation edits and revision-checked inverse operations.
+- `edit_authority`: owner/editor/viewer access, generations, revisions and replay checks.
+- `edit_leases`: bounded manipulation leases; not a complete collaborative gizmo UI.
+- `edit_session`: authenticated direct-IP connection, explicit approval and snapshots.
+- `editor_input`: translation-only canonical input; unsupported rotation/scale rejects.
+- `editor_playtest`: validated package preparation and snapshot restoration only;
+  it does not launch a production player or switch maps.
+
+Run `python3 tests/map_editor/run.py` for service, panel-instantiation and real
+loopback transport checks. Passing these does not certify rendered multi-window
+editing, physical VR comfort or full collaborative project recovery.

@@ -12,12 +12,16 @@ avatars with animations and emotes.
 
 - Desktop and VR player paths, configurable controls, menus and tracking support.
 - Relay-based multiplayer with voice, player movement, instance discovery and
-  client-owned profiles, contacts and access preferences.
+  client-owned profiles, friendships, requests and access preferences.
 - An offline home world, world browsing, and validated downloadable world packages.
 - An in-game avatar/animation browser, local model imports, bundled animations,
   emote organization and a local mirror.
 - First-person avatar geometry that preserves your body, arms and legs while
   hiding your head; original geometry remains available to other cameras.
+- Local map-package loading, bounded world menus/progress saves and progressive
+  visual reveal around the player after validated activation.
+- An initial Godot authoring plugin and local JSON map editor, with opt-in
+  direct-IP collaborative translation editing and owner approval.
 
 These are implemented systems, not a claim of release readiness. Headset comfort,
 microphone/device behavior, rendering and production networking still require
@@ -75,6 +79,10 @@ Read the [avatar browser guide](docs/guides/avatar-browser.md),
 [avatar and animation usage guide](docs/asset-cache-and-animation-usage.md), and
 [VR controls guide](docs/guides/vr-controls.md).
 
+Select an avatar result for an automatic independent preview, then choose **Use
+this avatar** to validate and equip it. Large-file confirmation, model compatibility
+and redistribution checks still apply. Previewing alone never equips a model.
+
 ## Create worlds
 
 Use the [safe world-authoring guide](docs/guides/safe-world-authoring.md) for the
@@ -86,6 +94,17 @@ are obsolete.
 See [world-loading behavior and limits](docs/guides/world-loading.md) for details
 about preparation and progressive visual reveal.
 
+- [Open local map packages](docs/guides/local-maps.md)
+- [Godot authoring plugin: setup and current limits](addons/comunicare_world_tools/README.md)
+- [Edit a local project with friends](docs/guides/editing-with-friends.md)
+- [Static model conversion](docs/guides/downloadable-world-models.md),
+  [world menus](docs/guides/world-menus.md) and [local saves](docs/guides/world-local-saves.md)
+
+The editors are initial implementations, not general visual level editors. Direct-IP
+editing is signed but **not encrypted**: use trusted LAN/VPN only. General combat,
+rigged world enemies, automatic NAT traversal and full spatial resource streaming
+are not implemented. Progressive reveal does not guarantee zero load time.
+
 ## Development and verification
 
 Contributors need **Godot 4.7** and **Python 3**. Start with
@@ -96,6 +115,9 @@ Examples of focused checks:
 python3 tests/avatar_loading/run.py
 python3 tests/avatar_tracking/run.py
 python3 tests/animation_sync/run.py
+python3 tests/world_system/run.py
+python3 tests/world_authoring/run.py
+python3 tests/map_editor/run.py
 python3 tools/check_repository.py
 ```
 

@@ -8,8 +8,8 @@ existing bundled/external movement defaults remain available. Standalone animati
 files still require supported channels, byte limits and at most 64 clips; model
 validation is not a bypass for malformed binary containers or invalid rig data.
 
-Open **Home → Avatar Browser**. The left sidebar offers **Home**, **Search** and
-**Sources**. Home search opens Search with the entered text; category buttons
+Open the tablet's **Avatars** page (or Quick → Avatar). The browser sidebar offers
+**Home**, **Search**, **My avatar** and **Providers**. Home search opens Search with the entered text; category buttons
 select avatar/animation filters. Search also has provider, format and ordering
 filters, with explicit Load more. Search is over fetched public catalogs, not a
 global server-side index or popularity ranking.
@@ -44,11 +44,12 @@ returned HTTP 403 in this environment; public metadata alone is not enough.
 
 ## Download and add animations or avatars
 
-Select a result to view its author, license, format and source link. For anonymous
-avatars, **Preview model** downloads a separate model without equipping it.
-**Download, validate and review** imports into a separate Avatar source-editor
-draft. Nothing changes in your equipped avatar or animation library until **Apply**.
-Cancel discards the draft. Added compatible non-basic animation clips become
+Select a result to view its author, license, format and source link. Eligible
+anonymous avatar results automatically download an independent preview. **Preview**
+can retry that action; previewing alone never equips the model. **Use this avatar**
+downloads, validates and applies it in one action, with inline progress/errors.
+Animation **Add to my library** still opens a source-editor draft requiring Apply;
+Cancel discards that draft. Added compatible non-basic animation clips become
 available in the existing emote wheel after Apply; recognized locomotion roles
 use the existing automatic resolver. The source limit remains 32.
 
@@ -87,7 +88,7 @@ Byte limits do not guarantee sufficient decoded RAM/VRAM or model compatibility.
 
 ## Add a custom API
 
-In **Sources**, enter a name, HTTPS endpoint and optional **Bearer** or
+In **Providers**, enter a name, HTTPS endpoint and optional **Bearer** or
 **X-API-Key** credential, then confirm the endpoint. Anonymous use remains available.
 The API must implement the schema below; a URL alone does not integrate arbitrary
 websites. Sources can be enabled/disabled, tested, edited or removed. Updating an

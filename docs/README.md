@@ -10,6 +10,8 @@ headset, renderer, microphone or production-network verification.
 - [VR controls and tracking status](guides/vr-controls.md)
 - [Accounts, profiles and social access](guides/accounts-and-social.md)
 - [World transitions, settings and voice](guides/worlds-settings-and-voice.md)
+- [Open local maps](guides/local-maps.md) and [world-loading behavior](guides/world-loading.md)
+- [Local project editing with friends](guides/editing-with-friends.md)
 - [Offline home island: features and release limits](guides/welcome-home.md)
 - [Avatar sources, animation and emotes](asset-cache-and-animation-usage.md)
 - [Public avatar/animation browser and custom APIs](guides/avatar-browser.md)
@@ -35,6 +37,17 @@ headset, renderer, microphone or production-network verification.
 - [Local Git-only releases](development/releases.md)
 - [Roadmaps and remaining work](roadmaps/README.md)
 - [Accepted architecture decisions](decisions/README.md)
+
+## World creators
+
+- [Safe world authoring](guides/safe-world-authoring.md)
+- [Initial Godot authoring plugin](../addons/comunicare_world_tools/README.md)
+- [Current in-game editor implementation](../scripts/editor/README.md)
+- [Static models and scoped checkpoints](guides/downloadable-world-models.md)
+- [Safe world menus and interaction limits](guides/world-menus.md)
+- [Local progress saves](guides/world-local-saves.md)
+- [Networked pickup physics](guides/item-physics-sync.md)
+- [Local development tool layout](../tools/README.md)
 
 ## Status
 

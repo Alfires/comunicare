@@ -1,50 +1,41 @@
-# Responsive world preparation
+# World loading: current behavior and limits
 
-Reveal maintenance checks pending mesh bounds at 10 Hz, so moving props can enter
-range even when the player is stationary. Deleted pending meshes are discarded;
-removing the scheduler restores remaining render layers. Distant-only queues skip
-render-frame advancement between maintenance ticks. Initial reveal no longer sorts
-twice. Tests reproduce stale-bounds invisibility and cancellation layer leakage.
+## Download and preparation
 
-Distance-based reveal update: the shared DataLoader activation path now holds
-unrevealed package visuals outside 38 m until the local player approaches. Pending
-work is reprioritized at 10 Hz after at least 0.5 m of movement, using world-space
-mesh bounds rather than origin distance (large floors are not hidden merely because
-their origin is far away). Nearby work retains the eight-mesh/CPU scheduling budget.
-Revealed meshes stay resident; this is not distant-resource unloading or lazy
-construction. Collision and validated assets are prepared before entry. Built-in
-home still additionally uses its own trusted asset/attachment scheduler.
+URL/local package gameplay paths await bounded worker jobs for validation and
+detached world construction, keeping the main loop responsive. A completed worker
+is joined before attachment. The old world remains active while download/validation
+runs; acknowledged instance/revision checks still decide when activation is allowed.
+Synchronous preparation remains available for authoring/isolated tooling.
 
-Update: visual reveal is now a scene-owned background scheduler, also applied to
-the built-in scene when activated through DataLoader. Activation no longer awaits
-every visual batch: the nearest batch restores immediately, movement can resume
-after collision/runtime setup, and remaining layers restore over later frames.
-The scheduler limits work to eight meshes / approximately 1.5 ms CPU scheduling
-per frame and stops processing when finished. It preserves `visible` flags using
-temporary render-layer masking, so world scripts retain visibility ownership.
-This does not unload distant resources or progressively attach collision nodes.
-The earlier blocking-reveal description below is superseded by this update.
+## Activation and nearby visuals
 
-URL/local package runtime loading now schedules package validation and detached
-world construction on a bounded worker queue. Awaiting callers keep the main loop
-running; only a completed worker is joined. The synchronous builder/prepare API
-remains available to authoring and isolated tooling, not the gameplay URL/file path.
+Scene attachment installs collision before movement resumes. A scene-owned reveal
+scheduler restores nearby mesh render layers in batches of at most eight, with an
+approximately 1.5 ms CPU scheduling budget per frame. Activation does not wait for
+every visual batch; runtime/pickup initialization and spawn reset complete before
+the transition releases controls. Script-visible flags are never rewritten by reveal.
 
-After validated instance acknowledgment, scene attachment installs collision, then
-previously visible MeshInstance3D nodes reveal nearest the spawn first in batches
-of eight per frame. Hidden authored meshes remain hidden. Script start/pickup setup
-happens after reveal, so scripted visibility changes are not overwritten. Progress
-is available via `DataLoader.world_loading_progress(stage, fraction)`; this change
-does not add a new loading overlay.
+Unrevealed meshes outside 38 m wait for the player to approach. Pending work uses
+world-space mesh bounds, so a large floor does not disappear merely because its
+origin is distant. Priority updates at 10 Hz after at least 0.5 m of player movement;
+pending mesh bounds are refreshed so moving props can enter range too. Deleted
+meshes are discarded and removing the scheduler restores remaining render layers.
+The scheduler stops processing after all pending visuals have been revealed.
 
-This is not full spatial streaming. PackedScene instantiation, initial tree attachment,
-collision registration and GPU uploads can still incur work. Movement remains blocked
-until activation finishes, and the old world stays active during download/validation.
-No unvalidated package is activated or shared-instance revision check bypassed.
-Built-in trusted scenes use their existing loading path. Do not infer guaranteed
-frame times or instantaneous spawn from these changes.
+Revealed resources stay resident. This is **not** spatial resource unloading,
+progressive collision attachment or a promise of zero loading time. PackedScene
+instantiation, tree attachment, collision registration and GPU uploads can still
+cause work. The trusted built-in home additionally uses its own asset/attachment
+scheduler; downloaded worlds never inherit unrestricted resource-loading callbacks.
 
-Tests: actual loopback two-client package Create/Join/world switches and local file
-activation; production worker scheduling heartbeat with a deterministic slow job;
-world package and avatar import regressions. Forward Plus and headset frame-time
-profiling against a large converted map remain open.
+`DataLoader.world_loading_progress(stage, fraction)` exposes loading stages; it is
+not an exact measurement of GPU work or proof that all distant regions are visible.
+
+## Verification
+
+`tests/world_system` covers reveal budgets, range, moved bounds, authored visibility
+and cleanup. `tests/avatar_loading` checks worker heartbeat/queue release.
+`tests/real_ui --two-clients` exercises actual loopback packages, Create/Join,
+world/instance switches and local-file activation. These checks do not certify
+large-map Forward Plus frame times or physical-headset loading comfort.

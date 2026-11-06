@@ -21,6 +21,17 @@ func run():
 	check(species.has("pine") and species.has("fir"), "landscape mixes distinct realistic pine and fir silhouettes")
 	check(landscape.has_node("Understory") and landscape.get_node("Understory").get_child_count() >= 30, "planted clusters include bounded fern understory and stumps")
 	check(landscape.get_node("Rocks").get_child_count() >= 16, "shore and underside have individual authored rocks")
+	var tilted := 0
+	for stone in landscape.get_node("Rocks").get_children():
+		if absf(stone.rotation.x) + absf(stone.rotation.z) > 0.12: tilted += 1
+	check(tilted >= 30, "stones have varied settled pitch and roll instead of identical upright poses")
+	var ground_details = landscape.get_node_or_null("GroundDetails")
+	var grass = landscape.get_node_or_null("MeadowGrass")
+	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500 and grass.multimesh.instance_count <= 3200, "short meadow grass uses one bounded shared multimesh")
+	check(ground_details != null and ground_details.get_child_count() >= 50 and ground_details.get_child_count() <= 180, "bounded low planting and stone clusters fill open meadow pockets")
+	if ground_details != null:
+		check(ground_details.get_children().all(func(node): return landscape._planting_clear(node.position)), "new meadow accents preserve routes and destination clearances")
+		check(ground_details.get_children().all(func(node): return node.position == landscape._detail_point(int(node.get_meta("placement")))), "meadow composition is deterministic across stream ordering")
 	check(landscape.get_node("EdgeBorders").get_child_count() >= 12, "perimeter has readable protective borders")
 	check(landscape.get_node_or_null("Roots") != null, "overhanging roots connect trees to floating rock strata")
 	check(landscape.get_node_or_null("ShoreDetails") != null, "pond has composed shoreline detail beyond bare terrain")

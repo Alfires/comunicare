@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 16: natural density and stone poses](16-natural-density-roadmap.md) records
+the meadow, sheltered planting, young pines and mixed rock placement pass.
+
 [Part 15: dynamic home loading](15-streaming-roadmap.md) records proximity-based
 background loading, entry measurements and remaining rendered hitch limitations.
 

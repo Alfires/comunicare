@@ -80,7 +80,7 @@ func _build_home():
 		for endpoint in routes[name]:
 			var middle: Vector3 = (previous + endpoint) * 0.5
 			var distance: float = previous.distance_to(endpoint)
-			var path = _box("Path", middle + Vector3(0, 0.015, 0), Vector3(3.6, 0.03, distance + 1), Color(0.64, 0.57, 0.4), false)
+			var path = _box("Path", middle + Vector3(0, 0.015, 0), Vector3(2.8, 0.03, distance + 1), Color(0.64, 0.57, 0.4), false)
 			path.rotation.y = atan2(endpoint.x - previous.x, endpoint.z - previous.z)
 			# Break the ruler-straight graybox strip with low, irregular grass
 			# shoulders. Visual-only edges never introduce a walking obstacle.
@@ -91,12 +91,14 @@ func _build_home():
 			for section in range(ceili(distance / 2)):
 				var a = previous + direction * minf(section * 2, distance)
 				var b = previous + direction * minf((section+1)*2, distance)
-				var width_a = 1.9 + sin(section * 1.7) * 0.22
-				var width_b = 1.9 + sin((section+1)*1.7) * 0.22
+				var width_a = 1.6 + sin(section * 1.7) * 0.22
+				var width_b = 1.6 + sin((section+1)*1.7) * 0.22
 				for sign_value in [-1, 1]:
-					for point in [a+side*sign_value*1.55, a+side*sign_value*width_a, b+side*sign_value*1.55, b+side*sign_value*1.55, a+side*sign_value*width_a, b+side*sign_value*width_b]:
+					for point in [a+side*sign_value*1.12, a+side*sign_value*width_a, b+side*sign_value*1.12, b+side*sign_value*1.12, a+side*sign_value*width_a, b+side*sign_value*width_b]:
 						ribbon.add_vertex(point + Vector3.UP*0.035)
-			ribbon.generate_normals(); shoulder.mesh = ribbon.commit(); shoulder.material_override = _surface_material("sparse_grass", 2.5); add_child(shoulder)
+			ribbon.generate_normals(); shoulder.mesh = ribbon.commit()
+			shoulder.material_override = get_node("Landmass/ContinuousTerrain").get_child(0).material_override
+			add_child(shoulder)
 			previous = endpoint
 	home_loaded = true
 	home_ready.emit()
@@ -267,6 +269,7 @@ func _surface_material(id: String, meters: float) -> StandardMaterial3D:
 		return material
 	var prefix = "res://assets/welcome_island/textures/" + id + "/" + id
 	material.albedo_texture = load(prefix + "_diff_1k.jpg")
+	if id == "rock_path": material.albedo_color = Color(0.72, 0.66, 0.53)
 	material.normal_enabled = true
 	material.normal_texture = load(prefix + "_nor_gl_1k.jpg")
 	material.roughness_texture = load(prefix + "_rough_1k.jpg")

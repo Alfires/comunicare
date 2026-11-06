@@ -1,7 +1,11 @@
 extends RefCounted
 ## No credential-bearing URLs; custom credentials are exact-origin, memory-only.
 func origin(url: String) -> String:
-	return url.get_slice("://", 0).to_lower() + "://" + url.get_slice("://", 1).get_slice("/", 0).get_slice("?", 0).to_lower()
+	var scheme = url.get_slice("://", 0).to_lower()
+	var authority = url.get_slice("://", 1).get_slice("/", 0).get_slice("?", 0).to_lower()
+	if scheme == "https" and authority.ends_with(":443"): authority = authority.trim_suffix(":443")
+	elif scheme == "http" and authority.ends_with(":80"): authority = authority.trim_suffix(":80")
+	return scheme + "://" + authority
 
 func valid_url(url: String, loopback: bool = false) -> bool:
 	if url.length() > 4096 or " " in url or "\\" in url or "\n" in url or "\r" in url or "#" in url: return false
@@ -29,7 +33,13 @@ func valid_url(url: String, loopback: bool = false) -> bool:
 			port = authority.get_slice(":", 1)
 			if port.is_empty(): return false
 		if host.is_empty() or "%" in host or "[" in host or "]" in host: return false
+		for label in host.trim_suffix(".").split("."):
+			if label.is_empty() or label.length() > 63 or label.begins_with("-") or label.ends_with("-"): return false
+			for character in label.to_lower():
+				if not character in "abcdefghijklmnopqrstuvwxyz0123456789-": return false
 	if not port.is_empty() and (not port.is_valid_int() or int(port) < 1 or int(port) > 65535): return false
+	for character in port:
+		if not character in "0123456789": return false
 	for parameter in url.get_slice("?", 1).split("&"):
 		if parameter.get_slice("=", 0).uri_decode().to_lower() in ["token", "api_key", "apikey", "access_token", "signature", "sig", "key"]: return false
 	return true
@@ -39,8 +49,11 @@ func prepare_request(source: Dictionary, target_url: String, credentials: Dictio
 	var headers = PackedStringArray(["Accept: application/json"])
 	if source.get("kind") == "custom" and source.get("auth", "none") != "none":
 		if origin(target_url) != origin(str(source.get("base_url", ""))): return {}
-		var token = str(credentials.get("token", ""))
+		if not credentials.get("token", "") is String: return {}
+		var token: String = credentials.get("token", "")
 		if token.is_empty() or token.length() > 4096 or "\n" in token or "\r" in token: return {}
+		for index in token.length():
+			if token.unicode_at(index) < 32 or token.unicode_at(index) == 127: return {}
 		if source.auth in ["bearer", "oauth"]: headers.append("Authorization: Bearer " + token)
 		elif source.auth == "api_key": headers.append("X-API-Key: " + token)
 		else: return {}

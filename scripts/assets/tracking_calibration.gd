@@ -39,8 +39,10 @@ func _valid_offset(values: Variant) -> bool:
 func capture_roles(samples: Dictionary, desired: Dictionary) -> Dictionary:
 	var result: Dictionary = {}
 	for role in desired:
+		if role not in ["head", "leftHand", "rightHand", "hips", "leftFoot", "rightFoot"]: continue
 		if not samples.get(role) is Transform3D or not desired[role] is Transform3D: continue
 		if not samples[role].is_finite() or not desired[role].is_finite(): continue
+		if absf(samples[role].basis.determinant()) < 0.000001 or absf(desired[role].basis.determinant()) < 0.000001: continue
 		var offset: Transform3D = samples[role].affine_inverse() * desired[role]
 		var q = offset.basis.orthonormalized().get_rotation_quaternion()
 		var values = [offset.origin.x, offset.origin.y, offset.origin.z, q.x, q.y, q.z, q.w]
@@ -50,7 +52,9 @@ func capture_roles(samples: Dictionary, desired: Dictionary) -> Dictionary:
 func calibrated_targets(samples: Dictionary, offsets: Dictionary) -> Dictionary:
 	var result: Dictionary = {}
 	for role in samples:
+		if role not in ["head", "leftHand", "rightHand", "hips", "leftFoot", "rightFoot"]: continue
 		if not samples[role] is Transform3D or not samples[role].is_finite(): continue
+		if absf(samples[role].basis.determinant()) < 0.000001: continue
 		if not offsets.has(role): continue # New assignments need explicit calibration.
 		var v = offsets[role]
 		if not _valid_offset(v): continue

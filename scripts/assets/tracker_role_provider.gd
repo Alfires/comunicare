@@ -4,8 +4,15 @@ var samples: Dictionary = {}
 var assignments: Dictionary = {}
 
 func update_sample(id: String, pose: Transform3D, valid: bool, msec: int):
-	if id.is_empty() or id.length() > 256 or msec < int(samples.get(id, {}).get("at", -1)): return
-	samples[id] = {"pose": pose, "valid": valid and pose.is_finite(), "at": msec}
+	if id.is_empty() or id.length() > 256 or msec < 0 or msec < int(samples.get(id, {}).get("at", -1)): return
+	if not samples.has(id) and samples.size() >= 256:
+		var oldest := ""
+		for candidate in samples:
+			if candidate in assignments.values(): continue
+			if oldest.is_empty() or samples[candidate].at < samples[oldest].at: oldest = candidate
+		if oldest.is_empty(): return
+		samples.erase(oldest)
+	samples[id] = {"pose": pose, "valid": valid and pose.is_finite() and absf(pose.basis.determinant()) > 0.000001, "at": msec}
 
 func assign(role: String, id: String) -> bool:
 	if role not in ROLES or not samples.has(id) or not samples[id].valid: return false

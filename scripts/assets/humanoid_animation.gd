@@ -19,6 +19,7 @@ func document(bytes: PackedByteArray, byte_limit: int = MAX_BYTES) -> Dictionary
 	var json: Dictionary = {}
 	var binary = PackedByteArray()
 	var binary_seen := false
+	var json_seen := false
 	while offset + 8 <= bytes.size():
 		var length = bytes.decode_u32(offset)
 		var type = bytes.decode_u32(offset + 4)
@@ -27,8 +28,9 @@ func document(bytes: PackedByteArray, byte_limit: int = MAX_BYTES) -> Dictionary
 		if length % 4 != 0 or length > bytes.size() - offset:
 			return {}
 		if type == 0x4e4f534a:
-			if not json.is_empty():
+			if json_seen:
 				return {}
+			json_seen = true
 			var parser = JSON.new()
 			if parser.parse(bytes.slice(offset, offset + length).get_string_from_utf8()) != OK or not parser.data is Dictionary:
 				return {}
@@ -43,7 +45,9 @@ func document(bytes: PackedByteArray, byte_limit: int = MAX_BYTES) -> Dictionary
 		or not json.get("images", []) is Array:
 		return {}
 	if not json.get("asset") is Dictionary or json.asset.get("version") != "2.0": return {}
+	if json.asset.has("minVersion") and json.asset.minVersion != "2.0": return {}
 	if json.get("buffers", []).size() > 1: return {}
+	if binary_seen and json.get("buffers", []).is_empty(): return {}
 	for buffer in json.get("buffers", []):
 		if not buffer is Dictionary or buffer.has("uri"):
 			return {}
@@ -53,6 +57,8 @@ func document(bytes: PackedByteArray, byte_limit: int = MAX_BYTES) -> Dictionary
 	for image in json.get("images", []):
 		if not image is Dictionary or image.has("uri"):
 			return {}
+		var views = json.get("bufferViews", [])
+		if not views is Array or not _index(image.get("bufferView"), views.size()): return {}
 	return {"json": json, "binary": binary}
 
 func humanoid_nodes(json: Dictionary) -> Dictionary:
@@ -66,15 +72,15 @@ func humanoid_nodes(json: Dictionary) -> Dictionary:
 			var bones = extension.get("humanoid", {}).get("humanBones", {})
 			if bones is Dictionary:
 				for bone in bones:
-					if bones[bone] is Dictionary and _index(bones[bone].get("node"), json.get("nodes", []).size()):
-						mapping[bone] = int(bones[bone].node)
+					if not bones[bone] is Dictionary or not _index(bones[bone].get("node"), json.get("nodes", []).size()): return {}
+					mapping[bone] = int(bones[bone].node)
 	var legacy = extensions.get("VRM", {})
 	if mapping.is_empty() and legacy is Dictionary and legacy.get("humanoid", {}) is Dictionary:
 		var bones = legacy.get("humanoid", {}).get("humanBones", [])
 		if bones is Array:
 			for bone in bones:
-				if bone is Dictionary and bone.get("bone") is String and _index(bone.get("node"), json.get("nodes", []).size()):
-					mapping[bone.bone] = int(bone.node)
+				if not bone is Dictionary or not bone.get("bone") is String or not _index(bone.get("node"), json.get("nodes", []).size()) or mapping.has(bone.bone): return {}
+				mapping[bone.bone] = int(bone.node)
 	return mapping
 
 func read_bytes(bytes: PackedByteArray) -> Dictionary:
@@ -189,7 +195,7 @@ func _accessor(json: Dictionary, binary: PackedByteArray, id: Variant, type: Str
 		or not _integer(accessor.get("count")) or accessor.count <= 0 or accessor.count > MAX_KEYS:
 		return []
 	var view = views[int(accessor.bufferView)]
-	if not view is Dictionary or view.get("buffer", 0) != 0:
+	if not view is Dictionary or not _integer(view.get("buffer")) or view.buffer != 0:
 		return []
 	var offset = view.get("byteOffset", 0)
 	var length = view.get("byteLength", -1)
@@ -216,7 +222,8 @@ func _quaternion(values: Variant) -> Quaternion:
 		if not (value is float or value is int) or not is_finite(value):
 			return Quaternion(0, 0, 0, 0)
 	var result = Quaternion(values[0], values[1], values[2], values[3])
-	return result.normalized() if result.length_squared() > 0.0001 else Quaternion(0, 0, 0, 0)
+	var length = result.length_squared()
+	return result.normalized() if is_finite(length) and absf(length - 1.0) <= 0.02 else Quaternion(0, 0, 0, 0)
 
 func _global_rest_rotation(nodes: Array, parents: Dictionary, start: int) -> Quaternion:
 	var rotation = Quaternion.IDENTITY

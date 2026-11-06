@@ -10,11 +10,11 @@ var callback: Callable
 
 func configure(label: String, initial: float, low: float, high: float, increment: float, suffix: String, changed: Callable):
 	title = label
-	minimum = low
-	maximum = maxf(low, high)
-	step = maxf(increment, 0.0001)
+	minimum = low if is_finite(low) else 0.0
+	maximum = maxf(minimum, high) if is_finite(high) else minimum
+	step = maxf(increment, 0.0001) if is_finite(increment) else 0.01
 	unit = suffix
-	value = clampf(initial, minimum, maximum)
+	value = clampf(initial, minimum, maximum) if is_finite(initial) else minimum
 	callback = changed
 
 func set_fraction(fraction: float):
@@ -22,7 +22,7 @@ func set_fraction(fraction: float):
 	var next = clampf(minimum + snappedf(lerpf(minimum, maximum, clampf(fraction, 0, 1)) - minimum, step), minimum, maximum)
 	if fraction >= 1.0: next = maximum
 	elif fraction <= 0.0: next = minimum
-	if is_equal_approx(value, next): return
+	if value == next: return
 	value = next
 	if callback.is_valid(): callback.call(value)
 

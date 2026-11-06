@@ -59,10 +59,15 @@ static func valid(value: Variant) -> bool:
 		for entry in group.entries:
 			if not entry is Dictionary or entry.get("type") not in ["emote", "group"] \
 				or not entry.get("id") is String or entry.id.is_empty() or entry.id.length() > 256 \
-				or not entry.get("name") is String or entry.name.length() > 128:
+				or not entry.get("name") is String or entry.name.strip_edges().is_empty() or entry.name.length() > 128:
 				return false
 			if entry.type == "group" and not value.has(entry.id):
 				return false
+		var shortcuts := {}
+		for entry in group.entries:
+			var key = entry.type + ":" + entry.id
+			if shortcuts.has(key): return false
+			shortcuts[key] = true
 	# Check every component, including unreachable groups; cycles are never safe.
 	for id in value:
 		if not _walk(value, id, [], 0):

@@ -14,8 +14,11 @@ func begin(config: Dictionary) -> String:
 	clear()
 	if not policy.valid_url(str(config.get("authorization_url", ""))) or not policy.valid_url(str(config.get("token_url", ""))): return ""
 	if str(config.get("client_id", "")).is_empty(): return ""
+	for pair in str(config.authorization_url).get_slice("?", 1).split("&"):
+		if pair.get_slice("=", 0).uri_decode() in ["state", "client_id", "redirect_uri", "response_type", "code_challenge", "code_challenge_method", "scope"]: return ""
 	redirect_uri = str(config.get("redirect_uri", ""))
 	if not redirect_uri.begins_with("http://127.0.0.1:") or not policy.valid_url(redirect_uri, true) or "?" in redirect_uri: return ""
+	if redirect_uri.trim_prefix("http://").find("/") < 0: return ""
 	session_config = {"client_id": config.client_id, "token_url": config.token_url, "authorization_url": config.authorization_url}
 	var crypto = Crypto.new()
 	verifier = _base64url(crypto.generate_random_bytes(32))
@@ -42,7 +45,7 @@ func accept_callback(url: String, config: Dictionary) -> Dictionary:
 		var key = pair.left(separator).replace("+", " ").uri_decode()
 		if params.has(key): return {}
 		params[key] = pair.substr(separator + 1).replace("+", " ").uri_decode()
-	if params.get("state") != state or params.has("error") or str(params.get("code", "")).is_empty(): return {}
+	if params.get("state") != state or params.has("error") or str(params.get("code", "")).strip_edges().is_empty(): return {}
 	var result = {"grant_type": "authorization_code", "code": params.code, "client_id": config.client_id, "redirect_uri": redirect_uri, "code_verifier": verifier}
 	clear() # one use only
 	return result

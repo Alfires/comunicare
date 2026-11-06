@@ -19,13 +19,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
+theme_type_variation = &"WideHBox"
 
 [node name="Details" type="VBoxContainer" parent="Content"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 3.2
-theme_override_constants/separation = 12
+theme_type_variation = &"SpacedVBox"
 
 [node name="Header" type="HBoxContainer" parent="Content/Details"]
 layout_mode = 2
@@ -54,11 +54,11 @@ horizontal_scroll_mode = 0
 [node name="Body" type="VBoxContainer" parent="Content/Details/DetailsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_type_variation = &"SpacedVBox"
 
 [node name="Identity" type="HBoxContainer" parent="Content/Details/DetailsScroll/Body"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_type_variation = &"SpacedHBox"
 
 [node name="ImageColumn" type="HBoxContainer" parent="Content/Details/DetailsScroll/Body/Identity"]
 layout_mode = 2
@@ -77,15 +77,14 @@ text = "Edit"
 [node name="NameColumn" type="HBoxContainer" parent="Content/Details/DetailsScroll/Body/Identity"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
 
 [node name="Name" type="Label" parent="Content/Details/DetailsScroll/Body/Identity/NameColumn"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 24
 text_overrun_behavior = 3
 clip_text = true
+theme_type_variation = &"HeaderLabel"
 
 [node name="EditName" type="Button" parent="Content/Details/DetailsScroll/Body/Identity/NameColumn"]
 layout_mode = 2

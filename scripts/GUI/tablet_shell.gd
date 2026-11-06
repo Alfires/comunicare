@@ -52,6 +52,10 @@ func _init():
 		page_factories[id] = func(): return load(path).instantiate()
 
 func _ready():
+	var toasts = preload("res://scripts/GUI/toast_host.gd").new()
+	toasts.name = "Toasts"
+	%ContentArea.add_child(toasts)
+	set_meta("toast_host", toasts)
 	_build_nav()
 	%BackButton.pressed.connect(back)
 	%CloseButton.pressed.connect(func(): close_requested.emit())

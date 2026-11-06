@@ -23,6 +23,8 @@ var last_busy := false
 var rows: Dictionary = {}
 var request_list: VBoxContainer
 var request_peer: RelayPeer
+var empty_state: Control
+const ToastHost = preload("res://scripts/GUI/toast_host.gd")
 
 func _ready():
 	$VBoxContainer/Label.text = "Active Instance"
@@ -31,6 +33,10 @@ func _ready():
 	header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	$VBoxContainer.add_child(header)
 	$VBoxContainer.move_child(header, 1)
+	empty_state = preload("res://scripts/GUI/empty_state.gd").new()
+	empty_state.configure(preload("res://themes/icons/instance.svg"), "You are not in an instance yet.", "Browse worlds", _open_worlds)
+	$VBoxContainer.add_child(empty_state)
+	$VBoxContainer.move_child(empty_state, 1)
 	var actions = HBoxContainer.new()
 	$VBoxContainer.add_child(actions)
 	$VBoxContainer.move_child(actions, 3)
@@ -153,6 +159,7 @@ func _render():
 		_cancel_edit()
 		confirmation.hide()
 	session_id.text = session if not session.is_empty() else "No active instance"
+	empty_state.visible = session.is_empty()
 	$VBoxContainer/HBoxContainer/copy.disabled = session.is_empty() or NetworkHandler.session_busy
 	header.text = "No active instance" if session.is_empty() else "Loading authoritative instance details…"
 	if not state.is_empty():
@@ -329,6 +336,12 @@ func open_profile(owner: String):
 	$VBoxContainer.hide()
 	profile_panel.open_profile(SaveData.profile, owner)
 
+func _open_worlds():
+	var node: Node = get_parent()
+	while node != null and not node.has_method("open_page"): node = node.get_parent()
+	if node != null: node.open_page("worlds")
+
 func _on_copy_pressed():
 	if not NetworkHandler.current_session_id.is_empty() and not NetworkHandler.session_busy:
 		DisplayServer.clipboard_set(NetworkHandler.current_session_id)
+		ToastHost.notify(self, "Instance code copied.", "success")

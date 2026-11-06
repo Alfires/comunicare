@@ -36,7 +36,7 @@ func _ready():
 	panel.add_child(scroll)
 	var layout = VBoxContainer.new()
 	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	layout.add_theme_constant_override("separation", 12)
+	layout.theme_type_variation = "SpacedVBox"
 	scroll.add_child(layout)
 	var title = Label.new()
 	title.text = "My avatar & animations"

@@ -134,6 +134,6 @@ list, the status-bar contents, the VR logical layout size and the key texts.
 - `browser_detail.gd`: `show_record(record, eligibility)`, `set_progress`, `show_error`, signal `apply_requested`. Nodes `UseButton` (PrimaryButton, "Use this avatar"), `Progress` and `Reason`.
 - `browser_sidebar.gd`: `set_sources`, `state()`, signal `filters_changed`, and a `Search` field.
 - `avatar_browser.gd` is at most 400 lines and has no modal apply dialog.
-- `scripts/GUI/toast_host.gd`: `show_message(text, kind, seconds)`, `visible_toasts()` and a static `find_for(node)` lookup. At most three toasts, which never take focus.
+- `scripts/GUI/toast_host.gd`: `show_message(text, kind, seconds)`, `visible_toasts()`, a static `find_for(node)` lookup and `ToastHost.notify(node, text, kind)`. At most three toasts, which never take focus. Pages count as toast users when they call `show_message(` or `ToastHost.notify(`.
 - `scripts/GUI/empty_state.gd`: `configure(icon, message, action_label := "", action := Callable())` with `Message` and `Action` nodes.
 - User docs mention the tablet, grip and all six presets.

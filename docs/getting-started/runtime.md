@@ -1,5 +1,8 @@
 # Running clients and relays
 
+The in-game menu (Esc on PC, A/X in VR) and its color schemes are described in
+[Menu, VR tablet and color schemes](../guides/menu-and-themes.md).
+
 ## Local default avatar and interaction hints
 
 The default avatar is the bundled RobotExpressive robot, loaded without a network

@@ -180,7 +180,7 @@ func test_polish_wiring():
 			if file.get_extension() != "gd": continue
 			var text = source("res://scripts/GUI/" + file)
 			if text.contains("AcceptDialog.new()"): modal.append(file)
-			if text.contains("show_message("): toast_users += 1
+			if file != "toast_host.gd" and (text.contains("show_message(") or text.contains("ToastHost.notify(")): toast_users += 1
 	check(modal.is_empty(), "no informational AcceptDialogs remain in GUI scripts %s" % [modal])
 	check(toast_users >= 3, "pages use toasts for non-blocking messages (wiring check)")
 	var missing: Array = []

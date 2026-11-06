@@ -1,5 +1,6 @@
 extends Control
 
+const ToastHost = preload("res://scripts/GUI/toast_host.gd")
 var service
 var layout: VBoxContainer
 var list: VBoxContainer
@@ -199,7 +200,13 @@ func _render():
 				_button(buttons, "Block", _ask.bind("Block account and revoke local friendship?\n" + owner, service.block.bind(owner)))
 			if focused_id == owner:
 				title.grab_focus()
-		if count == 0:
+		if count == 0 and section == "Friends" and contacts.is_empty():
+			var empty = preload("res://scripts/GUI/empty_state.gd").new()
+			empty.configure(preload("res://themes/icons/friends.svg"), "You have no contacts yet.", "Add someone", func():
+				add_panel.show()
+				key_input.grab_focus())
+			list.add_child(empty)
+		elif count == 0:
 			_label(list, "None yet")
 	scroll.set_deferred("scroll_vertical", previous_scroll)
 
@@ -212,7 +219,9 @@ func _join_friend(owner: String):
 	status_label.text = "Joining friend's instance…"
 	if not await NetworkHandler.join_session(location.session_id, location.world_url):
 		status_label.text = NetworkHandler.last_session_error
-	else: status_label.text = "Joined friend's instance."
+	else:
+		status_label.text = "Joined friend's instance."
+		ToastHost.notify(self, "Joined your friend's instance.", "success")
 
 func _open_profile(owner: String):
 	restore_scroll = scroll.scroll_vertical

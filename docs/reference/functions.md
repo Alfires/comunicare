@@ -1017,6 +1017,8 @@ poses are not included in this protocol.
 | Functions | Contract |
 | --- | --- |
 | `configure` | Binds network/loader and applied avatar config; requires main-tree collaborators. No ownership transfer. |
+| `toggle_local_mirror` | Shows or hides the client-only mirror (creating it in front of the camera) and returns visibility. |
+| `is_local_mirror_visible` | True when the local mirror exists and is shown. |
 | `now` | Returns local monotonic milliseconds plus estimated relay offset; not wall-clock time. |
 | `resolve_motion` | Chooses static neutral, forward/back walk/run, left/right strafe or upward jump from actual grounded/local-space velocity; no fall/landing playback. Uses unboosted player walking speed as reference, entering run above 1.3× and leaving at 1.1× (stateful hysteresis). Sprint intent alone cannot trigger run at rest; strafe retains precedence. |
 | `tracking_mask` | Returns copied clip excluding tracked head/eye/jaw/hand channels, preserving untracked limbs/torso. Does not itself perform IK. |
@@ -1306,6 +1308,7 @@ children; animation service lives under DataLoader, not that cleanup list.
 | `host_world` | Await selected content staging then create/result/activate; bool. Explicit hosting, never automatic side effect of discovery click. |
 | `update_connected_peers` | Reconciles current other-peer nodes and emits participants_changed; metadata/profile resolution is separate from avatar completion. |
 | `is_instance_admin` | Reads local fingerprint's role in authoritative active snapshot; false without identity/state. UI check is not relay authorization. |
+| `get_instance_summary` | Returns {title, mode, people} for the status bar from the acknowledged instance; {} when not in one. |
 | `refresh_instance` | Sends correlated refresh and starts snapshot deadline; no optimistic permissions. |
 | `manage_instance` | Guards busy/pending/admin and emits revisioned action with target identity/peer guards; returns request ID or empty, completion via signal. |
 
@@ -1603,7 +1606,8 @@ Hiding clears model/rendering. Public profile/equipped avatar is never changed.
 | `set_source` | Changes URL, clears prior preview/restores URL loader, updates affordances; does not fetch until requested by view. |
 | `clear_preview` | Invalidates generation, detaches/frees model and disables viewport updates. |
 | `load_preview` | Await injected/default URL loader, reject stale/hidden/unsafe result, attach and frame independent model; error signal on failure. |
-| `reset_view` | Restores facing/zoom/camera framing without reloading source. |
+| `reset_view` | Restores the stage's front view and full-body framing without reloading source. |
+| `set_idle_animation` | Plays or stops the bundled neutral stance on a humanoid model; false without a validated rig. |
 
 <!-- module: scripts/GUI/emote_layout_editor.gd -->
 ### [EmoteLayoutEditor](../../scripts/GUI/emote_layout_editor.gd)
@@ -1657,12 +1661,303 @@ explicit tile/friend/page intents and owns shared mute presentation, and the
 [tablet shell](../../scripts/GUI/tablet_shell.gd), which owns navigation. Existing
 profile/friend services retain authorization; changing the menu grants no rights.
 
-<!-- module: scripts/GUI/menue.gd -->
-### [Main tabs](../../scripts/GUI/menue.gd)
+<!-- module: scripts/GUI/tablet_shell.gd -->
+### [TabletShell](../../scripts/GUI/tablet_shell.gd)
 
-No public functions. Ready duplicates theme panel before changing local margins;
-input toggles menu/capture unless a modal wheel owns shortcuts. Private reset
-closes Home/Explorer state. Never mutate shared theme resources globally.
+Shared tablet layout for the PC overlay and the VR tablet: status bar, six-item
+navigation rail, page header with a nested-page stack and lazily created pages.
+Mute, presence and profile controls use the SaveData owners; it stores no state
+of its own. reset() frees closed pages so hidden menus hold no subscriptions.
+
+| Functions | Contract |
+| --- | --- |
+| `page_ids` | Returns the rail page ids in order: quick, friends, worlds, avatars, instance, settings. |
+| `page_scene_paths` | Returns the production scene path for each page id; copy, not live state. |
+| `current_page` | Returns the selected top-level page id. |
+| `page` | Returns the page control, creating it on first use through `page_factories`; unknown id returns null. |
+| `open_page` | Shows one top-level page, clears nested pages and updates the rail; false for unknown ids. |
+| `push_page` | Shows a nested page above the current one with its title and Back. |
+| `back` | Frees the top nested page; false on a top-level page so hosts can close. |
+| `reset` | Cancels profile edits, clears nested pages, frees non-Quick pages and opens Quick. |
+| `set_compact` | Switches the rail between icon+label (96 px) and icon-only (64 px) layouts. |
+| `set_vr_mode` | Shows the pin button and VR close wording; reads vr.menu_pin_mode. |
+| `refresh_status` | Pulls NetworkHandler.get_instance_summary() into the status bar. |
+| `update_status` | Shows instance title, access mode and people count; empty title shows "Not in an instance". |
+| `open_own_profile` | Opens the local account's profile as a nested page. |
+| `open_profile` | Opens or replaces one nested profile page for a fingerprint; rights stay with the profile service. |
+| `handle_quick_action` | Routes Quick tiles: avatar/invite open pages, mute toggles SaveData.voice, others emit quick_action for the host. |
+
+<!-- module: scripts/GUI/quick_page.gd -->
+### [QuickPage](../../scripts/GUI/quick_page.gd)
+
+Six Quick tiles (Mute, Emotes, Change avatar, Invite, Respawn, Mirror) and the
+online-friends strip. Mute and Mirror act directly through SaveData.voice and the
+animation controller; other tiles emit action_requested for the shell. Tiles are
+disabled when their target is unavailable (no instance, busy transition).
+
+| Functions | Contract |
+| --- | --- |
+| `refresh` | Re-evaluates tile availability, mute/mirror state and friends; no network requests. |
+| `online_friends` | Returns mutual friends whose status is online, sorted by display name; empty without a friend service. |
+| `refresh_friends` | Rebuilds up to eight friend chips plus a "+N" chip, or the empty-friends line. |
+
+<!-- module: scripts/GUI/presence_dot.gd -->
+### [PresenceDot](../../scripts/GUI/presence_dot.gd)
+
+No public functions. Draws the status-bar presence dot in the theme's Presence
+color for the current state and redraws when the theme changes. It never changes
+the friend service; the shell assigns its state.
+
+<!-- module: scripts/GUI/desktop_overlay.gd -->
+### [DesktopOverlay](../../scripts/GUI/desktop_overlay.gd)
+
+PC host for the shell: a CanvasLayer with a dimmed background and a centered,
+non-movable 4:3 menu. With manage_mouse it releases and captures the mouse like
+the previous menu. Esc goes back before closing; keys 1–6 select pages unless a
+text field or blocks_global_shortcuts control has focus.
+
+| Functions | Contract |
+| --- | --- |
+| `is_open` | Returns whether the menu is shown. |
+| `open` | Resets the shell to Quick, shows the overlay, releases the mouse and emits opened. |
+| `close` | Hides the overlay, drops focus inside it, captures the mouse and emits closed. |
+| `toggle` | Opens when closed, otherwise closes. |
+| `layout_for` | Returns {rect, compact} for a logical viewport size: 4:3 at 86% height, or full-height compact below 560 px. |
+| `apply_layout` | Places and sizes the shell and sets its compact rail. |
+| `handle_input` | Applies Esc and number-key navigation; true when the event was consumed. |
+
+<!-- module: scripts/GUI/vr_tablet.gd -->
+### [VRTablet](../../scripts/GUI/vr_tablet.gd)
+
+Floating VR tablet hosting the shared menu at 1000×750 logical px rendered at
+1600×1200. The node is never scaled (scale_factor resizes meshes) so raycasts and
+placement use an orthonormal transform. Placement is session state only.
+
+| Functions | Contract |
+| --- | --- |
+| `size_m` | Returns the current screen size in metres including scale_factor. |
+| `configure` | Binds the settings store and applies VR Menu, reduce motion and interface size settings live. |
+| `effective_smoothing` | Returns smoothing, or 0 with reduce motion. |
+| `place_initial` | Places the tablet 0.55 m ahead along head yaw, 0.2 m below the eyes, facing them without roll. |
+| `summon` | Same placement as place_initial; used by the hold-to-summon gesture. |
+| `remember_placement` | Stores the pose relative to the player's yaw and position. |
+| `restore_placement` | Reapplies the stored relative pose; false when nothing was stored. |
+| `update_follow` | In follow mode re-centers after >45° head turn or >1.5 m distance; pinned or grabbed tablets stay. |
+| `raycast_to_pixel` | Returns the physical pixel hit by a front-facing ray, else (-1, -1). |
+| `raycast_to_viewport_point` | VRViewport2D-compatible alias of raycast_to_pixel. |
+| `inject_input` | Pushes a pointer event at a physical pixel; the viewport converts it to layout coordinates. |
+| `is_status_bar_pixel` | True for pixels inside the status bar strip (laser grab). |
+| `touch_pixel` | Returns {pixel, hover, pressed} for a fingertip within 3 cm in front to 2 cm behind the screen when direct touch is on, else {}. |
+| `grab_zone_contains` | True on the frame band (≤4 cm outside the screen) or the status bar strip, within ±5 cm depth. |
+| `world_grab_blocked` | True while visible and the point is in a grab zone, so world pickup yields to the tablet. |
+| `is_grabbed` | True while any hand holds the tablet. |
+| `begin_grab` | Starts a one-hand grab (two hands enable scaling); requires a grab zone unless forced. |
+| `update_grab` | Follows the hand with its grab offset, or scales 0.6–1.6× with two hands; smoothed. |
+| `end_grab` | Releases one hand; the other continues from the current pose. |
+
+<!-- module: scripts/GUI/avatar_stage.gd -->
+### [AvatarStage](../../scripts/GUI/avatar_stage.gd)
+
+Reusable 3D stage in its own World3D: orbit camera, three-point lighting, floor
+disc and themed background. Displays a given model only; loading and safety
+checks live in AvatarPreview. Renders continuously only while easing or while an
+animation player under the model is playing.
+
+| Functions | Contract |
+| --- | --- |
+| `background_color` | Returns the theme's PreviewStage background color. |
+| `set_model` | Attaches, normalizes (longest side 2 units, centered) and frames a model; replaces the previous one. |
+| `clear` | Detaches and frees the model and disables rendering. |
+| `frame` | Frames full, upper or face (head bone or 90% height); resets zoom/pan; false for unknown presets. |
+| `next_framing` | Cycles full → upper → face and returns the new preset. |
+| `camera_target` | Returns the framed target plus pan offset in stage space. |
+| `camera_distance` | Returns the framed distance times zoom. |
+| `reset_view` | Front view, 8° pitch, zoom 1, no pan, full framing. |
+| `orbit` | Turns by pixel delta; pitch limited to −20°…45°. |
+| `pan` | Moves the target by pixel delta, at most 1 unit from the framing target. |
+| `zoom_by` | Multiplies zoom, limited to 0.5–3. |
+| `process_camera` | Eases yaw/pitch/zoom frame-rate independently; instant with reduce motion. |
+| `is_rendering_continuously` | True while easing or animating. |
+
+<!-- module: scripts/GUI/toast_host.gd -->
+### [ToastHost](../../scripts/GUI/toast_host.gd)
+
+Non-blocking notifications for one shell, at most three, never focusable and
+never blocking clicks. Expiry timers are bound to the host, so freeing the host
+drops pending removals. Pages reach it through the shell's toast_host meta.
+
+| Functions | Contract |
+| --- | --- |
+| `find_for` | Static: returns the nearest ancestor's toast host, or null outside a shell. |
+| `notify` | Static: shows a toast via find_for; false when no host exists. |
+| `visible_toasts` | Returns current toasts, oldest first. |
+| `show_message` | Adds a toast of kind info/success/warning/error (unknown → info) for its default or given duration; drops the oldest beyond three. |
+
+<!-- module: scripts/GUI/empty_state.gd -->
+### [EmptyState](../../scripts/GUI/empty_state.gd)
+
+Shared empty-list message: muted icon, one sentence and at most one action
+button. The icon follows the theme's muted text color. It owns no data and the
+action callback is supplied by the page.
+
+| Functions | Contract |
+| --- | --- |
+| `configure` | Sets icon, message and optional action; the action button is hidden without label or valid callable. |
+
+<!-- module: scripts/GUI/theme/palette.gd -->
+### [Palette](../../scripts/GUI/theme/palette.gd)
+
+Only place where UI colors are defined: six presets and seven accents from the
+GUI tablet specification, with dark/light/high-contrast accent variants and
+semantic colors. Pure data; contrast is verified by tests/gui_tablet.
+
+| Functions | Contract |
+| --- | --- |
+| `presets` | Returns preset ids in display order. |
+| `accents` | Returns accent ids including match_highlight. |
+| `is_light` | True for Paper and Sand. |
+| `tokens` | Returns the color token dictionary; unknown preset/accent fall back to Graphite/Teal; match_highlight maps the 3D highlight color. |
+
+<!-- module: scripts/GUI/theme/theme_builder.gd -->
+### [ThemeBuilder](../../scripts/GUI/theme/theme_builder.gd)
+
+Fills a Theme from palette tokens: flat styleboxes (4 px controls, 6 px panels),
+2 px focus ring, three text sizes (18/24/14), 4 px spacing grid, type variations
+and custom-drawn control colors. No gradients, textures or strong shadows.
+
+| Functions | Contract |
+| --- | --- |
+| `build` | Mutates and returns the given Theme and emits changed once, so open controls restyle live. |
+| `c` | Returns one token color. |
+| `mix` | Linear blend of two colors. |
+| `hover` | Hover tint toward text color. |
+| `pressed` | Pressed tint toward text color. |
+| `faded` | Same color at reduced alpha (disabled states). |
+| `box` | New flat stylebox with radius and content margins, no shadow. |
+| `bordered` | Flat stylebox with a 1 px border in the border token. |
+| `clear_box` | Transparent stylebox with margins. |
+| `focus_ring` | Unfilled focus-colored 2 px ring. |
+| `shadowed` | Adds the subtle allowed shadow to a stylebox. |
+| `set_button_boxes` | Assigns all button state styleboxes for a type. |
+| `set_font_colors` | Assigns font and icon colors for all button states of a type. |
+
+<!-- module: scripts/GUI/theme/theme_service.gd -->
+### [ThemeService](../../scripts/GUI/theme/theme_service.gd)
+
+Owned by SaveData (created in _init, applied in _ready after settings load).
+Rebuilds the shared project Theme when color, accent, highlight, interface size
+or reduce-motion settings change, and sets the root content scale.
+
+| Functions | Contract |
+| --- | --- |
+| `configure` | Binds the settings store (and optionally a Theme for tests); subscribes once. |
+| `resolve_theme` | Returns the project theme, loading themes/default.tres if needed. |
+| `apply` | Computes tokens from settings, rebuilds the Theme, applies UI scale and emits applied. |
+| `current_tokens` | Returns the last applied tokens. |
+
+<!-- module: scripts/GUI/theme/swatch_picker.gd -->
+### [SwatchPicker](../../scripts/GUI/theme/swatch_picker.gd)
+
+Labelled color swatches for an enum setting (color scheme, accent). Colors are
+supplied by the settings page from the palette; selecting emits value_selected
+and the settings store remains the owner of the value.
+
+| Functions | Contract |
+| --- | --- |
+| `set_options` | Rebuilds swatches from value→label options and value→colors. |
+| `swatch_buttons` | Returns the swatch buttons in option order. |
+
+<!-- module: scripts/GUI/avatar_browser/browser_results.gd -->
+### [BrowserResults](../../scripts/GUI/avatar_browser/browser_results.gd)
+
+Avatar browser card grid and home page area. Holds no network state; each card
+exposes its thumbnail TextureRect through the "thumbnail" meta for the browser's
+anonymous thumbnail loader.
+
+| Functions | Contract |
+| --- | --- |
+| `columns_for_width` | One column per 220 px, at least one. |
+| `cards` | Returns the live result cards. |
+| `clear` | Removes cards and page buttons. |
+| `set_records` | Replaces cards; shows the empty state for an empty list. |
+| `add_record` | Adds one 200×248 card emitting record_selected when pressed. |
+| `add_page_button` | Adds a page-level button above the grid. |
+
+<!-- module: scripts/GUI/avatar_browser/browser_sidebar.gd -->
+### [BrowserSidebar](../../scripts/GUI/avatar_browser/browser_sidebar.gd)
+
+Navigation, search field, provider and advanced filters of the avatar browser.
+It only reports intent (navigate, search_submitted, filters_changed); the browser
+owns search state and requests. Text fields block global shortcuts.
+
+| Functions | Contract |
+| --- | --- |
+| `set_sources` | Rebuilds the provider selector from {id, name} entries plus "All providers". |
+| `state` | Returns query, tag, source and every filter value from the controls. |
+
+<!-- module: scripts/GUI/avatar_browser/browser_detail.gd -->
+### [BrowserDetail](../../scripts/GUI/avatar_browser/browser_detail.gd)
+
+Detail pane with lazily created preview, license line, one primary action, a
+reason when an asset cannot be used and inline progress instead of a modal.
+
+| Functions | Contract |
+| --- | --- |
+| `show_record` | Shows a record with its import eligibility; disables Use and explains why when not shareable/importable. |
+| `ensure_preview` | Creates the AvatarPreview on first use and returns it. |
+| `set_progress` | Shows progress 0–100 and disables Use; 100 completes and hides the bar. |
+| `show_error` | Ends progress, shows the message and re-enables Use when allowed. |
+| `set_compact` | Shows Back to results when the pane replaces the grid. |
+
+<!-- module: scripts/GUI/avatar_browser/browser_sources.gd -->
+### [BrowserSources](../../scripts/GUI/avatar_browser/browser_sources.gd)
+
+Providers page, credential storage and the custom-provider PKCE loopback flow,
+moved unchanged from the browser. Secrets are memory-only unless explicitly
+stored in the OS keyring; preferences never contain credentials.
+
+| Functions | Contract |
+| --- | --- |
+| `configure` | Binds the browser and creates the credential store. |
+| `load_preferences` | Loads the account's custom sources; unreadable files stay untouched and make changes memory-only. |
+| `persist` | Atomically writes custom sources when preferences are writable. |
+| `render` | Shows provider enable/disable, credential, endpoint and add-source controls. |
+| `cancel` | Stops OAuth listening and any pending token exchange. |
+| `remember_credential` | Stores the current token in the OS keyring for the provider origin. |
+| `restore_credential` | Loads a keyring token if the provider endpoint is unchanged. |
+| `forget_credential` | Clears memory and requests keyring removal. |
+| `cancel_oauth` | Clears PKCE state and closes the loopback listener. |
+| `start_oauth` | Opens a loopback callback and the system browser for sign in (3-minute expiry). |
+| `poll` | Accepts one bounded callback request and starts the token exchange. |
+
+<!-- module: scripts/GUI/avatar_browser/browser_assets.gd -->
+### [BrowserAssets](../../scripts/GUI/avatar_browser/browser_assets.gd)
+
+Thumbnail, preview and import downloads of the avatar browser, unchanged in
+behavior: digests are verified, previews stay isolated, imports are validated
+before equip, and stale generations or account switches discard results.
+
+| Functions | Contract |
+| --- | --- |
+| `pump_thumbnails` | Starts up to two anonymous thumbnail downloads for the current generation. |
+| `convert_animation` | Converts animation bytes on one worker thread; empty on failure or when busy. |
+| `preview_animation` | Plays a downloaded clip on an isolated copy of the local avatar in the detail preview. |
+| `preview_record` | Downloads, verifies and shows an anonymous-source model in the detail preview without equipping. |
+| `import_record` | Downloads, verifies, stages and validates; equips with progress or opens the source editor. |
+
+<!-- module: scripts/GUI/menue.gd -->
+### [Menu wrapper](../../scripts/GUI/menue.gd)
+
+Keeps the menue.tscn path/UID as a thin wrapper around the tablet shell for the
+VR tablet and older callers; current_tab maps to Quick/Friends/Worlds/Settings.
+On desktop without the overlay, Esc goes back, then toggles menu and capture.
+
+| Functions | Contract |
+| --- | --- |
+| `page` | Returns a shell page by id, creating it on first use. |
+| `open_page` | Opens a shell page by id; false for unknown ids. |
+| `reset` | Resets the shell to Quick and frees closed pages. |
+| `close` | In VR emits close_requested; on desktop hides and captures the mouse. |
 
 <!-- module: scripts/GUI/friends_menue.gd -->
 ### [Friends UI](../../scripts/GUI/friends_menue.gd)
@@ -1704,6 +1999,7 @@ exit unsubscribes from old service. Avatar source editing is self-only.
 
 | Functions | Contract |
 | --- | --- |
+| `apply_comfort_preset` | Sets snap turning, 30°, 1.5 m/s, vignette and blink on, jump off through the settings store. |
 | `select_category` | Shows one known registry category, cancels active rebind and resets scroll; invalid name ignored. Private renderer/commit/reset functions use typed store; input conflicts reject without losing capture. Cache actions confirm cleanup and await refresh, not account deletion. |
 
 <!-- module: scripts/GUI/share_session_menue.gd -->
@@ -1711,6 +2007,7 @@ exit unsubscribes from old service. Avatar source editing is self-only.
 
 | Functions | Contract |
 | --- | --- |
+| `focus_invite` | Quick page Invite: focuses and selects the instance code; without an active instance it shows a hint instead. |
 | `open_profile` | Opens selected roster fingerprint using existing profile service/view; instance admin status does not grant account edit rights. Private metadata/moderation handlers use authoritative snapshot/revision, confirmation and correlated results; timeout removes actionable stale permissions. |
 
 <!-- module: scripts/GUI/world_explorer.gd -->

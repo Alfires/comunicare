@@ -354,6 +354,7 @@ func _apply_avatar(record: Dictionary):
 	applying_avatar = false
 	if not is_instance_valid(detail): return
 	if loading_bar.value < 100: detail.show_error("Could not apply avatar. " + status.text)
+	else: preload("res://scripts/GUI/toast_host.gd").notify(self, "Avatar changed.", "success")
 
 func _loading_progress(value: float, message: String):
 	if is_instance_valid(detail): detail.set_progress(value, "%s %d%%" % [message, int(value)] if value < 100 else message)

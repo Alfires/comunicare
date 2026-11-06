@@ -54,7 +54,9 @@ to a platform file picker; native filesystem browsing varies by runtime/platform
   10% of ground acceleration for steering. Optional jump uses a 9 m/s upward
   impulse. Ground control, turning, teleport and
   physical room-scale motion are unchanged; blocked input still brakes safely.
-- A/X on either hand toggles one shared main-menu viewport. Optional jump is right
+- A/X on either hand toggles the floating menu tablet; holding it for 0.6 s summons
+  the tablet in front of you. Grip on the tablet frame moves it (see
+  [Menu, VR tablet and color schemes](menu-and-themes.md)). Optional jump is right
   stick click and off by default; B/Y retains the separate emote wheel.
 - Controller aim/trigger operates UI, with press capture/release on drag-off/close.
   Stick over the panel scrolls it. Text focus opens a pointer virtual keyboard;

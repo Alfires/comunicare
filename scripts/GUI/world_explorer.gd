@@ -6,6 +6,7 @@ extends Control
 @onready var info: VBoxContainer = $WorldInfo
 @onready var instance_list: VBoxContainer = $WorldInfo/ScrollContainer/Instances
 @onready var status: Label = $Status
+const ToastHost = preload("res://scripts/GUI/toast_host.gd")
 
 # Catalog metadata and relay snapshots must never overwrite one another.
 var worlds_list: Array = []
@@ -257,8 +258,8 @@ func _render_info() -> void:
 		row.add_child(join)
 		instance_list.add_child(row)
 	if instance_list.get_child_count() == 0:
-		var empty = Label.new()
-		empty.text = "No public instances for this world."
+		var empty = preload("res://scripts/GUI/empty_state.gd").new()
+		empty.configure(preload("res://themes/icons/world.svg"), "No public instances for this world yet.", "Create one", _on_create_pressed)
 		instance_list.add_child(empty)
 
 func _join_instance(id: String) -> void:
@@ -277,6 +278,7 @@ func _join_instance(id: String) -> void:
 		return
 	busy = false
 	status.text = "Joined instance" if success else NetworkHandler.last_session_error
+	if success: ToastHost.notify(self, "Joined the instance.", "success")
 	if not success:
 		_show_error(NetworkHandler.last_session_error)
 	_render_info()
@@ -291,6 +293,7 @@ func _on_create_pressed() -> void:
 		return
 	busy = false
 	status.text = "Instance created" if success else NetworkHandler.last_session_error
+	if success: ToastHost.notify(self, "Instance created.", "success")
 	if not success:
 		_show_error(NetworkHandler.last_session_error)
 	_render_info()

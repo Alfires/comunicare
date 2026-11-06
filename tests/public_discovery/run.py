@@ -27,6 +27,8 @@ def main():
             "scripts/GUI/world_explorer.gd",
             "scripts/discovery/discovery_model.gd",
             "scripts/GUI/error_popup.gd",
+            "scripts/GUI/toast_host.gd",
+            "scripts/GUI/empty_state.gd",
             "scripts/GUI/emote_wheel.gd",
             "scripts/GUI/xr_emote_wheel.gd",
             "scripts/GUI/circular_value_control.gd",

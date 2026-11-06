@@ -35,19 +35,16 @@ grow_vertical = 2
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_type_variation = &"CardMargin"
 
 [node name="Layout" type="VBoxContainer" parent="Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_type_variation = &"SpacedVBox"
 
 [node name="Title" type="Label" parent="Panel/Margin/Layout"]
 layout_mode = 2
 text = "Edit profile"
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"HeaderLabel"
 
 [node name="Scroll" type="ScrollContainer" parent="Panel/Margin/Layout"]
 layout_mode = 2
@@ -57,7 +54,6 @@ horizontal_scroll_mode = 0
 [node name="Fields" type="VBoxContainer" parent="Panel/Margin/Layout/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
 
 [node name="Status" type="Label" parent="Panel/Margin/Layout"]
 layout_mode = 2

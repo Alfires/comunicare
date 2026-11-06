@@ -89,7 +89,7 @@ def main():
             if (ROOT / "scripts/GUI/avatar_browser").is_dir():
                 shutil.copytree(ROOT / "scripts/GUI/avatar_browser", project / "scripts/GUI/avatar_browser")
                 shutil.copytree(ROOT / "themes/icons", project / "themes/icons")
-            for relative in ("scripts/GUI/avatar_browser.gd", "scenes/GUI/avatar_browser.tscn"):
+            for relative in ("scripts/GUI/avatar_browser.gd", "scenes/GUI/avatar_browser.tscn", "scripts/GUI/toast_host.gd"):
                 if (ROOT / relative).exists():
                     target = project / relative
                     target.parent.mkdir(parents=True, exist_ok=True)

@@ -2,3 +2,4 @@
 #   relative/path:LINE # reason
 #   relative/path:*    # reason
 # Keep this list short; prefer theme colors and type variations.
+scripts/GUI/home_help.gd:* # owner work in progress (staged for removal); restyle with theme variations when it is finalized

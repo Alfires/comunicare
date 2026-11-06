@@ -367,6 +367,13 @@ func _variations():
 	_variation("ErrorLabel", "Label")
 	theme.set_font_size("font_size", "ErrorLabel", CAPTION)
 	theme.set_color("font_color", "ErrorLabel", c("danger"))
+	_variation("SpacedVBox", "VBoxContainer")
+	theme.set_constant("separation", "SpacedVBox", 12)
+	_variation("SpacedHBox", "HBoxContainer")
+	theme.set_constant("separation", "SpacedHBox", 12)
+	_variation("CardMargin", "MarginContainer")
+	for side in ["left", "right"]: theme.set_constant("margin_" + side, "CardMargin", 16)
+	for side in ["top", "bottom"]: theme.set_constant("margin_" + side, "CardMargin", 12)
 	_variation("InsetMargin", "MarginContainer")
 	for side in ["left", "top", "right", "bottom"]:
 		theme.set_constant("margin_" + side, "InsetMargin", 8)

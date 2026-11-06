@@ -641,6 +641,15 @@ func test_model_validation_separation():
 		root.add_child(real_configuration)
 		real_configuration.loader = root.get_node("DataLoader")
 		check(await real_configuration._validate_model("res://real-avatar.vrm"), "real downloaded avatar passes model validation independently of embedded clips")
+		real_configuration.account_owner = "model-reproduction"
+		real_configuration.memory_only = true
+		var imported: Dictionary = await real_configuration.import_source("res://real-avatar.vrm", true, true)
+		check(not imported.is_empty(), "real model survives complete cache staging and promotion")
+		if not imported.is_empty():
+			check(await real_configuration.apply(imported, []), "real downloaded model applies without animation clip requirements")
+			var loaded = await real_configuration.load_model("")
+			check(loaded != null, "applied downloaded avatar can be loaded from immutable cache")
+			if loaded != null: loaded.free()
 		real_configuration.free()
 
 func test_document_structure_regressions():
@@ -751,6 +760,8 @@ func test_remote_motion():
 	motion.push(Vector3.ZERO, Vector3(0, deg_to_rad(179), 0), 0.0)
 	motion.push(Vector3(0.5, 0, 0), Vector3(0, deg_to_rad(-179), 0), 0.05)
 	motion.push(Vector3(1, 0, 0), Vector3(0, deg_to_rad(-177), 0), 0.10)
+	var invalid_time = motion.sample(NAN)
+	check(invalid_time.is_finite() and is_equal_approx(invalid_time.origin.x, 1.0), "invalid sample clock returns latest valid pose instead of NaN transform")
 	var middle = motion.sample(0.125)
 	check(is_equal_approx(middle.origin.x, 0.25), "20 Hz movement interpolates between packets rather than snapping to latest")
 	check(absf(middle.basis.get_euler().y) > 3.0, "rotation interpolates across wrap using shortest quaternion arc")

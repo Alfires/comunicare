@@ -18,6 +18,9 @@ func push(position: Vector3, rotation: Vector3, at: float):
 
 func sample(at: float) -> Transform3D:
 	if samples.is_empty(): return Transform3D.IDENTITY
+	if not is_finite(at):
+		var latest: Dictionary = samples.back()
+		return Transform3D(Basis(latest.rotation), latest.position)
 	var target = at - DELAY
 	while samples.size() > 2 and samples[1].at <= target: samples.pop_front()
 	var first: Dictionary = samples.front()

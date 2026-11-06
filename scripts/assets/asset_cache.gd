@@ -6,7 +6,7 @@ signal revision_available(source: String, previous: String, revision: String)
 signal status_changed
 
 const SCHEMA = 1
-const LIMITS = {"avatar": 256 * 1024 * 1024, "world": 128 * 1024 * 1024, "animation": 16 * 1024 * 1024}
+const LIMITS = {"avatar": 1024 * 1024 * 1024, "world": 128 * 1024 * 1024, "animation": 16 * 1024 * 1024}
 const MAX_JOBS = 4
 const MAX_WAITERS = 32
 var directory := "user://asset_cache"
@@ -29,6 +29,12 @@ var running_jobs := 0
 var health_thread: Thread
 var health_elapsed := 0.0
 const HEALTH_INTERVAL = 60.0
+
+func _size_limit(kind: String) -> int:
+	if kind == "avatar":
+		var policy = preload("res://scripts/assets/avatar_size_policy.gd")
+		return policy.limits(policy.store_for(self)).hard
+	return LIMITS[kind]
 
 class Lease extends RefCounted:
 	var owner: WeakRef
@@ -276,7 +282,7 @@ func fetch(source: String, kind: String, validator: Callable, force: bool = fals
 
 func _fetch(source: String, kind: String, key: String, validator: Callable, force: bool) -> Dictionary:
 	var record: Dictionary = records.get(key, {}).duplicate(true)
-	var usable = _usable(record)
+	var usable = _usable(record) and record.get("size", 0) <= _size_limit(kind)
 	var previous_lease = retain(record.hash) if usable else null
 	var now = Time.get_unix_time_from_system()
 	if usable and not force and not record.get("no_cache", false) and (not automatic_refresh or now - record.checked < refresh_seconds):
@@ -289,7 +295,7 @@ func _fetch(source: String, kind: String, key: String, validator: Callable, forc
 	var request = HTTPRequest.new()
 	request.timeout = 30
 	request.use_threads = true
-	request.body_size_limit = LIMITS[kind]
+	request.body_size_limit = _size_limit(kind)
 	request.max_redirects = 0 # Do not silently follow a peer-controlled redirect.
 	request.download_file = stage
 	add_child(request)
@@ -323,7 +329,7 @@ func _fetch(source: String, kind: String, key: String, validator: Callable, forc
 	var file = FileAccess.open(stage, FileAccess.READ)
 	var size = file.get_length() if file != null else 0
 	file = null
-	if size <= 0 or size > LIMITS[kind] or not await validator.call(stage):
+	if size <= 0 or size > _size_limit(kind) or not await validator.call(stage):
 		_remove_file(stage)
 		return _fallback(key, record, usable, "Downloaded asset failed validation; cached revision retained.")
 	var revision = _hash_file(stage)
@@ -366,7 +372,7 @@ func import_file(path: String, kind: String, validator: Callable, pin_original: 
 	if not initialize() or not writable or not LIMITS.has(kind):
 		return {}
 	var file = FileAccess.open(path, FileAccess.READ)
-	if file == null or file.get_length() <= 0 or file.get_length() > LIMITS[kind]:
+	if file == null or file.get_length() <= 0 or file.get_length() > _size_limit(kind):
 		_error("Import file is unreadable, empty or oversized.")
 		return {}
 	file = null

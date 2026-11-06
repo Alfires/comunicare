@@ -3,7 +3,7 @@ extends RefCounted
 
 const VERSION = 2
 const MAX_BYTES = 16 * 1024 * 1024
-const MAX_AVATAR_BYTES = 256 * 1024 * 1024
+const MAX_AVATAR_BYTES = 1024 * 1024 * 1024
 
 static func transfer_timeout_msec(size: int) -> int:
 	# Keep bounded but permit the maximum model at a conservative 64 KiB/s.

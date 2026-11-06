@@ -653,8 +653,8 @@ func test_model_validation_separation():
 		real_configuration.free()
 
 func test_document_structure_regressions():
-	check(load("res://scripts/assets/asset_cache.gd").LIMITS.avatar == 256 * 1024 * 1024, "avatar cache/import ceiling is 256 MiB")
-	check(load("res://relay_protocol/animation_state.gd").get_script_constant_map().get("MAX_AVATAR_BYTES", 0) == 256 * 1024 * 1024, "relay avatar transfer ceiling matches client imports")
+	check(load("res://scripts/assets/asset_cache.gd").LIMITS.avatar == 1024 * 1024 * 1024, "avatar cache/import ceiling is 1 GiB")
+	check(load("res://relay_protocol/animation_state.gd").get_script_constant_map().get("MAX_AVATAR_BYTES", 0) == 1024 * 1024 * 1024, "relay avatar transfer ceiling matches client imports")
 	check(AnimationState.transfer_timeout_msec(256 * 1024 * 1024) >= 4096000, "maximum model has enough bounded transfer time at conservative bandwidth")
 	check(AnimationState.transfer_timeout_msec(1024) == 900000, "small transfer timeout remains compatible")
 	var reader = Reader.new()
@@ -1032,8 +1032,8 @@ func test_network():
 	state.model_hash = "d".repeat(64)
 	state.model_size = data.size()
 	var large_model = state.duplicate(true)
-	large_model.model_size = 256 * 1024 * 1024
-	check(AnimationState.valid(large_model), "wire descriptor accepts 256 MiB avatar without allocating model bytes")
+	large_model.model_size = 1024 * 1024 * 1024
+	check(AnimationState.valid(large_model), "wire descriptor accepts 1 GiB avatar without allocating model bytes")
 	large_model.model_size += 1
 	check(not AnimationState.valid(large_model), "wire descriptor rejects avatars above new maximum")
 	clients[0].send_animation(state)

@@ -59,6 +59,8 @@ func validate(definition: Dictionary, value: Variant) -> bool:
 
 func register_defaults():
 	for definition in [
+		{"id": "assets.avatar_warning_mib", "category": "Assets", "label": "Large avatar warning", "description": "Ask before importing or previewing an avatar above this file size. Effective threshold never exceeds the avatar size limit.", "type": "number", "default": 256.0, "min": 32.0, "max": 1024.0, "step": 32.0, "unit": "MiB", "order": 10},
+		{"id": "assets.avatar_limit_mib", "category": "Assets", "label": "Maximum avatar file size", "description": "Hard import/loading limit. Large files can require substantially more RAM/VRAM. Maximum supported file size is 1 GiB.", "type": "number", "default": 1024.0, "min": 64.0, "max": 1024.0, "step": 32.0, "unit": "MiB", "order": 11},
 		{"id": "interface.theme_preset", "category": "Interface", "label": "Color scheme", "type": "enum", "options": {"graphite": "Graphite", "paper": "Paper", "forest": "Forest", "sand": "Sand", "night": "Night", "high_contrast": "High contrast"}, "default": "graphite", "order": -4},
 		{"id": "interface.accent", "category": "Interface", "label": "Accent color", "type": "enum", "options": {"teal": "Teal", "blue": "Blue", "amber": "Amber", "green": "Green", "rose": "Rose", "violet": "Violet", "match_highlight": "Match 3D highlight"}, "default": "teal", "order": -3},
 		{"id": "interface.ui_scale", "category": "Interface", "label": "Interface size", "description": "Scales menus on desktop and the VR tablet.", "type": "number", "default": 1.0, "min": 0.75, "max": 1.5, "step": 0.05, "unit": "×", "order": -2},

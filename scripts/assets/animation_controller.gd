@@ -40,6 +40,7 @@ var published_sequence := -1
 var local_model_handle: Dictionary = {}
 var model_incoming: Dictionary = {}
 var model_loading: Dictionary = {}
+var declined_models: Dictionary = {}
 var remote_tracking: Dictionary = {}
 var tracking_nodes: Dictionary = {}
 
@@ -654,6 +655,16 @@ func _send_chunk():
 
 func _prepare_remote_model(id: int, state: Dictionary):
 	if loader == null or model_loading.has(id): return
+	if declined_models.has(state.model_hash): return
+	model_loading[id] = true
+	var policy = preload("res://scripts/assets/avatar_size_policy.gd")
+	var accepted = await policy.confirm(self, int(state.model_size), state.model_hash)
+	model_loading.erase(id)
+	if not accepted:
+		if declined_models.size() >= 128: declined_models.erase(declined_models.keys()[0])
+		declined_models[state.model_hash] = true
+		return
+	if not remote_states.has(id) or remote_states[id].get("model_hash") != state.model_hash or not _member(id): return
 	var pending_remote = coordinator.get_node_or_null(str(id))
 	if pending_remote != null and pending_remote.has_method("begin_avatar_loading"):
 		pending_remote.begin_avatar_loading()
@@ -785,6 +796,7 @@ func clear():
 	local_model_handle.clear()
 	model_incoming.clear()
 	model_loading.clear()
+	declined_models.clear()
 	if is_instance_valid(local_animator):
 		local_animator.stop()
 	clock_ready = false

@@ -5,6 +5,32 @@ var failed := 0
 var completed: Array = []
 var world_completed: Array = []
 
+class SizeSettings extends RefCounted:
+	var values: Dictionary = {}
+	func get_value(key: String): return values.get(key)
+
+func test_size_policy():
+	var policy = load("res://scripts/assets/avatar_size_policy.gd")
+	var mib = 1024 * 1024
+	check(policy.classify(0) == "invalid" and policy.classify(-1) == "invalid", "empty and negative avatar sizes rejected")
+	check(policy.classify(256 * mib) == "allow", "exact warning threshold needs no confirmation")
+	check(policy.classify(256 * mib + 1) == "warn", "large avatar warns instead of being rejected")
+	check(policy.classify(1024 * mib) == "warn" and policy.classify(1024 * mib + 1) == "blocked", "1 GiB boundary is inclusive hard ceiling")
+	var store = SizeSettings.new()
+	store.values = {"assets.avatar_limit_mib": 128, "assets.avatar_warning_mib": 64}
+	check(policy.classify(65 * mib, store) == "warn" and policy.classify(129 * mib, store) == "blocked", "configured warning and hard size used")
+	store.values["assets.avatar_warning_mib"] = 256
+	check(policy.limits(store).warning == 128 * mib, "warning clamps to lowered hard limit")
+	store.values = {"assets.avatar_limit_mib": 99999, "assets.avatar_warning_mib": -1}
+	check(policy.limits(store) == {"hard": 1024 * mib, "warning": 32 * mib}, "settings cannot bypass absolute byte ceiling or warning floor")
+	store.values = {"assets.avatar_limit_mib": INF, "assets.avatar_warning_mib": NAN}
+	check(policy.limits(store) == {"hard": 1024 * mib, "warning": 256 * mib}, "nonfinite settings safely use defaults")
+	check(load("res://scripts/assets/asset_cache.gd").LIMITS.avatar == policy.MAX_BYTES, "cache avatar ceiling agrees with size policy")
+	check(load("res://scripts/assets/asset_cache.gd").LIMITS.animation == 16 * mib, "standalone animation limit remains unchanged")
+	check(not await policy.confirm(root, 257 * mib, "test-model"), "headless cannot bypass large-avatar confirmation")
+	check(await policy.confirm(root, 256 * mib, "test-model"), "normal avatars need no popup")
+	check(not await policy.confirm(root, 1024 * mib + 1, "test-model"), "hard cap cannot be confirmed away")
+
 func prepare_test_world(loader):
 	world_completed.append(await loader.prepare_world_async("isolated-test-package"))
 
@@ -23,6 +49,7 @@ func load_model(loader: Node, bytes: PackedByteArray):
 	completed.append(await loader._load_model_from_buffer(bytes))
 
 func run():
+	await test_size_policy()
 	var json = {"asset": {"version": "2.0"}, "scene": 0, "scenes": [{"nodes": [0]}],
 		"nodes": [{"name": "AvatarRoot"}]}
 	var bytes = JSON.stringify(json).to_utf8_buffer()

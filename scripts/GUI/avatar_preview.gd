@@ -2,7 +2,7 @@ extends PanelContainer
 ## Avatar preview: loads a model safely into the reusable avatar stage and shows
 ## clear empty/loading/error/ready states (docs/roadmaps/gui-tablet-specification.md §4.5).
 const FirstPerson = preload("res://scripts/assets/first_person_avatar.gd")
-const MAX_LOCAL_BYTES := 256 * 1024 * 1024
+const MAX_LOCAL_BYTES := 1024 * 1024 * 1024
 const READY_HINT = "Drag to turn · right-drag to move · scroll to zoom · double-click to reset"
 const LOCAL_HINT = "Local preview only. The file is not uploaded."
 const FRAMING_TITLES = {"full": "Frame: full body", "upper": "Frame: upper body", "face": "Frame: face"}
@@ -101,8 +101,14 @@ func load_file(path: String) -> bool:
 		return false
 	var file = FileAccess.open(path, FileAccess.READ)
 	if file == null or file.get_length() == 0 or file.get_length() > MAX_LOCAL_BYTES:
-		failed.emit("This VRM file is unreadable, empty or larger than 256 MiB.")
+		failed.emit("This VRM file is unreadable, empty or larger than 1 GiB.")
 		return false
+	var policy = preload("res://scripts/assets/avatar_size_policy.gd")
+	var ticket = generation
+	if not await policy.confirm(self, file.get_length(), policy.file_identity(path)):
+		failed.emit("Avatar preview canceled or above the configured size limit.")
+		return false
+	if ticket != generation: return false
 	var bytes = file.get_buffer(file.get_length())
 	file.close()
 	# Local data stays in this preview; public URLs/profile and the equipped

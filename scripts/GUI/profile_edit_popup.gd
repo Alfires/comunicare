@@ -223,10 +223,15 @@ func _choose_file(id: String):
 
 func _file_selected(path: String):
 	var file = FileAccess.open(path, FileAccess.READ)
-	var maximum = 5 * 1024 * 1024 if selected_file_kind == "profile.icon_source" else 256 * 1024 * 1024
+	var maximum = 5 * 1024 * 1024 if selected_file_kind == "profile.icon_source" else 1024 * 1024 * 1024
 	if file == null or file.get_length() > maximum:
 		_show_error("Selected file is unreadable or exceeds the size limit.")
 		return
+	if selected_file_kind != "profile.icon_source":
+		var policy = preload("res://scripts/assets/avatar_size_policy.gd")
+		if not await policy.confirm(self, file.get_length(), policy.file_identity(path)):
+			_show_error("Avatar preview canceled or above the configured size limit.")
+			return
 	var bytes = file.get_buffer(file.get_length())
 	file.close()
 	if selected_file_kind == "profile.icon_source":

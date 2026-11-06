@@ -1,5 +1,20 @@
 # Additional production contracts
 
+<!-- module: scripts/assets/avatar_size_policy.gd -->
+## Configurable avatar file sizes
+
+`limits` reads bounded warning/hard MiB settings, defaults to 256/1024 and clamps
+warning to hard. `classify` distinguishes invalid, blocked, warn and allow at
+inclusive byte boundaries. `store_for` resolves the client settings owner.
+`file_size` returns readable file length or zero; `file_identity` and
+`buffer_identity` compute content SHA-256 for session-only confirmation reuse.
+`confirm` rejects invalid/over-limit/headless warning requests, otherwise awaits a
+cancelable large-model dialog. Pending confirmations coalesce by content/size/
+warning and teardown completes them as canceled. Approvals are bounded in-memory
+only; hard limits are checked before reuse. This is not rig/format validation or a
+decoded GPU/RAM budget. File hashing remains synchronous and can take time for
+very large local models; worker model import remains separate.
+
 Reviewed additions complement [function contracts](functions.md). They describe
 current implementation limits, not proposed editor/world APIs.
 

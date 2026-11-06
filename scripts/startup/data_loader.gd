@@ -200,6 +200,7 @@ func _import_avatar(buffer: PackedByteArray, path: String) -> Node3D:
 	if policy.classify(size, policy.store_for(self)) == "warn":
 		identity = policy.buffer_identity(buffer) if path.is_empty() else policy.file_identity(path)
 	if not await policy.confirm(self, size, identity): return null
+	if not is_inside_tree() or avatar_import_waiters >= MAX_AVATAR_WAITERS: return null
 	avatar_import_waiters += 1
 	while avatar_import_busy:
 		await get_tree().process_frame

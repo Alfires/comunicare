@@ -204,7 +204,7 @@ func _validate_animation(path_to_file: String) -> bool:
 
 func _validate_model(path_to_file: String) -> bool:
 	if not await loader._validate_avatar(path_to_file, true):
-		last_error = "Avatar model validation failed: expected a self-contained humanoid VRM/GLB up to 256 MiB with a compatible skeleton and declared mapping."
+		last_error = "Avatar model validation failed or loading was canceled: expected a self-contained humanoid VRM/GLB within the configured size limit (maximum 1 GiB), with a compatible skeleton and declared mapping."
 		return false
 	# Embedded motion is optional. Model validity must not depend on standalone
 	# animation limits (16 MiB/64 clips/rotation-only); _restore skips unsupported

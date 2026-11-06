@@ -98,6 +98,7 @@ def main():
             reader = project / "scripts/assets/humanoid_animation.gd"
             reader.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / "scripts/assets/humanoid_animation.gd", reader)
+            shutil.copy2(ROOT / "scripts/assets/avatar_size_policy.gd", reader.with_name("avatar_size_policy.gd"))
             if os.environ.get("ANIMATION_FIXTURE"):
                 shutil.copy2(os.environ["ANIMATION_FIXTURE"], project / "sample.vrma")
             if os.environ.get("LIVE_DISCOVERY") == "1":

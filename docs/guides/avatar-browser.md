@@ -64,7 +64,7 @@ removes translation only for this explicit in-place action. The equipped model,
 configuration and instance animation stream are untouched. A compatible local
 avatar must be available. Close Details to dispose the preview.
 
-Import supports self-contained VRM/GLB avatars up to **256 MiB** and compatible GLB/VRMA
+Import supports self-contained VRM/GLB avatars up to **1 GiB** and compatible GLB/VRMA
 animations up to 16 MiB. FBX/Unity packages/ZIPs are not supported. Built-in licenses
 were checked as CC0; custom source claims remain your responsibility. Currently
 only CC0 redistribution is accepted by this browser's import action. Downloads
@@ -73,6 +73,17 @@ The avatar ceiling also applies to local previews/cache and multiplayer model
 descriptors; standalone animation remains limited to 16 MiB. Large compressed
 models can use substantially more RAM/VRAM after import. Transfers remain bounded
 and request-driven, with a size-aware timeout rather than an unbounded download.
+
+In **Settings → Assets**, configure **Large avatar warning** (default **256 MiB**)
+and **Maximum avatar file size** (default **1024 MiB / 1 GiB**). Files exactly at
+the warning threshold load normally; larger files require confirmation, up to and
+including the hard limit. The warning threshold is clamped to the hard limit.
+The maximum supported setting is 1 GiB; standalone animation limits are unchanged.
+Confirmation applies to local imports, previews and remote avatars. Remote shared
+models ask before requesting their bytes. Approval is remembered for that content
+for this application session, not saved as permanent consent. Canceling leaves the
+existing/fallback avatar in place. Headless/server runs cannot confirm large files.
+Byte limits do not guarantee sufficient decoded RAM/VRAM or model compatibility.
 
 ## Add a custom API
 

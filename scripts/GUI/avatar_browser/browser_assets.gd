@@ -3,7 +3,8 @@ extends Node
 ## validated import/apply pipeline. Moved unchanged in behavior from avatar_browser.gd.
 
 const ImportPolicy = preload("res://scripts/discovery/avatars/import_policy.gd")
-const AVATAR_LIMIT := 256 * 1024 * 1024
+const SizePolicy = preload("res://scripts/assets/avatar_size_policy.gd")
+const AVATAR_LIMIT := SizePolicy.MAX_BYTES
 const ANIMATION_LIMIT := 16 * 1024 * 1024
 var browser: Control
 
@@ -102,13 +103,17 @@ func preview_record(record: Dictionary):
 	var ticket = browser.generation
 	var service = browser._service(source)
 	_status("Downloading the model for a preview…")
-	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), AVATAR_LIMIT)
+	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), SizePolicy.limits(SizePolicy.store_for(self)).hard)
 	browser._release(service)
 	if ticket != browser.generation: return
 	if response.has("error"):
 		_status(response.error)
 		return
 	var bytes: PackedByteArray = response.bytes
+	if not await SizePolicy.confirm(self, bytes.size(), SizePolicy.buffer_identity(bytes)):
+		_status("Avatar preview canceled or above the configured size limit.")
+		return
+	if ticket != browser.generation: return
 	if not record.get("sha256", "").is_empty() and _sha256(bytes) != record.sha256:
 		_status("Source digest mismatch; preview rejected.")
 		return
@@ -141,13 +146,18 @@ func import_record(record: Dictionary, equip: bool = false):
 			if total > 0: browser._loading_progress(clampf(float(received) / total, 0, 1) * 70, "Downloading avatar…")
 			else: browser._loading_progress(0, "Downloading avatar… (%d KiB)" % (received / 1024)))
 	_status("Downloading and validating; your equipped avatar is unchanged…")
-	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), AVATAR_LIMIT if record.type == "avatar" else ANIMATION_LIMIT)
+	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), SizePolicy.limits(SizePolicy.store_for(self)).hard if record.type == "avatar" else ANIMATION_LIMIT)
 	browser._release(service)
 	if ticket != browser.generation or not is_inside_tree() or save.profile.get_local_fingerprint() != browser.account_owner: return
 	if response.has("error") or response.get("no_store", false):
 		_status(str(response.get("error", "No-store assets cannot be saved as an applied source.")))
 		return
 	var bytes: PackedByteArray = response.bytes
+	if record.type == "avatar":
+		if not await SizePolicy.confirm(self, bytes.size(), SizePolicy.buffer_identity(bytes)):
+			_status("Avatar import canceled or above the configured size limit.")
+			return
+		if ticket != browser.generation or save.profile.get_local_fingerprint() != browser.account_owner: return
 	if not record.get("sha256", "").is_empty() and _sha256(bytes) != record.sha256:
 		_status("Source digest mismatch; not imported.")
 		return

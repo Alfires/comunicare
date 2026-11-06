@@ -124,6 +124,17 @@ func _import_source(source: String, is_model: bool, share_allowed: bool):
 	apply_button.disabled = true
 	var ticket = generation
 	status.text = "Validating source…"
+	if is_model:
+		var policy = preload("res://scripts/assets/avatar_size_policy.gd")
+		var size = policy.file_size(source)
+		var identity = policy.file_identity(source) if policy.classify(size, policy.store_for(self)) == "warn" else ""
+		var accepted = await policy.confirm(self, size, identity)
+		if ticket != generation or not is_inside_tree(): return
+		if not accepted:
+			busy = false
+			apply_button.disabled = false
+			status.text = "Avatar not loaded: canceled, unreadable, empty or above the configured size limit."
+			return
 	var result = await configuration.import_source(source, is_model, share_allowed)
 	if ticket != generation or not is_inside_tree(): return
 	busy = false

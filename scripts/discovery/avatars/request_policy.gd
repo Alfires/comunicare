@@ -44,9 +44,10 @@ func valid_url(url: String, loopback: bool = false) -> bool:
 		if parameter.get_slice("=", 0).uri_decode().to_lower() in ["token", "api_key", "apikey", "access_token", "signature", "sig", "key"]: return false
 	return true
 
-func prepare_request(source: Dictionary, target_url: String, credentials: Dictionary, loopback: bool = false) -> Dictionary:
+func prepare_request(source: Dictionary, target_url: String, credentials: Dictionary, loopback: bool = false, accept: String = "*/*") -> Dictionary:
 	if not valid_url(target_url, loopback): return {}
-	var headers = PackedStringArray(["Accept: application/json"])
+	if accept not in ["*/*", "application/json"]: return {}
+	var headers = PackedStringArray(["Accept: " + accept])
 	if source.get("kind") == "custom" and source.get("auth", "none") != "none":
 		if origin(target_url) != origin(str(source.get("base_url", ""))): return {}
 		if not credentials.get("token", "") is String: return {}

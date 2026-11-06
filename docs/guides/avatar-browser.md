@@ -88,6 +88,11 @@ Byte limits do not guarantee sufficient decoded RAM/VRAM or model compatibility.
 
 ## Optional humanoid compatibility check
 
+Avatar/thumbnail byte downloads request `Accept: */*`; catalog requests explicitly
+request JSON, including after redirects. Some gateways otherwise return a JSON
+wrapper rather than the original model, causing both preview and Apply to fail.
+Malformed or unexpected response representations are still rejected, not imported.
+
 **Settings → Assets → Check avatar humanoid compatibility** is enabled by
 default. Disable it to attempt importing and equipping valid self-contained
 VRM/GLB models without a declared humanoid mapping. Such models may not animate,

@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import tempfile
 import threading
@@ -22,6 +23,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         url = urllib.parse.urlsplit(self.path)
         query = urllib.parse.parse_qs(url.query)
+        if url.path == "/negotiated-avatar":
+            if self.headers.get("Accept") == "application/json":
+                body = b'{"data":"JSON envelope, not raw GLB"}'
+                content_type = "application/json"
+            else:
+                document = json.dumps({"asset": {"version": "2.0"}, "nodes": []}).encode()
+                document += b" " * (-len(document) % 4)
+                body = struct.pack("<IIIII", 0x46546C67, 2, 20 + len(document), len(document), 0x4E4F534A) + document
+                content_type = "model/gltf-binary"
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if url.path == "/truncated":
             self.send_response(200)
             self.send_header("Content-Length", "1000")
@@ -37,6 +53,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
         redirects = {
+            "/redirect-avatar": "/negotiated-avatar",
             "/redirect-relative": "catalog",
             "/redirect-query": "?finished=1",
             "/redirect-origin": "//127.0.0.1:%s/catalog" % self.server.server_port,
@@ -73,10 +90,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 items = [item for item in items if item["type"] == query["type"][0]]
             body = json.dumps({"schema": 1, "items": items, "next_cursor": None if url.path == "/null-cursor" else "page-2",
                 "request_received": {"authorization": self.headers.get("Authorization", ""),
+                                     "accept": self.headers.get("Accept", ""),
                                      "cookie": self.headers.get("Cookie", ""),
                                      "query": query}}).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
+        if url.path == "/osa-no-store":
+            self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)

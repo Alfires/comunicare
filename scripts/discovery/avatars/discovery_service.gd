@@ -31,8 +31,8 @@ func cancel():
 			request.request_completed.emit(HTTPRequest.RESULT_REQUEST_FAILED, 0, PackedStringArray(), PackedByteArray())
 	credentials.clear()
 
-func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0) -> Dictionary:
-	var prepared = policy.prepare_request(source, url, credentials, options.get("allow_loopback_http", false))
+func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0, accept: String = "*/*") -> Dictionary:
+	var prepared = policy.prepare_request(source, url, credentials, options.get("allow_loopback_http", false), accept)
 	if prepared.is_empty(): return {"error": "Unsafe URL, unsupported authentication or missing credential"}
 	if Time.get_ticks_msec() < retry_at.get(policy.origin(url), 0): return {"error": "Provider rate limited; retry later"}
 	if requests.size() >= 4: return {"error": "Too many pending requests"}
@@ -61,7 +61,7 @@ func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0
 			if header.to_lower().begins_with("location:"): location = header.substr(9).strip_edges()
 		location = _redirect_url(url, location)
 		# Authenticated custom sources may never redirect to a different origin.
-		var redirected = await request_bytes(location, limit, redirects + 1)
+		var redirected = await request_bytes(location, limit, redirects + 1, accept)
 		if no_store and redirected.has("bytes"): redirected.no_store = true
 		return redirected
 	if code == 429:
@@ -98,7 +98,7 @@ func _redirect_url(base: String, location: String) -> String:
 	return origin + (path.get_base_dir() + "/" + location).simplify_path()
 
 func _json(url: String) -> Dictionary:
-	var response = await request_bytes(url)
+	var response = await request_bytes(url, 4 * 1024 * 1024, 0, "application/json")
 	if response.has("error"): return response
 	var text: String = response.bytes.get_string_from_utf8()
 	# Bound nesting before JSON parsing, respecting quoted/escaped text.

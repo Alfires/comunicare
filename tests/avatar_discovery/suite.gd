@@ -39,6 +39,7 @@ func run():
 	test_sources()
 	test_requests()
 	await test_loopback_search()
+	await test_content_negotiation()
 	test_import_gate()
 	test_advanced_filters()
 	test_thumbnail_bounds()
@@ -211,6 +212,28 @@ func test_requests():
 	for url in ["https://public.example.test/model?token=secret", "https://public.example.test/model?api_key=secret"]:
 		check(policy.prepare_request(builtin, url, {}).is_empty(), "token-bearing built-in URL rejected")
 	dispose(policy)
+
+func test_content_negotiation():
+	var service = component("discovery_service", ["configure", "request_bytes", "search"])
+	if service == null: return
+	var base = "http://127.0.0.1:" + FileAccess.get_file_as_string("res://port.txt")
+	service.configure({"id": "negotiation", "base_url": base + "/catalog", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	var reader = load("res://scripts/assets/humanoid_animation.gd").new()
+	for endpoint in ["/negotiated-avatar", "/redirect-avatar"]:
+		var response: Dictionary = await service.request_bytes(base + endpoint)
+		check(response.has("bytes") and not reader.document(response.get("bytes", PackedByteArray())).is_empty(),
+			"byte download negotiates raw GLB, not JSON envelope: " + endpoint)
+	for endpoint in ["/catalog", "/redirect-relative"]:
+		service.configure({"id": "negotiation", "base_url": base + endpoint, "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+		var result: Dictionary = await service.search({})
+		check(not result.has("error") and result.get("request_received", {}).get("accept") == "application/json",
+			"catalog explicitly negotiates JSON including redirects: " + endpoint)
+	var policy = load(BASE + "request_policy.gd").new()
+	var prepared: Dictionary = policy.prepare_request({"kind": "builtin"}, "https://example.test/avatar.vrm", {})
+	check("Accept: */*" in prepared.get("headers", []), "generic byte request policy defaults to Accept */*")
+	check(policy.prepare_request({"kind": "builtin"}, "https://example.test/avatar.vrm", {}, false, "*/*\r\nAuthorization: injected").is_empty(),
+		"representation selection cannot inject request headers")
+	dispose(service)
 
 func test_loopback_search():
 	var service = component("discovery_service", ["configure", "search"])

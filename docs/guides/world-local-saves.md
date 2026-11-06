@@ -1,5 +1,9 @@
 # Local world progress
 
+Save loading rejects duplicate JSON keys and over-limit record counts, preserving
+the original file read-only rather than silently choosing an ambiguous value.
+Rejected writes report quota/storage errors; successful commits clear stale status.
+
 World packages may declare `"storage.local"` in `script_capabilities` to save small
 client-local progress records. This grants no arbitrary file access and sends no
 save data to the relay. Scope is the current account and **exact world URL**;

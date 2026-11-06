@@ -96,6 +96,19 @@ func run():
 	check(restored.configure("test-owner", "https://example.test/progress", false, "res://local-saves") and restored.values.level == 3, "world progress survives service restart")
 	check(restored.configure("other-owner", "https://example.test/progress", false, "res://local-saves") and restored.values.is_empty(), "world progress is account isolated")
 	check(not store.commit({"large": "x".repeat(20000)}) and store.values.level == 3, "oversized save leaves previous progress intact")
+	check(not store.last_error.is_empty(), "rejected oversized save reports a useful error")
+	var corrupt_path: String = store.path
+	var corrupt = FileAccess.open(corrupt_path, FileAccess.WRITE)
+	corrupt.store_string('{"level":1,"level":999}')
+	corrupt.close()
+	var duplicate_bytes = FileAccess.get_file_as_bytes(corrupt_path)
+	check(not store.configure("test-owner", "https://example.test/progress", false, "res://local-saves")
+		and not store.writable and FileAccess.get_file_as_bytes(corrupt_path) == duplicate_bytes,
+		"duplicate-key progress file is preserved read-only instead of silently selecting one value")
+	var status_store = load("res://scripts/worlds/world_local_store.gd").new()
+	status_store.configure("temporary", "test", true)
+	status_store.last_error = "old failure"
+	check(status_store.commit({"level": 2}) and status_store.last_error.is_empty(), "successful local save clears stale error status")
 	var storage_vm = load("res://scripts/worlds/world_script_vm.gd").new()
 	check(not storage_vm.run_event([{"op": "save_add", "key": "xp", "value": 5}], {}, {}).ok, "world scripts cannot save without declared capability")
 	check(storage_vm.run_event([{"op": "save_add", "key": "xp", "value": 5}], {"capabilities": ["storage.local"]}, {}).ok, "bounded VM accepts declared local progress command")

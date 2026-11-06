@@ -15,7 +15,7 @@ func press(hand: String):
 	events.append({"hand": hand, "position": captured_position, "pressed": true})
 
 func release(hand: String):
-	if captured != hand: return
+	if captured.is_empty() or captured != hand: return
 	var position = captured_position if hits.get(hand, {}).get("valid", false) else Vector2(-1, -1)
 	events.append({"hand": hand, "position": position, "pressed": false})
 	captured = ""

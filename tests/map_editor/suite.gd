@@ -143,6 +143,9 @@ func test_leases():
 	service.expire(4000)
 	check(ok(service.acquire("session-a", "cube", EDITOR, 4001, 2000)), "expired lease can be reacquired")
 	check(not ok(service.acquire("session-a", "cube", VIEWER, 4002, 999999999)), "unbounded lease duration rejected")
+	var before = service.leases.duplicate(true)
+	check(not ok(service.acquire("", "cube", VIEWER, 999999, 1)) and service.leases == before, "invalid acquisition cannot expire another editor's valid lease")
+	check(not ok(service.acquire("session-a", "negative", VIEWER, -1, 100)), "negative lease timestamp cannot create immediately invalid ownership")
 	dispose(service)
 
 func test_input():

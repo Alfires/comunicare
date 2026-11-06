@@ -1,8 +1,8 @@
 extends RefCounted
 var leases: Dictionary = {}
 func acquire(session: String, entity: String, member: String, now: int, duration: int) -> Dictionary:
+	if session.is_empty() or entity.is_empty() or member.is_empty() or now < 0 or duration < 1 or duration > 10000: return {"ok": false}
 	expire(now)
-	if session.is_empty() or entity.is_empty() or member.is_empty() or duration < 1 or duration > 10000: return {"ok": false}
 	var key = JSON.stringify([session, entity])
 	if leases.has(key) or leases.size() >= 1024: return {"ok": false}
 	leases[key] = {"member": member, "expires": now + duration}

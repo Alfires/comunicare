@@ -71,6 +71,7 @@ func _ground_detail(index: int, point: Vector3, path: String):
 	if index % 4 == 0:
 		model.scale = Vector3(0.45 + (index%5)*0.12, 0.28 + (index%3)*0.1, 0.4 + (index%7)*0.08)
 		model.rotation = Vector3(sin(index*1.7)*0.4, index*2.399963, cos(index*0.9)*0.3)
+		_rock_collision(model)
 	else:
 		model.scale = Vector3.ONE * (0.8 + (index%7)*0.13)
 		model.rotation = Vector3(sin(index)*0.08, index*2.399963, cos(index)*0.07)
@@ -205,6 +206,7 @@ func _rock(index: int, point: Vector3):
 	get_node("Rocks").add_child(rock); rock.position = point
 	rock.scale = Vector3(3.7 + index % 3, 2.8 + (index*3 % 5)*0.3, 3.6 + (index*7 % 5)*0.35) if index < 28 else Vector3(6 + sin(index)*1.2, 4.5 + cos(index)*0.8, 6.5 + sin(index*2)*1.1)
 	rock.rotation = Vector3(sin(index*1.73)*0.38, index*2.399963, cos(index*2.13)*0.32)
+	_rock_collision(rock)
 	for mesh in rock.find_children("*", "MeshInstance3D", true, false): mesh.visibility_range_end = 130
 
 func _details():
@@ -243,7 +245,27 @@ func _shore(index: int, point: Vector3, angle: float):
 	shore.add_child(rock); rock.position = point + Vector3(sin(index)*0.3,-0.3-cos(index)*0.1,cos(index)*0.3)
 	rock.scale = Vector3(0.5 + (index%3)*0.15, 0.35 + (index%4)*0.09, 0.55 + (index%5)*0.1)
 	rock.rotation = Vector3(sin(index*1.3)*0.35, angle + index*1.7, cos(index*1.7)*0.3)
+	_rock_collision(rock)
 	for mesh in rock.find_children("*", "MeshInstance3D", true, false): mesh.visibility_range_end = 80
 	if index%2 == 0:
 		var plant = get_parent().streaming.resources["res://assets/welcome_island/models/furniture/plantSmall1.glb"].instantiate()
 		shore.add_child(plant); plant.position = point + Vector3(0.4,0,0.3); plant.scale = Vector3.ONE * 1.5
+
+func _rock_collision(rock: Node3D):
+	# Aggregate visible vertices in world space, then fit a low-cost convex proxy.
+	# World-space baking avoids nonuniformly scaled/tilted physics bodies.
+	var points = PackedVector3Array()
+	var meshes = rock.find_children("*", "MeshInstance3D", true, false)
+	if rock is MeshInstance3D: meshes.append(rock)
+	for mesh in meshes:
+		var bounds: AABB = mesh.mesh.get_aabb()
+		for corner in 8: points.append(mesh.global_transform * bounds.get_endpoint(corner))
+	if points.is_empty(): return
+	var body = StaticBody3D.new(); body.name = "RockCollision"
+	get_parent().add_child(body)
+	var collision = CollisionShape3D.new()
+	var shape = ConvexPolygonShape3D.new(); shape.points = points
+	collision.shape = shape; body.add_child(collision)
+	rock.set_meta("rock_collision", weakref(body))
+	rock.tree_exiting.connect(func():
+		if is_instance_valid(body): body.queue_free(), CONNECT_ONE_SHOT)

@@ -29,6 +29,17 @@ func run():
 	for name in ["BedsideTable", "BedroomShelf", "LoungeArtwork", "EntryPlant", "BedroomArtwork"]:
 		check(house.get_node_or_null(NodePath(name)) != null, "lived-in house detail: " + name)
 	check(house.get("exterior_slices") > 10, "exterior adaptation yields across multiple mesh slices")
+	for label in ["FrontWindowLeft", "FrontWindowRight"]:
+		var window = house.get_node_or_null(label)
+		check(window != null and window is MeshInstance3D, "front facade restores glazing: " + label)
+		if window != null:
+			check(absf(window.position.x) > 2 and window.find_children("*", "CollisionShape3D", true, false).size() == 1, "window collision stays outside accessible entrance")
+	var probe_a = house._box("MaterialProbeA", Vector3(0,-20,0), Vector3.ONE, false)
+	var probe_b = house._box("MaterialProbeB", Vector3(0,-20,0), Vector3.ONE, false)
+	check(probe_a.material_override == probe_b.material_override, "unchanged house timber shares one material")
+	check(house.get_node("Floor").material_override != probe_a.material_override, "warm floor tint never mutates shared timber")
+	check(house.get("furniture_bounds").size() > 4, "repeated furniture reuses measured source bounds")
+	probe_a.queue_free(); probe_b.queue_free()
 	for name in ["LeftBench", "LeftCushions", "PicnicTable", "ShoreBench", "HerbBedOne", "HerbBedTwo"]:
 		check(world.get_node_or_null("Island/" + name) != null, "side spaces include " + name)
 	var body = CharacterBody3D.new(); root.add_child(body)

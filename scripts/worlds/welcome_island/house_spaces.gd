@@ -4,6 +4,8 @@ var resting: Dictionary = {}
 signal furnished
 var furnished_ready := false
 var exterior_slices := 0
+var furniture_bounds: Dictionary = {}
+var timber_material: StandardMaterial3D
 
 func rest_at(label: String, player: CharacterBody3D) -> bool:
 	if label not in ["BedOne", "BedTwo", "Sofa"] or not is_instance_valid(player) or not player.is_in_group("player") or player.has_meta("home_rest") or player.has_meta("home_ship"): return false
@@ -81,6 +83,7 @@ func _ready():
 		_box("FrontSill", Vector3(side * 5, 0.45, 7), Vector3(6, 0.9, 0.3), true)
 		_box("FrontLintel", Vector3(side * 5, 3.05, 7), Vector3(6, 0.7, 0.3), true)
 	_box("DoorLintel", Vector3(0, 3.05, 7), Vector3(4, 0.7, 0.3), true)
+	_front_windows()
 	_box("Roof", Vector3(0, 3.6, 0), Vector3(17, 0.35, 15), true)
 	_box("Porch", Vector3(0, -0.06, 8.5), Vector3(10, 0.16, 3), true)
 	await get_tree().process_frame
@@ -114,6 +117,18 @@ func _ready():
 	add_child(lighting)
 	furnished_ready = true
 	furnished.emit()
+
+func _front_windows():
+	# Match the app-owned front wall at z=7, not the removed source facade.
+	for side in [-1, 1]:
+		var window = _box("FrontWindowLeft" if side < 0 else "FrontWindowRight", Vector3(side*5, 1.8, 7), Vector3(5.7, 1.8, 0.08), true)
+		var glass = StandardMaterial3D.new()
+		glass.albedo_color = Color(0.62,0.77,0.82,0.22)
+		glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		glass.roughness = 0.18
+		window.material_override = glass
+		for index in 3:
+			_box("FrontMullion", Vector3(side*5 + (index-1)*1.9, 1.8, 7), Vector3(0.07,1.8,0.12), false)
 
 func _comfort_details():
 	_furniture("BedsideTable", "tableCoffee", Vector3(-6.7, 0, -4.6), Vector3(0.65, 0.5, 0.65))
@@ -162,10 +177,16 @@ func _furniture(label: String, asset: String, center: Vector3, target: Vector3, 
 	else:
 		model = load("res://assets/welcome_island/models/furniture/" + asset + ".glb").instantiate()
 	root.add_child(model)
-	var bounds := AABB(); var first := true
-	for mesh in model.find_children("*", "MeshInstance3D", true, false):
-		var box = model.global_transform.affine_inverse() * mesh.global_transform * mesh.mesh.get_aabb()
-		bounds = box if first else bounds.merge(box); first = false
+	var bounds := AABB()
+	if furniture_bounds.has(asset):
+		bounds = furniture_bounds[asset]
+	else:
+		var first := true
+		var inverse = model.global_transform.affine_inverse()
+		for mesh in model.find_children("*", "MeshInstance3D", true, false):
+			var box = inverse * mesh.global_transform * mesh.mesh.get_aabb()
+			bounds = box if first else bounds.merge(box); first = false
+		furniture_bounds[asset] = bounds
 	var factor = minf(target.x / maxf(bounds.size.x, 0.01), minf(target.y / maxf(bounds.size.y, 0.01), target.z / maxf(bounds.size.z, 0.01)))
 	if asset == "bedSingle":
 		# Daybeds include tall upholstery/backrests; size by sleeping footprint,
@@ -197,6 +218,7 @@ func _install_exterior():
 			mesh.visible = false
 		elif "hollow wall shell" in label:
 			var adapted = ArrayMesh.new()
+			var to_exterior = exterior.global_transform.affine_inverse() * mesh.global_transform
 			for surface in mesh.mesh.get_surface_count():
 				var arrays = mesh.mesh.surface_get_arrays(surface)
 				var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
@@ -204,7 +226,7 @@ func _install_exterior():
 				var kept = PackedInt32Array()
 				for index in range(0, indices.size(), 3):
 					var center = (vertices[indices[index]] + vertices[indices[index+1]] + vertices[indices[index+2]]) / 3
-					var point = exterior.global_transform.affine_inverse() * mesh.global_transform * center
+					var point = to_exterior * center
 					if point.z > 4.0 and point.y < 3.0: continue
 					kept.append_array(indices.slice(index, index+3))
 				if kept.is_empty(): continue
@@ -238,6 +260,7 @@ func _install_exterior():
 	var ceiling = StandardMaterial3D.new()
 	ceiling.albedo_color = Color(0.82, 0.78, 0.68); ceiling.roughness = 0.95
 	get_node("Roof").material_override = ceiling
+	get_node("Floor").material_override = get_node("Floor").material_override.duplicate()
 	get_node("Floor").material_override.albedo_color = Color(1.15, 1.06, 0.91)
 	for node in find_children("Front*", "MeshInstance3D", false, false):
 		var material = StandardMaterial3D.new(); material.albedo_color = Color(0.73, 0.69, 0.59); material.roughness = 0.85
@@ -267,12 +290,13 @@ func _install_exterior():
 func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D:
 	var root = MeshInstance3D.new(); root.name = label; root.position = center; add_child(root)
 	var mesh = BoxMesh.new(); mesh.size = size; root.mesh = mesh
-	var material = StandardMaterial3D.new()
-	material.albedo_texture = load("res://assets/welcome_island/textures/weathered_planks/weathered_planks_diff_1k.jpg")
-	material.normal_enabled = true
-	material.normal_texture = load("res://assets/welcome_island/textures/weathered_planks/weathered_planks_nor_gl_1k.jpg")
-	material.roughness = 0.85; material.uv1_triplanar = true; material.uv1_world_triplanar = true; material.uv1_scale = Vector3.ONE * 0.5
-	root.material_override = material
+	if timber_material == null:
+		timber_material = StandardMaterial3D.new()
+		timber_material.albedo_texture = load("res://assets/welcome_island/textures/weathered_planks/weathered_planks_diff_1k.jpg")
+		timber_material.normal_enabled = true
+		timber_material.normal_texture = load("res://assets/welcome_island/textures/weathered_planks/weathered_planks_nor_gl_1k.jpg")
+		timber_material.roughness = 0.85; timber_material.uv1_triplanar = true; timber_material.uv1_world_triplanar = true; timber_material.uv1_scale = Vector3.ONE * 0.5
+	root.material_override = timber_material
 	if solid:
 		var body = StaticBody3D.new(); root.add_child(body)
 		var collision = CollisionShape3D.new(); var shape = BoxShape3D.new(); shape.size = size

@@ -21,6 +21,23 @@ func run():
 	check(species.has("pine") and species.has("fir"), "landscape mixes distinct realistic pine and fir silhouettes")
 	check(landscape.has_node("Understory") and landscape.get_node("Understory").get_child_count() >= 30, "planted clusters include bounded fern understory and stumps")
 	check(landscape.get_node("Rocks").get_child_count() >= 16, "shore and underside have individual authored rocks")
+	var collision_ok := true
+	var hit_count := 0
+	for stone in landscape.get_node("Rocks").get_children():
+		var reference = stone.get_meta("rock_collision", null)
+		if not reference is WeakRef or not is_instance_valid(reference.get_ref()):
+			collision_ok = false; continue
+		var body = reference.get_ref()
+		collision_ok = collision_ok and body.global_transform == Transform3D.IDENTITY and body.get_child(0).shape is ConvexPolygonShape3D
+		var points: PackedVector3Array = body.get_child(0).shape.points
+		var center = Vector3.ZERO
+		for point in points: center += point
+		center /= points.size()
+		var query = PhysicsRayQueryParameters3D.create(center + Vector3.UP*25, center-Vector3.UP*25)
+		var hit = world.get_world_3d().direct_space_state.intersect_ray(query)
+		if not hit.is_empty() and hit.collider == body: hit_count += 1
+	check(collision_ok, "tilted rocks have unscaled world-aligned convex collision")
+	check(hit_count >= 8, "physics rays hit visible rim rocks rather than passing through them")
 	var tilted := 0
 	for stone in landscape.get_node("Rocks").get_children():
 		if absf(stone.rotation.x) + absf(stone.rotation.z) > 0.12: tilted += 1

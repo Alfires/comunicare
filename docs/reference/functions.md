@@ -1009,7 +1009,7 @@ conversion rejects cycles/matrices. See supported subset, not full VRMA claims.
 | `document` | Validates binary GLB chunks/JSON and rejects external buffer/image URIs; returns json/binary or `{}`. Caller supplies maximum bytes. |
 | `humanoid_nodes` | Extracts VRM Animation/VRM 1.0/legacy humanoid node map; missing mappings return empty. Not arbitrary bone-name guessing. |
 | `read_bytes` | Parses supported rotation channels to named clips/time/quaternion/rest-basis data with SHA-256; rejects unsupported interpolation/translation/gaze/sparse tracks. No animations are executed. |
-| `bind_clip` | Main-thread avatar binding to a Skeleton3D using humanoid metadata/rest-axis conversion; returns Animation/null. Rejects required missing bones, skips explicit optional channels; legacy VRM orientation correction applies to builtin data. |
+| `bind_clip` | Main-thread avatar binding to a Skeleton3D using humanoid metadata/rest-axis conversion; returns Animation/null. Rejects required missing bones, skips explicit optional channels; legacy VRM orientation correction applies to builtin data. Constant quaternion factors are computed once per track, not once per key; source samples remain unchanged. |
 
 <!-- module: scripts/assets/default_animations.gd -->
 ## Bundled motion data

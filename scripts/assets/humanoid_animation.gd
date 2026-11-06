@@ -286,8 +286,12 @@ func bind_clip(clip: Dictionary, avatar: Node3D) -> Animation:
 		if source.get("reference_space") == "gltf_humanoid" and avatar.get_meta("vrm_legacy_orientation", false):
 			source_global = Quaternion(Vector3.UP, PI) * source_global
 		var conversion = target_global.inverse() * source_global if source.has("source_rest") else Quaternion.IDENTITY
+		# Rest-axis factors are constant across every sample in this track.
+		var left: Quaternion = rest * conversion
+		var right: Quaternion = conversion.inverse()
 		for key in source.keys:
-			animation.rotation_track_insert_key(track, key.time, rest * conversion * key.rotation * conversion.inverse())
+			var rotation: Quaternion = key.rotation
+			animation.rotation_track_insert_key(track, key.time, left * rotation * right)
 	return animation
 
 func _skeleton(node: Node) -> Skeleton3D:

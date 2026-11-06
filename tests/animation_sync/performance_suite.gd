@@ -5,6 +5,7 @@ func check(ok: bool, title: String):
 	print("PASS: " if ok else "FAIL: ", title)
 	if not ok: failed += 1
 func run():
+	benchmark_animation_binding()
 	benchmark_first_person_import()
 	var placeholder = load("res://scripts/assets/avatar_placeholder.gd").new()
 	root.add_child(placeholder)
@@ -38,6 +39,37 @@ func run():
 	target.free()
 	print("Performance workload failures: ", failed)
 	quit(1 if failed else 0)
+
+func benchmark_animation_binding():
+	var avatar = Node3D.new()
+	var rig = Skeleton3D.new()
+	rig.name = "Rig"
+	avatar.add_child(rig)
+	rig.add_bone("Head")
+	var rest = Quaternion(Vector3.RIGHT, 0.4)
+	rig.set_bone_rest(0, Transform3D(Basis(rest), Vector3.ZERO))
+	avatar.set_meta("humanoid_bones", {"head": "Head"})
+	var source_rest = Quaternion(Vector3.UP, 0.7)
+	var rotation = Quaternion(Vector3.FORWARD, 0.2)
+	var keys: Array = []
+	for index in 10000: keys.append({"time": index / 1000.0, "rotation": rotation})
+	var clip = {"duration": 10.0, "tracks": [{"bone": "head", "source_rest": source_rest, "keys": keys}]}
+	var reader = load("res://scripts/assets/humanoid_animation.gd").new()
+	var animation: Animation
+	var timings: Array[int] = []
+	for sample in 21:
+		var start = Time.get_ticks_usec()
+		animation = reader.bind_clip(clip, avatar)
+		if sample > 0: timings.append(Time.get_ticks_usec() - start)
+	timings.sort()
+	print("BENCH: median retarget 10000 rotation keys (20 samples): ", timings[10], " us")
+	var conversion = rest.inverse() * source_rest
+	var expected = rest * conversion * rotation * conversion.inverse()
+	check(animation != null and animation.track_get_key_count(0) == 10000, "large animation binding retains all rotation samples")
+	if animation != null:
+		check(animation.track_get_key_value(0, 9999).is_equal_approx(expected), "retargeted samples retain exact rest-axis conversion")
+	check(keys[0].rotation == rotation, "binding leaves source key data unchanged")
+	avatar.free()
 
 func benchmark_first_person_import():
 	var avatar = Node3D.new()

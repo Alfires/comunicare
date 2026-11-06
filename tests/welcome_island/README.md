@@ -1,5 +1,20 @@
 # Welcome island startup contracts
 
+### Latest matrix completion — 2026-11-06
+
+`/tmp/opencode/welcome-release-results-kpbr2jto` completed 23/24 groups passing.
+Active Instance copied an in-progress concurrent UI edit with duplicate
+`focus_invite` declarations in `share_session_menue.gd`, causing parse/UI failures.
+The current production file has one declaration; an affected-suite rerun passed.
+This does not retroactively turn the earlier matrix into a full pass. Standalone
+Linux debug export, home roundtrips and other matrix groups passed.
+
+Exact committed roundtrip snapshot separately passed revision, discovery and local
+Markdown checks (the checker requires a Git index, supplied only in the disposable
+snapshot). Remaining human gates are listed in the release matrix. Environment
+recheck: `XR_RUNTIME_JSON` unset; system/user `active_runtime.json` absent. No
+headset/participant/human art approval was fabricated.
+
 ## Rapid DataLoader roundtrips and documentation repair — 2026-11-06
 
 New real-DataLoader tests leave home and return three times, checking player

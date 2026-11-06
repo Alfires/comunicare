@@ -17,11 +17,19 @@ var remote_motion = preload("res://scripts/player/remote_motion.gd").new()
 func receive_motion(new_position: Vector3, new_rotation: Vector3):
 	var initial = remote_motion.samples.is_empty()
 	remote_motion.push(new_position, new_rotation, Time.get_ticks_usec() * 0.000001)
-	if initial: transform = remote_motion.sample(Time.get_ticks_usec() * 0.000001)
+	if initial: _apply_motion(remote_motion.sample(Time.get_ticks_usec() * 0.000001))
+
+func _apply_motion(pose: Transform3D):
+	# Movement samples contain rotation/translation only. Replacing transform
+	# directly discards the independent scale received in animation state.
+	var avatar_scale = scale
+	# Use an unscaled orthonormal rotation from the motion buffer; do not
+	# multiply the previous basis and compound scale each render frame.
+	transform = Transform3D(pose.basis.scaled_local(avatar_scale), pose.origin)
 
 func _process(_delta: float):
 	if not remote_motion.samples.is_empty():
-		transform = remote_motion.sample(Time.get_ticks_usec() * 0.000001)
+		_apply_motion(remote_motion.sample(Time.get_ticks_usec() * 0.000001))
 
 func _ensure_placeholder():
 	if is_instance_valid(placeholder): return

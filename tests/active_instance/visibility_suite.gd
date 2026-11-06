@@ -20,8 +20,13 @@ func run():
 	check(service.is_hidden("alice"), "same session scope preserves reconnect preference")
 	var remote = load("res://scripts/player/remote_player.gd").new()
 	remote.receive_motion(Vector3(2, 0, 0), Vector3.ZERO)
+	remote.scale = Vector3.ONE * 2.5
+	remote._process(0.016)
+	check(remote.scale.is_equal_approx(Vector3.ONE * 2.5), "render-frame movement preserves synchronized avatar scale")
 	check(remote.position.is_equal_approx(Vector3(2, 0, 0)), "production remote snaps first pose without travelling from world origin")
 	remote.receive_motion(Vector3(3, 0, 0), Vector3.ZERO)
+	remote._process(0.016)
+	check(remote.scale.is_equal_approx(Vector3.ONE * 2.5), "subsequent movement snapshots never reset avatar scale")
 	check(remote.position.is_equal_approx(Vector3(2, 0, 0)), "production remote buffers later packets instead of snapping on receipt")
 	var nameplate = Label3D.new()
 	remote.add_child(nameplate)

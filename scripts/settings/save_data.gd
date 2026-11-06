@@ -64,6 +64,9 @@ func _ready():
 		_apply_setting(definition.id, store.get_value(definition.id))
 	if theme_service != null:
 		theme_service.apply()
+	# Preload menu pages and compile avatar preview pipelines during startup.
+	if ResourceLoader.exists("res://scripts/GUI/gui_warmup.gd"):
+		load("res://scripts/GUI/gui_warmup.gd").start(self)
 
 func _apply_setting(id: String, value: Variant):
 	var definition: Dictionary = registry.get_definition(id)

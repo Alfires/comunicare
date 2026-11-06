@@ -1,10 +1,20 @@
 extends VBoxContainer
 ## Locally bundled notices only; opening a website is a separate explicit action.
 signal source_requested(url: String)
+const TextBlock = preload("res://scripts/GUI/text_block.gd")
 var entries: Array = []
 var error_text := ""
 
+var _loaded := false
+
+## Builds the notices the first time the page is shown (Settings creates it hidden).
 func _ready():
+	visibility_changed.connect(func(): if is_visible_in_tree() and not _loaded: _load_bundled())
+	if is_visible_in_tree():
+		_load_bundled()
+
+func _load_bundled():
+	_loaded = true
 	var records: Array = []
 	for path in ["res://assets/credits.json", "res://assets/welcome_island/manifest.json"]:
 		if not FileAccess.file_exists(path):
@@ -15,6 +25,7 @@ func _ready():
 	load_entries(records)
 
 func load_entries(records: Array):
+	_loaded = true
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
@@ -53,8 +64,11 @@ func load_entries(records: Array):
 		toggle.text = "Show full license text"
 		toggle.custom_minimum_size.y = 44
 		add_child(toggle)
-		var license_text = _add_text(terms)
+		# Full terms are shaped only when expanded (see text_block.gd).
+		var license_text = TextBlock.new()
 		license_text.visible = false
+		license_text.text = terms
+		add_child(license_text)
 		toggle.pressed.connect(func():
 			license_text.visible = not license_text.visible
 			toggle.text = "Hide full license text" if license_text.visible else "Show full license text")

@@ -69,10 +69,6 @@ func _render():
 		_update_value(definition.id, SaveData.store.get_value(definition.id))
 	if category_pages.has("Assets") and DataLoader.has_method("get_asset_cache"):
 		_add_cache_actions(category_pages.Assets)
-	if category_pages.has("Network") and NetworkHandler.has_method("get_relay_preferences"):
-		var panel = load("res://scripts/multiplayer/federation/relay_preferences_panel.gd").new()
-		category_pages.Network.add_child(panel)
-		panel.configure(NetworkHandler.get_relay_preferences())
 	if category_pages.has("Controls"):
 		var help = preload("res://scripts/GUI/home_help.gd").new()
 		category_pages.Controls.add_child(help)
@@ -103,6 +99,7 @@ func _render():
 	if category_pages.has("VR Comfort"):
 		_add_vr_actions(category_pages["VR Comfort"])
 	var credits = preload("res://scripts/GUI/credits_page.gd").new()
+	credits.visible = false # Builds its notices when Credits is first selected.
 	credits.source_requested.connect(func(url): OS.shell_open(url))
 	rows.add_child(credits)
 	category_pages["Credits"] = credits
@@ -269,11 +266,23 @@ func _open_tracker_setup():
 			setup.configure(player)
 			return
 
+## The relay panel builds dialogs and lists (~20 ms); create it when Network is first shown.
+func _ensure_relay_panel():
+	var page: Control = category_pages.get("Network")
+	if page == null or page.has_meta("relay_panel") or not NetworkHandler.has_method("get_relay_preferences"):
+		return
+	var panel = load("res://scripts/multiplayer/federation/relay_preferences_panel.gd").new()
+	page.add_child(panel)
+	page.set_meta("relay_panel", panel)
+	panel.configure(NetworkHandler.get_relay_preferences())
+
 func select_category(category: String):
 	if not category_pages.has(category):
 		return
 	_cancel_binding()
 	selected_category = category
+	if category == "Network":
+		_ensure_relay_panel()
 	if searching:
 		search.text = ""
 		_search_changed("")

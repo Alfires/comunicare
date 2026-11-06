@@ -1857,6 +1857,31 @@ action callback is supplied by the page.
 | --- | --- |
 | `configure` | Sets icon, message and optional action; the action button is hidden without label or valid callable. |
 
+<!-- module: scripts/GUI/text_block.gd -->
+### [TextBlock](../../scripts/GUI/text_block.gd)
+
+No public functions besides `is_shaped`. Long read-only text drawn with a
+TextParagraph onto an own RenderingServer canvas item. It does no shaping while
+hidden and none on theme changes until shown; glyph commands are re-recorded only
+when text, width, font or color change. Used for full license terms in Credits.
+
+| Functions | Contract |
+| --- | --- |
+| `is_shaped` | True once the text has been shaped for the current width. |
+
+<!-- module: scripts/GUI/gui_warmup.gd -->
+### [GuiWarmup](../../scripts/GUI/gui_warmup.gd)
+
+Started once by SaveData after the theme is applied (skipped headless, on relays
+and with COMUNICARE_GUI_WARMUP=0). Loads menu page scenes on worker threads,
+rasterizes interface glyphs through a throwaway RenderingServer canvas item and
+renders the avatar stage once off-screen so preview pipelines compile at startup.
+
+| Functions | Contract |
+| --- | --- |
+| `pipeline_compilations` | Static: sum of RenderingServer pipeline-compilation counters (diagnostics). |
+| `start` | Static: adds one warm-up node to the root per process; null when skipped. |
+
 <!-- module: scripts/GUI/theme/palette.gd -->
 ### [Palette](../../scripts/GUI/theme/palette.gd)
 
@@ -1921,8 +1946,9 @@ and the settings store remains the owner of the value.
 
 | Functions | Contract |
 | --- | --- |
-| `set_options` | Rebuilds swatches from value→label options and value→colors. |
+| `set_options` | Builds one self-drawing button per option; with unchanged options it only updates colors and tooltips. |
 | `swatch_buttons` | Returns the swatch buttons in option order. |
+| `set_colors` | Updates swatch colors in place and redraws; no nodes are rebuilt. |
 
 <!-- module: scripts/GUI/avatar_browser/browser_results.gd -->
 ### [BrowserResults](../../scripts/GUI/avatar_browser/browser_results.gd)

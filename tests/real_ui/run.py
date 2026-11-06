@@ -21,11 +21,12 @@ HERE = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rendered", action="store_true", help="Open a dedicated X11 test window and capture screenshots")
-    parser.add_argument("--suite", choices=["ui", "startup", "vr", "avatar", "all"], default="all")
+    parser.add_argument("--suite", choices=["ui", "startup", "vr", "avatar", "perf", "all"], default="all")
     parser.add_argument("--plugins", action="store_true", help="Import with production editor plugins enabled (compatibility gate)")
     parser.add_argument("--soak-seconds", type=int, default=0, help="Extend UI membership/edit soak (1200 for 20 minutes)")
     parser.add_argument("--two-clients", action="store_true", help="Run two isolated processes with real UI join and HTTP example world")
     parser.add_argument("--original-world", action="store_true", help="Use unmodified built-in world rather than lifecycle shell fixture")
+    parser.add_argument("--renderer", choices=["gl_compatibility", "forward_plus", "mobile"], default="gl_compatibility", help="Rendering method (the game ships with forward_plus; perf runs should use it)")
     parser.add_argument("--capture", action="store_true", help="Render menu pages at 1280x720 and 1920x1080 and save PNGs (manual comparison, implies --rendered)")
     args = parser.parse_args()
     if args.capture: args.rendered = True
@@ -62,14 +63,14 @@ def main():
     (project / "override.cfg").write_text('[discovery]\nworld_catalog_url=""\n')
     shutil.copy2(HERE / "suite.gd", project / "ui_suite.gd")
     shutil.copy2(HERE / "startup_suite.gd", project / "startup_suite.gd")
-    for filename in ("two_client.gd", "two_relay.gd", "vr_suite.gd", "avatar_suite.gd", "capture.gd"):
+    for filename in ("two_client.gd", "two_relay.gd", "vr_suite.gd", "avatar_suite.gd", "capture.gd", "perf_suite.gd"):
         shutil.copy2(HERE / filename, project / filename)
     if args.suite == "avatar" and os.environ.get("AVATAR_FIXTURE"):
         shutil.copy2(os.environ["AVATAR_FIXTURE"], project / "browser-avatar.vrm")
     env = {**os.environ, "XDG_DATA_HOME": str(artifacts / "data"), "XDG_CONFIG_HOME": str(artifacts / "config"), "XDG_CACHE_HOME": str(artifacts / "cache")}
     env["COMUNICARE_UI_SOAK_SECONDS"] = str(args.soak_seconds)
     env["COMUNICARE_UI_ORIGINAL_WORLD"] = "1" if args.original_world else "0"
-    command = [godot, "--path", str(project), "--rendering-method", "gl_compatibility", "--xr-mode", "off"]
+    command = [godot, "--path", str(project), "--rendering-method", args.renderer, "--xr-mode", "off"]
     try:
         imported = subprocess.run([*command, "--headless", "--editor", "--import"], capture_output=True, text=True, timeout=120, env=env)
         (artifacts / "import.log").write_text(imported.stdout + imported.stderr)
@@ -106,8 +107,8 @@ def main():
         if args.two_clients: return run_two_clients(command, display, artifacts, env)
         status = 0
         for suite in (["startup", "ui"] if args.suite == "all" else [args.suite]):
-            filename = {"ui": "ui_suite.gd", "startup": "startup_suite.gd", "vr": "vr_suite.gd", "avatar": "avatar_suite.gd"}[suite]
-            marker = {"ui": "Real UI acceptance:", "startup": "Real startup acceptance:", "vr": "VR emulator acceptance:", "avatar": "Avatar browser acceptance:"}[suite]
+            filename = {"ui": "ui_suite.gd", "startup": "startup_suite.gd", "vr": "vr_suite.gd", "avatar": "avatar_suite.gd", "perf": "perf_suite.gd"}[suite]
+            marker = {"ui": "Real UI acceptance:", "startup": "Real startup acceptance:", "vr": "VR emulator acceptance:", "avatar": "Avatar browser acceptance:", "perf": "GUI perf:"}[suite]
             result = subprocess.run([*command, *display, "--script", "res://" + filename, "--non_vr"], capture_output=True, text=True, timeout=90 + args.soak_seconds, env=env)
             output = result.stdout + result.stderr
             (artifacts / (suite + ".log")).write_text(output)

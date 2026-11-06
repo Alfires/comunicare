@@ -1,5 +1,11 @@
 # Dropped pickup physics synchronization
 
+Idle pose publication is change-driven: movement of at least 1 mm or rotation of
+0.001 radians sends the next available physics update; unchanged bodies send a
+one-second repair update rather than a packet every 50 ms. A new lease epoch always
+republishes. Sender history is cleared on world reset. This reduces idle traffic,
+not a measured rendering FPS improvement.
+
 WORLD_DATA hello negotiates optional `physics_version: 1`. Within each acknowledged
 instance, the lowest connected supporting peer ID is elected physics publisher.
 Only that peer may publish `physics` poses for already-known, unheld items. Existing

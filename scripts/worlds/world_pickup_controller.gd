@@ -17,6 +17,7 @@ var local_only := false
 var local_actions: Dictionary = {}
 var local_world: WeakRef
 var physics_owner := -1
+var physics_sent: Dictionary = {}
 const LOCAL_NOTICE = "Home objects are local to this client; changes are not synchronized with other players."
 
 func activate_local(world: Node3D, local_items: Dictionary, actions: Dictionary = {}):
@@ -124,6 +125,7 @@ func reset():
 	originals.clear()
 	local_only = false
 	physics_owner = -1
+	physics_sent.clear()
 	local_actions.clear()
 	received_sequence = -1
 	snapshot_elapsed = 0.0
@@ -323,9 +325,14 @@ func _process(delta: float):
 		if state.holder == -1 and physics_owner == peer.world_peer_id and item is RigidBody3D:
 			if send_pose:
 				var q = item.global_basis.orthonormalized().get_rotation_quaternion()
+				var previous = physics_sent.get(id, {})
+				var now = Time.get_ticks_msec()
+				if not previous.is_empty() and previous.epoch == state.epoch and previous.position.distance_squared_to(item.global_position) < 0.000001 \
+					and previous.rotation.angle_to(q) < 0.001 and now - previous.at < 1000: continue
 				local_sequence += 1
-				_send({"op": "physics", "entity": id, "epoch": state.epoch, "sequence": local_sequence,
-					"position": [item.global_position.x, item.global_position.y, item.global_position.z], "rotation": [q.x, q.y, q.z, q.w]})
+				if _send({"op": "physics", "entity": id, "epoch": state.epoch, "sequence": local_sequence,
+					"position": [item.global_position.x, item.global_position.y, item.global_position.z], "rotation": [q.x, q.y, q.z, q.w]}):
+					physics_sent[id] = {"epoch": state.epoch, "position": item.global_position, "rotation": q, "at": now}
 			continue
 		if state.holder == peer.world_peer_id:
 			var anchor = anchors.get(state.grip)

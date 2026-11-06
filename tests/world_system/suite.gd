@@ -339,6 +339,11 @@ func test_pickup_adapter():
 	adapter.receive(wrong)
 	adapter._process(0.05)
 	check(item.global_position.x < 3.0, "foreign revision cannot move rendered object")
+	adapter.physics_owner = network.peer.world_peer_id
+	adapter.states["item"] = {"holder": -1, "epoch": 2, "position": [], "rotation": []}
+	var count_before = network.peer.sent.size()
+	for frame in 10: adapter._process(0.05)
+	check(network.peer.sent.size() - count_before <= 2, "stationary dropped items do not send physics poses every network tick")
 	adapter.reset()
 	check(not item.freeze and item.collision_layer == 1, "transition/reset restores physical item settings")
 	adapter.free()

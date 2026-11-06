@@ -1,5 +1,11 @@
 # Public avatar discovery acceptance tests
 
+Transfer-error regressions distinguish truncated small responses from genuine
+body-limit rejection. Only HTTPRequest's body-size-limit result is reported as a
+limit failure, including the exact configured bytes/MiB. Timeout/incomplete/other
+transport failures must not imply the model file is oversized. Avatar integration
+also logs actual fixture bytes and confirms replacement of the production player.
+
 Follow-up coverage includes advanced filters, bounded PNG decoding, texture TTL,
 catalog TTL revalidation, actual thumbnail-card controls and result restoration,
 PKCE S256/state/port/replay/expiry checks, and custom-vs-built-in OAuth policy.

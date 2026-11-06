@@ -221,6 +221,10 @@ func test_loopback_search():
 		var redirected: Dictionary = await service.request_bytes(base + endpoint)
 		check(redirected.has("bytes"), "valid relative redirect resolves safely: " + endpoint)
 	var private_redirect: Dictionary = await service.request_bytes(base + "/redirect-private")
+	var truncated: Dictionary = await service.request_bytes(base + "/truncated", 2048)
+	check(truncated.has("error") and not "size limit" in str(truncated.error).to_lower(), "truncated small download is not misreported as exceeding avatar limit")
+	var oversized: Dictionary = await service.request_bytes(base + "/oversize", 1024)
+	check(oversized.has("error") and "limit" in str(oversized.error).to_lower() and "1024" in str(oversized.error), "actual oversized transfer reports exact configured byte budget")
 	check(private_redirect.has("bytes") and private_redirect.get("no_store", false), "no-store survives redirect chain and prevents persistent import")
 	# Test-only transport override; normal configuration must still require HTTPS.
 	service.configure({"id": "fixture", "base_url": base, "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})

@@ -71,7 +71,16 @@ func request_bytes(url: String, limit: int = 4 * 1024 * 1024, redirects: int = 0
 		retry_at[policy.origin(url)] = Time.get_ticks_msec() + seconds * 1000
 		return {"error": "Provider rate limited; retry later"}
 	if code != 200: return {"error": "Provider returned HTTP %s (login is never requested for built-ins)" % code}
-	if response[0] != HTTPRequest.RESULT_SUCCESS: return {"error": "Provider transfer failed or exceeded size limit"}
+	if response[0] != HTTPRequest.RESULT_SUCCESS:
+		match int(response[0]):
+			HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED:
+				return {"error": "Provider response exceeds configured download limit: %d bytes (%.1f MiB)." % [limit, float(limit) / 1048576]}
+			HTTPRequest.RESULT_CHUNKED_BODY_SIZE_MISMATCH:
+				return {"error": "Provider download was incomplete (received body does not match declared length). Retry; this is not an avatar size-limit rejection."}
+			HTTPRequest.RESULT_TIMEOUT:
+				return {"error": "Provider download timed out. Retry; this is not an avatar size-limit rejection."}
+			_:
+				return {"error": "Provider transfer failed (HTTP request result %d). This does not indicate that the avatar exceeds the configured limit." % int(response[0])}
 	return {"bytes": response[3], "no_store": no_store}
 
 func _redirect_url(base: String, location: String) -> String:

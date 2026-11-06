@@ -51,6 +51,17 @@ def main():
         if result.returncode or "ERROR:" in output:
             return 2
         print("Editor plugin enable/disable smoke: PASS")
+        shutil.copy2(HERE / "plugin_probe.gd", project / "addons/comunicare_world_tools/plugin_probe.gd")
+        descriptor = project / "addons/comunicare_world_tools/plugin.cfg"
+        descriptor.write_text(descriptor.read_text().replace('script="plugin.gd"', 'script="plugin_probe.gd"'))
+        result = subprocess.run([godot, "--headless", "--path", directory, "--editor"],
+                                capture_output=True, text=True, timeout=90, env=env)
+        output = result.stdout + result.stderr
+        print(output, end="")
+        if "ERROR:" in output or "Plugin dock probe failures:" not in output or result.returncode not in (0, 1):
+            return 2
+        if result.returncode:
+            return 1
     return 0
 
 

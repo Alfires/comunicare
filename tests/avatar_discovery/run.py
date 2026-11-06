@@ -75,7 +75,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(401)
             self.end_headers()
             return
-        if url.path == "/bad":
+        if url.path == "/osa-no-store":
+            body = json.dumps([{"id": "private-cache", "is_public": True, "model_file_url": "https://example.test/avatar.vrm"}]).encode()
+        elif url.path == "/osa-malformed":
+            body = json.dumps([
+                {"id": "private", "is_public": "false", "model_file_url": "https://example.test/private.vrm"},
+                {"id": "malformed", "is_public": True, "model_file_url": 123, "thumbnail_url": []},
+            ]).encode()
+        elif url.path == "/vox-malformed":
+            body = json.dumps({"assets": [None, "bad", {"role": "animation", "license": "CC0 1.0 Universal", "path": "animations/wave.vrma", "sha256": 123, "source": []}]}).encode()
+        elif url.path == "/bad":
             body = b"not-json"
         else:
             items = [

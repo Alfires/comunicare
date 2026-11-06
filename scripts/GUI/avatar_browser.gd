@@ -159,6 +159,8 @@ func _refresh_sources():
 	sidebar.set_sources(list)
 
 func _clear():
+	if is_instance_valid(detail): detail.visible = false
+	if is_instance_valid(sidebar): _layout()
 	pagination_loading = false
 	pagination_button = null
 	thumbnail_queue.clear()
@@ -304,7 +306,7 @@ func _restore_results():
 	_clear()
 	for record in saved_records: _card(record)
 	_update_pagination()
-	if compact: detail.visible = false
+	detail.visible = false
 	_layout()
 	_restore_focus.call_deferred()
 

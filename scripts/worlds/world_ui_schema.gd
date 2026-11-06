@@ -16,7 +16,15 @@ static func validate(value: Variant, entities: Array, capabilities: Array) -> Di
 			ids.append(widget.id)
 			if widget.get("type") not in ["text", "button", "progress", "list"]: return Data.failure("Unsupported UI widget")
 			for field in ["text", "bind", "enabled_bind"]:
-				if widget.has(field) and (not widget[field] is String or widget[field].length() > (2048 if field == "text" else 64)): return Data.failure("Invalid widget text/binding")
+				if not widget.has(field): continue
+				if not widget[field] is String: return Data.failure("Invalid widget text/binding")
+				var key: String = widget[field]
+				if field != "text":
+					if key.begins_with("state."): key = key.trim_prefix("state.")
+					elif key.begins_with("saved."): key = key.trim_prefix("saved.")
+					else: return Data.failure("Unknown widget binding namespace")
+					if key.is_empty(): return Data.failure("Missing widget binding key")
+				if key.length() > (2048 if field == "text" else 64): return Data.failure("Invalid widget text/binding")
 			if widget.type == "progress" and not (Data.integer(widget.get("max", 100), 1, 1000000)): return Data.failure("Invalid progress maximum")
 			if widget.type == "button":
 				if widget.get("entity") not in entities: return Data.failure("UI action targets unknown entity")

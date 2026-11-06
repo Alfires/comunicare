@@ -132,8 +132,11 @@ func remember_credential(id: String):
 func restore_credential(id: String):
 	var registry = browser.registry
 	var source: Dictionary = registry.sources[id].duplicate(true)
+	var ticket = browser.generation
+	var owner = browser.account_owner
 	var result: Dictionary = await credential_store.perform("lookup", browser.account_owner, id, registry.policy.origin(source.base_url))
-	if registry.sources.has(id) and registry.sources[id].base_url == source.base_url and result.get("ok"):
+	if ticket != browser.generation or owner != browser.account_owner: return
+	if registry.sources.has(id) and registry.sources[id] == source and result.get("ok"):
 		registry.set_credentials(id, {"token": result.get("token", "")})
 	_set_status("Keyring lookup finished; secrets are never written to source preferences.")
 

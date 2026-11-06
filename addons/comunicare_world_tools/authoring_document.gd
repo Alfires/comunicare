@@ -21,7 +21,9 @@ func validate(document: Variant) -> Dictionary:
 		if not entity.get("position") is Array or entity.position.size() != 3: return Data.failure("Invalid position")
 		for coordinate in entity.position:
 			if not (coordinate is int or coordinate is float) or not is_finite(float(coordinate)) or absf(coordinate) > 10000: return Data.failure("Invalid coordinate")
-		if entity.type == "spawn": spawns += 1
+		if entity.type == "spawn":
+			if entity.has("collider"): return Data.failure("Spawn cannot have a collider")
+			spawns += 1
 		else:
 			var collider = entity.get("collider", {})
 			if not collider is Dictionary or not Data.keys_only(collider, ["type", "size"]) or collider.get("type") != "box" or not collider.get("size") is Array or collider.size.size() != 3: return Data.failure("Entity needs box collider")
@@ -31,19 +33,29 @@ func validate(document: Variant) -> Dictionary:
 	if spawns != 1: return Data.failure("Project needs exactly one spawn")
 	for capability in document.capabilities:
 		if capability not in ["entity.visual", "storage.local", "player.checkpoint"]: return Data.failure("Unsupported capability")
+	var programs: Dictionary = {}
 	for behavior in document.behaviors:
 		if not behavior is Dictionary or not Data.keys_only(behavior, ["entity", "event", "actions"]) or behavior.get("entity") not in ids or behavior.get("event") not in ["start", "tick", "use", "grab", "release"]: return Data.failure("Invalid behavior binding")
-		var checked = preload("res://scripts/worlds/world_script_vm.gd").new().run_event(behavior.get("actions"), {"entities": ids, "capabilities": document.capabilities})
-		if not checked.ok: return checked
+		if not behavior.get("actions") is Array: return Data.failure("Invalid behavior actions")
+		if not programs.has(behavior.entity): programs[behavior.entity] = {}
+		if not programs[behavior.entity].has(behavior.event): programs[behavior.entity][behavior.event] = []
+		programs[behavior.entity][behavior.event].append_array(behavior.actions)
+	if programs.size() > 64: return Data.failure("Maximum 64 scripted entities")
+	for events in programs.values():
+		for actions in events.values():
+			var checked = preload("res://scripts/worlds/world_script_vm.gd").new().run_event(actions, {"entities": ids, "capabilities": document.capabilities})
+			if not checked.ok: return checked
 	return {"ok": true}
 
 func save_project(document: Dictionary, path: String) -> Dictionary:
 	var checked = validate(document)
 	if not checked.ok: return checked
+	var serialized = JSON.stringify(document, "\t")
+	if serialized.to_utf8_buffer().size() > 1024 * 1024: return Data.failure("Oversized project")
 	if DirAccess.make_dir_recursive_absolute(path.get_base_dir()) != OK: return Data.failure("Cannot create project directory")
 	var file = FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	if file == null: return Data.failure("Cannot write project")
-	file.store_string(JSON.stringify(document, "\t"))
+	file.store_string(serialized)
 	file.flush()
 	var error = file.get_error()
 	file.close()

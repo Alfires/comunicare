@@ -5,6 +5,11 @@ var failed := 0
 var skipped := 0
 const BASE = "res://scripts/discovery/avatars/"
 
+class DelayedKeyring extends Node:
+	func perform(mode: String, _account: String, _source: String, _origin: String, _secret: String = "") -> Dictionary:
+		await get_tree().process_frame
+		return {"ok": true, "token": "delayed-token" if mode == "lookup" else ""}
+
 func _initialize(): call_deferred("run")
 
 func check(ok: bool, title: String):
@@ -40,6 +45,7 @@ func run():
 	test_requests()
 	await test_loopback_search()
 	await test_content_negotiation()
+	await test_audit_regressions()
 	test_import_gate()
 	test_advanced_filters()
 	test_thumbnail_bounds()
@@ -302,6 +308,46 @@ func test_import_gate():
 	record.format = "fbx"
 	check(not gate.evaluate(record).get("can_import", true), "unsupported FBX is not silently accepted")
 	dispose(gate)
+
+func test_audit_regressions():
+	var service = load(BASE + "discovery_service.gd").new()
+	root.add_child(service)
+	var base = "http://127.0.0.1:" + FileAccess.get_file_as_string("res://port.txt")
+	service.configure({"id": "audit", "adapter": "osa", "base_url": base + "/osa-malformed", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	var result: Dictionary = await service.search({})
+	check(result.get("items", []).all(func(item): return item.id != "private"), "AUDIT string false cannot publish private OSA avatar")
+	check(result.get("items", []).all(func(item): return item.get("download_url") is String and item.get("thumbnail_url") is String), "AUDIT malformed OSA URL fields cannot escape normalization")
+	service.configure({"id": "audit", "adapter": "osa", "base_url": base + "/bad", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	result = await service.search({})
+	check(result.has("error"), "AUDIT changed endpoint cannot reuse old catalog by source ID")
+	service.configure({"id": "vox-audit", "adapter": "vox", "base_url": base + "/vox-malformed", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	result = await service.search({})
+	check(result.get("items", []).size() == 1, "AUDIT malformed motion manifest entries are skipped without aborting catalog")
+	check(result.get("items", []).all(func(item): return item.get("sha256") is String and item.get("page_url") is String), "AUDIT motion digest and page metadata normalized to strings")
+	service.configure({"id": "no-store", "adapter": "osa", "base_url": base + "/osa-no-store", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	result = await service.search({})
+	check(result.get("items", []).size() == 1 and not service.catalogs.has("no-store"), "AUDIT no-store catalog can be displayed without retaining cached metadata")
+	service.queue_free()
+	var browser = load("res://scenes/GUI/avatar_browser.tscn").instantiate()
+	root.add_child(browser)
+	browser.registry.add_source({"id": "audit-private", "kind": "custom", "auth": "bearer", "base_url": "https://private.example.test"})
+	var page = browser.sources_page
+	page.credential_store.queue_free()
+	page.credential_store = DelayedKeyring.new()
+	page.add_child(page.credential_store)
+	page.restore_credential("audit-private")
+	page.forget_credential("audit-private")
+	await process_frame
+	await process_frame
+	check(browser.registry.get_credentials("audit-private").is_empty(), "AUDIT sign-out invalidates pending keyring credential restoration")
+	browser.detail.visible = true
+	browser._home()
+	check(not browser.detail.visible, "AUDIT Home navigation hides stale asset detail and its Apply action")
+	browser.compact = false
+	browser.detail.visible = true
+	browser._restore_results()
+	check(not browser.detail.visible, "AUDIT Back closes detail in wide layout as well as compact")
+	browser.free()
 
 func test_browser():
 	var path = "res://scenes/GUI/avatar_browser.tscn"

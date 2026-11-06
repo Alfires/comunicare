@@ -149,6 +149,9 @@ func _read() -> bool:
 	if not checked.ok:
 		status.text = checked.error
 		return false
+	if parsed.value != document:
+		# New raw JSON edits start a new branch, just like a tool action.
+		future.clear()
 	document = parsed.value
 	return true
 
@@ -181,10 +184,12 @@ func _add_interactable(): _add_entity("interactable")
 func _add_entity(type: String):
 	if not _read(): return
 	var copy = document.duplicate(true)
-	selection = Crypto.new().generate_random_bytes(16).hex_encode()
-	copy.entities.append({"id": selection, "name": type.capitalize(), "type": type, "position": [0, 1, -2], "collider": {"type": "box", "size": [1, 1, 1]}})
+	var new_id = Crypto.new().generate_random_bytes(16).hex_encode()
+	copy.entities.append({"id": new_id, "name": type.capitalize(), "type": type, "position": [0, 1, -2], "collider": {"type": "box", "size": [1, 1, 1]}})
 	var checked = preload("res://addons/comunicare_world_tools/authoring_document.gd").new().validate(copy)
-	if checked.ok: checked.document = copy
+	if checked.ok:
+		checked.document = copy
+		selection = new_id
 	_commit(checked)
 
 func _bind_hide():

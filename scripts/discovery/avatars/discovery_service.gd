@@ -117,7 +117,7 @@ func _json(url: String) -> Dictionary:
 		elif c in ["}", "]"]: depth -= 1
 	var parser = JSON.new()
 	if parser.parse(text) != OK: return {"error": "Invalid provider JSON"}
-	return {"data": parser.data}
+	return {"data": parser.data, "no_store": response.get("no_store", false)}
 
 func search(query: Dictionary) -> Dictionary:
 	var ticket = generation
@@ -151,6 +151,10 @@ func search(query: Dictionary) -> Dictionary:
 		var next = result.data.get("next_cursor", "")
 		return {"items": preload("res://scripts/discovery/avatars/catalog_filters.gd").new().apply(normalized, query), "next_cursor": next.left(512) if next is String else "", "request_received": result.data.get("request_received", {}), "scope": "Advanced filters apply to this fetched provider page"}
 	var key: String = source.id
+	var transient_records: Array = []
+	var transient := false
+	if catalogs.has(key) and catalogs[key] is Dictionary and catalogs[key].has("source") and catalogs[key].source != source:
+		catalogs.erase(key)
 	if catalogs.has(key) and catalogs[key] is Dictionary and Time.get_ticks_msec() - catalogs[key].at > CATALOG_TTL_MSEC: catalogs.erase(key)
 	if not catalogs.has(key):
 		var result = await _json(source.base_url)
@@ -159,7 +163,10 @@ func search(query: Dictionary) -> Dictionary:
 		if source.adapter in ["osa", "osa-neon"]:
 			if not result.data is Array: return {"error": "Invalid avatar catalog"}
 			for item in result.data:
-				if not item is Dictionary or not item.get("is_public", false) or item.get("is_draft", false): continue
+				if not item is Dictionary or not item.get("is_public") is bool or item.is_public != true or not item.get("is_draft", false) is bool or item.get("is_draft", false): continue
+				if not item.get("model_file_url", "") is String: continue
+				item = item.duplicate()
+				if not item.get("thumbnail_url", "") is String: item.thumbnail_url = ""
 				if source.adapter == "osa-neon":
 					var verified = {
 						"https://raw.githubusercontent.com/neonglitch86/vrm/main/SBW_86v2.vrm": "10b1feceb1734188e5295d644300a25ed623fc4af9679764bb57748e650380c3",
@@ -171,13 +178,18 @@ func search(query: Dictionary) -> Dictionary:
 		elif source.adapter == "vox":
 			if not result.data is Dictionary or not result.data.get("assets") is Array: return {"error": "Invalid motion manifest"}
 			for item in result.data.assets:
+				if not item is Dictionary: continue
 				if item.get("role") != "animation" or item.get("license") != "CC0 1.0 Universal": continue
 				var path = str(item.get("path", ""))
 				if not path.begins_with("animations/") or ".." in path or not path.ends_with(".vrma"): continue
-				records.append({"id": path, "title": path.get_file().get_basename(), "type": "animation", "format": "vrma", "author": str(item.get("creator", "")).left(200), "license": "CC0-1.0", "redistribution": true, "compatibility": "unknown", "download_url": VOX + path, "page_url": item.get("source", ""), "sha256": item.get("sha256", ""), "category": "emotes"})
+				records.append({"id": path, "title": path.get_file().get_basename(), "type": "animation", "format": "vrma", "author": str(item.get("creator", "")).left(200), "license": "CC0-1.0", "redistribution": true, "compatibility": "unknown", "download_url": VOX + path, "page_url": item.get("source", "").left(4096) if item.get("source", "") is String else "", "sha256": item.get("sha256", "").left(200) if item.get("sha256", "") is String else "", "category": "emotes"})
 		if ticket != generation: return {"error": "Cancelled"}
-		catalogs[key] = {"records": records.slice(0, 1000), "at": Time.get_ticks_msec()}
-	var cached = catalogs[key].records if catalogs[key] is Dictionary else catalogs[key]
+		if result.get("no_store", false):
+			transient = true
+			transient_records = records.slice(0, 1000)
+		else:
+			catalogs[key] = {"records": records.slice(0, 1000), "at": Time.get_ticks_msec(), "source": source.duplicate(true)}
+	var cached = transient_records if transient else (catalogs[key].records if catalogs[key] is Dictionary else catalogs[key])
 	var filtered: Array = preload("res://scripts/discovery/avatars/catalog_filters.gd").new().apply(cached, query)
 	var start = maxi(0, int(query.get("cursor", "0")))
 	return {"items": filtered.slice(start, start + 24), "next_cursor": str(start + 24) if start + 24 < filtered.size() else "", "scope": "Search over fetched public catalog"}

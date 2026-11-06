@@ -48,7 +48,7 @@ func binding_value(key: String) -> Variant:
 	return run_state.get(key.trim_prefix("state.")) if key.begins_with("state.") else null
 
 func dispatch_ui(entity: String, actions: Array, source_menu: Control = null) -> Dictionary:
-	if not enabled or not is_instance_valid(menu) or source_menu != menu or not entities.has(entity) or ui_dispatching: return Data.failure("World menu unavailable")
+	if not enabled or world == null or world.get_ref() == null or not is_instance_valid(menu) or source_menu != menu or not entities.has(entity) or entities[entity].get_ref() == null or ui_dispatching: return Data.failure("World menu unavailable")
 	ui_dispatching = true
 	var result = _run(actions)
 	ui_dispatching = false
@@ -58,14 +58,25 @@ func dispatch(event: String, entity: String) -> Dictionary:
 	if not enabled or world == null or world.get_ref() == null: return Data.failure("World scripts stopped")
 	if not event in ["start", "tick", "use", "grab", "release"] or (not entity.is_empty() and not entities.has(entity)):
 		return Data.failure("Invalid world event")
+	if not entity.is_empty() and entities[entity].get_ref() == null:
+		return Data.failure("World event target is unavailable")
 	var commands: Array = []
 	# One aggregate event invocation and budget across all modules. Replication
 	# must order shared callbacks before using this for multiplayer game logic.
 	var operations: Array = []
 	for id in bindings:
 		if not entity.is_empty() and id != entity: continue
+		if entities[id].get_ref() == null: continue
 		operations.append_array(programs[bindings[id]].events.get(event, []))
 	return _run(operations)
+
+func _counter_sum(previous: Variant, increment: Variant) -> Variant:
+	if not (previous is int or previous is float): return null
+	if previous is int and increment is int:
+		if increment > 0 and previous > 9223372036854775807 - increment: return null
+		if increment < 0 and previous < (-9223372036854775807 - 1) - increment: return null
+	var result = previous + increment
+	return result if is_finite(float(result)) else null
 
 func _run(operations: Array) -> Dictionary:
 	var commands: Array = []
@@ -86,9 +97,10 @@ func _run(operations: Array) -> Dictionary:
 			if command.op == "state_set": next_state[command.key] = command.get("value")
 			else:
 				var previous = next_state.get(command.key, 0)
-				if not (previous is int or previous is float): return Data.failure("Run counter is not numeric")
-				next_state[command.key] = previous + command.value
-			if next_state.size() > 128 or not Data.bounded(next_state, 0, [2048]) or JSON.stringify(next_state).length() > 16384: return Data.failure("Run state budget exceeded")
+				var sum = _counter_sum(previous, command.value)
+				if sum == null: return Data.failure("Run counter is not numeric or exceeds its range")
+				next_state[command.key] = sum
+			if next_state.size() > 128 or not Data.bounded(next_state, 0, [2048]) or JSON.stringify(next_state).to_utf8_buffer().size() > 16384: return Data.failure("Run state budget exceeded")
 			continue
 		if command.op == "checkpoint":
 			var marker = entities.get(command.entity)
@@ -100,8 +112,9 @@ func _run(operations: Array) -> Dictionary:
 			elif command.op == "save_delete": saved.erase(command.key)
 			else:
 				var previous = saved.get(command.key, 0)
-				if not (previous is int or previous is float): return Data.failure("Saved counter is not numeric")
-				saved[command.key] = previous + command.value
+				var sum = _counter_sum(previous, command.value)
+				if sum == null: return Data.failure("Saved counter is not numeric or exceeds its range")
+				saved[command.key] = sum
 			continue
 		var target = entities.get(command.entity)
 		if target == null or not target.get_ref() is Node3D:
@@ -204,6 +217,7 @@ func _process(delta: float):
 			vr_pressed = pressed
 		return # Local script tick pause only; never pauses shared SceneTree.
 	tick_elapsed += minf(delta, 0.1)
-	if tick_elapsed >= 0.05:
-		tick_elapsed = 0.0
+	while tick_elapsed + 0.000000001 >= 0.05:
+		tick_elapsed = maxf(0.0, tick_elapsed - 0.05)
 		dispatch("tick", "")
+		if not enabled or is_instance_valid(menu): break

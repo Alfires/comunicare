@@ -3,6 +3,8 @@ extends RefCounted
 const Document = preload("res://addons/comunicare_world_tools/authoring_document.gd")
 
 func update_entity(source: Dictionary, id: String, name: String, position: Array, size: Array) -> Dictionary:
+	var checked = Document.new().validate(source)
+	if not checked.ok: return checked
 	var copy = source.duplicate(true)
 	for entity in copy.get("entities", []):
 		if entity.id != id: continue
@@ -13,6 +15,8 @@ func update_entity(source: Dictionary, id: String, name: String, position: Array
 	return {"ok": false, "error": "Select an existing entity"}
 
 func delete_entity(source: Dictionary, id: String) -> Dictionary:
+	var checked = Document.new().validate(source)
+	if not checked.ok: return checked
 	var copy = source.duplicate(true)
 	var count = copy.get("entities", []).size()
 	copy.entities = copy.get("entities", []).filter(func(entity): return entity.id != id)

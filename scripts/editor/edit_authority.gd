@@ -5,17 +5,23 @@ var generation := ""
 var roles: Dictionary = {}
 var seen: Dictionary = {}
 func configure(source: Dictionary, account: String, session: String):
+	document.clear()
+	owner = ""
+	generation = ""
+	roles.clear()
+	seen.clear()
+	if account.is_empty() or session.is_empty() or not preload("res://addons/comunicare_world_tools/authoring_document.gd").new().validate(source).ok: return
 	document = source.duplicate(true)
 	owner = account
 	generation = session
 	roles = {owner: "owner"}
 	seen.clear()
 func admit(actor: String, member: String, role: String) -> Dictionary:
-	if actor != owner or member.is_empty() or member == owner or role not in ["editor", "viewer"]: return _fail("Only owner can grant editor/viewer access")
+	if owner.is_empty() or actor != owner or member.is_empty() or member == owner or role not in ["editor", "viewer"]: return _fail("Only owner can grant editor/viewer access")
 	roles[member] = role
 	return {"ok": true}
 func revoke(actor: String, member: String) -> Dictionary:
-	if actor != owner or member == owner: return _fail("Only owner can revoke access")
+	if owner.is_empty() or actor != owner or member == owner: return _fail("Only owner can revoke access")
 	roles.erase(member)
 	return {"ok": true}
 func submit(sender: String, operation: Dictionary) -> Dictionary:
@@ -25,7 +31,7 @@ func submit(sender: String, operation: Dictionary) -> Dictionary:
 	if seen.size() >= 4096: return _fail("Session operation budget reached; save and reopen")
 	var result = preload("res://scripts/editor/edit_commands.gd").new().apply_operation(document, operation)
 	if result.ok:
-		document = result.document
+		document = result.document.duplicate(true)
 		seen[operation.id] = true
 	return result
 func snapshot(recipient: String) -> Dictionary:

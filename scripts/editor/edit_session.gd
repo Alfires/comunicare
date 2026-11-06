@@ -46,6 +46,8 @@ func host(source: Dictionary, account: CryptoKey, port: int = 0, bind_ip: String
 func join(host_ip: String, port: int, owner_fingerprint: String, account: CryptoKey) -> bool:
 	close()
 	if owner_fingerprint.length() != 64 or account == null or account.is_public_only(): return false
+	for character in owner_fingerprint:
+		if character not in "0123456789abcdef": return false
 	connection = ENetConnection.new()
 	if connection.create_host(1, 1) != OK: close(); return false
 	server_peer = connection.connect_to_host(host_ip, port, 1)
@@ -60,6 +62,8 @@ func approve(fingerprint: String, access: String) -> bool:
 	if not hosting or access not in ["viewer", "editor"]: return false
 	for peer in pending.keys():
 		if pending[peer].get("fingerprint") == fingerprint and pending[peer].get("verified", false):
+			var now = Time.get_ticks_msec()
+			if pending[peer].expires <= now or deadlines.get(peer, 0) <= now: return false
 			if members.values().any(func(member): return member.fingerprint == fingerprint): return false
 			if not authority.admit(owner_fingerprint, fingerprint, access).ok: return false
 			members[peer] = pending[peer]
@@ -76,7 +80,7 @@ func revoke(fingerprint: String):
 	for peer in members.keys():
 		if members[peer].fingerprint == fingerprint:
 			_send(peer, {"op": "revoked"})
-			members.erase(peer)
+			_remove(peer)
 			peer.peer_disconnect()
 	changed.emit()
 
@@ -196,6 +200,7 @@ func _remove(peer):
 	changed.emit()
 
 func close():
+	var was_active = connection != null
 	if connection != null:
 		if server_peer != null and server_peer.get_state() == ENetPacketPeer.STATE_CONNECTED: server_peer.peer_disconnect_now()
 		for peer in members:
@@ -216,5 +221,14 @@ func close():
 	sent_sequence = 0
 	authority.roles.clear()
 	authority.seen.clear()
+	document.clear()
+	authority.document.clear()
+	authority.owner = ""
+	authority.generation = ""
+	generation = ""
+	owner_fingerprint = ""
+	challenge.clear()
+	last_error = ""
+	if was_active: changed.emit()
 
 func _exit_tree(): close()

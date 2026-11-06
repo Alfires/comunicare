@@ -52,6 +52,7 @@ func run():
 	await test_compiler()
 	test_playtest_plan()
 	test_optimizer()
+	test_regressions()
 	print("World authoring: %s passed, %s failed; %s dependent groups BLOCKED" % [passed, failed, blocked])
 	quit(1 if failed else 0)
 
@@ -167,3 +168,60 @@ func test_optimizer():
 		check(derived.get("behaviors") == original.behaviors, "optimization preserves script bindings")
 	check(not ok(service.optimize(document, {"preset": "unknown"})), "invalid optimization preset rejected")
 	dispose(service)
+
+func test_regressions():
+	var validator = load(BASE + "authoring_document.gd").new()
+	var tools = load(BASE + "interaction_tools.gd").new()
+	var document = project_document()
+	var visual = {"op": "command", "capability": "entity.visual", "entity": "cube", "property": "visible", "value": false}
+	var nested = tools.bind_behavior(document, "cube", "use", [{"op": "repeat", "count": 1, "body": [visual]}])
+	check(ok(nested), "nested visual actions infer the same capability as direct actions")
+	document.capabilities = ["entity.visual"]
+	document.behaviors = [{"entity": "cube", "event": "use", "actions": [visual]}]
+	var duplicate = tools.duplicate_entity(document, "cube")
+	check(ok(duplicate) and duplicate.document.behaviors.size() == 2 and duplicate.document.behaviors[1].entity == duplicate.entity_id and duplicate.document.behaviors[1].actions[0].entity == duplicate.entity_id,
+		"duplicating an interactive entity preserves and retargets its own behavior")
+	var actions: Array = []
+	for i in 129: actions.append(visual.duplicate(true))
+	document.behaviors = [{"entity": "cube", "event": "use", "actions": actions}, {"entity": "cube", "event": "use", "actions": actions}]
+	check(not ok(validator.validate(document)), "combined event blocks cannot exceed the runtime command budget")
+	document = project_document()
+	for i in 65:
+		var entity = document.entities[1].duplicate(true)
+		entity.id = "scripted%s" % i
+		document.entities.append(entity)
+		document.behaviors.append({"entity": entity.id, "event": "use", "actions": []})
+	check(not ok(validator.validate(document)), "authoring rejects more script owners than packages support")
+	document = project_document()
+	document.entities[0].collider = {"type": "sphere", "radius": 2}
+	check(not ok(validator.validate(document)), "spawn cannot silently discard unsupported collider authoring data")
+	document = project_document()
+	document.entities[0].name = "x".repeat(4096)
+	for i in 254:
+		var entity = document.entities[1].duplicate(true)
+		entity.id = "large%s" % i
+		entity.name = "x".repeat(4096)
+		document.entities.append(entity)
+	document.entities[1].name = "x".repeat(4096)
+	var saved = validator.save_project(document, "user://large.json")
+	check(not ok(saved) or ok(validator.load_project("user://large.json")), "successful project saves are always reloadable within the file budget")
+	document = project_document()
+	check(ok(tools.bind_behavior(document, "cube", "use", [{"op": "checkpoint", "entity": "spawn"}])), "checkpoint binding declares its required capability")
+	check(ok(tools.bind_behavior(document, "cube", "use", [{"op": "save_set", "key": "visited", "value": true}])), "storage binding declares its required capability")
+	document.entities[0].position = [0.0000001, 1, 0]
+	var exporter = load(BASE + "world_exporter.gd").new()
+	var exported = exporter.export_package(document, "user://precision.cworld")
+	var built = load("res://scripts/worlds/world_builder.gd").new().build_package("user://precision.cworld") if ok(exported) else {}
+	check(ok(built) and absf(built.spawn_point[0] - 0.0000001) < 0.000000001, "export preserves small nonzero authored coordinates")
+	var malformed = {"entities": [{}]}
+	var rejected = tools.make_pickup(malformed, "cube")
+	check(rejected is Dictionary and not ok(rejected), "pickup rejects malformed source without a script error")
+	rejected = tools.bind_behavior(malformed, "cube", "use", [])
+	check(rejected is Dictionary and not ok(rejected), "behavior binding rejects malformed source without a script error")
+	rejected = tools.duplicate_entity(malformed, "cube")
+	check(rejected is Dictionary and not ok(rejected), "duplication rejects malformed source without a script error")
+	var entities = load(BASE + "entity_tools.gd").new()
+	rejected = entities.update_entity(malformed, "cube", "test", [0, 0, 0], [1, 1, 1])
+	check(rejected is Dictionary and not ok(rejected), "entity editing rejects malformed source without a script error")
+	rejected = entities.delete_entity(malformed, "cube")
+	check(rejected is Dictionary and not ok(rejected), "entity deletion rejects malformed source without a script error")

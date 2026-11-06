@@ -38,6 +38,21 @@ func run():
 		if not hit.is_empty() and hit.collider == body: hit_count += 1
 	check(collision_ok, "tilted rocks have unscaled world-aligned convex collision")
 	check(hit_count >= 8, "physics rays hit visible rim rocks rather than passing through them")
+	# A tetrahedron has an empty bounding-box corner. Box-corner proxies fill it.
+	var probe = MeshInstance3D.new()
+	var tool = SurfaceTool.new(); tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var a = Vector3.ZERO; var b = Vector3.RIGHT*2; var c = Vector3.UP*2; var d = Vector3.BACK*2
+	for vertex in [a,c,b,a,b,d,a,d,c,b,c,d]: tool.add_vertex(vertex)
+	probe.mesh = tool.commit(); landscape.add_child(probe)
+	probe.position = Vector3(0,10,0); probe.scale = Vector3(2,1,0.7); probe.rotation.y = 0.4
+	landscape._rock_collision(probe)
+	var probe_body = probe.get_meta("rock_collision").get_ref()
+	var fitted := true
+	for point in probe_body.get_child(0).shape.points:
+		var local = probe.to_local(point)
+		if local.x + local.y + local.z > 2.01: fitted = false
+	check(fitted, "rock hull follows actual sloped mesh instead of filling empty bounding-box corners")
+	probe.queue_free()
 	var tilted := 0
 	for stone in landscape.get_node("Rocks").get_children():
 		if absf(stone.rotation.x) + absf(stone.rotation.z) > 0.12: tilted += 1

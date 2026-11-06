@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 23: rock hull fit](23-rock-hull-fit-roadmap.md) replaces box-corner collision
+with cached mesh-derived hulls, preserving placement alignment.
+
 [Part 21: house resource reuse](21-house-resource-reuse-roadmap.md) and
 [part 22: facade/rock collision](22-facade-rock-collision-roadmap.md) record the
 current house loading cleanup and aligned collision changes.

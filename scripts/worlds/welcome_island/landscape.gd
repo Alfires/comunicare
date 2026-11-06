@@ -251,15 +251,20 @@ func _shore(index: int, point: Vector3, angle: float):
 		var plant = get_parent().streaming.resources["res://assets/welcome_island/models/furniture/plantSmall1.glb"].instantiate()
 		shore.add_child(plant); plant.position = point + Vector3(0.4,0,0.3); plant.scale = Vector3.ONE * 1.5
 
+var rock_hulls: Dictionary = {}
+
 func _rock_collision(rock: Node3D):
-	# Aggregate visible vertices in world space, then fit a low-cost convex proxy.
+	# Compute the true source hull once, not the corners of its bounding box.
 	# World-space baking avoids nonuniformly scaled/tilted physics bodies.
 	var points = PackedVector3Array()
 	var meshes = rock.find_children("*", "MeshInstance3D", true, false)
 	if rock is MeshInstance3D: meshes.append(rock)
 	for mesh in meshes:
-		var bounds: AABB = mesh.mesh.get_aabb()
-		for corner in 8: points.append(mesh.global_transform * bounds.get_endpoint(corner))
+		if not rock_hulls.has(mesh.mesh):
+			var hull = mesh.mesh.create_convex_shape(true, false)
+			if hull == null: continue
+			rock_hulls[mesh.mesh] = hull.points
+		for vertex in rock_hulls[mesh.mesh]: points.append(mesh.global_transform * vertex)
 	if points.is_empty(): return
 	var body = StaticBody3D.new(); body.name = "RockCollision"
 	get_parent().add_child(body)

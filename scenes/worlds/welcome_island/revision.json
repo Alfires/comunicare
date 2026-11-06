@@ -120,7 +120,7 @@
     "scripts/worlds/welcome_island/home_contract.gd": "7d27de848676fb27c9a3487020dae418bcbb82035908e2150fc2571ab13631a6",
     "scripts/worlds/welcome_island/house_spaces.gd": "d4f96589104964b80aba41e1fe60e783a8861070d3af560dd3183ee6d2e614dd",
     "scripts/worlds/welcome_island/kitchen.gd": "f0f28496f0b23c26fdaa768bb6703a82461648354fe9a9b298609cfe129330e3",
-    "scripts/worlds/welcome_island/landscape.gd": "daddb1d68275deef1682b1e19ac853413d4f20311470254c4f39732b4284318d",
+    "scripts/worlds/welcome_island/landscape.gd": "6114ce57f928afc847bcc2a3a69c5de58fff78a9207863e02f01b0f027100722",
     "scripts/worlds/welcome_island/layout.gd": "24e7e08a04f52044a5ec6dc0209ee2e6101170a15100df1c1b5a06a092c72b94",
     "scripts/worlds/welcome_island/pond_ship.gd": "6c531e04bd1936b282b942239c47db900b6c20325bf5612291d872439e198b28",
     "scripts/worlds/welcome_island/room_lighting.gd": "7b73a9e83a61da34d06220f285b75d32bef8a1c794ba7437eebaf9f56c59ffb1",

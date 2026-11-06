@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 18: material compilation freezes](18-material-freeze-roadmap.md) records the
+rendered-heartbeat regression and background runtime-material preparation.
+
 [Part 17: smaller loading slices](17-loading-hitches-roadmap.md) records progressive
 grass construction, cached queue priorities and outstanding rendered-load limits.
 

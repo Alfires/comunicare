@@ -31,6 +31,8 @@ func _ready():
 	streaming.enqueue(Vector3(24, 0, -20), paths, _build_home)
 	var textures: Array = []
 	_collect_visual_paths("res://assets/welcome_island/textures", textures)
+	textures.append("res://scenes/worlds/welcome_island/meadow.gdshader")
+	textures.append("res://scenes/worlds/welcome_island/pond_water.gdshader")
 	streaming.enqueue(Vector3.ZERO, textures, _upgrade_materials)
 
 func _collect_visual_paths(folder: String, paths: Array):
@@ -47,7 +49,12 @@ func _collect_visual_paths(folder: String, paths: Array):
 
 func _upgrade_materials():
 	streaming_materials = true
-	var meadow = get_node("Landmass/ContinuousTerrain").get_child(0).material_override
+	var meadow = ShaderMaterial.new()
+	meadow.shader = streaming.resources["res://scenes/worlds/welcome_island/meadow.gdshader"]
+	get_node("Landmass/ContinuousTerrain").get_child(0).material_override = meadow
+	var water_material = ShaderMaterial.new()
+	water_material.shader = streaming.resources["res://scenes/worlds/welcome_island/pond_water.gdshader"]
+	get_node("PondWater/Surface").material_override = water_material
 	var prefix = "res://assets/welcome_island/textures/sparse_grass/sparse_grass_"
 	for entry in [["ground_color", "diff"], ["ground_normal", "nor_gl"], ["ground_roughness", "rough"]]:
 		meadow.set_shader_parameter(entry[0], streaming.resources[prefix + entry[1] + "_1k.jpg"])
@@ -136,8 +143,7 @@ func _build_pond():
 			surface.add_vertex(point)
 	surface.generate_normals()
 	visual.mesh = surface.commit()
-	var material = ShaderMaterial.new()
-	material.shader = load("res://scenes/worlds/welcome_island/pond_water.gdshader")
+	var material = _material(Color(0.18, 0.43, 0.49))
 	visual.material_override = material
 	water.add_child(visual)
 	# Trigger-only water: players cannot stand on it, ray queries still see it.
@@ -212,8 +218,7 @@ func _build_land():
 	var mesh = tool.commit()
 	var instance = MeshInstance3D.new()
 	instance.mesh = mesh
-	var meadow = ShaderMaterial.new()
-	meadow.shader = load("res://scenes/worlds/welcome_island/meadow.gdshader")
+	var meadow = _material(Color(0.24, 0.32, 0.1))
 	instance.material_override = meadow
 	body.add_child(instance)
 	var collision = CollisionShape3D.new()

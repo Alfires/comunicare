@@ -23,7 +23,7 @@ func _ready():
 		var point = _rock_point(index)
 		scheduler.enqueue(point, ["res://assets/welcome_island/models/runtime/boulder_01.scn"], _rock.bind(index, point))
 	_details()
-	scheduler.enqueue(Vector3.ZERO, [], _meadow_grass)
+	scheduler.enqueue(Vector3.ZERO, ["res://scenes/worlds/welcome_island/grass_material.tres"], _meadow_grass)
 	for index in 180:
 		var point = _detail_point(index)
 		if not _planting_clear(point): continue
@@ -97,10 +97,7 @@ func _meadow_grass():
 		for point in [base-across, base+across, middle-across*0.6, middle-across*0.6, base+across, middle+across*0.6, middle-across*0.6, middle+across*0.6, tip]:
 			tool.add_vertex(point)
 	tool.generate_normals()
-	var material = StandardMaterial3D.new()
-	material.albedo_color = Color(0.27, 0.36, 0.10)
-	material.roughness = 1.0; material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	material.vertex_color_use_as_albedo = false
+	var material = get_parent().streaming.resources["res://scenes/worlds/welcome_island/grass_material.tres"]
 	var mesh = tool.commit(); mesh.surface_set_material(0, material)
 	grass_instances = MultiMesh.new(); grass_instances.transform_format = MultiMesh.TRANSFORM_3D
 	grass_instances.mesh = mesh; grass_instances.instance_count = 3200

@@ -16,7 +16,13 @@ func run():
 	print("STREAM ENTRY ms=", (Time.get_ticks_usec()-start)/1000.0)
 	check(island.get_node_or_null("Streaming") != null, "home owns bounded streaming scheduler")
 	var scheduler = island.get_node("Streaming")
+	if OS.get_environment("ISLAND_LAYOUT_RENDERED") == "1":
+		scheduler.set_process(false)
+		var camera = Camera3D.new(); world.add_child(camera)
+		camera.look_at_from_position(Vector3(0,1.7,0), Vector3(24,2,-20))
+		for frame in 5: await process_frame
 	var landscape = island.get_node("Landscape")
+	scheduler.resources["res://scenes/worlds/welcome_island/grass_material.tres"] = load("res://scenes/worlds/welcome_island/grass_material.tres")
 	landscape._meadow_grass()
 	var grass = landscape.get_node("MeadowGrass")
 	check(grass.multimesh.visible_instance_count == 0, "grass setup does not build all 3200 placements in one callback")
@@ -40,14 +46,26 @@ func run():
 	check(get_nodes_in_group("home_kitchen").is_empty(), "removed world never attaches late kitchen")
 	world = load("res://scenes/world.tscn").instantiate(); root.add_child(world); current_scene = world
 	island = world.get_node("Island"); scheduler = island.streaming; scheduler.load_all = true
+	if OS.get_environment("ISLAND_LAYOUT_RENDERED") == "1":
+		var camera = Camera3D.new(); world.add_child(camera)
+		camera.look_at_from_position(Vector3(0, 1.7, 0), Vector3(24, 2, -20))
 	var deadline = Time.get_ticks_msec() + 30000
 	var bounded := true
 	var max_attachment := 0
+	var previous_frame = Time.get_ticks_usec()
+	var worst_frame := 0
 	while (not scheduler.jobs.is_empty() or not island.home_loaded) and Time.get_ticks_msec() < deadline:
 		await process_frame
+		var now = Time.get_ticks_usec()
+		var elapsed = now - previous_frame
+		if elapsed > 100000: print("LOAD STALL ms=", elapsed/1000.0, " completed=", scheduler.completed, " job=", scheduler.last_job, " pending=", scheduler.pending.keys(), " surface=", Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_SURFACE), " draw=", Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_DRAW))
+		worst_frame = maxi(worst_frame, elapsed)
+		previous_frame = now
 		bounded = bounded and scheduler.pending.size() <= scheduler.MAX_REQUESTS
 		max_attachment = maxi(max_attachment, scheduler.last_attachment_usec)
 	check(bounded, "threaded resource requests remain bounded")
+	print("LOAD WORST FRAME ms=", worst_frame/1000.0)
+	check(worst_frame < 500000, "loading heartbeat never freezes for half a second")
 	check(island.home_loaded and scheduler.jobs.is_empty() and scheduler.failed.is_empty(), "all queued content completes without asset failures")
 	check(island.get_node("Landscape").get("grass_cursor") == 3200, "bounded grass jobs finish every deterministic candidate")
 	check(world.get_node_or_null("PondShip") != null and world.local_pickups != null, "delayed kitchen and boat interactions register")

@@ -2,8 +2,12 @@
 
 ## Status and scope
 
-**Planned — 2026-11-05 (revised same day: tablet form factor).** Nothing in
-this document is implemented yet. It plans four connected outcomes:
+**Implemented with manual gates — 2026-11-06.** All twelve parts are
+implemented; `python3 tests/gui_tablet/run.py` passes 356/356. Headset feel
+(grab, touch, readability, comfort), rendered appearance of every color scheme
+and preview GPU cost remain manual gates. User-facing behavior is described in
+[Menu, VR tablet and color schemes](../guides/menu-and-themes.md). The original
+plan below is kept as design history. It planned four connected outcomes:
 
 1. A **tablet-style menu by default** that mixes the familiar social-VR layout
    (VRChat-like quick menu, launch-pad tiles, status bar) with a modern, flat

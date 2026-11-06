@@ -1,9 +1,10 @@
-# RED GUI theme, tablet and avatar preview acceptance tests
+# GUI theme, tablet and avatar preview acceptance tests
 
-**Intentionally failing, opt-in roadmap tests. No runtime implementation is added.**
+**Implemented 2026-11-06: 356 passed, 0 failed, exit 0** (Godot 4.7.2). Written
+first as opt-in red roadmap tests; the history below is kept.
 They cover all twelve parts of the
 [GUI theme, usability and avatar preview roadmap](../../docs/roadmaps/gui-theme-and-avatar-preview-roadmap.md).
-Existing green runners and `tools/check_repository.py` do not invoke this suite.
+`tools/check_repository.py` does not invoke this suite; run it after GUI changes.
 
 ```sh
 python3 tests/gui_tablet/run.py              # all parts

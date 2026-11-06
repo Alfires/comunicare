@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-**Specified — 2026-11-05. Nothing here is implemented yet.** This document
+**Specified 2026-11-05, implemented 2026-11-06.** This document
 settles every open decision in the
 [GUI theme, usability and avatar preview roadmap](gui-theme-and-avatar-preview-roadmap.md).
 The roadmap says *what* to build. This document fixes values, layouts, texts and

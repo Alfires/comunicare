@@ -15,6 +15,7 @@ var priority_point := Vector3.INF
 var material_thread: Thread
 var material_path := ""
 var surface_variants: Array[Material] = []
+var prepared_materials: Dictionary = {}
 
 func _exit_tree():
 	if material_thread != null: material_thread.wait_to_finish()
@@ -23,6 +24,7 @@ func _exit_tree():
 	jobs.clear()
 	resources.clear()
 	surface_variants.clear()
+	prepared_materials.clear()
 
 func enqueue(point: Vector3, paths: Array, attach: Callable):
 	jobs.append({"point": point, "paths": paths, "attach": attach})
@@ -110,8 +112,11 @@ func _visit_materials(resource: Resource, seen: Dictionary):
 		prepared.get_rid()
 		_warm_pipeline(prepared)
 	if resource is Material:
+		if prepared_materials.has(resource.get_instance_id()): return
 		resource.get_rid()
 		_warm_pipeline(resource)
+		# Retain the resource, not just its ID (IDs can be reused after freeing).
+		prepared_materials[resource.get_instance_id()] = resource
 	if resource is PackedScene:
 		var state = resource.get_state()
 		for node in state.get_node_count():
@@ -122,6 +127,7 @@ func _visit_materials(resource: Resource, seen: Dictionary):
 		for surface in resource.get_surface_count(): _visit_materials(resource.surface_get_material(surface), seen)
 
 func _warm_pipeline(material: Material):
+	if DisplayServer.get_name() == "headless": return
 	# Creating a mesh with its material already on the surface invokes Godot's
 	# load-time pipeline preparation on this worker, rather than the first draw.
 	var arrays = []; arrays.resize(Mesh.ARRAY_MAX)

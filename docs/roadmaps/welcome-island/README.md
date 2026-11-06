@@ -1,5 +1,8 @@
 # Welcome island: small test-first roadmaps
 
+[Part 19: streamed material reuse](19-streamed-material-reuse-roadmap.md) covers
+shared surface materials and incremental upgrades, with current hitch measurements.
+
 [Part 18: material compilation freezes](18-material-freeze-roadmap.md) records the
 rendered-heartbeat regression and background runtime-material preparation.
 

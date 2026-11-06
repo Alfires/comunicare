@@ -69,6 +69,8 @@ func run():
 	check(island.home_loaded and scheduler.jobs.is_empty() and scheduler.failed.is_empty(), "all queued content completes without asset failures")
 	check(island.get_node("Landscape").get("grass_cursor") == 3200, "bounded grass jobs finish every deterministic candidate")
 	check(world.get_node_or_null("PondShip") != null and world.local_pickups != null, "delayed kitchen and boat interactions register")
+	check(island._surface_material("weathered_planks", 2.0) == island._surface_material("weathered_planks", 2.0), "identical dock materials reuse one resident resource")
+	check(island._surface_material("weathered_planks", 2.0) != island._surface_material("weathered_planks", 4.0), "material cache preserves texture scale differences")
 	print("STREAM COMPLETE ms=", (Time.get_ticks_usec()-start)/1000.0)
 	print("STREAM MAX scheduler callback ms=", max_attachment/1000.0, " (excludes yielded house stages and GPU uploads)")
 	world.queue_free(); await process_frame; await process_frame

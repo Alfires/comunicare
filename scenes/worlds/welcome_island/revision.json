@@ -121,10 +121,10 @@
     "scripts/worlds/welcome_island/house_spaces.gd": "a9d746c115479d6f4c5ff9993115b4df58dd21faebf1e8b71d5bd5fc4ea7be55",
     "scripts/worlds/welcome_island/kitchen.gd": "f0f28496f0b23c26fdaa768bb6703a82461648354fe9a9b298609cfe129330e3",
     "scripts/worlds/welcome_island/landscape.gd": "c16b05f2fe2d179af218b2cc6a274f16faae811372b113c1cc102b8581010fd7",
-    "scripts/worlds/welcome_island/layout.gd": "054912ef822eeb1b3e5676ff3c208f8e98c2a46f10d93ed616ed58aefc30c74a",
+    "scripts/worlds/welcome_island/layout.gd": "24e7e08a04f52044a5ec6dc0209ee2e6101170a15100df1c1b5a06a092c72b94",
     "scripts/worlds/welcome_island/pond_ship.gd": "6c531e04bd1936b282b942239c47db900b6c20325bf5612291d872439e198b28",
     "scripts/worlds/welcome_island/room_lighting.gd": "7b73a9e83a61da34d06220f285b75d32bef8a1c794ba7437eebaf9f56c59ffb1",
-    "scripts/worlds/welcome_island/streaming.gd": "5663a57d00c34f96a7312641964beb578ed607ee6598f932095e33fa4885e8ac",
+    "scripts/worlds/welcome_island/streaming.gd": "4527d7e6e0f4bbed6044b27ed2b3b8b90fdd1700d683f975d851c4a2e9019188",
     "scripts/worlds/world_data.gd": "49237f4c25f6a5fecab622a5d09e144af0b06de8c7ecbe7f7763b46c25c15b16",
     "scripts/worlds/world_pickup_controller.gd": "b163f07940ad92b21c294773183f30a709e0d94cdaca9f51bda940bad73ea7a7"
   }

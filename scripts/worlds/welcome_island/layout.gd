@@ -13,6 +13,7 @@ var streaming: Node
 var streaming_materials := false
 signal home_ready
 var home_loaded := false
+var surface_materials: Dictionary = {}
 
 func _ready():
 	streaming = preload("res://scripts/worlds/welcome_island/streaming.gd").new()
@@ -62,7 +63,11 @@ func _upgrade_materials():
 	for node in find_children("*", "MeshInstance3D", true, false):
 		if node.has_meta("home_surface"):
 			var spec = node.get_meta("home_surface")
-			node.material_override = _surface_material(spec[0], spec[1])
+			streaming.enqueue(node.global_position, [], _upgrade_surface.bind(weakref(node), spec))
+
+func _upgrade_surface(reference: WeakRef, spec: Array):
+	var node = reference.get_ref()
+	if is_instance_valid(node): node.material_override = _surface_material(spec[0], spec[1])
 
 func _build_home():
 	# Dependencies are already resident before this main-thread assembly.
@@ -268,7 +273,10 @@ func _material(color: Color) -> StandardMaterial3D:
 	return material
 
 func _surface_material(id: String, meters: float) -> StandardMaterial3D:
+	var key = id + ":" + str(meters) + ":" + str(streaming_materials)
+	if surface_materials.has(key): return surface_materials[key]
 	var material = _material(Color.WHITE)
+	surface_materials[key] = material
 	if not streaming_materials:
 		material.albedo_color = Color(0.32, 0.38, 0.23) if id == "sparse_grass" else Color(0.42, 0.35, 0.26)
 		return material

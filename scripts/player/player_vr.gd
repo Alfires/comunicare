@@ -85,15 +85,12 @@ func set_avatar_size(value: float):
 	if not is_finite(value): return
 	var next = clampf(value, 0.25, 3.0)
 	var ratio = next / avatar_size
+	var collision = get_node_or_null("CollisionShape3D")
+	if collision != null and collision.shape is CapsuleShape3D:
+		if not preload("res://scripts/player/avatar_resize.gd").apply(self, collision, ratio): return
 	avatar_size = next
 	if is_instance_valid(origin_node): origin_node.scale *= ratio
 	if is_instance_valid(vrm_model): vrm_model.scale *= ratio
-	var collision = get_node_or_null("CollisionShape3D")
-	if collision != null and collision.shape is CapsuleShape3D:
-		collision.shape = collision.shape.duplicate()
-		collision.shape.radius *= ratio
-		collision.shape.height *= ratio
-		collision.position *= ratio
 
 func _sprint_speed(blocked: bool, teleport_mode: bool) -> float:
 	var active = left_controller.get_is_active()

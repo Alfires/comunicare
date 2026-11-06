@@ -314,6 +314,21 @@ func test_room_scale():
 	body.queue_free()
 
 func test_safety_and_teleport():
+	var resize = load("res://scripts/player/avatar_resize.gd")
+	var resize_body = CharacterBody3D.new()
+	var resize_shape = CollisionShape3D.new()
+	resize_shape.shape = CapsuleShape3D.new()
+	resize_shape.shape.height = 2.6
+	resize_shape.shape.radius = 0.4
+	resize_body.add_child(resize_shape)
+	# VR's initial center can be at the body origin: preserve its actual feet,
+	# not an assumed origin-based floor plane.
+	var feet: float = resize_shape.position.y - resize_shape.shape.height * 0.5
+	for ratio in [0.25, 4.0, 3.0, 1.0 / 3.0]:
+		check(resize.apply(resize_body, resize_shape, ratio) and absf(resize_shape.position.y - resize_shape.shape.height * 0.5 - feet) < 0.001,
+			"avatar resize preserves capsule foot plane at ratio %s" % ratio)
+	check(absf(resize_shape.shape.height - 2.6) < 0.001, "repeated size changes do not accumulate capsule height clamping")
+	resize_body.free()
 	var path = "res://scripts/player/vr_safety.gd"
 	check(ResourceLoader.exists(path), "VR safety validates capsule growth, head overlap and teleport clearance")
 	if not ResourceLoader.exists(path): return
@@ -338,6 +353,9 @@ func test_safety_and_teleport():
 	roof.position.y = 1.6
 	root.add_child(roof)
 	await physics_frame
+	var before_resize = collider.shape
+	check(not resize.apply(body, collider, 2.0) and collider.shape == before_resize,
+		"avatar growth into ceiling rejects entire collision change")
 	check(not safety.resize_capsule(body, collider, 2.0) and is_equal_approx(capsule.height, 1.2), "capsule cannot grow through a low ceiling")
 	check(safety.resize_capsule(body, collider, 1.0), "capsule can shrink safely while crouching")
 	var shape_changes: Array = []

@@ -1,5 +1,10 @@
 # RED VR controls acceptance tests
 
+Avatar resizing uses a shared capsule transaction for desktop and VR: preserve
+the existing foot plane, set height before radius to avoid implicit clamping, and
+reject final volume overlap before changing model/view scale or movement speed.
+Regressions cover repeated shrink/grow cycles and rejection beneath a low ceiling.
+
 Movement regressions cover partial desktop analog strength, consistent acceleration
 at 30/60/144 physics Hz, focus-loss mouse input, and collision-shape change signals
 under submillimeter VR height jitter. Desktop acceleration/braking use exponential

@@ -37,13 +37,10 @@ func set_avatar_size(value: float):
 	if not is_finite(value): return
 	var next = clampf(value, 0.25, 3.0)
 	var ratio = next / avatar_size
-	avatar_size = next
 	var collision = get_node_or_null("CollisionShape3D")
 	if collision != null and collision.shape is CapsuleShape3D:
-		collision.shape = collision.shape.duplicate()
-		collision.shape.radius *= ratio
-		collision.shape.height *= ratio
-		collision.position *= ratio
+		if not preload("res://scripts/player/avatar_resize.gd").apply(self, collision, ratio): return
+	avatar_size = next
 	if is_instance_valid(avatar_model): avatar_model.scale *= ratio
 	camera_rest_position *= ratio
 	if is_inside_tree(): _reset_camera_motion()

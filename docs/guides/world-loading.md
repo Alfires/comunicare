@@ -1,5 +1,11 @@
 # Responsive world preparation
 
+Reveal maintenance checks pending mesh bounds at 10 Hz, so moving props can enter
+range even when the player is stationary. Deleted pending meshes are discarded;
+removing the scheduler restores remaining render layers. Distant-only queues skip
+render-frame advancement between maintenance ticks. Initial reveal no longer sorts
+twice. Tests reproduce stale-bounds invisibility and cancellation layer leakage.
+
 Distance-based reveal update: the shared DataLoader activation path now holds
 unrevealed package visuals outside 38 m until the local player approaches. Pending
 work is reprioritized at 10 Hz after at least 0.5 m of movement, using world-space

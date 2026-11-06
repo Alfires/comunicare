@@ -824,16 +824,17 @@ func _exit_tree():
 func _update_tracking(delta: float):
 	for id in remote_tracking.keys():
 		var value: Dictionary = remote_tracking[id]
-		if not _member(id) or Time.get_ticks_msec() - value.received > 1000:
+		if not _member(id):
+			_remove_remote(id)
+			continue
+		var remote = coordinator.get_node_or_null(str(id))
+		var avatar: Node3D = remote.get("avatar") if remote != null and remote.get("avatar") is Node3D else null
+		if Time.get_ticks_msec() - value.received > 1000 or avatar == null or avatar.get_meta("asset_revision", "") != value.avatar_revision:
 			if tracking_nodes.has(id):
 				if is_instance_valid(tracking_nodes[id].modifier):
 					tracking_nodes[id].modifier.set_tracking_validity({"head": false, "leftHand": false, "rightHand": false})
 					tracking_nodes[id].modifier.set_body_targets({})
 			continue
-		var remote = coordinator.get_node_or_null(str(id))
-		if remote == null or not remote.get("avatar") is Node3D: continue
-		var avatar: Node3D = remote.avatar
-		if avatar.get_meta("asset_revision", "") != value.avatar_revision: continue
 		if tracking_nodes.has(id) and (not is_instance_valid(tracking_nodes[id].avatar) or tracking_nodes[id].avatar != avatar):
 			var old: Dictionary = tracking_nodes[id]
 			if is_instance_valid(old.modifier): old.modifier.queue_free()

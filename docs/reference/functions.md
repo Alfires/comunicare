@@ -1074,6 +1074,10 @@ poses are not included in this protocol.
 | `receive` | Dispatches authenticated transport data after own schema/scope checks; updates clock/current state or request-bound buffers. Tracking requires a 32-character generation. Departure clears tracking-only peers too, but cannot clear caches belonging to a newer generation. Never trust as public arbitrary actor-command interface. |
 | `clear` | Drops session descriptors, queues/assets, motion intent, wheel and clock state; resets local renderer. Does not erase persistent library or user layout. |
 
+Private tracking updates also remove peers that are no longer members without
+requiring a departure packet. Expired poses, missing avatars and mismatched avatar
+revisions invalidate head/hand and body targets rather than leaving old IK active.
+
 Private groups: `_apply_resolved` composes masks/metadata; `_play_resolved` owns
 local render state; `_apply_remote` loads exact model/clip then seeks/blends;
 typed chunk handlers verify final bytes before importer; departure removes pairwise

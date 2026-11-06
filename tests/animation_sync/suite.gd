@@ -983,6 +983,18 @@ func test_controller(parsed: Dictionary):
 	controller.receive(tracking_only)
 	controller.receive({"op": "left", "session_id": "test", "peer_id": 7, "generation": neutral.generation})
 	check(controller.remote_states.has(7) and controller.remote_tracking.has(7), "departure cannot remove a peer with newer tracking than its animation state")
+	var tracking_modifier = load("res://scripts/assets/avatar_tracking.gd").new()
+	skeleton.add_child(tracking_modifier)
+	tracking_modifier.set_tracking_validity({"head": true, "leftHand": true, "rightHand": true})
+	tracking_modifier.set_body_targets({"hips": Transform3D.IDENTITY})
+	controller.tracking_nodes[7] = {"avatar": remote.avatar, "modifier": tracking_modifier, "nodes": {}}
+	controller._update_tracking(0.016)
+	check(not tracking_modifier.validity.get("head", true) and tracking_modifier.body_targets.is_empty(), "tracking for a mismatched avatar revision invalidates previous rig targets immediately")
+	network.peer.session_peers = []
+	controller._update_tracking(0.016)
+	check(not controller.remote_tracking.has(7) and not controller.tracking_nodes.has(7), "membership loss removes tracking state and helper nodes without waiting for departure packet")
+	network.peer.session_peers = [7]
+	controller.receive(neutral)
 	controller.remote_tracking.erase(7)
 	var scaled_state = neutral.duplicate(true)
 	var local_size_player = LocalPlayer.new()

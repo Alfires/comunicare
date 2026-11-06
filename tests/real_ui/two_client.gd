@@ -151,6 +151,8 @@ func run():
 			check(not network.current_session_id.is_empty() and high - low > 1.0, "two-window %ss receiver soak observes sustained real remote motion (%s samples)" % [soak, samples])
 		check(await wait_for(func(): return read_state("released") != null and not cube.freeze), "remote drop restores cube physics")
 	await transition_checks(network)
+	check(await network.load_local_map(shared.path_join("world.cworld")) and network.current_session_id.is_empty()
+		and current_scene.get_node_or_null("PickupCube") != null, "local package loads offline after multiplayer world transitions")
 	finish()
 
 func transition_checks(network):

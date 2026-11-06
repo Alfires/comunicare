@@ -5,6 +5,7 @@ var supported: Dictionary = {}
 var generations: Dictionary = {}
 var instances: Dictionary = {}
 var rates: Dictionary = {}
+var physics_supported: Dictionary = {}
 
 func _send(server: Node, id: int, value: Dictionary):
 	if supported.has(id) and server.peers.has(id) and server.peers[id].get_state() == ENetPacketPeer.STATE_CONNECTED:
@@ -16,9 +17,10 @@ func _broadcast(server: Node, index: int, value: Dictionary):
 func handle(server: Node, sender: int, value: Dictionary):
 	if not server.key_mapping.has(sender) or not server.peers.has(sender): return
 	if value.get("op") == "hello" and value.get("version") == 1:
+		if value.get("physics_version") == 1: physics_supported[sender] = true
 		supported[sender] = true
 		if not generations.has(sender): generations[sender] = Crypto.new().generate_random_bytes(16).hex_encode()
-		_send(server, sender, {"op": "hello", "version": 1, "peer_id": sender, "generation": generations[sender]})
+		_send(server, sender, {"op": "hello", "version": 1, "physics_version": 1, "peer_id": sender, "generation": generations[sender]})
 		return
 	if not supported.has(sender): return
 	var now = Time.get_ticks_msec()
@@ -33,8 +35,13 @@ func handle(server: Node, sender: int, value: Dictionary):
 	if value.get("session_id") != session.session_id or value.get("revision") != session.get("world_revision", ""): return
 	if not instances.has(session.session_id): instances[session.session_id] = {"sequence": 0, "items": {}, "senders": {}}
 	var instance: Dictionary = instances[session.session_id]
+	var candidates: Array = []
+	for member in session.peers:
+		if physics_supported.has(member): candidates.append(member)
+	candidates.sort()
+	var physics_owner: int = candidates[0] if not candidates.is_empty() else -1
 	if value.get("op") == "snapshot":
-		_send(server, sender, {"op": "snapshot", "session_id": session.session_id, "revision": session.get("world_revision", ""), "sequence": instance.sequence, "items": instance.items.duplicate(true)})
+		_send(server, sender, {"op": "snapshot", "physics_owner": physics_owner, "session_id": session.session_id, "revision": session.get("world_revision", ""), "sequence": instance.sequence, "items": instance.items.duplicate(true)})
 		return
 	if not value.get("entity") is String or value.entity.is_empty() or value.entity.length() > 128 \
 		or not InstanceState.integer(value.get("sequence"), 1, 2147483647) \
@@ -44,6 +51,10 @@ func handle(server: Node, sender: int, value: Dictionary):
 		_result(server, sender, value, false)
 		return
 	match value.get("op"):
+		"physics":
+			if sender != physics_owner or item.holder != -1 or not instance.items.has(value.entity) or not _pose(value): return
+			item.position = value.position.duplicate()
+			item.rotation = value.rotation.duplicate()
 		"grab":
 			if item.holder != -1 or not value.get("grip") in ["left", "right", "virtual"] or (not instance.items.has(value.entity) and instance.items.size() >= 256):
 				_result(server, sender, value, false)
@@ -76,7 +87,7 @@ func handle(server: Node, sender: int, value: Dictionary):
 	instance.items[value.entity] = item
 	instance.sequence += 1
 	var clean = item.duplicate(true)
-	clean.merge({"op": "pose" if value.op == "pose" else "item", "entity": value.entity, "session_id": session.session_id, "revision": session.get("world_revision", ""), "sequence": instance.sequence})
+	clean.merge({"op": "pose" if value.op in ["pose", "physics"] else "item", "physics_owner": physics_owner, "entity": value.entity, "session_id": session.session_id, "revision": session.get("world_revision", ""), "sequence": instance.sequence})
 	_broadcast(server, index, clean)
 
 func _result(server: Node, sender: int, value: Dictionary, success: bool):
@@ -115,5 +126,6 @@ func leave(server: Node, sender: int):
 func disconnect_peer(server: Node, sender: int):
 	leave(server, sender)
 	supported.erase(sender)
+	physics_supported.erase(sender)
 	generations.erase(sender)
 	rates.erase(sender)

@@ -9,6 +9,22 @@ func wait_for(predicate: Callable) -> bool:
 	while not predicate.call() and Time.get_ticks_msec() < until: await create_timer(0.01).timeout
 	return predicate.call()
 func run():
+	var save = Node.new()
+	save.name = "SaveData"
+	var fixture = GDScript.new()
+	fixture.source_code = 'extends Node\nvar profile = preload("res://scripts/profile/profile_service.gd").new()\n'
+	fixture.reload()
+	save.set_script(fixture)
+	save.profile.configure(Crypto.new().generate_rsa(2048), "")
+	root.add_child(save)
+	var panel_script = load("res://scripts/GUI/map_editor.gd")
+	check(panel_script != null and panel_script.can_instantiate(), "production editor panel script loads")
+	if panel_script != null and panel_script.can_instantiate():
+		var panel = panel_script.new()
+		root.add_child(panel)
+		check(panel.text != null and not panel.text.text.is_empty(), "production editor opens with initialized project")
+		panel.free()
+	save.free()
 	var host = load("res://scripts/editor/edit_session.gd").new()
 	var client = load("res://scripts/editor/edit_session.gd").new()
 	root.add_child(host)

@@ -16,6 +16,7 @@ var snapshot_elapsed := 0.0
 var local_only := false
 var local_actions: Dictionary = {}
 var local_world: WeakRef
+var physics_owner := -1
 const LOCAL_NOTICE = "Home objects are local to this client; changes are not synchronized with other players."
 
 func activate_local(world: Node3D, local_items: Dictionary, actions: Dictionary = {}):
@@ -122,6 +123,7 @@ func reset():
 	anchors.clear()
 	originals.clear()
 	local_only = false
+	physics_owner = -1
 	local_actions.clear()
 	received_sequence = -1
 	snapshot_elapsed = 0.0
@@ -140,6 +142,7 @@ func _restore(id: String):
 func _send(value: Dictionary) -> bool:
 	_attach_peer()
 	if peer == null or not peer.world_supported or session.is_empty() or peer.current_session_id != session: return false
+	if peer.get("peer") != null and peer.peer.get_state() != ENetPacketPeer.STATE_CONNECTED: return false
 	value.session_id = session
 	value.revision = revision
 	peer.send_world(value)
@@ -236,7 +239,8 @@ func held_by_local(grip: String) -> bool:
 func receive(value: Dictionary):
 	if value.get("session_id") != session or value.get("revision") != revision: return
 	if not value.get("sequence") is float and not value.get("sequence") is int: return
-	if value.sequence <= received_sequence: return
+	if value.sequence < received_sequence or (value.sequence == received_sequence and value.get("op") != "snapshot"): return
+	if preload("res://scripts/worlds/world_data.gd").integer(value.get("physics_owner"), -1, 255): physics_owner = int(value.physics_owner)
 	var previous_states = states.duplicate(true)
 	if value.get("op") == "snapshot" and value.get("items") is Dictionary:
 		var checked: Dictionary = {}
@@ -260,6 +264,7 @@ func receive(value: Dictionary):
 				item.collision_mask = 0
 			else:
 				_restore(id)
+				if physics_owner >= 0 and peer != null and physics_owner != peer.world_peer_id: item.freeze = true
 		var old_holder = previous_states.get(id, {}).get("holder", -1)
 		var new_holder = states.get(id, {}).get("holder", -1)
 		if peer != null and old_holder != new_holder:
@@ -315,6 +320,13 @@ func _process(delta: float):
 		var item = items.get(id).get_ref() if items.has(id) else null
 		var state: Dictionary = states[id]
 		if not item is Node3D or not item.is_inside_tree(): continue
+		if state.holder == -1 and physics_owner == peer.world_peer_id and item is RigidBody3D:
+			if send_pose:
+				var q = item.global_basis.orthonormalized().get_rotation_quaternion()
+				local_sequence += 1
+				_send({"op": "physics", "entity": id, "epoch": state.epoch, "sequence": local_sequence,
+					"position": [item.global_position.x, item.global_position.y, item.global_position.z], "rotation": [q.x, q.y, q.z, q.w]})
+			continue
 		if state.holder == peer.world_peer_id:
 			var anchor = anchors.get(state.grip)
 			if anchor == null or not is_instance_valid(anchor.get_ref()):

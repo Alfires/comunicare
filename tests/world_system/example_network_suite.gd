@@ -97,9 +97,11 @@ func run():
 	check(adapters[0].release_grip("virtual"), "desktop sends release through real transport")
 	await pump()
 	var relay_item = server.world_items.instances[clients[0].current_session_id].items["pickup-cube"]
-	check(Vector3(relay_item.position[0], relay_item.position[1], relay_item.position[2]).distance_to(hands[0].global_position) < 0.02,
+	check(Vector2(relay_item.position[0], relay_item.position[2]).distance_to(Vector2(hands[0].global_position.x, hands[0].global_position.z)) < 0.02,
 		"release publishes final held position even between periodic pose updates")
-	check(not cube_a.freeze and not cube_b.freeze, "real release restores physics on both clients")
+	check(not cube_a.freeze and cube_b.freeze, "release simulates on elected physics owner and freezes receiving replica")
+	await pump(0.5)
+	check(cube_a.global_position.distance_to(cube_b.global_position) < 0.2, "dropped item physics continues syncing after release")
 	hands[1].global_position = cube_b.global_position + Vector3(0, 0.1, 0)
 	check(adapters[1].request_grab("pickup-cube", "left", hands[1]), "VR-style left grip can acquire released example cube")
 	await pump()

@@ -5,7 +5,7 @@ var text: TextEdit
 var status: Label
 var picker: FileDialog
 var action := ""
-var owner := ""
+var account_owner := ""
 var path := ""
 var session: Node
 var host_field: LineEdit
@@ -18,7 +18,7 @@ var coordinates: Array[SpinBox] = []
 func _ready():
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	set_meta("blocks_global_shortcuts", true)
-	owner = get_node("/root/SaveData").profile.get_local_fingerprint()
+	account_owner = get_node("/root/SaveData").profile.get_local_fingerprint()
 	var panel = PanelContainer.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(panel)
@@ -33,7 +33,7 @@ func _ready():
 	layout.add_child(close)
 	status = Label.new()
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status.text = "Separate direct-IP editing. Verify the owner's fingerprint; host approves each viewer/editor. Save/export is owner-only."
+	status.text = "Separate direct-IP editing. Verify the account_owner's fingerprint; host approves each viewer/editor. Save/export is account_owner-only."
 	layout.add_child(status)
 	session = preload("res://scripts/editor/edit_session.gd").new()
 	add_child(session)
@@ -97,7 +97,7 @@ func _ready():
 	_new()
 
 func _process(_delta):
-	if session.connection != null and get_node("/root/SaveData").profile.get_local_fingerprint() != owner:
+	if session.connection != null and get_node("/root/SaveData").profile.get_local_fingerprint() != account_owner:
 		session.close()
 		status.text = "Account changed; editing disconnected. Close and reopen this panel."
 
@@ -106,7 +106,7 @@ func _new():
 		status.text = "Disconnect editing before replacing the project."
 		return
 	var document = {"schema": 1, "world_id": Crypto.new().generate_random_bytes(16).hex_encode(), "title": "Local map", "revision": 0, "entities": [{"id": "spawn", "name": "Spawn", "type": "spawn", "position": [0, 1, 0]}, {"id": "floor", "name": "Floor", "type": "scenery", "position": [0, -0.1, 0], "collider": {"type": "box", "size": [20, 0.2, 20]}}], "assets": [], "behaviors": [], "capabilities": []}
-	authority.configure(document, owner, Crypto.new().generate_random_bytes(16).hex_encode())
+	authority.configure(document, account_owner, Crypto.new().generate_random_bytes(16).hex_encode())
 	text.text = JSON.stringify(document, "\t")
 	path = ""
 
@@ -117,7 +117,7 @@ func _choose(mode: String):
 	picker.popup_centered_ratio(0.8)
 
 func _selected(selected_path: String):
-	if get_node("/root/SaveData").profile.get_local_fingerprint() != owner:
+	if get_node("/root/SaveData").profile.get_local_fingerprint() != account_owner:
 		status.text = "Account changed. Close and reopen the editor."
 		return
 	if action == "open" and session.connection != null:
@@ -127,12 +127,12 @@ func _selected(selected_path: String):
 	if action == "open":
 		result = store.load_project(selected_path)
 		if result.ok:
-			authority.configure(result.document, owner, Crypto.new().generate_random_bytes(16).hex_encode())
+			authority.configure(result.document, account_owner, Crypto.new().generate_random_bytes(16).hex_encode())
 			text.text = JSON.stringify(result.document, "\t")
 			path = selected_path
 	else:
 		if session.connection != null and not session.hosting:
-			status.text = "Only the editing owner can save or export the shared project."
+			status.text = "Only the editing account_owner can save or export the shared project."
 			return
 		var parsed = {"ok": true, "value": session.document} if session.hosting else preload("res://scripts/worlds/world_text_parser.gd").new().parse_json(text.text)
 		if not parsed.ok or not parsed.value is Dictionary:
@@ -150,7 +150,7 @@ func _host_session():
 
 func _join_session():
 	if session.join(host_field.text, int(port_field.value), fingerprint_field.text.strip_edges(), get_node("/root/SaveData").key): status.text = "Connecting to editing host…"
-	else: status.text = "Invalid address/port/owner fingerprint."
+	else: status.text = "Invalid address/port/account_owner fingerprint."
 
 func _session_changed():
 	text.editable = session.connection == null

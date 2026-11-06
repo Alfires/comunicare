@@ -580,7 +580,7 @@ func load_local_map(path: String) -> bool:
 	# Validate before leaving multiplayer. Local filesystem paths never become
 	# relay world URLs, profile fields or discoverable sessions.
 	if peer != null:
-		if peer.peer != null: peer.peer.peer_disconnect()
+		if peer.peer != null and peer.peer.get_state() == ENetPacketPeer.STATE_CONNECTED: peer.peer.peer_disconnect()
 		peer.disconnected_from_relay()
 	current_session_id = ""
 	_clear_remote_players()

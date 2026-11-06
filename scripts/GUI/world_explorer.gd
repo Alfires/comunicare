@@ -41,7 +41,8 @@ func _ready() -> void:
 	local_map_picker.access = FileDialog.ACCESS_FILESYSTEM
 	local_map_picker.use_native_dialog = false
 	local_map_picker.filters = PackedStringArray(["*.cworld,*.zip,*.cne ; Validated world package"])
-	local_map_picker.file_selected.connect(_load_local_map)
+	# Defer scene replacement out of FileDialog's signal/input stack.
+	local_map_picker.file_selected.connect(func(path): _load_local_map.call_deferred(path))
 	add_child(local_map_picker)
 	var open_local = Button.new()
 	open_local.name = "OpenLocalMap"
@@ -79,7 +80,7 @@ func _load_local_map(path: String):
 	status.text = "Validating local map…"
 	var network = get_node("/root/NetworkHandler")
 	var loaded = await network.load_local_map(path)
-	if not is_inside_tree(): return
+	if not is_instance_valid(self) or not is_inside_tree(): return
 	busy = false
 	status.text = "Local map loaded offline." if loaded else network.last_session_error
 

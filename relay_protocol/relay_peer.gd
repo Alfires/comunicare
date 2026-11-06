@@ -26,6 +26,7 @@ var world_revision_supported := false
 var expected_world_revision := ""
 var directory_supported := false
 var world_supported := false
+var world_physics_supported := false
 var world_peer_id := -1
 var world_generation := ""
 signal world_data(value: Dictionary)
@@ -197,6 +198,7 @@ func connected_to_relay():
 	
 func disconnected_from_relay():
 	world_supported = false
+	world_physics_supported = false
 	world_peer_id = -1
 	world_generation = ""
 	animation_supported = false
@@ -228,6 +230,7 @@ func on_packet(data: PackedByteArray):
 				var value = AccountPacket.parse(data)
 				if value.get("op") == "hello" and value.get("version") == 1 and InstanceState.integer(value.get("peer_id"), 0, 255) and value.get("generation") is String:
 					world_supported = true
+					world_physics_supported = value.get("physics_version") == 1
 					world_peer_id = int(value.peer_id)
 					world_generation = value.generation
 				elif world_supported and value.get("session_id") == current_session_id:
@@ -351,7 +354,7 @@ func on_packet(data: PackedByteArray):
 			authentication_rejected = not is_authenticated
 			world_revision_supported = is_authenticated and values.get("world_revision_version") == 1
 			if is_authenticated and values.get("world_items_version") == 1:
-				AccountPacket.create(PacketInfo.PACKET_TYPE.WORLD_DATA, {"op": "hello", "version": 1}).sent(peer)
+				AccountPacket.create(PacketInfo.PACKET_TYPE.WORLD_DATA, {"op": "hello", "version": 1, "physics_version": 1}).sent(peer)
 			directory_supported = is_authenticated and values.get("directory_version") == 1
 			if is_authenticated and values.get("animation_version") == 2:
 				AccountPacket.create(PacketInfo.PACKET_TYPE.ANIMATION_DATA, {"op": "hello", "version": 2}).sent(peer)

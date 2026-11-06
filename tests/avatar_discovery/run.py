@@ -86,6 +86,9 @@ def main():
             source = ROOT / "scripts/discovery/avatars"
             if source.exists():
                 shutil.copytree(source, project / "scripts/discovery/avatars")
+            if (ROOT / "scripts/GUI/avatar_browser").is_dir():
+                shutil.copytree(ROOT / "scripts/GUI/avatar_browser", project / "scripts/GUI/avatar_browser")
+                shutil.copytree(ROOT / "themes/icons", project / "themes/icons")
             for relative in ("scripts/GUI/avatar_browser.gd", "scenes/GUI/avatar_browser.tscn"):
                 if (ROOT / relative).exists():
                     target = project / relative

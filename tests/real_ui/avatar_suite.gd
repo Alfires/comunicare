@@ -29,8 +29,8 @@ func run():
 	check(loader.get_avatar_configuration().model.is_empty(), "preview never equips model")
 	await browser._apply_avatar(record)
 	check(not loader.get_avatar_configuration().model.is_empty() and browser.loading_bar.value == 100 and not browser.editor_open,
-		"single Apply action validates and equips avatar with completed progress popup and no editor")
-	browser.loading_popup.queue_free()
+		"single Apply action validates and equips avatar with completed inline progress, no modal and no editor")
+	check(browser.find_children("*", "AcceptDialog", true, false).all(func(dialog): return not dialog.visible), "Apply never opens a modal dialog")
 	await process_frame
 	var wrong = record.duplicate(true)
 	wrong.sha256 = "f".repeat(64)
@@ -38,13 +38,11 @@ func run():
 	await browser._apply_avatar(wrong)
 	check(browser.loading_bar.value < 100 and not browser.applying_avatar and "digest" in browser.loading_label.text.to_lower()
 		and loader.get_avatar_configuration().model == applied_before, "failed one-click Apply releases busy state and preserves equipped avatar")
-	browser.loading_popup.queue_free()
 	await process_frame
 	var removed = record.duplicate(true)
 	removed.provider = "removed-provider"
 	await browser._apply_avatar(removed)
 	check(not browser.applying_avatar and "provider" in browser.loading_label.text.to_lower(), "removed provider returns actionable Apply failure instead of crashing")
-	if is_instance_valid(browser.loading_popup): browser.loading_popup.queue_free()
 	await process_frame
 	await browser._preview_record(wrong)
 	check("digest" in browser.status.text.to_lower(), "preview rejects mismatched catalog digest just like import")

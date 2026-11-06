@@ -60,17 +60,17 @@ with manual XR/playtest gates**; part 13 is **initial composition only**; part 1
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
 | [01](01-offline-foundation-roadmap.md) | Implemented: isolated startup tests and persistent-player reuse; actual headset and legacy panel lifecycle gates open | None |
-| [02](02-asset-provenance-roadmap.md) | Implemented: manifest/license validator and inspected four-entry CC0 nature/sky sample; later props and runtime optimization pending | 01 |
+| [02](02-asset-provenance-roadmap.md) | Implemented: manifest/license validation, nature/architecture/furniture/kitchenware sources and optimized runtime variants; later additions repeat the gate | 01 |
 | [03](03-credits-roadmap.md) | Implemented: offline read-only Settings → Credits; real-headset validation open | 02 |
 | [04](04-island-layout-roadmap.md) | Implemented graybox: one landmass, middle spawn and tested dry routes; real VR/final-art gates open | 01 |
-| [05](05-spawn-recovery-roadmap.md) | Implemented: shared player/item recovery and dependency revision; real-headset/export verification open | 04 |
-| [06](06-local-interactions-roadmap.md) | Implemented: shared local pickup/activation; actual headset and rendered carry checks open | 05 |
+| [05](05-spawn-recovery-roadmap.md) | Shared player/item recovery and dependency revision implemented; isolated Linux debug export passed, real headset recovery open | 04 |
+| [06](06-local-interactions-roadmap.md) | Shared local pickup/activation and synthetic rendered carry checks passed; actual headset/carry comfort open | 05 |
 | [07](07-pond-dock-roadmap.md) | Implemented: pond, timber dock and safe water recovery; two-eye/headset checks open | 02, 04, 05 |
 | [08](08-working-ship-roadmap.md) | Implemented: constrained local board/steer/stop/reset ship; actual headset/UI comfort gates open | 06, 07 |
 | [09](09-house-spaces-roadmap.md) | Textured house/lounge/two beds/side hangouts and deliberate rest/leave implemented; manual XR/art gates open | 02, 04, 06 |
 | [10](10-room-lighting-roadmap.md) | Three independent local zones with shared UI implemented; manual XR/GPU profiling open | 06, 09 |
 | [11](11-kitchen-roadmap.md) | Premade CC0 kitchenware and local controls/reset tested; fixture/door visual polish and seated VR checks pending | 06, 09 |
-| [12](12-optional-help-roadmap.md) | Optional live-binding menu Help/session highlight toggle implemented; full settings fixture and manual XR/playtests open | 06; final text after 08–11 |
+| [12](12-optional-help-roadmap.md) | Optional live-binding menu Help/session highlight toggle implemented; settings regression later passed, manual XR/playtests open | 06; final text after 08–11 |
 | [13](13-landscape-rendering-roadmap.md) | Initial tree/rock composition and rendered checks; final art, human XR and named performance budgets open | 02, 07–11 |
 | [14](14-release-acceptance-roadmap.md) | Local matrix/combined no-help lifecycle implemented; release blocked by remaining required gates | 01–13 |
 

@@ -4,6 +4,9 @@ These are **not yet run/passed**. Isolated scripts, synthetic trackers and deskt
 screenshots do not certify comfort, audible playback or subjective art approval.
 Use disposable profiles/keys; never publish private keys or entire test artifacts.
 
+Latest isolated desktop measurements and explicit failed/unavailable gates are in
+the [2026-11-06 verification record](welcome-home-verification-2026-11-06.md).
+
 | Gate | Required setup | Pass criteria | Evidence to record |
 | --- | --- | --- | --- |
 | Stereo walkthrough | Configured OpenXR runtime, supported headset/controllers, named GPU/refresh | Spawn, water, glazing, shore and lights read correctly in both eyes; no one-eye artifacts | Runtime/headset/GPU/refresh and concrete failures |

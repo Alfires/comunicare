@@ -3,13 +3,15 @@ extends RefCounted
 const DELAY = 0.1
 const MAX_EXTRAPOLATION = 0.1
 const TELEPORT_DISTANCE = 8.0
+const MAX_PREDICTION_SPEED = 20.0
+const STALE_GAP = 0.5
 var samples: Array[Dictionary] = []
 
 func push(position: Vector3, rotation: Vector3, at: float):
 	if not position.is_finite() or not rotation.is_finite() or not is_finite(at): return
 	if not samples.is_empty():
 		if at < samples.back().at: return
-		if position.distance_to(samples.back().position) > TELEPORT_DISTANCE:
+		if position.distance_to(samples.back().position) > TELEPORT_DISTANCE or at - samples.back().at > STALE_GAP:
 			samples.clear()
 		elif at == samples.back().at:
 			samples.pop_back()
@@ -32,5 +34,8 @@ func sample(at: float) -> Transform3D:
 	var weight = clampf((target - first.at) / span, 0, 1)
 	var position: Vector3 = first.position.lerp(last.position, weight)
 	if target > last.at:
-		position = last.position + (last.position - first.position) / span * minf(target - last.at, MAX_EXTRAPOLATION)
+		# ENet may deliver queued poses in one frame. Arrival spacing then is
+		# not sender spacing; cap prediction rather than amplify a tiny divisor.
+		var velocity: Vector3 = ((last.position - first.position) / maxf(span, 0.025)).limit_length(MAX_PREDICTION_SPEED)
+		position = last.position + velocity * minf(target - last.at, MAX_EXTRAPOLATION)
 	return Transform3D(Basis(first.rotation.slerp(last.rotation, weight)), position)

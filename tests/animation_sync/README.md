@@ -1,5 +1,11 @@
 # Animation and revision checks
 
+Arrival-burst regressions bound extrapolated velocity to 20 m/s (prediction only,
+not an authoritative movement restriction) and reset history after a packet gap
+over 0.5 seconds. This prevents tiny arrival intervals from launching remote poses
+far away and avoids stale-history interpolation on recovery. Normal 100 ms smoothing
+delay remains unchanged; these are recovery/robustness fixes, not measured RTT gains.
+
 Scale-sync regressions cover a stationary player's size change producing a new
 animation-state sequence without changing motion, and unchanged size producing no
 extra publication. Remote root scale is applied even before its avatar is loaded,

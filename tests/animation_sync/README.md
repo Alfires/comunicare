@@ -1,5 +1,12 @@
 # Animation and revision checks
 
+Mirror reach follows avatar size: desktop ray reach is 2 m × size, VR surface
+reach is 0.3 m × size, with the same predicate used for highlighting/grabbing.
+The emote menu provides Reset size (1×) and Default avatar (profile fallback plus
+cleared custom-model selection; existing animation sources are retained). Resets
+still respect collision clearance. Default built-in locomotion strips head/neck/
+eye/jaw tracks locally and remotely without changing cached authored clips.
+
 `performance_suite.gd` checks that hidden placeholders skip animation, their
 three-Hz loading text remains stable between steps, and hidden first-person mesh
 derivatives skip synchronization but catch up when revealed. Visible derivatives

@@ -181,6 +181,11 @@ static func tracking_mask(clip: Dictionary) -> Dictionary:
 	result.tracks = result.tracks.filter(func(track): return track.bone not in ["head", "leftEye", "rightEye", "jaw", "leftHand", "rightHand"])
 	return result
 
+static func locomotion_head_mask(clip: Dictionary) -> Dictionary:
+	var result = clip.duplicate(true)
+	result.tracks = result.tracks.filter(func(track): return track.bone not in ["head", "neck", "leftEye", "rightEye", "jaw"])
+	return result
+
 static func strafe_pose(clip: Dictionary) -> Dictionary:
 	var result = clip.duplicate(true)
 	var legs = ["leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg", "leftFoot", "rightFoot", "leftToes", "rightToes"]
@@ -204,6 +209,8 @@ func _wheel_layout():
 	for id in _mirror_actions(): layout.groups["__local_mirror_tools__"].entries.append({"type": "emote", "id": id, "name": _mirror_actions()[id].name})
 	layout.groups.root.entries.append({"type": "group", "id": "__local_mirror_tools__", "name": "Mirror"})
 	layout.groups.root.entries.append({"type": "emote", "id": "__avatar_size__", "name": "Avatar size"})
+	layout.groups.root.entries.append({"type": "emote", "id": "__avatar_size_reset__", "name": "Reset size\n1×"})
+	layout.groups.root.entries.append({"type": "emote", "id": "__avatar_model_reset__", "name": "Default\navatar"})
 	return layout
 
 ## Shows or hides the client-only mirror (Quick page tile). Returns the new visibility.
@@ -241,6 +248,8 @@ func emote_catalog() -> Dictionary:
 		actions["__cancel_emote__"] = {"name": "Return to movement"}
 		actions.merge(_mirror_actions())
 		actions["__avatar_size__"] = {"name": "Avatar size"}
+		actions["__avatar_size_reset__"] = {"name": "Reset size"}
+		actions["__avatar_model_reset__"] = {"name": "Default avatar"}
 		return actions
 	var catalog: Dictionary = {}
 	for id in ["dance", "interact"]:
@@ -248,6 +257,8 @@ func emote_catalog() -> Dictionary:
 			"handle": {}, "index": 0, "share": true, "loop": id == "dance"}
 	catalog.merge(_mirror_actions())
 	catalog["__avatar_size__"] = {"name": "Avatar size"}
+	catalog["__avatar_size_reset__"] = {"name": "Reset size"}
+	catalog["__avatar_model_reset__"] = {"name": "Default avatar"}
 	return catalog
 
 func request_emote(id: String) -> bool:
@@ -274,6 +285,8 @@ func _apply_resolved(item: Dictionary, kind: String, action_id: String) -> bool:
 	clip.motion_role = action_id if kind == "locomotion" else ""
 	if kind == "locomotion" and action_id in ["strafe_left", "strafe_right"]:
 		clip = strafe_pose(clip)
+	if kind == "locomotion" and not item.get("builtin", "").is_empty():
+		clip = locomotion_head_mask(clip)
 	if _is_vr():
 		clip = tracking_mask(clip)
 		if clip.tracks.is_empty():
@@ -335,6 +348,27 @@ func toggle_emote_menu():
 	wheel.open(menu_layout, emote_catalog())
 
 func _choose_emote(id: String):
+	if id == "__avatar_model_reset__":
+		var fields = SaveData.profile.local.duplicate(true)
+		fields["profile.avatar_url"] = SaveData.data.default_avatar
+		if not SaveData.profile.save_profile(SaveData.profile.get_local_fingerprint(), fields):
+			last_error = SaveData.profile.last_error
+			return
+		if configuration != null:
+			if not await configuration.apply({}, configuration.sources.duplicate(true)):
+				last_error = configuration.last_error
+				return
+		for player in get_tree().get_nodes_in_group("player"):
+			if player.has_method("set_avatar_size"): player.set_avatar_size(1.0)
+		active_role = ""
+		active_emote = ""
+		return
+	if id == "__avatar_size_reset__":
+		for player in get_tree().get_nodes_in_group("player"):
+			if player.has_method("set_avatar_size"): player.set_avatar_size(1.0)
+		active_role = ""
+		active_emote = ""
+		return
 	if id == "__avatar_size__":
 		for player in get_tree().get_nodes_in_group("player"):
 			if player.has_method("set_avatar_size") and is_instance_valid(wheel):
@@ -553,6 +587,8 @@ func _apply_remote(id: int):
 		return
 	if value.get("kind") == "locomotion" and value.get("role") in ["strafe_left", "strafe_right"]:
 		clip = strafe_pose(clip)
+	if value.get("kind") == "locomotion" and value.get("builtin") in AnimationState.BUILTINS:
+		clip = locomotion_head_mask(clip)
 	# Finished one-shots (including static neutral) retain their authored final
 	# pose. stop() applies RESET and would leave a stationary peer in T-pose on
 	# the next periodic snapshot. A subsequent state owns the next transition.

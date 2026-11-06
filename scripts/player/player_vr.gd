@@ -180,7 +180,7 @@ func _update_world_grips():
 			pressed = false
 		var mirror = NetworkHandler.get_animation_controller().get("local_mirror")
 		if pressed and not world_grip_pressed[side]:
-			if not is_instance_valid(mirror) or not mirror.visible or not mirror.try_grab(hand, side, 0.3):
+			if not is_instance_valid(mirror) or not mirror.visible or not mirror.try_grab(hand, side, 0.3 * avatar_size):
 				if not pickups.grab_nearest(hand, side, 0.3): pickups.activate_nearest(hand, 0.3)
 		if not pressed and world_grip_pressed[side]:
 			if is_instance_valid(mirror): mirror.release(side)

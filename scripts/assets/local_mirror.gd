@@ -105,9 +105,17 @@ func desktop_grab_hit(camera: Camera3D):
 	if not visible or not held_grip.is_empty() or not is_instance_valid(camera): return null
 	var ray = -camera.global_basis.z
 	var hit = Plane(global_basis.z.normalized(), global_position).intersects_ray(camera.global_position, ray)
-	if hit == null or camera.global_position.distance_to(hit) >= 2.0: return null
+	if hit == null or camera.global_position.distance_to(hit) >= grab_range(camera, 2.0): return null
 	var point = to_local(hit)
 	return hit if absf(point.x) <= dimensions.x * 0.5 and absf(point.y) <= dimensions.y * 0.5 else null
+
+static func grab_range(node: Node, base: float) -> float:
+	var cursor = node
+	while cursor != null:
+		if cursor.get("avatar_size") != null:
+			return base * clampf(float(cursor.get("avatar_size")), 0.25, 3.0)
+		cursor = cursor.get_parent()
+	return base
 
 func release(grip: String) -> bool:
 	if held_grip != grip: return false

@@ -162,6 +162,21 @@ func run():
 	hand.global_position = mirror.to_global(Vector3(5, 5, 0))
 	check(not mirror.try_grab(hand, "left", 0.3), "outside mirror bounds cannot grab")
 	var controller = load("res://scripts/assets/animation_controller.gd").new()
+	for role in ["walk", "run", "jump"]:
+		var source_clip = load("res://scripts/assets/default_animations.gd").clip(role)
+		var masked = controller.locomotion_head_mask(source_clip)
+		check(not masked.tracks.any(func(track): return track.bone in ["head", "neck", "leftEye", "rightEye", "jaw"]), "default %s leaves head channels untouched" % role)
+	check(controller.emote_catalog().has("__avatar_size_reset__"), "emote menu exposes default size reset")
+	var scaled_player = CharacterBody3D.new()
+	scaled_player.set_script(load("res://scripts/player/player_desktop_movment.gd"))
+	# Detached ancestry is sufficient for range policy; no player startup required.
+	var scaled_camera = Camera3D.new()
+	scaled_player.add_child(scaled_camera)
+	scaled_player.avatar_size = 2.0
+	check(is_equal_approx(mirror.grab_range(scaled_camera, 2.0), 4.0), "desktop mirror reach scales with avatar size")
+	scaled_player.avatar_size = 0.25
+	check(is_equal_approx(mirror.grab_range(scaled_camera, 0.3), 0.075), "small-avatar mirror reach remains proportional")
+	scaled_player.free()
 	var layout = controller._wheel_layout()
 	check(layout.groups.root.entries.any(func(entry): return entry.type == "group" and entry.name == "Mirror"), "emote wheel includes Mirror subgroup")
 	check(controller._mirror_actions().has("__mirror_width__") and controller._mirror_actions().has("__mirror_height__"), "Mirror subgroup has separate X and Y popup actions")

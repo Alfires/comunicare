@@ -49,10 +49,11 @@ func _physics_process(_delta):
 					var hit = mirror.desktop_grab_hit(player.camera)
 					if hit != null and _clear_path(player, player.camera.global_position, hit): targets.append(mirror)
 					continue
-				if not mirror.can_grab_at(entry[0], entry[1]): continue
+				var reach = mirror.grab_range(entry[2], 0.3)
+				if not mirror.can_grab_at(entry[0], reach): continue
 				var local: Vector3 = mirror.to_local(entry[0])
 				var nearest = Vector3(clampf(local.x, -mirror.dimensions.x / 2, mirror.dimensions.x / 2), clampf(local.y, -mirror.dimensions.y / 2, mirror.dimensions.y / 2), 0)
-				if mirror.to_global(nearest).distance_to(entry[0]) < entry[1] and _clear_path(player, entry[0], mirror.to_global(nearest)): targets.append(mirror)
+				if mirror.to_global(nearest).distance_to(entry[0]) <= reach and _clear_path(player, entry[0], mirror.to_global(nearest)): targets.append(mirror)
 	show_targets(targets)
 
 func show_targets(targets: Array):

@@ -25,6 +25,91 @@ func controller(name: String, hand: int, position: Vector3):
 	trackers.append(tracker)
 	return tracker
 
+## Clicks the tablet at a logical-layout point through the production ray mapping.
+func tablet_tap(player: Node, logical: Vector2):
+	var dimensions: Vector2 = player.main_panel.viewport.size
+	var pixels = logical * dimensions / Vector2(player.main_panel.viewport.size_2d_override)
+	var screen: Vector2 = player.main_panel.size_m()
+	var hit = player.main_panel.global_transform * Vector3((pixels.x / dimensions.x - 0.5) * screen.x, (0.5 - pixels.y / dimensions.y) * screen.y, 0)
+	var mapped = player.main_panel.raycast_to_viewport_point(hit + player.main_panel.global_basis.z * 0.5, -player.main_panel.global_basis.z)
+	for pressed in [true, false]:
+		var event = InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
+		player.main_panel.inject_input(event, mapped)
+		await process_frame
+
+func save_tablet(player: Node, filename: String):
+	var directory = OS.get_environment("COMUNICARE_UI_ARTIFACTS")
+	if DisplayServer.get_name() == "headless" or directory.is_empty():
+		return
+	await RenderingServer.frame_post_draw
+	player.main_panel.viewport.get_texture().get_image().save_png(directory.path_join(filename))
+	print("Screenshot: ", directory.path_join(filename))
+
+## Friends on the narrowest tablet layout (interface size 1.5): long names and
+## friend cards with Invite, Join friend and the shared "more" menu must fit.
+func test_friends_tablet(player: Node):
+	var save = root.get_node("SaveData")
+	var network = root.get_node("NetworkHandler")
+	var real_service = save.friends
+	var previous_session = network.current_session_id
+	save.store.set_value("interface.ui_scale", 1.5)
+	network.current_session_id = "vr-test-session"
+	player.main_ui.open_page("friends")
+	var page: Control = player.main_ui.page("friends")
+	save.friends = load("res://fake_friends.gd").new(30, true)
+	page._bind_service()
+	for frame in 6:
+		await process_frame
+	var logical := Vector2(player.main_panel.viewport.size_2d_override)
+	var page_rect: Rect2 = page.get_global_rect()
+	check(player.main_ui.shell.compact, "narrow VR tablet switches the shell to the compact icon rail")
+	check(Rect2(Vector2.ZERO, logical).grow(0.5).encloses(player.main_ui.shell.get_global_rect()), "whole tablet shell fits the narrow VR viewport")
+	check(logical.x < 700 and Rect2(Vector2.ZERO, logical).grow(0.5).encloses(page_rect), "Friends page fits the narrowest VR tablet layout (%s in %s)" % [page_rect, logical])
+	check(page.rows.size() == page.view.size() and page.rows.size() > 20, "VR Friends builds every card within a few frames (%d/%d)" % [page.rows.size(), page.view.size()])
+	var outside: Array = []
+	var narrow: Array = []
+	var controls: Array = page.layout.find_children("*", "Button", true, false) + page.layout.find_children("*", "LineEdit", true, false) + page.layout.find_children("*", "OptionButton", true, false)
+	for control in controls:
+		if not control.is_visible_in_tree(): continue
+		var rect: Rect2 = control.get_global_rect()
+		if rect.position.x < page_rect.position.x - 0.5 or rect.end.x > page_rect.end.x + 0.5:
+			outside.append("%s '%s' %s" % [control.get_class(), control.get("text"), rect])
+	for card in page.rows.values():
+		if card.get_meta("title").size.x < 120:
+			narrow.append("%s %.0f px" % [card.get_meta("title").text.left(20), card.get_meta("title").size.x])
+	check(outside.is_empty(), "every visible Friends control stays inside the tablet page horizontally " + str(outside.slice(0, 4)))
+	check(narrow.is_empty(), "names keep at least 120 px next to Invite/Join/more " + str(narrow.slice(0, 4)))
+	var long_titles: Array = page.rows.values().map(func(card): return card.get_meta("title")).filter(func(title): return title.text.length() > 40)
+	check(not long_titles.is_empty() and long_titles.all(func(title): return title.clip_text and title.get_combined_minimum_size().x < 200),
+		"long names are truncated instead of widening the card")
+	await save_tablet(player, "vr-friends.png")
+	var first: Control = page.rows.values().filter(func(card): return card.visible).reduce(func(a, b): return a if a.get_index() < b.get_index() else b)
+	var more: Button
+	for button in first.find_children("*", "Button", true, false):
+		if button.tooltip_text == "More actions": more = button
+	var anchor: Vector2 = more.get_global_rect().position + Vector2(0, more.size.y)
+	await tablet_tap(player, more.get_global_rect().get_center())
+	await process_frame
+	var popup: Control = page.more_menu
+	var popup_rect: Rect2 = popup.get_global_rect()
+	print("VR more menu: anchor=", anchor, " popup=", popup_rect, " logical=", logical, " physical=", player.main_panel.viewport.size)
+	check(popup.visible and page.more_items().size() >= 2, "controller ray tap on a card's more button opens its menu")
+	check(Rect2(Vector2.ZERO, logical).grow(1).encloses(popup_rect), "more menu stays inside the tablet")
+	var button_rect: Rect2 = more.get_global_rect()
+	check((absf(popup_rect.position.y - button_rect.end.y) < 2 or absf(popup_rect.end.y - button_rect.position.y) < 2)
+		and popup_rect.position.x <= button_rect.end.x and popup_rect.end.x >= button_rect.position.x, "more menu opens directly below or above its button")
+	await save_tablet(player, "vr-friends-more.png")
+	popup.hide()
+	save.friends = real_service
+	page._bind_service()
+	network.current_session_id = previous_session
+	save.store.reset_value("interface.ui_scale")
+	await process_frame
+	check(not player.main_ui.shell.compact, "default VR tablet size restores the full navigation rail")
+
 func run():
 	root.size = Vector2i(1000, 700)
 	var save = root.get_node("SaveData")
@@ -85,6 +170,8 @@ func run():
 		player.main_panel.inject_input(event, mapped)
 		await process_frame
 	check(clicks.size() == 1, "VR tablet injects physical pixels that hit the logical-layout button exactly once")
+	target.free()
+	await test_friends_tablet(player)
 	player._close_main_menu()
 	check(not player._menu_open() and player.motion_rearm, "emulated menu close suppresses immediate accidental locomotion")
 	left.set_input("ax_button", true)

@@ -37,8 +37,9 @@ var rows: Dictionary = {}
 var headers: Dictionary = {}
 var view: Dictionary = {}
 var labels: Dictionary = {}
-var more_popup: PopupMenu
-var more_actions: Array = []
+## In-page menu (not a Window): stays inside the tablet in VR and on desktop.
+var more_menu: PanelContainer
+var more_list: VBoxContainer
 var empty_state: Control
 var no_match: Label
 var _render_queued := false
@@ -110,11 +111,14 @@ func _ready():
 		headers[section].theme_type_variation = "CaptionLabel"
 	no_match = _label(list, "")
 	no_match.theme_type_variation = "MutedLabel"
-	more_popup = PopupMenu.new()
-	more_popup.id_pressed.connect(func(id):
-		if id < more_actions.size():
-			more_actions[id].call())
-	add_child(more_popup)
+	more_menu = PanelContainer.new()
+	more_menu.theme_type_variation = "Card"
+	more_menu.top_level = true
+	more_menu.z_index = 10
+	more_list = VBoxContainer.new()
+	more_menu.add_child(more_list)
+	add_child(more_menu)
+	more_menu.hide()
 	confirmation = ConfirmationDialog.new()
 	confirmation.get_label().autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	confirmation.get_label().custom_minimum_size.x = 240
@@ -257,7 +261,7 @@ func _render():
 		add_panel.hide()
 		search.clear()
 		confirmation.hide()
-		more_popup.hide()
+		more_menu.hide()
 		pending_action = Callable()
 		_clear_rows()
 		scroll.scroll_vertical = 0
@@ -465,22 +469,43 @@ func _invite():
 	close.pressed.connect(panel.queue_free)
 	panel.add_child(close)
 
-## Secondary and destructive actions share one popup, filled when it opens.
+## Secondary and destructive actions share one in-page menu, filled when it opens.
 func _show_more(button: Control, owner: String):
 	if not view.has(owner):
 		return
 	var entry: Dictionary = view[owner]
-	more_actions = [_open_profile.bind(owner)]
-	more_popup.clear()
-	more_popup.add_item("View profile", 0)
+	for child in more_list.get_children():
+		more_list.remove_child(child)
+		child.queue_free()
+	var items: Array = [["View profile", _open_profile.bind(owner)]]
 	if not entry.blocked:
 		if entry.kind in ["friends", "accepting"]:
-			more_popup.add_item("Remove friend…", more_actions.size())
-			more_actions.append(_ask.bind("Remove friendship with %s?\n%s" % [labels[owner], owner], service.act.bind(owner, "revoke")))
-		more_popup.add_item("Block…", more_actions.size())
-		more_actions.append(_ask.bind("Block account and revoke local friendship?\n" + owner, service.block.bind(owner)))
-	var below: Vector2 = button.get_screen_transform() * Vector2(0, button.size.y)
-	more_popup.popup(Rect2i(Vector2i(below), Vector2i.ZERO))
+			items.append(["Remove friend…", _ask.bind("Remove friendship with %s?\n%s" % [labels[owner], owner], service.act.bind(owner, "revoke"))])
+		items.append(["Block…", _ask.bind("Block account and revoke local friendship?\n" + owner, service.block.bind(owner))])
+	for item in items:
+		var action: Callable = item[1]
+		var entry_button = _button(more_list, item[0], func():
+			more_menu.hide()
+			action.call())
+		entry_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	more_menu.reset_size()
+	var area: Rect2 = get_global_rect()
+	var anchor: Rect2 = button.get_global_rect()
+	var menu_size: Vector2 = more_menu.get_combined_minimum_size()
+	var position = Vector2(anchor.end.x - menu_size.x, anchor.end.y)
+	if position.y + menu_size.y > area.end.y:
+		position.y = anchor.position.y - menu_size.y
+	more_menu.position = position.clamp(area.position, area.end - menu_size)
+	more_menu.show()
+	more_list.get_child(0).grab_focus()
+
+func more_items() -> Array:
+	return more_list.get_children().map(func(child): return child.text)
+
+func _input(event: InputEvent):
+	if more_menu != null and more_menu.visible and (event is InputEventMouseButton and event.pressed
+			and not more_menu.get_global_rect().has_point(event.position) or event.is_action_pressed("ui_cancel")):
+		more_menu.hide()
 
 func _join_friend(owner: String):
 	if NetworkHandler.session_busy: return

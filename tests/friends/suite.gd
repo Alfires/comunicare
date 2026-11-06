@@ -313,9 +313,9 @@ func test_join_ui(scene):
 		if node.tooltip_text == "More actions": more = node
 	if more != null:
 		more.pressed.emit()
-	var items: Array = range(scene.more_popup.item_count).map(func(index): return scene.more_popup.get_item_text(index))
+	var items: Array = scene.more_items()
 	check(items == ["View profile", "Remove friend…", "Block…"], "friend's more menu offers View profile, Remove friend and Block")
-	scene.more_popup.hide()
+	scene.more_menu.hide()
 	if join != null:
 		join.pressed.emit()
 		check(network.join_calls.size() == 1 and network.join_calls[0].session_id == location.session_id and network.join_calls[0].world_url == "default_wold", "Join friend button routes exact identity/content into coordinator")

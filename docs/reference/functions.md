@@ -2088,11 +2088,17 @@ The page offers search (name or fingerprint), an All/Online/Requests filter with
 the incoming-request count, sections with counts (empty ones omitted), friends
 sorted online first, and contact cards with a ContactAvatar, primary actions
 (Invite/Join friend, Accept/Decline, Cancel request, Unblock) and one shared
-"more" popup for View profile, Remove friend and Block (destructive actions still
-ask for confirmation). Contact-only records stay in the service but are not shown.
+in-page "more" menu for View profile, Remove friend and Block (destructive actions
+still ask for confirmation). The menu is a control inside the page, not a popup
+window, so it stays inside the VR tablet; it opens below or above its button and
+closes on an outside click or cancel. Contact-only records stay in the service but are not shown.
 Cards are kept per fingerprint and rebuilt only when their shown content changes;
 search and filters only toggle visibility; service changes render once per frame;
 long lists build 12 new cards per frame.
+
+| Functions | Contract |
+| --- | --- |
+| `more_items` | Labels of the entries in the currently filled "more" menu, in order. |
 
 <!-- module: scripts/GUI/contact_avatar.gd -->
 ### [ContactAvatar](../../scripts/GUI/contact_avatar.gd)

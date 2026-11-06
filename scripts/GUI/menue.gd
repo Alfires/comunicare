@@ -17,8 +17,19 @@ var current_tab: int:
 		if shell != null and value >= 0 and value < LEGACY_TABS.size():
 			shell.open_page(LEGACY_TABS[value])
 
+## Below this logical size the shell uses its compact icon rail (spec §4.2).
+const COMPACT_SIZE := Vector2(747, 560)
+
 func _ready():
 	shell.close_requested.connect(close)
+	resized.connect(_update_compact)
+	_update_compact()
+
+## The VR tablet's logical size shrinks with interface size; the desktop overlay
+## decides compact mode itself.
+func _update_compact():
+	if get_viewport() != null and get_viewport().get_meta("vr_menu", false):
+		shell.set_compact(size.x < COMPACT_SIZE.x or size.y < COMPACT_SIZE.y)
 
 func page(id: String) -> Control:
 	return shell.page(id)

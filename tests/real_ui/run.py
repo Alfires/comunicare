@@ -63,12 +63,13 @@ def main():
     (project / "override.cfg").write_text('[discovery]\nworld_catalog_url=""\n')
     shutil.copy2(HERE / "suite.gd", project / "ui_suite.gd")
     shutil.copy2(HERE / "startup_suite.gd", project / "startup_suite.gd")
-    for filename in ("two_client.gd", "two_relay.gd", "vr_suite.gd", "avatar_suite.gd", "capture.gd", "perf_suite.gd"):
+    for filename in ("two_client.gd", "two_relay.gd", "vr_suite.gd", "avatar_suite.gd", "capture.gd", "perf_suite.gd", "fake_friends.gd"):
         shutil.copy2(HERE / filename, project / filename)
     if args.suite == "avatar" and os.environ.get("AVATAR_FIXTURE"):
         shutil.copy2(os.environ["AVATAR_FIXTURE"], project / "browser-avatar.vrm")
     env = {**os.environ, "XDG_DATA_HOME": str(artifacts / "data"), "XDG_CONFIG_HOME": str(artifacts / "config"), "XDG_CACHE_HOME": str(artifacts / "cache")}
     env["COMUNICARE_UI_SOAK_SECONDS"] = str(args.soak_seconds)
+    env["COMUNICARE_UI_ARTIFACTS"] = str(artifacts)
     env["COMUNICARE_UI_ORIGINAL_WORLD"] = "1" if args.original_world else "0"
     command = [godot, "--path", str(project), "--rendering-method", args.renderer, "--xr-mode", "off"]
     try:

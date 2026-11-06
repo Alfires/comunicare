@@ -8,6 +8,7 @@ extends CharacterBody3D
 @export var mouse_sensitivity: float = 0.003
 @export var max_tilt: float = deg_to_rad(85.0)  # Wider look without flipping.
 @export_range(0.0, 0.4, 0.01) var first_person_forward_offset := 0.15
+@export_range(0.5, 8.0, 0.1) var third_person_distance := 2.5
 # References
 @onready var camera = $Camera3D
 
@@ -102,6 +103,13 @@ func _update_camera_position(fraction: float):
 	var rendered = camera_previous_position.lerp(camera_current_position, clampf(fraction, 0, 1))
 	# Only translate; body yaw and camera pitch remain immediate mouse input.
 	camera.position = camera_rest_position + global_basis.inverse() * (rendered - global_position)
+	var third = get_node_or_null("Camera3D2") as Camera3D
+	if third != null:
+		# Both views share the same render-time origin; mouse pitch orbits the
+		# trailing camera instead of rotating only the hidden first-person view.
+		var orbit = Basis(Vector3.RIGHT, camera.rotation.x) * Vector3(0, 0.25, third_person_distance) * avatar_size
+		third.position = camera.position + orbit
+		third.rotation = Vector3(camera.rotation.x, 0, 0)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and focused and not SaveData.voice.input_blocked \
@@ -125,9 +133,14 @@ func _input(event: InputEvent) -> void:
 			skeleton.set_bone_pose_rotation(head_idx, (parent_basis.inverse() * desired).orthonormalized().get_rotation_quaternion())
 
 	#camara switch
-	if event is InputEventKey and event.pressed and event.keycode == KEY_F5:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F5 \
+		and focused and not SaveData.voice.input_blocked and not NetworkHandler.session_busy \
+		and get_tree().get_nodes_in_group("emote_wheel_input").is_empty():
+		var third = get_node_or_null("Camera3D2") as Camera3D
+		if third == null: return
+		_update_camera_position(Engine.get_physics_interpolation_fraction())
 		if camera.current:
-			$Camera3D2.current = true
+			third.current = true
 			
 		else:
 			camera.current = true

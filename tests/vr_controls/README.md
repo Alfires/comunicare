@@ -1,5 +1,10 @@
 # RED VR controls acceptance tests
 
+F5 regressions cover shared render-time translation, mouse-pitch orbit, avatar-size
+scaled trailing distance and key-repeat suppression. The third-person camera uses
+the calibrated eye anchor, not its old fixed scene transform. Third-person wall
+occlusion/camera collision is not implemented by these checks.
+
 Live VR crouch/height updates also preserve the existing foot plane after a size
 change. Enlarged avatars retain heights above the old 2.6 m cap; clearance uses
 their actual radius rather than the old 0.8 m query cap. Requests remain bounded

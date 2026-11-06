@@ -64,6 +64,9 @@ func desktop_checks():
 	var camera = Camera3D.new()
 	camera.name = "Camera3D"
 	player.add_child(camera)
+	var third = Camera3D.new()
+	third.name = "Camera3D2"
+	player.add_child(third)
 	root.add_child(player)
 	check(player.has_method("_update_camera_position"), "desktop camera interpolates physics translation at render cadence")
 	if player.has_method("_update_camera_position"):
@@ -74,12 +77,29 @@ func desktop_checks():
 		player.camera_motion_ready = true
 		player._update_camera_position(0.5)
 		check(camera.global_position.is_equal_approx(Vector3(0.5, 1.6, 0)), "rendered camera sits between physics positions without visual stepping")
+		check(third.position.z > 1.0 and third.global_position.x < player.global_position.x,
+			"F5 camera follows interpolated player translation with a trailing offset")
+		var third_before = third.position
 		camera.rotation.x = 0.3
 		player._update_camera_position(0.75)
 		check(is_equal_approx(camera.rotation.x, 0.3), "camera smoothing never delays mouse-look rotation")
+		check(not third.position.is_equal_approx(third_before), "F5 camera orbits with vertical mouse-look pitch")
 		player.set_player_pos(Vector3(20, 0, 0))
 		player._update_camera_position(0.5)
 		check(camera.global_position.is_equal_approx(Vector3(20, 1.6, 0)), "teleport clears camera history without dragging through previous world")
+		var offset = third.position - player.camera_rest_position
+		player.set_avatar_size(2.0)
+		check((third.position - player.camera_rest_position).is_equal_approx(offset * 2), "F5 camera orbit distance scales with avatar size")
+		player.set_avatar_size(1.0)
+		var switch = InputEventKey.new()
+		switch.keycode = KEY_F5
+		switch.pressed = true
+		camera.current = true
+		player._input(switch)
+		check(third.current, "F5 selects following third-person camera")
+		switch.echo = true
+		player._input(switch)
+		check(third.current, "held F5 does not rapidly alternate cameras")
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Input.action_press("forward")
 	Input.action_press("sprint")

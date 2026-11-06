@@ -476,6 +476,83 @@
           "download": "https://youraiagent.biz/api/assets/kenney-furniture-kit/download"
         }
       ]
+    },
+    {
+      "id": "kenney.kitchenware",
+      "title": "Food Kit \u2014 eight kitchen belongings",
+      "author": "Kenney",
+      "source": "https://kenney.nl/assets/food-kit",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-05",
+      "attribution": "",
+      "modifications": "Unmodified individual GLBs plus colormap, normalized at runtime with simple collision proxies. No complete kitchen preset. Publisher notice assets/welcome_island/licenses/Kenney-Food.txt. Mirror archive SHA-256 cdad90853682499b94c9fda2f87678b24bfd8f3264e0ed323f6b6a27fd7c6f6f.",
+      "files": [
+        {
+          "path": "assets/welcome_island/models/kitchenware/cup.glb",
+          "sha256": "f9d6786fe9836f16ebb10cc1cb5a8ea8d512c7ae6cfa22394af653e5a5b05f09",
+          "original_name": "Models/GLB format/cup.glb",
+          "original_sha256": "f9d6786fe9836f16ebb10cc1cb5a8ea8d512c7ae6cfa22394af653e5a5b05f09",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/bowl.glb",
+          "sha256": "92463570dced6e0898cdc11c218c477efa9b1693d6d3c0e661b67119f294ca7b",
+          "original_name": "Models/GLB format/bowl.glb",
+          "original_sha256": "92463570dced6e0898cdc11c218c477efa9b1693d6d3c0e661b67119f294ca7b",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/plate.glb",
+          "sha256": "4c1de567b854264b2a9407ec221d33dfd13c7fc18563ea1f33cb8abe3a3d11be",
+          "original_name": "Models/GLB format/plate.glb",
+          "original_sha256": "4c1de567b854264b2a9407ec221d33dfd13c7fc18563ea1f33cb8abe3a3d11be",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/pot.glb",
+          "sha256": "ba84c5ebd769849b7cb0365adf1f6044680e024ba29e0bc1bec93d54100f72b3",
+          "original_name": "Models/GLB format/pot.glb",
+          "original_sha256": "ba84c5ebd769849b7cb0365adf1f6044680e024ba29e0bc1bec93d54100f72b3",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/frying-pan.glb",
+          "sha256": "66cd36e3361d47f068cd1fc06df422b550058adde2017f306ed93dad7c3d2b9f",
+          "original_name": "Models/GLB format/frying-pan.glb",
+          "original_sha256": "66cd36e3361d47f068cd1fc06df422b550058adde2017f306ed93dad7c3d2b9f",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/utensil-spoon.glb",
+          "sha256": "dbb39cce42ceaad607f80a3ee0b25a6f7d8f5feec3688f0c66fb585f4621e5f5",
+          "original_name": "Models/GLB format/utensil-spoon.glb",
+          "original_sha256": "dbb39cce42ceaad607f80a3ee0b25a6f7d8f5feec3688f0c66fb585f4621e5f5",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/cutting-board.glb",
+          "sha256": "067f8a9331d16c65487a748747de2cddab2a77826f23bd7379e4f5da186c78ea",
+          "original_name": "Models/GLB format/cutting-board.glb",
+          "original_sha256": "067f8a9331d16c65487a748747de2cddab2a77826f23bd7379e4f5da186c78ea",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/can.glb",
+          "sha256": "f3ee6aad23adb6251adbc988652dff430abc781506759a53a8cc7aca6a87db48",
+          "original_name": "Models/GLB format/can.glb",
+          "original_sha256": "f3ee6aad23adb6251adbc988652dff430abc781506759a53a8cc7aca6a87db48",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        },
+        {
+          "path": "assets/welcome_island/models/kitchenware/Textures/colormap.png",
+          "sha256": "75baf74d9483a0fc56ac21ceba346fbe16fc24a2a1bf0524c53e6bbe802e1153",
+          "original_name": "Models/GLB format/Textures/colormap.png",
+          "original_sha256": "75baf74d9483a0fc56ac21ceba346fbe16fc24a2a1bf0524c53e6bbe802e1153",
+          "download": "https://youraiagent.biz/api/assets/kenney-food-kit/download"
+        }
+      ]
     }
   ]
 }

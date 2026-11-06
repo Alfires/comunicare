@@ -18,6 +18,7 @@ func run():
 	for id in kitchen.items:
 		var item = kitchen.items[id]
 		check(item is RigidBody3D and item.mass <= 1 and item.mass > 0, "bounded physical kitchenware: " + id)
+		check(item.get_node_or_null("AuthoredModel") != null, "kitchenware uses premade geometry rather than primitive placeholders: " + id)
 		var home: Transform3D = kitchen.homes[id]
 		anchor.global_position = item.global_position + Vector3(0, 0.2, 0)
 		check(world.local_pickups.request_grab(id, "virtual", anchor), "shared offline pickup: " + id)
@@ -38,6 +39,11 @@ func run():
 	blocker.queue_free(); await physics_frame
 	check(kitchen.set_fridge(true) and kitchen.fridge_open, "fridge storage opens visibly")
 	check(kitchen.set_fridge(false) and not kitchen.fridge_open, "fridge storage closes within bounds")
+	# Real prop resting must be stable, not only successful service calls.
+	var plate = kitchen.items["kitchen.Plate"]
+	for frame in 60: await physics_frame
+	check(plate.global_position.y > kitchen.global_position.y + 0.85 and plate.linear_velocity.length() < 0.5,
+		"placed kitchenware settles on counter without falling or violent motion")
 	kitchen.reset_kitchen()
 	check(not kitchen.water.visible and not kitchen.hob.visible and kitchen.heat_level == 0, "reset shuts down water and heat")
 	check(world.local_pickups.local_actions.has("kitchen.faucet") and world.local_pickups.local_actions.has("kitchen.fridge"), "kitchen supports existing reachable-world activation path")

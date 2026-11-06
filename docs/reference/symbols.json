@@ -8380,42 +8380,42 @@
     {
       "kind": "func",
       "name": "_height",
-      "line": 38,
+      "line": 40,
       "signature": "func _height(x: float, z: float) -> float",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_build_pond",
-      "line": 43,
+      "line": 45,
       "signature": "func _build_pond()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_build_land",
-      "line": 104,
+      "line": 106,
       "signature": "func _build_land()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_material",
-      "line": 154,
+      "line": 158,
       "signature": "func _material(color: Color) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_surface_material",
-      "line": 161,
+      "line": 165,
       "signature": "func _surface_material(id: String, meters: float) -> StandardMaterial3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_box",
-      "line": 174,
+      "line": 178,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3D",
       "visibility": "private"
     }
@@ -8600,56 +8600,56 @@
     {
       "kind": "func",
       "name": "_effect",
-      "line": 47,
+      "line": 49,
       "signature": "func _effect(label: String, center: Vector3, size: Vector3, color: Color) -> MeshInstance3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "set_faucet",
-      "line": 53,
+      "line": 55,
       "signature": "func set_faucet(enabled: bool) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_heat",
-      "line": 57,
+      "line": 59,
       "signature": "func set_heat(level: int) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_storage",
-      "line": 63,
+      "line": 65,
       "signature": "func set_storage(open: bool) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "reset_kitchen",
-      "line": 73,
+      "line": 75,
       "signature": "func reset_kitchen()",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "make_controls",
-      "line": 86,
+      "line": 88,
       "signature": "func make_controls() -> VBoxContainer",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "set_fridge",
-      "line": 93,
+      "line": 95,
       "signature": "func set_fridge(open: bool) -> bool",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 103,
+      "line": 105,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -8711,6 +8711,15 @@
       "name": "_clear_path",
       "line": 78,
       "signature": "func _clear_path(player: Node3D, start: Vector3, end: Vector3, target: Node3D = null) -> bool",
+      "visibility": "private"
+    }
+  ],
+  "scripts/worlds/welcome_island/landscape.gd": [
+    {
+      "kind": "func",
+      "name": "_ready",
+      "line": 3,
+      "signature": "func _ready()",
       "visibility": "private"
     }
   ]

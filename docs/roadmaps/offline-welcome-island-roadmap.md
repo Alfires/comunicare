@@ -406,7 +406,8 @@ part 09 adds the initial furnished house and side spaces with manual XR/art gate
 part 10 adds adjustable room lighting with manual XR/performance gates;
 part 11 has a tested functional kitchen foundation with final kitchenware/art/XR
 gates open; part 12 adds optional Help with manual XR/playtest gates;
-parts 13–14 remain planned. See the
+part 13 has an initial tested landscape and part 14 a local release matrix; final
+art/hardware/performance gates remain open and release is blocked. See the
 index for evidence and outstanding checks rather than inferring completion.
 
 **Done means:** the old default blockout is replaced, the island works offline

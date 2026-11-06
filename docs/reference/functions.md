@@ -1,5 +1,14 @@
 # Production function contracts
 
+<!-- module: scripts/worlds/welcome_island/landscape.gd -->
+## Initial built-in landscape composition
+
+Private ready deterministically places individual cleared optimized sapling/rock
+scenes, bounded mesh visibility and simple trunk/perimeter collision proxies.
+It does not load a complete environment, use the active scene from a worker,
+download content, alter spawn or grant remote scripts. Source assets remain
+unchanged; final landscape art and XR performance acceptance remain open.
+
 <!-- module: scripts/GUI/home_help.gd -->
 ## Optional home Help
 

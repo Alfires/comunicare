@@ -23,17 +23,19 @@ func _ready():
 		var item = RigidBody3D.new(); item.name = INVENTORY[index]; item.mass = 0.25
 		add_child(item)
 		item.position = Vector3(6.5 + (index % 2) * 0.35, 1.05, -5.3 + (index / 2) * 0.8)
-		var mesh = MeshInstance3D.new()
 		var size = Vector3(0.2, 0.16, 0.2)
 		if index in [2, 6]: size = Vector3(0.3, 0.035, 0.25)
 		if index == 5: size = Vector3(0.05, 0.03, 0.3)
-		if index in [0, 1, 3, 4, 7]:
-			var cylinder = CylinderMesh.new(); cylinder.top_radius = 0.1; cylinder.bottom_radius = 0.09; cylinder.height = size.y
-			mesh.mesh = cylinder
-		else:
-			var box = BoxMesh.new(); box.size = size; mesh.mesh = box
-		var material = StandardMaterial3D.new(); material.albedo_color = Color(0.65, 0.72, 0.7) if index < 5 else Color(0.4, 0.25, 0.12)
-		material.roughness = 0.5; mesh.material_override = material; item.add_child(mesh)
+		var asset = ["cup", "bowl", "plate", "pot", "frying-pan", "utensil-spoon", "cutting-board", "can"][index]
+		var model = load("res://assets/welcome_island/models/kitchenware/" + asset + ".glb").instantiate()
+		model.name = "AuthoredModel"; item.add_child(model)
+		var bounds := AABB(); var first := true
+		for mesh in model.find_children("*", "MeshInstance3D", true, false):
+			var box = model.global_transform.affine_inverse() * mesh.global_transform * mesh.mesh.get_aabb()
+			bounds = box if first else bounds.merge(box); first = false
+		var factor = minf(size.x / maxf(bounds.size.x, 0.01), minf(size.y / maxf(bounds.size.y, 0.01), size.z / maxf(bounds.size.z, 0.01)))
+		model.scale = Vector3.ONE * factor
+		model.position = -(bounds.position + bounds.size * 0.5) * factor
 		var shape = CollisionShape3D.new(); var collision = BoxShape3D.new(); collision.size = size
 		shape.shape = collision; item.add_child(shape)
 		items[id] = item; homes[id] = item.global_transform

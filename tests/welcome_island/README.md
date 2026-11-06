@@ -1,5 +1,60 @@
 # Welcome island startup contracts
 
+### Restart follow-up — 2026-11-06
+
+The second local matrix completed before the server restart: 23 of 24 groups
+passed; Active Instance failed its same-instance voice assertion. A post-restart
+isolated Active Instance run passed 132 assertions, with no skipped groups. This
+is intermittent evidence, not a proven fix; no relay/voice behavior was changed
+to obtain the pass. The restart removed the earlier temporary logs, so their
+original completion report is the retained evidence, not invented log files.
+
+The matrix now writes per-run logs and an incremental `summary.json` under a unique
+`/tmp/opencode/welcome-release-results-*` directory instead of overwriting the last
+run. It records exit codes, time, source revision/scope and outstanding manual
+gates, including `release_ready: false`. Copy that nonprivate summary if it must
+survive environment cleanup; temporary artifacts are not durable storage.
+
+Forward Plus initial rendered landscape check passed on NVIDIA GTX 1070, Vulkan
+1.4.312; fixture counts were 62–243 draws and 235K–441K primitives. Compatibility
+views used Intel UHD 630. Neither measurement establishes frame time/VRAM targets
+or XR readiness. The scene still needs a real final-art pass; landscape screenshots
+must not be represented as satisfying the original naturalistic-home acceptance.
+
+## Remaining-work integration — 2026-11-05
+
+The eight kitchen items now use individual Kenney Food Kit CC0 GLBs/colormap,
+preserving original hashes/license notice. Test-first authored-model checks failed
+on all eight placeholders, then passed after acquisition/integration. Kitchen has
+55 assertions including real counter settling. Source models are normalized with
+simple collision proxies, not detailed hollow collision for cups/bowls.
+
+Part 13 now has an **initial**, not final, landscape composition: 24 optimized
+sapling placements, individual perimeter/underside rocks and trunk/border collision
+proxies. Tests were red on missing landscape before construction. Rendered views
+cover spawn/grove/overview/underside; initial Compatibility captures reported about
+100–374 draws and 233K–440K primitives across views, with ~698 ms setup including
+frame waits. These are scene counters, not reliable per-light GPU time or XR budgets.
+Initial Forward Plus render also passed. Images still show sparse foliage and a
+geometric edge/underside; final art acceptance remains open. No audio was added
+without a cleared source. Route tests caught perimeter collision obstructing the
+pond's dry loop; proxies were moved out and the pond test then passed.
+
+`run_layout.py --acceptance` combines three home reloads with one persistent player,
+Help/highlights disabled, authored kitchenware/reset, independent lighting and ship
+board/reset; 18 assertions pass. `run_acceptance.py` runs all welcome groups plus
+existing settings/discovery/instance/world/VR/startup/export checks into
+`/tmp/opencode/welcome-release-results`. It never marks hardware checks passed.
+The first matrix found a reproducible dry-perimeter failure (fixed) and an
+intermittent active-instance voice assertion (two failed runs, one subsequent pass);
+retain that history rather than hiding it with retries. The previously failing
+settings status-bar assertion now passes with the concurrently updated UI fixtures.
+
+Release remains blocked by real headset/controller/comfort, whole-map named-device
+performance, visual-art quality and optional rest behavior. No available configured
+OpenXR runtime can close human hardware gates here. See current
+[home usage and limits](../../docs/guides/welcome-home.md).
+
 ## Part 12 optional Help — 2026-11-05
 
 `python3 tests/welcome_island/run_credits.py --help-suite --rendered` tests the

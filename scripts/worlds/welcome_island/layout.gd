@@ -12,6 +12,8 @@ var routes := {
 func _ready():
 	_build_land()
 	_build_pond()
+	var landscape = preload("res://scripts/worlds/welcome_island/landscape.gd").new()
+	landscape.name = "Landscape"; add_child(landscape)
 	var house = preload("res://scripts/worlds/welcome_island/house_spaces.gd").new()
 	house.name = "House"; add_child(house)
 	_box("DeckFootprint", Vector3(-29, -0.08, -12), Vector3(14, 0.2, 10), Color(0.5, 0.37, 0.24), false)
@@ -113,7 +115,9 @@ func _build_land():
 	# Shared-height grid: no gaps between faces, central plateau at y=0.
 	for x in range(-radius, radius, 2):
 		for z in range(-radius, radius, 2):
-			if Vector2(x + 1, z + 1).length() > radius: continue
+			var angle = atan2(z + 1, x + 1)
+			var outline = radius + 1.0 + sin(angle * 3) * 0.6 + sin(angle * 7) * 0.4
+			if Vector2(x + 1, z + 1).length() > outline: continue
 			var a = Vector3(x, _height(x, z), z)
 			var b = Vector3(x + 2, _height(x + 2, z), z)
 			var c = Vector3(x, _height(x, z + 2), z + 2)

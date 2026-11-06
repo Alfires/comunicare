@@ -1,6 +1,6 @@
 # Welcome island: small test-first roadmaps
 
-**In progress — 2026-11-05.** Part 01's runner/startup fix is implemented with
+**In progress — 2026-11-06; release blocked.** Part 01's runner/startup fix is implemented with
 manual headset/lifecycle gates; part 02 delivers tested provenance and a four-entry
 CC0 sample; reduced tree/rock runtime variants now exist. Part 03 Credits is
 implemented with a manual headset gate. Part 04 delivers the single-island layout
@@ -10,9 +10,10 @@ pickup/activation and rendered recovery/exported-PCK verification. Part 07 deliv
 the pond/dock with synthetic safety checks; part 08 adds constrained local ship
 operation with manual XR/UI gates. Part 09 adds the initial furnished house and
 side spaces; part 10 adds adjustable local room lighting with XR/performance gates.
-Part 11 has a tested kitchen foundation with placeholder kitchenware and open
-art/hardware gates. Part 12 adds optional Help with manual XR/playtest and settings
-fixture gates. Parts 13–14 remain planned.
+Part 11 now has eight premade CC0 kitchenware models and tested local controls,
+with fixture/art/hardware gates open. Part 12 adds optional Help with manual XR/playtest and settings
+fixture gates. Part 13 has an initial tested composition (final art/performance open);
+part 14 has a local matrix/combined acceptance, with release still blocked.
 The [shared design overview](../offline-welcome-island-roadmap.md) owns the home-first
 requirements, ASCII concepts, asset candidates and compatibility boundaries.
 This index and the small roadmaps below replace its original five broad milestones.
@@ -53,7 +54,8 @@ gates**; part 07 is **implemented with manual headset/final-water gates**;
 part 08 is **implemented with manual XR/UI gates**; part 09 is **implemented initial
 furnished structure with manual XR/art gates**; part 10 is **implemented with manual
 XR/performance gates**; part 11 is **partially implemented**; part 12 is **implemented
-with manual XR/playtest gates**; parts 13–14 remain **planned**.
+with manual XR/playtest gates**; part 13 is **initial composition only**; part 14 is
+**local matrix implemented, release blocked**. No part's unverified gates are waived.
 
 | Part | Scope | Prerequisites |
 | --- | --- | --- |
@@ -67,10 +69,10 @@ with manual XR/playtest gates**; parts 13–14 remain **planned**.
 | [08](08-working-ship-roadmap.md) | Implemented: constrained local board/steer/stop/reset ship; actual headset/UI comfort gates open | 06, 07 |
 | [09](09-house-spaces-roadmap.md) | Initial furnished house/lounge/two beds/side hangouts implemented; optional rest action and manual XR/art gates open | 02, 04, 06 |
 | [10](10-room-lighting-roadmap.md) | Three independent local zones with shared UI implemented; manual XR/GPU profiling open | 06, 09 |
-| [11](11-kitchen-roadmap.md) | Partial: tested local controls/reset and eight movable placeholders; final premade kitchenware and seated VR checks pending | 06, 09 |
+| [11](11-kitchen-roadmap.md) | Premade CC0 kitchenware and local controls/reset tested; fixture/door visual polish and seated VR checks pending | 06, 09 |
 | [12](12-optional-help-roadmap.md) | Optional live-binding menu Help/session highlight toggle implemented; full settings fixture and manual XR/playtests open | 06; final text after 08–11 |
-| [13](13-landscape-rendering-roadmap.md) | Hand-built landscape, atmosphere and optimization | 02, 07–11 |
-| [14](14-release-acceptance-roadmap.md) | Full offline/home/online-return acceptance | 01–13 |
+| [13](13-landscape-rendering-roadmap.md) | Initial tree/rock composition and rendered checks; final art, human XR and named performance budgets open | 02, 07–11 |
+| [14](14-release-acceptance-roadmap.md) | Local matrix/combined no-help lifecycle implemented; release blocked by remaining required gates | 01–13 |
 
 This is dependency order, not a player progression route. Every place and action
 is freely available in the finished home. A prerequisite marked manually unverified

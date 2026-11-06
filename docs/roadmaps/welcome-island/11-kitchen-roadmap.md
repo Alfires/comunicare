@@ -1,6 +1,9 @@
 # 11 — Working kitchen and movable kitchenware
 
 **Status:** Partially implemented functional foundation — 2026-11-05.
+Follow-up: eight individual premade CC0 kitchenware models now replace primitive
+placeholders; 55 kitchen checks include settled counter physics. This supersedes
+the placeholder limitation below, not the remaining fixture/door/XR polish gates.
 **Prerequisites:** 06, 09. See [scope/evidence](../../../tests/welcome_island/README.md).
 Eight physical placeholder belongings and local controls/reset are tested. Final
 premade kitchenware, detailed fixtures/door sweeps and real seated VR checks remain

@@ -35,11 +35,9 @@ func handle(server: Node, sender: int, value: Dictionary):
 	if value.get("session_id") != session.session_id or value.get("revision") != session.get("world_revision", ""): return
 	if not instances.has(session.session_id): instances[session.session_id] = {"sequence": 0, "items": {}, "senders": {}}
 	var instance: Dictionary = instances[session.session_id]
-	var candidates: Array = []
+	var physics_owner := -1
 	for member in session.peers:
-		if physics_supported.has(member): candidates.append(member)
-	candidates.sort()
-	var physics_owner: int = candidates[0] if not candidates.is_empty() else -1
+		if physics_supported.has(member) and (physics_owner < 0 or member < physics_owner): physics_owner = member
 	if value.get("op") == "snapshot":
 		_send(server, sender, {"op": "snapshot", "physics_owner": physics_owner, "session_id": session.session_id, "revision": session.get("world_revision", ""), "sequence": instance.sequence, "items": instance.items.duplicate(true)})
 		return
@@ -121,6 +119,15 @@ func leave(server: Node, sender: int):
 		var clean = item.duplicate(true)
 		clean.merge({"op": "item", "entity": id, "session_id": session.session_id, "revision": session.get("world_revision", ""), "sequence": instance.sequence})
 		_broadcast(server, index, clean)
+	# Membership can change without a held-item event. Publish the new physics
+	# owner even when every item is already released, rather than waiting 5 s.
+	var next_owner := -1
+	for member in session.peers:
+		if member != sender and physics_supported.has(member) and (next_owner < 0 or member < next_owner): next_owner = member
+	for recipient in session.peers:
+		if recipient == sender: continue
+		_send(server, recipient, {"op": "snapshot", "physics_owner": next_owner, "session_id": session.session_id,
+			"revision": session.get("world_revision", ""), "sequence": instance.sequence, "items": instance.items.duplicate(true)})
 	if session.peers.size() <= 1: instances.erase(session.session_id)
 
 func disconnect_peer(server: Node, sender: int):

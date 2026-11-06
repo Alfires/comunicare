@@ -1,5 +1,14 @@
 # Dropped pickup physics synchronization
 
+Publisher departure now immediately sends remaining members the new publisher,
+including when no item was held. Election uses a linear minimum search rather
+than allocating/sorting a member array per packet. Dropped-body publication is
+budgeted to at most ten poses/second across the client with rotating selection;
+this reserves the existing 60-packet ingress budget for two held grips and control
+messages. Many simultaneously moving dropped bodies therefore update less often:
+this is a congestion guard, not high-count synchronized physics. Batching remains
+a future negotiated protocol improvement.
+
 Idle pose publication is change-driven: movement of at least 1 mm or rotation of
 0.001 radians sends the next available physics update; unchanged bodies send a
 one-second repair update rather than a packet every 50 ms. A new lease epoch always

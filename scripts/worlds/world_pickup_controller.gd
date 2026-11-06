@@ -18,6 +18,8 @@ var local_actions: Dictionary = {}
 var local_world: WeakRef
 var physics_owner := -1
 var physics_sent: Dictionary = {}
+var physics_cursor := 0
+var physics_elapsed := 0.0
 const LOCAL_NOTICE = "Home objects are local to this client; changes are not synchronized with other players."
 
 func activate_local(world: Node3D, local_items: Dictionary, actions: Dictionary = {}):
@@ -126,6 +128,8 @@ func reset():
 	local_only = false
 	physics_owner = -1
 	physics_sent.clear()
+	physics_cursor = 0
+	physics_elapsed = 0
 	local_actions.clear()
 	received_sequence = -1
 	snapshot_elapsed = 0.0
@@ -318,12 +322,18 @@ func _process(delta: float):
 	elapsed += delta
 	var send_pose = elapsed >= 0.05
 	if send_pose: elapsed = 0.0
-	for id in states:
+	physics_elapsed += delta
+	var physics_budget = 1 if send_pose and physics_elapsed >= 0.1 else 0
+	if physics_budget > 0: physics_elapsed = 0
+	var ids = states.keys()
+	if send_pose and not ids.is_empty(): physics_cursor = (physics_cursor + 1) % ids.size()
+	for index in ids.size():
+		var id = ids[(index + physics_cursor) % ids.size()]
 		var item = items.get(id).get_ref() if items.has(id) else null
 		var state: Dictionary = states[id]
 		if not item is Node3D or not item.is_inside_tree(): continue
 		if state.holder == -1 and physics_owner == peer.world_peer_id and item is RigidBody3D:
-			if send_pose:
+			if physics_budget > 0:
 				var q = item.global_basis.orthonormalized().get_rotation_quaternion()
 				var previous = physics_sent.get(id, {})
 				var now = Time.get_ticks_msec()
@@ -333,6 +343,7 @@ func _process(delta: float):
 				if _send({"op": "physics", "entity": id, "epoch": state.epoch, "sequence": local_sequence,
 					"position": [item.global_position.x, item.global_position.y, item.global_position.z], "rotation": [q.x, q.y, q.z, q.w]}):
 					physics_sent[id] = {"epoch": state.epoch, "position": item.global_position, "rotation": q, "at": now}
+					physics_budget -= 1
 			continue
 		if state.holder == peer.world_peer_id:
 			var anchor = anchors.get(state.grip)

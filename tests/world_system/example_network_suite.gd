@@ -108,10 +108,12 @@ func run():
 	hands[1].global_position = Vector3(-1, 1.5, 0)
 	await pump(0.5)
 	check(adapters[1].held_by_local("left") and cube_a.global_position.distance_to(hands[1].global_position) < 0.08, "reverse VR-to-desktop carrying reaches the other actual world")
+	check(adapters[1].release_grip("left"), "second holder releases before physics authority departure")
+	await pump(0.2)
+	adapters[1].snapshot_elapsed = 0.0
 	clients[0].peer.peer_disconnect()
 	await pump(0.5)
 	check(adapters[1].physics_owner == clients[1].world_peer_id, "departing physics publisher transfers authority immediately without snapshot timeout")
-	check(adapters[1].release_grip("left"), "remaining holder can release after physics publisher leaves")
 	await pump(0.3)
 	check(not cube_b.freeze and adapters[1].states.get("pickup-cube", {}).get("holder", -2) == -1, "new physics publisher simulates released item")
 	clients[1].peer.peer_disconnect()

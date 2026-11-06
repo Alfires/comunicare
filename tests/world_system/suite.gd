@@ -344,6 +344,17 @@ func test_pickup_adapter():
 	var count_before = network.peer.sent.size()
 	for frame in 10: adapter._process(0.05)
 	check(network.peer.sent.size() - count_before <= 2, "stationary dropped items do not send physics poses every network tick")
+	var extra_items: Array = []
+	for index in 8:
+		var extra = RigidBody3D.new()
+		world.add_child(extra)
+		extra_items.append(extra)
+		var id = "budget-%s" % index
+		adapter.items[id] = weakref(extra)
+		adapter.states[id] = {"holder": -1, "epoch": 1, "position": [], "rotation": []}
+	count_before = network.peer.sent.size()
+	adapter._process(0.05)
+	check(network.peer.sent.size() - count_before <= 1, "physics sender bounds per-tick traffic across many moving items")
 	adapter.reset()
 	check(not item.freeze and item.collision_layer == 1, "transition/reset restores physical item settings")
 	adapter.free()

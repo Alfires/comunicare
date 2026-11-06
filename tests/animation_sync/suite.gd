@@ -257,6 +257,12 @@ func test_walk_to_standing():
 
 func test_first_person_body_geometry():
 	var policy = load("res://scripts/assets/first_person_avatar.gd")
+	var unprepared = Node3D.new()
+	var unchanged_camera = Camera3D.new()
+	var original_mask = unchanged_camera.cull_mask
+	check(not policy.apply(unprepared, unchanged_camera) and unchanged_camera.cull_mask == original_mask and not unchanged_camera.has_meta("first_person_camera"), "failed first-person activation leaves camera layers and identity unchanged")
+	unprepared.free()
+	unchanged_camera.free()
 	var avatar = Node3D.new()
 	var rig = Skeleton3D.new()
 	avatar.add_child(rig)
@@ -306,6 +312,7 @@ func test_first_person_body_geometry():
 	torso.mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, torso_arrays)
 	var clothing_material = StandardMaterial3D.new()
 	torso.set_surface_override_material(0, clothing_material)
+	torso.transparency = 0.6
 	avatar.add_child(torso)
 	check(policy.prepare(avatar), "first-person geometry prepares synthetic combined avatar")
 	var derivative = rig.get_node_or_null("CombinedBody_FirstPerson")
@@ -316,12 +323,16 @@ func test_first_person_body_geometry():
 	torso.hide()
 	policy.apply(avatar, camera)
 	var torso_view = avatar.get_node("Torso_FirstPerson")
+	check(is_equal_approx(torso_view.transparency, torso.transparency), "first-person copy preserves source instance transparency")
 	check(torso_view.get_active_material(0) == clothing_material, "unsplit first-person body preserves per-surface clothing material override")
 	var updated_material = StandardMaterial3D.new()
 	mesh.set_surface_override_material(0, updated_material)
 	root.add_child(avatar)
 	mesh.get_child(0)._process(0.0)
 	check(derivative.get_active_material(0) == updated_material, "split first-person body follows runtime per-surface material changes")
+	mesh.transparency = 0.75
+	mesh.get_child(0)._process(0.0)
+	check(is_equal_approx(derivative.transparency, mesh.transparency), "first-person copy follows runtime instance fade changes")
 	layered.set_surface_override_material(1, updated_material)
 	layered.get_child(0)._process(0.0)
 	var layered_view = rig.get_node("LayeredClothing_FirstPerson")

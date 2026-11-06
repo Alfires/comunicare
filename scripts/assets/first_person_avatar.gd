@@ -7,10 +7,10 @@ static func is_camera_interior_bone(role: String) -> bool:
 	return role in ["neck", "head", "leftEye", "rightEye", "jaw"]
 
 static func apply(avatar: Node3D, camera: Camera3D) -> bool:
+	if not avatar.get_meta("first_person_prepared", false): return false
 	camera.set_meta("first_person_camera", true)
 	camera.cull_mask &= ~HEAD_LAYER
 	camera.cull_mask |= BODY_LAYER
-	if not avatar.get_meta("first_person_prepared", false): return false
 	for node in avatar.find_children("*", "MeshInstance3D", true, false):
 		if node.get_meta("first_person_original", false):
 			node.layers = 0 if node.get_meta("first_person_only", false) else HEAD_LAYER
@@ -116,6 +116,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		duplicate.skin = node.skin
 		duplicate.skeleton = node.skeleton
 		duplicate.material_override = node.material_override
+		duplicate.transparency = node.transparency
 		for surface in source_surfaces.size():
 			duplicate.set_surface_override_material(surface, node.get_surface_override_material(source_surfaces[surface]))
 		duplicate.custom_aabb = node.custom_aabb
@@ -150,6 +151,7 @@ class BlendShapeSync extends Node:
 		if not target.is_visible_in_tree(): return
 		if target.transform != source.transform: target.transform = source.transform
 		if target.material_override != source.material_override: target.material_override = source.material_override
+		if target.transparency != source.transparency: target.transparency = source.transparency
 		for surface in source_surfaces.size():
 			var material = source.get_surface_override_material(source_surfaces[surface])
 			if target.get_surface_override_material(surface) != material:

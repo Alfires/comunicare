@@ -53,6 +53,15 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}, cpu_arrays: Di
 	for node in avatar.find_children("*", "MeshInstance3D", true, false):
 		if node.has_meta("first_person_split") or node.mesh == null: continue
 		var mesh: Mesh = node.mesh
+		# Bind-to-head membership is invariant for every vertex and surface of
+		# this instance. Resolve named skin binds once, not per influence.
+		var head_binds = PackedByteArray()
+		if node.skin != null:
+			head_binds.resize(node.skin.get_bind_count())
+			for bind in head_binds.size():
+				var name = node.skin.get_bind_name(bind)
+				var bone = rig.find_bone(name) if name != &"" else node.skin.get_bind_bone(bind)
+				head_binds[bind] = 1 if head_bones.has(bone) else 0
 		var visibility: String = annotations.get(str(node.name), "auto")
 		# Even author-marked Both meshes need local head filtering. Keep the
 		# original intact and preserve torso/limbs in the local derivative.
@@ -84,10 +93,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}, cpu_arrays: Di
 						var offset = vertex * int(influences) + influence
 						if weights[offset] <= 0.01: continue
 						var bind = bones[offset]
-						if bind >= node.skin.get_bind_count(): continue
-						var name = node.skin.get_bind_name(bind)
-						var bone = rig.find_bone(name) if name != &"" else node.skin.get_bind_bone(bind)
-						if head_bones.has(bone): head_weight += weights[offset]
+						if bind >= 0 and bind < head_binds.size() and head_binds[bind]: head_weight += weights[offset]
 					if head_weight >= 0.25: head_vertices[vertex] = true
 			elif node.name.to_lower().contains("head") or node.name.to_lower().contains("hair") or node.name.to_lower().contains("face"):
 				for vertex in vertices.size(): head_vertices[vertex] = true
@@ -100,7 +106,9 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}, cpu_arrays: Di
 			for triangle in range(0, indices.size() - 2, 3):
 				var is_head = head_vertices.has(indices[triangle]) or head_vertices.has(indices[triangle + 1]) or head_vertices.has(indices[triangle + 2])
 				var destination = head_indices if is_head else body_indices
-				destination.append_array(indices.slice(triangle, triangle + 3))
+				destination.append(indices[triangle])
+				destination.append(indices[triangle + 1])
+				destination.append(indices[triangle + 2])
 			var blends = cached.blends[surface] if cached.has("blends") else (mesh.surface_get_blend_shape_arrays(surface) if mesh is ArrayMesh else [])
 			for pair in [[body_mesh, body_indices]]:
 				if pair[1].is_empty(): continue

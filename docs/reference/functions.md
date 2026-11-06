@@ -1134,6 +1134,9 @@ Instance transparency is copied and synchronized so local body fades match the
 source instead of displaying an opaque first-person copy.
 Material overlays are copied and synchronized, including their removal, so local
 body effects remain consistent with the original avatar.
+Preparation resolves skin-bind head membership once per mesh instance rather than
+per vertex influence, and copies retained triangle indices without allocating a
+temporary array per triangle. Named and numeric binds retain the same filtering.
 
 <!-- module: scripts/assets/avatar_tracking.gd -->
 Fully faded inactive chains return before bone lookup, pose allocation and bone

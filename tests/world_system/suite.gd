@@ -343,6 +343,19 @@ func test_pickup_adapter():
 	remote.position = [2.0, 1.0, 0.0]
 	remote.rotation = [0.0, 0.0, 0.0, 1.0]
 	adapter.receive(remote)
+	var valid_states = adapter.states.duplicate(true)
+	var owner_before = adapter.physics_owner
+	adapter.receive({"op": "unknown", "session_id": remote.session_id, "revision": remote.revision, "sequence": 99, "physics_owner": 7})
+	check(adapter.physics_owner == owner_before, "invalid item message cannot change physics authority")
+	var malformed_snapshot = {"op": "snapshot", "session_id": remote.session_id, "revision": remote.revision,
+		"sequence": 99, "items": {"item": {"holder": -1, "epoch": 1, "position": [0], "rotation": []}}}
+	adapter.receive(malformed_snapshot)
+	check(adapter.states == valid_states, "malformed snapshot cannot erase valid held item state")
+	var fractional = remote.duplicate(true)
+	fractional.sequence = 99.5
+	fractional.position = [50, 0, 0]
+	adapter.receive(fractional)
+	check(adapter.states == valid_states, "fractional item sequence cannot advance canonical snapshot state")
 	adapter._process(0.05)
 	check(item.global_position.is_equal_approx(Vector3(2, 1, 0)), "remote held-item state moves actual scene object, not only snapshot data")
 	var wrong = remote.duplicate(true)

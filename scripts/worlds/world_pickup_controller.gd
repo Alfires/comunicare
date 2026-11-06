@@ -244,19 +244,22 @@ func held_by_local(grip: String) -> bool:
 
 func receive(value: Dictionary):
 	if value.get("session_id") != session or value.get("revision") != revision: return
-	if not value.get("sequence") is float and not value.get("sequence") is int: return
+	if not preload("res://scripts/worlds/world_data.gd").integer(value.get("sequence"), 0, 2147483647): return
 	if value.sequence < received_sequence or (value.sequence == received_sequence and value.get("op") != "snapshot"): return
-	if preload("res://scripts/worlds/world_data.gd").integer(value.get("physics_owner"), -1, 255): physics_owner = int(value.physics_owner)
+	if value.has("physics_owner") and not preload("res://scripts/worlds/world_data.gd").integer(value.physics_owner, -1, 255): return
 	var previous_states = states.duplicate(true)
 	if value.get("op") == "snapshot" and value.get("items") is Dictionary:
 		var checked: Dictionary = {}
+		if value.items.size() > 256: return
 		for id in value.items:
-			if items.has(id) and _valid_state(value.items[id]): checked[id] = value.items[id].duplicate(true)
+			if not _valid_state(value.items[id]): return
+			if items.has(id): checked[id] = value.items[id].duplicate(true)
 		states = checked
 	elif value.get("op") in ["item", "pose"] and items.has(value.get("entity")) and _valid_state(value):
 		states[value.entity] = value.duplicate(true)
 	else:
 		return
+	if value.has("physics_owner"): physics_owner = int(value.physics_owner)
 	received_sequence = int(value.sequence)
 	for id in items:
 		var item = items[id].get_ref()

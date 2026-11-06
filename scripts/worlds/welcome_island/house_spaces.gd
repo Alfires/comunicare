@@ -1,6 +1,64 @@
 extends Node3D
 ## Individually assembled home structure and cleared furnishings; no prefab scene.
+var resting: Dictionary = {}
+
+func rest_at(label: String, player: CharacterBody3D) -> bool:
+	if label not in ["BedOne", "BedTwo", "Sofa"] or not is_instance_valid(player) or not player.is_in_group("player") or player.has_meta("home_rest") or player.has_meta("home_ship"): return false
+	var furniture = get_node(NodePath(label))
+	if player.global_position.distance_to(furniture.global_position) > 3: return false
+	var exit = furniture.global_position + Vector3(0, 0.05, 2)
+	if not _rest_clear(player, exit): return false
+	var target = furniture.global_position + Vector3(0, 0.65, 0)
+	if not _rest_clear(player, target, furniture): return false
+	resting[player.get_instance_id()] = {"player": weakref(player), "exit": exit, "processing": player.is_physics_processing()}
+	var id = player.get_instance_id()
+	player.tree_exiting.connect(func(): resting.erase(id), CONNECT_ONE_SHOT)
+	player.set_meta("home_rest", weakref(self))
+	player.set_physics_process(false)
+	preload("res://scripts/worlds/welcome_island/home_contract.gd").reset_player(player, target)
+	return true
+
+func _rest_clear(player: CharacterBody3D, point: Vector3, furniture: Node3D = null) -> bool:
+	var query = PhysicsShapeQueryParameters3D.new()
+	var capsule = CapsuleShape3D.new(); capsule.radius = 0.35; capsule.height = 1.9
+	query.shape = capsule; query.transform.origin = point + Vector3.UP * 0.96; query.exclude = [player.get_rid()]
+	if furniture != null:
+		var excluded: Array[RID] = [player.get_rid()]
+		for body in furniture.find_children("*", "CollisionObject3D", true, false): excluded.append(body.get_rid())
+		query.exclude = excluded
+	return get_world_3d().direct_space_state.intersect_shape(query).is_empty()
+
+func leave_rest(player: CharacterBody3D) -> bool:
+	if not is_instance_valid(player) or not resting.has(player.get_instance_id()): return false
+	var record = resting[player.get_instance_id()]
+	var target = record.exit if _rest_clear(player, record.exit) else Vector3(0, 1, 0)
+	if not _rest_clear(player, target): return false
+	player.remove_meta("home_rest"); player.set_physics_process(record.processing)
+	preload("res://scripts/worlds/welcome_island/home_contract.gd").reset_player(player, target)
+	resting.erase(player.get_instance_id())
+	return true
+
+func make_rest_controls() -> VBoxContainer:
+	var panel = VBoxContainer.new()
+	for label in ["BedOne", "BedTwo", "Sofa", "Leave resting place"]:
+		var button = Button.new(); button.text = "Rest nearby: " + label if label != "Leave resting place" else label
+		button.custom_minimum_size.y = 44
+		button.pressed.connect(func():
+			for player in get_tree().get_nodes_in_group("player"):
+				if player is CharacterBody3D:
+					if label == "Leave resting place": leave_rest(player)
+					else: rest_at(label, player))
+		panel.add_child(button)
+	return panel
+
+func _exit_tree():
+	for record in resting.values():
+		var player = record.player.get_ref()
+		if is_instance_valid(player):
+			player.remove_meta("home_rest"); player.set_physics_process(record.processing); player.velocity = Vector3.ZERO
+	resting.clear()
 func _ready():
+	add_to_group("home_resting")
 	position = Vector3(24, 0, -20)
 	_box("Floor", Vector3(0, -0.08, 0), Vector3(16, 0.2, 14), true)
 	_box("BackWall", Vector3(0, 1.7, -7), Vector3(16, 3.4, 0.3), true)
@@ -68,7 +126,7 @@ func _install_exterior():
 	# facade to the broad accessible entrance; no closed door or mandatory steps.
 	for mesh in exterior.find_children("*", "MeshInstance3D", true, false):
 		var label = str(mesh.name).to_lower()
-		if "entrance" in label or "stair tread" in label or "service steps" in label or "grounded landing" in label or "front left window" in label or "front right window" in label:
+		if "entrance" in label or "stair tread" in label or "service steps" in label or "grounded landing" in label or "foundation and floor" in label or "front left window" in label or "front right window" in label:
 			mesh.visible = false
 		elif "hollow wall shell" in label:
 			var adapted = ArrayMesh.new()

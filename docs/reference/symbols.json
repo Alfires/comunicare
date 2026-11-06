@@ -1126,119 +1126,168 @@
     {
       "kind": "func",
       "name": "_ready",
-      "line": 13,
+      "line": 18,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_render",
-      "line": 22,
+      "line": 29,
       "signature": "func _render()",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_category_button",
+      "line": 114,
+      "signature": "func _category_button(category: String, group: ButtonGroup) -> Button",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_setting_row",
+      "line": 127,
+      "signature": "func _setting_row(definition: Dictionary) -> Control",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_set_error",
+      "line": 179,
+      "signature": "func _set_error(id: String, message: String)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "_search_changed",
+      "line": 184,
+      "signature": "func _search_changed(query: String)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_add_cache_actions",
-      "line": 138,
+      "line": 205,
       "signature": "func _add_cache_actions(page: VBoxContainer)",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_add_vr_actions",
+      "line": 242,
+      "signature": "func _add_vr_actions(page: VBoxContainer)",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "apply_comfort_preset",
+      "line": 260,
+      "signature": "func apply_comfort_preset()",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_open_tracker_setup",
+      "line": 264,
+      "signature": "func _open_tracker_setup()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "select_category",
-      "line": 172,
+      "line": 272,
       "signature": "func select_category(category: String)",
       "visibility": "public"
     },
     {
       "kind": "func",
       "name": "_swatch_colors",
-      "line": 184,
+      "line": 287,
       "signature": "func _swatch_colors(id: String) -> Dictionary",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_create_control",
-      "line": 198,
+      "line": 301,
       "signature": "func _create_control(definition: Dictionary) -> Control",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_commit",
-      "line": 239,
+      "line": 342,
       "signature": "func _commit(value: Variant, id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_value",
-      "line": 246,
+      "line": 349,
       "signature": "func _reset_value(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_reset_category",
-      "line": 252,
+      "line": 355,
       "signature": "func _reset_category(category: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_update_value",
-      "line": 257,
+      "line": 360,
       "signature": "func _update_value(id: String, value: Variant)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_begin_binding",
-      "line": 281,
+      "line": 385,
       "signature": "func _begin_binding(id: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_input",
-      "line": 287,
+      "line": 391,
       "signature": "func _input(event: InputEvent)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_cancel_binding",
-      "line": 308,
+      "line": 412,
       "signature": "func _cancel_binding()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_notification",
-      "line": 315,
+      "line": 419,
       "signature": "func _notification(what)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_show_error",
-      "line": 319,
+      "line": 423,
       "signature": "func _show_error(message: String)",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_on_saved",
-      "line": 323,
+      "line": 427,
       "signature": "func _on_saved()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_exit_tree",
-      "line": 326,
+      "line": 430,
       "signature": "func _exit_tree()",
       "visibility": "private"
     }
@@ -8539,29 +8588,64 @@
   "scripts/worlds/welcome_island/house_spaces.gd": [
     {
       "kind": "func",
+      "name": "rest_at",
+      "line": 5,
+      "signature": "func rest_at(label: String, player: CharacterBody3D) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_rest_clear",
+      "line": 21,
+      "signature": "func _rest_clear(player: CharacterBody3D, point: Vector3, furniture: Node3D = null) -> bool",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
+      "name": "leave_rest",
+      "line": 31,
+      "signature": "func leave_rest(player: CharacterBody3D) -> bool",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "make_rest_controls",
+      "line": 41,
+      "signature": "func make_rest_controls() -> VBoxContainer",
+      "visibility": "public"
+    },
+    {
+      "kind": "func",
+      "name": "_exit_tree",
+      "line": 54,
+      "signature": "func _exit_tree()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_ready",
-      "line": 3,
+      "line": 60,
       "signature": "func _ready()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_furniture",
-      "line": 32,
+      "line": 90,
       "signature": "func _furniture(label: String, asset: String, center: Vector3, target: Vector3, solid: bool = true) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_install_exterior",
-      "line": 61,
+      "line": 119,
       "signature": "func _install_exterior()",
       "visibility": "private"
     },
     {
       "kind": "func",
       "name": "_box",
-      "line": 107,
+      "line": 165,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D",
       "visibility": "private"
     }

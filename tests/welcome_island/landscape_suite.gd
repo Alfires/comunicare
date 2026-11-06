@@ -32,6 +32,13 @@ func run():
 			await RenderingServer.frame_post_draw
 			check(root.get_texture().get_image().save_png("/tmp/opencode/island-landscape-" + name + ".png") == OK, "rendered composition: " + name)
 			print("RENDER METRIC ", name, ": draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " primitives=", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
+			var frames: Array[float] = []
+			for sample in 60:
+				var start_us = Time.get_ticks_usec()
+				await process_frame
+				frames.append((Time.get_ticks_usec() - start_us) / 1000.0)
+			frames.sort()
+			print("FRAME METRIC ", name, ": median_ms=", frames[30], " p95_ms=", frames[56], " video_bytes=", Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED))
 	world.queue_free(); await process_frame; await process_frame
 	finish()
 func finish():

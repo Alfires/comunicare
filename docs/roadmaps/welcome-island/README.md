@@ -67,7 +67,7 @@ with manual XR/playtest gates**; part 13 is **initial composition only**; part 1
 | [06](06-local-interactions-roadmap.md) | Implemented: shared local pickup/activation; actual headset and rendered carry checks open | 05 |
 | [07](07-pond-dock-roadmap.md) | Implemented: pond, timber dock and safe water recovery; two-eye/headset checks open | 02, 04, 05 |
 | [08](08-working-ship-roadmap.md) | Implemented: constrained local board/steer/stop/reset ship; actual headset/UI comfort gates open | 06, 07 |
-| [09](09-house-spaces-roadmap.md) | Initial furnished house/lounge/two beds/side hangouts implemented; optional rest action and manual XR/art gates open | 02, 04, 06 |
+| [09](09-house-spaces-roadmap.md) | Textured house/lounge/two beds/side hangouts and deliberate rest/leave implemented; manual XR/art gates open | 02, 04, 06 |
 | [10](10-room-lighting-roadmap.md) | Three independent local zones with shared UI implemented; manual XR/GPU profiling open | 06, 09 |
 | [11](11-kitchen-roadmap.md) | Premade CC0 kitchenware and local controls/reset tested; fixture/door visual polish and seated VR checks pending | 06, 09 |
 | [12](12-optional-help-roadmap.md) | Optional live-binding menu Help/session highlight toggle implemented; full settings fixture and manual XR/playtests open | 06; final text after 08–11 |

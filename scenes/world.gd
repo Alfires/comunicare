@@ -119,6 +119,8 @@ func _spawn_players():
 
 func return_player_to_spawn(player: Node3D):
 	if is_instance_valid(player) and player.is_in_group("player"):
+		var resting = player.get_meta("home_rest") if player.has_meta("home_rest") else null
+		if resting is WeakRef and is_instance_valid(resting.get_ref()): resting.get_ref().leave_rest(player)
 		var riding = player.get_meta("home_ship") if player.has_meta("home_ship") else null
 		if riding is WeakRef and is_instance_valid(riding.get_ref()): riding.get_ref().return_to_dock()
 		if is_instance_valid(local_pickups): local_pickups.cancel_local_input()

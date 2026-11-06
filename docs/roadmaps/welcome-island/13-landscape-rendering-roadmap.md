@@ -35,3 +35,9 @@ Tests and original asset placements are delivered, but screenshots still show sp
 foliage, geometric terrain edge/underside and unfinished material blending. Do not
 mark final landscape/visual acceptance complete. Compatibility and initial Forward
 Plus views/counters are not headset GPU/VRAM budgets. No cleared audio added yet.
+
+Measured desktop follow-up (2026-11-06): GTX 1070 Forward Plus small-window loop
+median ~8.3 ms / p95 8.5–9.0 ms over 60 samples per view, video memory ~386 MB.
+See test notes for exact values and vsync/scope limits. Human XR, sustained GPU
+profiling and final visual-art quality remain open. These measurements do not
+turn the sparse initial landscape into finished environment art.

@@ -1,5 +1,12 @@
 # Production function contracts
 
+House `rest_at` accepts only a nearby local player and named bed/sofa, validates
+target/exit space and stores a weak rest record without changing local tracked
+pose or yaw. It pauses physics walking until `leave_rest`, which validates the
+exit or center fallback and restores the prior process state. Home return releases
+rest first; teardown clears metadata/process suppression. The imported raised
+foundation is hidden to keep the visible floor aligned with app-owned collision.
+
 House `_install_exterior` integrates the cleared bungalow visual while preserving
 app-owned circulation/collision. It hides source steps/closed entrance visuals,
 rebuilds only the visible front-shell surface for broad access and applies independent

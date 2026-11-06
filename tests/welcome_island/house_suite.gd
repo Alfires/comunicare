@@ -20,6 +20,8 @@ func run():
 	if exterior != null:
 		check(exterior.find_children("*", "MeshInstance3D", true, false).size() > 20,
 			"architectural asset retains roof/window/porch details")
+		var foundation = exterior.find_children("*foundation*", "MeshInstance3D", true, false)
+		check(foundation.all(func(mesh): return not mesh.visible), "imported raised foundation cannot overlap accessible app-owned floor")
 	check(house.get_node("Sofa").get_meta("style_source", "") == "polyhaven.sofa_02", "lounge seating matches realistic material style")
 	check(house.get_node("LowTable").get_meta("style_source", "") == "polyhaven.coffee_table_round_01", "table uses compatible realistic asset")
 	check(house.get_node("BedOne").get_meta("style_source", "") == "polyhaven.vintage_day_bed", "resting furniture uses consistent realistic textured source")
@@ -37,6 +39,32 @@ func run():
 	check(body.position.z < -17 and body.position.y > -0.1, "physics capsule enters house through accessible flush doorway")
 	check(not safety.clearance(body, Vector3(16, 0.05, -20), 1.9, 0.35), "wall negative control blocks capsule")
 	check(house.find_children("*", "Label3D", true, false).is_empty(), "house contains no tutorial labels")
+	check(house.has_method("rest_at"), "resting furniture supports deliberate rest/leave actions")
+	if house.has_method("rest_at"):
+		body.add_to_group("player")
+		var head = Node3D.new(); body.add_child(head); head.position = Vector3(0.2, 1.6, -0.1)
+		var tracked = head.transform
+		body.position = Vector3.ZERO
+		check(not house.rest_at("BedOne", body), "rest rejects distant user")
+		body.global_position = house.get_node("BedOne").global_position + Vector3(0, 0.05, 2)
+		var original_process = body.is_physics_processing()
+		check(house.rest_at("BedOne", body), "explicit nearby bed rest succeeds")
+		check(head.transform == tracked and not body.is_physics_processing(), "rest preserves tracked pose while suppressing synthetic walking")
+		check(house.leave_rest(body) and body.is_physics_processing() == original_process, "leave rest restores movement at validated exit")
+		check(not body.has_meta("home_rest"), "leaving rest clears owner reference")
+		body.global_position = house.get_node("BedOne").global_position + Vector3(0, 0.05, 2)
+		house.rest_at("BedOne", body)
+		var blocker = StaticBody3D.new(); world.add_child(blocker)
+		var blocked_shape = CollisionShape3D.new(); blocked_shape.shape = BoxShape3D.new()
+		blocked_shape.shape.size = Vector3(1, 2, 1); blocker.add_child(blocked_shape)
+		blocker.global_position = house.get_node("BedOne").global_position + Vector3(0, 1, 2)
+		await physics_frame
+		check(house.leave_rest(body) and body.global_position == Vector3(0,1,0), "blocked rest exit uses clear center fallback")
+		blocker.queue_free(); await physics_frame
+		body.global_position = house.get_node("BedOne").global_position + Vector3(0, 0.05, 2)
+		check(house.rest_at("BedOne", body) and not house.rest_at("BedTwo", body), "rest cannot attach the same user twice")
+		world.return_player_to_spawn(body)
+		check(not body.has_meta("home_rest") and body.global_position == Vector3(0,1,0), "return home releases rest before resetting spawn")
 	if OS.get_environment("ISLAND_LAYOUT_RENDERED") == "1":
 		var camera = Camera3D.new(); world.add_child(camera)
 		var views = {"outside": [Vector3(10, 9, -3), Vector3(24, 1, -20)], "inside": [Vector3(24, 1.7, -14), Vector3(24, 1, -24)], "left": [Vector3(-38, 5, -3), Vector3(-29, 0.5, -12)]}

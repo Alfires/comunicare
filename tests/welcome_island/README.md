@@ -1,5 +1,48 @@
 # Welcome island startup contracts
 
+### Latest matrix/voice blocker — 2026-11-06
+
+Matrix artifacts `/tmp/opencode/welcome-release-results-_gxysg0h` recorded 23/24
+groups passing, including official Linux debug standalone export. Active Instance
+failed one voice-delivery assertion and its avatar preview fixture lacked registry/
+store dependencies. The fixture now supplies the real disposable settings owners;
+that removes the preview errors without touching production account storage.
+Voice failure persists: successful ENet queueing, matching session IDs, but zero
+received raw voice packets on failing runs; one diagnostic run received all three
+probes. Bounded multiprobe experiments did not consistently fix it and were not
+used to weaken the original assertion. Raw packet counters/diagnostic assertion
+text remain for investigation. No production transport fix or full release pass
+is claimed. Rest/floor work passes 39 focused house assertions.
+
+## Rest/floor alignment and measured desktop follow-up — 2026-11-06
+
+Test-first rest cases failed before adding `rest_at`/`leave_rest`. Deliberate nearby
+bed/sofa rest now checks reach and target/exit clearance, preserves tracked local
+head transforms, suppresses synthetic physics walking, and restores the previous
+processing state on leave. Duplicate rest is rejected; blocked exit uses a clear
+center fallback. Returning home releases rest first; scene teardown clears rider
+references and movement suppression. Controls settings offers explicit rest/leave
+actions; there is no automatic sleep, time skip or forced lying-down rotation.
+This is a service/UI-action implementation, not certified seated-headset comfort.
+
+A new visual-alignment assertion reproduced the imported bungalow foundation
+overlapping the app-owned accessible floor. The raised imported foundation is now
+hidden while original GLB bytes remain unchanged. Visible doorway/window-shell
+adaptation and simple collision still need human walkthrough review, not a claim
+of exact decorative-mesh collision.
+
+Forward Plus rendered sample on NVIDIA GTX 1070 / Vulkan 1.4.312: 60 render-loop
+samples per fixed view after warmup. Median/p95 ms: spawn 8.294/8.955, overview
+8.339/8.563, grove 8.318/8.635, underside 8.330/8.535. Reported video memory
+386,221,792 bytes. These are small-window desktop event-loop intervals (potentially
+vsync limited), not GPU-only timings, sustained load/thermal results or two-eye
+headset budgets. Do not compare them directly to a certified 90 Hz XR budget.
+
+Official 4.7.2 Linux debug template was restored to `/tmp/opencode` and SHA-256
+verified against the previously recorded value. The earlier remote push blocker
+is resolved; ordinary push reported the house commit up to date. Full local matrix
+is rerun for this unit; required human XR/final-art gates are not waived.
+
 ## House/style asset replacement — 2026-11-06
 
 New house/style assertions failed before acquiring replacements. The home now

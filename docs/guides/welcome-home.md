@@ -30,8 +30,10 @@ Home objects/lights/appliances/boat are **local-only**, including inside an onli
 instance using the same content. They do not claim synchronized ownership. Existing
 online instance admission and downloaded-world script restrictions remain unchanged.
 Lost registered items return to their own homes; players recover from water to a
-clear bank or center fallback. Beds and seating are physical furniture only: no
-explicit sit/rest/lie-down interaction or time skip is implemented.
+clear bank or center fallback. Controls provides explicit nearby bed/sofa rest and
+leave actions. Rest pauses synthetic walking without rotating the tracked headset;
+leave restores movement at a clear exit or center fallback. There is no automatic
+sleep, forced lying-down view or time skip. Real-headset rest comfort remains unverified.
 
 ## Verification and release limitations
 

@@ -1,6 +1,12 @@
 extends SceneTree
 var passed := 0
 var failed := 0
+var pending_applies := 0
+
+func apply_in_background(browser, record):
+	pending_applies += 1
+	await browser._apply_avatar(record)
+	pending_applies -= 1
 func _initialize(): call_deferred("run")
 func check(ok: bool, title: String):
 	print("PASS: " if ok else "FAIL: ", title)
@@ -30,6 +36,12 @@ func run():
 		"download_url": OS.get_environment("COMUNICARE_AVATAR_TEST_URL")}
 	var second = record.duplicate(true)
 	second.id = "latest-selection"
+	apply_in_background(browser, record)
+	browser._details(second)
+	var cancel_deadline = Time.get_ticks_msec() + 5000
+	while pending_applies > 0 and Time.get_ticks_msec() < cancel_deadline: await create_timer(0.01).timeout
+	check(pending_applies == 0 and browser.detail.status_label.text.is_empty() and not browser.detail.use_button.disabled,
+		"canceled Apply cannot replace newly selected card status or block its Use button")
 	browser._details(record)
 	browser._details(second)
 	await process_frame

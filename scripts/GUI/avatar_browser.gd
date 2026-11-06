@@ -349,11 +349,12 @@ func _card(record: Dictionary):
 func _apply_avatar(record: Dictionary):
 	if applying_avatar or editor_open: return
 	if detail.record != record: _details(record)
+	var ticket = generation
 	applying_avatar = true
 	_loading_progress(0, "Loading avatar…")
 	await _import_record(record, true)
 	applying_avatar = false
-	if not is_instance_valid(detail): return
+	if ticket != generation or not is_instance_valid(detail) or detail.record != record: return
 	if loading_bar.value < 100: detail.show_error("Could not apply avatar. " + status.text)
 	else: preload("res://scripts/GUI/toast_host.gd").notify(self, "Avatar changed.", "success")
 

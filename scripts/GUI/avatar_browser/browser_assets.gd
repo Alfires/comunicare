@@ -143,6 +143,7 @@ func import_record(record: Dictionary, equip: bool = false):
 	var service = browser._service(browser.registry.sources[record.provider], record.provider)
 	if equip:
 		service.download_progress.connect(func(received, total):
+			if ticket != browser.generation: return
 			if total > 0: browser._loading_progress(clampf(float(received) / total, 0, 1) * 70, "Downloading avatar…")
 			else: browser._loading_progress(0, "Downloading avatar… (%d KiB)" % (received / 1024)))
 	_status("Downloading and validating; your equipped avatar is unchanged…")
@@ -196,6 +197,7 @@ func import_record(record: Dictionary, equip: bool = false):
 	if equip:
 		browser._loading_progress(90, "Applying avatar…")
 		if await configuration.apply(imported, configuration.sources.duplicate(true)):
+			if ticket != browser.generation or not is_inside_tree() or save.profile.get_local_fingerprint() != browser.account_owner: return
 			_status("Avatar applied: " + imported.name)
 			browser._loading_progress(100, "Avatar changed.")
 		else: _status(configuration.last_error)

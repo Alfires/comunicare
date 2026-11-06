@@ -130,7 +130,8 @@ func search(query: Dictionary) -> Dictionary:
 			for field in ["id", "title", "type", "author", "format", "license", "category", "page_url", "thumbnail_url", "download_url", "sha256"]:
 				if item.get(field, "") is String: record[field] = item.get(field, "").left(4096 if field.ends_with("url") else 200)
 			record.compatibility = "unknown" # A remote catalog can never self-certify importer validation.
-			record.redistribution = item.get("redistribution", false) == true
+			var consent = item.get("redistribution", false)
+			record.redistribution = consent is bool and consent
 			record.tags = []
 			if item.get("tags") is Array:
 				for tag in item.tags.slice(0, 20):

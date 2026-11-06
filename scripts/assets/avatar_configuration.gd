@@ -188,7 +188,8 @@ func import_source(source: String, is_model: bool, share_allowed: bool) -> Dicti
 	else: handle = await cache.import_file(source, kind, validator)
 	if ticket != generation: return {}
 	if handle.is_empty():
-		if last_error.is_empty(): last_error = cache.last_error if not cache.last_error.is_empty() else loader.animation_import_error
+		if last_error.is_empty():
+			last_error = cache.last_error if not cache.last_error.is_empty() else ("Avatar model import failed. Check that the file is a supported self-contained humanoid VRM/GLB." if is_model else loader.animation_import_error)
 		return {}
 	if handle.get("temporary", false):
 		last_error = "No-store sources cannot be saved as an applied avatar configuration."
@@ -197,12 +198,18 @@ func import_source(source: String, is_model: bool, share_allowed: bool) -> Dicti
 		"url": source if is_url else "", "share": share_allowed}
 
 func _validate_animation(path_to_file: String) -> bool:
-	return not (await loader.read_animation(path_to_file)).is_empty()
+	var parsed = await loader.read_animation(path_to_file)
+	if parsed.is_empty(): last_error = loader.animation_import_error
+	return not parsed.is_empty()
 
 func _validate_model(path_to_file: String) -> bool:
-	if not await loader._validate_avatar(path_to_file): return false
+	if not await loader._validate_avatar(path_to_file):
+		last_error = "Avatar model validation failed: expected a self-contained VRM/GLB up to 64 MiB that the model importer can load."
+		return false
 	var model_tree = await loader._load_model_from_file(path_to_file)
-	if model_tree == null: return false
+	if model_tree == null:
+		last_error = "Avatar model scene could not be imported. The file may use unsupported model extensions or invalid mesh/skin data."
+		return false
 	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
 	var compatible = reader._skeleton(model_tree) != null and not model_tree.get_meta("humanoid_bones", {}).is_empty()
 	model_tree.free()

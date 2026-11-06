@@ -53,6 +53,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 {"id": "motion-a", "type": "animation", "title": "Wave", "format": "vrma",
                  "license": "CC0-1.0", "page_url": "https://example.test/wave"},
             ]
+            if url.path == "/bad-consent":
+                items[0]["redistribution"] = 1
             if query.get("type", ["all"])[0] != "all":
                 items = [item for item in items if item["type"] == query["type"][0]]
             body = json.dumps({"schema": 1, "items": items, "next_cursor": None if url.path == "/null-cursor" else "page-2",

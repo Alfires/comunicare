@@ -250,6 +250,9 @@ func test_loopback_search():
 	result = await service.search({"query": "", "type": "all"})
 	check(result.get("request_received", {}).get("authorization") == "", "switch back to public clears authenticated context")
 	check(result.get("items", []).all(func(item): return item.get("compatibility") == "unknown"), "remote metadata cannot self-certify importer compatibility")
+	service.configure({"id": "fixture", "base_url": base + "/bad-consent", "kind": "builtin", "auth": "none"}, {"allow_loopback_http": true})
+	result = await service.search({"query": "", "type": "all"})
+	check(result.get("items", []).size() == 2 and not result.items[0].redistribution, "malformed numeric provider consent fails closed without runtime errors")
 	service.configure({"id": "cached", "base_url": base + "/bad", "kind": "builtin", "auth": "none", "adapter": "osa"}, {"allow_loopback_http": true})
 	service.catalogs.cached = {"at": Time.get_ticks_msec(), "records": [{"id": "cached", "title": "Cached robot", "type": "avatar", "format": "vrm"}]}
 	result = await service.search({"query": "", "type": "all"})

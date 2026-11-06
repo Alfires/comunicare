@@ -19,14 +19,26 @@ class LocalPlayer extends CharacterBody3D:
 
 class ModelValidationLoader extends Node:
 	var animation_calls := 0
-	func _validate_avatar(_path): return true
+	var avatar_valid := true
+	var model_loads := true
+	var animation_import_error := "Animation file has no clips or exceeds the 64-clip limit."
+	var cache
+	func get_asset_cache(): return cache
+	func _validate_avatar(_path): return avatar_valid
 	func _load_model_from_file(_path):
+		if not model_loads: return null
 		var model = Node3D.new()
 		model.add_child(Skeleton3D.new())
 		model.set_meta("humanoid_bones", {"head": "Head"})
 		return model
 	func read_animation(_path):
 		animation_calls += 1
+		return {}
+
+class ValidationCache extends RefCounted:
+	var last_error := ""
+	func import_file(path, _kind, validator):
+		await validator.call(path)
 		return {}
 
 func _initialize():
@@ -586,6 +598,15 @@ func test_model_validation_separation():
 	file.store_buffer(pack(doc.json, doc.binary)); file.close()
 	check(await configuration._validate_model("res://model-with-extra-motion.glb"), "valid avatar is not rejected because optional embedded animation is unsupported")
 	check(loader.animation_calls == 0, "model validation never applies standalone animation byte/clip limits")
+	loader.avatar_valid = false
+	loader.cache = ValidationCache.new()
+	configuration.account_owner = "test"
+	var rejected: Dictionary = await configuration.import_source("res://bad-model.glb", true, true)
+	check(rejected.is_empty() and not "64-clip" in configuration.last_error and "model" in configuration.last_error.to_lower(), "model rejection cannot reuse stale standalone animation error")
+	loader.avatar_valid = true
+	loader.model_loads = false
+	configuration.last_error = ""
+	check(not await configuration._validate_model("res://bad-model.glb") and not configuration.last_error.is_empty(), "model scene-import failure has an actionable model diagnostic")
 	configuration.free(); loader.free()
 	if FileAccess.file_exists("res://real-avatar.vrm"):
 		var real_configuration = load("res://scripts/assets/avatar_configuration.gd").new()

@@ -6,6 +6,10 @@ var entries: Array = []
 var error_text := ""
 
 var _loaded := false
+const FIRST_BATCH := 4
+const PER_FRAME := 3
+var _queue: Array = []
+var _footer: Array = []
 
 ## Builds the notices the first time the page is shown (Settings creates it hidden).
 func _ready():
@@ -30,6 +34,7 @@ func load_entries(records: Array):
 		remove_child(child)
 		child.queue_free()
 	entries.clear()
+	_queue.clear()
 	error_text = ""
 	_add_text("Credits", true)
 	_add_text("Bundled third-party assets. Full license text is available here without internet.")
@@ -51,29 +56,52 @@ func load_entries(records: Array):
 		entry.terms = terms
 		ids[entry.id] = true
 		entries.append(entry)
-		_add_text(entry.title, true)
-		_add_text("%s\n%s\n%s" % [entry.author, entry.license, entry.get("attribution", "")])
-		_add_text(entry.modifications)
-		_add_text(entry.source)
-		var source = Button.new()
-		source.text = "Open source website"
-		source.custom_minimum_size.y = 44
-		source.pressed.connect(func(): source_requested.emit(entry.source))
-		add_child(source)
-		var toggle = Button.new()
-		toggle.text = "Show full license text"
-		toggle.custom_minimum_size.y = 44
-		add_child(toggle)
-		# Full terms are shaped only when expanded (see text_block.gd).
-		var license_text = TextBlock.new()
-		license_text.visible = false
-		license_text.text = terms
-		add_child(license_text)
-		toggle.pressed.connect(func():
-			license_text.visible = not license_text.visible
-			toggle.text = "Hide full license text" if license_text.visible else "Show full license text")
-	if not error_text.is_empty(): _add_text(error_text)
-	if records.is_empty(): _add_text("No bundled asset notices available.")
+		_queue.append(entry)
+	_footer.clear()
+	if not error_text.is_empty(): _footer.append(error_text)
+	if records.is_empty(): _footer.append("No bundled asset notices available.")
+	# The first entries fill the view at once; the rest follow a few per frame so
+	# opening Credits never stalls (data in `entries` is complete immediately).
+	_build_some(FIRST_BATCH)
+	set_process(not _queue.is_empty())
+
+## Builds every remaining entry now (tests and callers that need all controls).
+func finish_build():
+	_build_some(_queue.size())
+
+func _process(_delta: float):
+	_build_some(PER_FRAME)
+
+func _build_some(count: int):
+	for i in mini(count, _queue.size()):
+		_build_entry(_queue.pop_front())
+	if _queue.is_empty():
+		for text in _footer: _add_text(text)
+		_footer.clear()
+		set_process(false)
+
+func _build_entry(entry: Dictionary):
+	_add_text(entry.title, true)
+	_add_text("%s\n%s\n%s" % [entry.author, entry.license, entry.get("attribution", "")])
+	_add_text(entry.modifications)
+	_add_text(entry.source)
+	var source = Button.new()
+	source.text = "Open source website"
+	source.custom_minimum_size.y = 44
+	source.pressed.connect(func(): source_requested.emit(entry.source))
+	add_child(source)
+	var toggle = Button.new()
+	toggle.text = "Show full license text"
+	toggle.custom_minimum_size.y = 44
+	add_child(toggle)
+	# Full terms are shaped only when expanded (see text_block.gd).
+	var license_text = TextBlock.new()
+	license_text.visible = false
+	license_text.text = entry.terms
+	add_child(license_text)
+	toggle.pressed.connect(func():
+		license_text.visible = not license_text.visible
+		toggle.text = "Hide full license text" if license_text.visible else "Show full license text")
 
 func _valid_record(record: Dictionary) -> bool:
 	for key in ["id", "title", "author", "source", "license", "license_file", "modifications"]:

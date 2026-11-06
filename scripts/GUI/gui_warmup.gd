@@ -16,7 +16,13 @@ const SCENES = [
 	"res://scenes/GUI/avatar_preview.tscn", "res://scenes/GUI/avatar_stage.tscn",
 ]
 const WARM_MODEL = "res://assets/avatars/placeholder/RobotExpressive.glb"
+## Pages without network side effects, created once off-screen so first-use
+## initialization (dialogs, first layout of these controls) happens at startup.
+const WARM_INSTANCES = ["res://scenes/GUI/tablet_shell.tscn", "res://scenes/GUI/settings_menue.tscn"]
 const RENDER_FRAMES := 3
+## Heavy steps (pipeline compiles, first layouts) are spread out so their short
+## hitches never stack into one long freeze while the world is starting.
+const STEP_SPACING_FRAMES := 10
 const GLYPH_SIZES = [14, 18, 24]
 const GLYPHS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÄÖÜäöüß…·–—×°"
 
@@ -27,6 +33,8 @@ var _stage: Control
 var _frames := 0
 var _start_usec := 0
 var _pipelines_before := 0
+var _steps: Array = []
+var _next_step_frame := 0
 var _glyph_layer: CanvasLayer
 var _glyph_item: RID
 
@@ -51,9 +59,9 @@ static func start(host: Node) -> Node:
 
 func _ready():
 	_start_usec = Time.get_ticks_usec()
-	_warm_glyphs()
-	for path in SCENES + [WARM_MODEL]:
-		if ResourceLoader.exists(path) and ResourceLoader.load_threaded_request(path, "", true) == OK:
+	_steps.append(_warm_glyphs)
+	for path in SCENES + WARM_INSTANCES + [WARM_MODEL]:
+		if not path in _pending and ResourceLoader.exists(path) and ResourceLoader.load_threaded_request(path, "", true) == OK:
 			_pending.append(path)
 
 func _process(_delta: float):
@@ -65,17 +73,28 @@ func _process(_delta: float):
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
 			_loaded.append(ResourceLoader.load_threaded_get(path))
 			if path == WARM_MODEL:
-				_render_stage()
-	if is_instance_valid(_stage):
+				_steps.append(_render_stage)
+			if path in WARM_INSTANCES:
+				_steps.append(_warm_instance.bind(_loaded.back()))
+	if not _steps.is_empty() and Engine.get_process_frames() >= _next_step_frame:
+		_steps.pop_front().call()
+		_next_step_frame = Engine.get_process_frames() + STEP_SPACING_FRAMES
+	if is_instance_valid(_stage) and _stage.visible:
 		_frames += 1
 		if _frames > RENDER_FRAMES:
-			_stage.queue_free()
-			_stage = null
+			# Hidden and idle instead of freed: freeing materials while their
+			# pipelines still compile in the background stalled a frame for ~5 s.
+			_stage.visible = false
+			_stage.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	if _glyph_item.is_valid() and _frames_since_glyphs() > 1:
 		RenderingServer.free_rid(_glyph_item)
 		_glyph_item = RID()
 		_glyph_layer.queue_free()
-	if _pending.is_empty() and _stage == null and not _glyph_item.is_valid():
+	for entry in _warm_nodes.duplicate():
+		if Engine.get_process_frames() - entry.frame > 2:
+			entry.layer.queue_free()
+			_warm_nodes.erase(entry)
+	if _pending.is_empty() and _steps.is_empty() and (_stage == null or not _stage.visible) and not _glyph_item.is_valid() and _warm_nodes.is_empty():
 		var report = {"seconds": (Time.get_ticks_usec() - _start_usec) / 1000000.0, "scenes": _loaded.size(),
 			"pipelines_compiled": pipeline_compilations() - _pipelines_before}
 		finished.emit(report)
@@ -125,4 +144,19 @@ func _render_stage():
 	_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_stage)
 	_stage.set_model(model_scene[0].instantiate())
-	_stage.tree_exited.connect(layer.queue_free)
+
+var _warm_nodes: Array = []
+
+## Instantiates a page off-screen for two frames, then frees it.
+func _warm_instance(scene: Resource):
+	if not scene is PackedScene:
+		return
+	var layer = CanvasLayer.new()
+	layer.layer = -100
+	add_child(layer)
+	var node = scene.instantiate()
+	if node is Control:
+		node.position = Vector2(-8192, -8192)
+		node.size = Vector2(1000, 750)
+	layer.add_child(node)
+	_warm_nodes.append({"layer": layer, "frame": Engine.get_process_frames()})

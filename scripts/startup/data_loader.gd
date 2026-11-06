@@ -260,8 +260,28 @@ func _build_avatar(buffer: PackedByteArray, path: String) -> Node3D:
 			for index in nodes.size():
 				if nodes[index].mesh == int(entry.get("mesh", -1)) and nodes[index].mesh >= 0:
 					annotations[str(nodes[index].resource_name)] = types.get(flag, "auto")
-		preload("res://scripts/assets/first_person_avatar.gd").prepare(model, annotations)
+		preload("res://scripts/assets/first_person_avatar.gd").prepare(model, annotations, _importer_arrays(state))
 	return model
+
+## CPU-side surface and blend shape arrays of every imported mesh, keyed by the
+## ArrayMesh the generated scene uses, so first-person preparation never reads
+## vertex data back from the GPU on this worker thread.
+static func _importer_arrays(state: GLTFState) -> Dictionary:
+	var result := {}
+	for gltf_mesh in state.get_meshes():
+		var importer: ImporterMesh = gltf_mesh.mesh
+		if importer == null:
+			continue
+		var arrays: Array = []
+		var blends: Array = []
+		for surface in importer.get_surface_count():
+			arrays.append(importer.get_surface_arrays(surface))
+			var shapes: Array = []
+			for shape in importer.get_blend_shape_count():
+				shapes.append(importer.get_surface_blend_shape_arrays(surface, shape))
+			blends.append(shapes)
+		result[importer.get_mesh()] = {"arrays": arrays, "blends": blends}
+	return result
 
 func _exit_tree():
 	if world_thread != null and world_thread.is_started():

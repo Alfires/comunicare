@@ -29,6 +29,19 @@ var connecting := false
 signal reset
 var local_map_picker: FileDialog
 
+## Created on first use: a FileDialog builds a full file browser UI (~20-40 ms).
+func _local_map_dialog() -> FileDialog:
+	if not is_instance_valid(local_map_picker):
+		local_map_picker = FileDialog.new()
+		local_map_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+		local_map_picker.access = FileDialog.ACCESS_FILESYSTEM
+		local_map_picker.use_native_dialog = false
+		local_map_picker.filters = PackedStringArray(["*.cworld,*.zip,*.cne ; Validated world package"])
+		# Defer scene replacement out of FileDialog's signal/input stack.
+		local_map_picker.file_selected.connect(func(path): _load_local_map.call_deferred(path))
+		add_child(local_map_picker)
+	return local_map_picker
+
 func _ready() -> void:
 	var edit_local = Button.new()
 	edit_local.text = "Edit local project…"
@@ -37,19 +50,11 @@ func _ready() -> void:
 		var editor = load("res://scenes/GUI/map_editor.tscn").instantiate()
 		add_child(editor))
 	$VBoxContainer/HBoxContainer.add_child(edit_local)
-	local_map_picker = FileDialog.new()
-	local_map_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
-	local_map_picker.access = FileDialog.ACCESS_FILESYSTEM
-	local_map_picker.use_native_dialog = false
-	local_map_picker.filters = PackedStringArray(["*.cworld,*.zip,*.cne ; Validated world package"])
-	# Defer scene replacement out of FileDialog's signal/input stack.
-	local_map_picker.file_selected.connect(func(path): _load_local_map.call_deferred(path))
-	add_child(local_map_picker)
 	var open_local = Button.new()
 	open_local.name = "OpenLocalMap"
 	open_local.text = "Open local map…"
 	open_local.custom_minimum_size.y = 44
-	open_local.pressed.connect(func(): local_map_picker.popup_centered_ratio(0.8))
+	open_local.pressed.connect(func(): _local_map_dialog().popup_centered_ratio(0.8))
 	$VBoxContainer/HBoxContainer.add_child(open_local)
 	reset.connect(close_info_menu)
 	$WorldInfo/Back.pressed.connect(close_info_menu)

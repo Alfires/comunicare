@@ -1,10 +1,11 @@
 extends SceneTree
 ## GUI frame-time benchmark with production autoloads (disposable account from
-## run.py). Prints "PERF: <name> cpu=<ms> worst_frame=<ms>" lines. cpu is the
-## synchronous cost of the action; worst_frame is the longest frame among the
-## following frames (layout, theme and draw work that happens after the call).
-## Informational unless COMUNICARE_PERF_BUDGET_MS is set, then actions whose
-## worst frame exceeds the budget fail. Use --rendered for real draw costs.
+## run.py). Prints "PERF: <name> total=<ms> worst_frame=<ms>" lines. total is the
+## wall time until the action finished (async actions span frames); worst_frame
+## is the longest single frame during the action and the frames after it, which
+## is what users see as a freeze. Informational unless COMUNICARE_PERF_BUDGET_MS
+## is set, then actions whose worst frame exceeds the budget fail.
+## Use --rendered --renderer forward_plus for real draw costs.
 
 const FOLLOW_FRAMES := 6
 var results: Array = []
@@ -14,23 +15,32 @@ var failed := 0
 func _initialize():
 	call_deferred("run")
 
+## Longest frame seen since the last reset; frames during awaited (async)
+## actions count too, so background imports that stall a frame are caught.
+var _watch := {"last": 0, "worst": 0.0}
+
+func _watch_frame():
+	var now = Time.get_ticks_usec()
+	if _watch.last > 0:
+		_watch.worst = maxf(_watch.worst, (now - _watch.last) / 1000.0)
+	_watch.last = now
+
 func measure(name: String, action: Callable):
+	if not process_frame.is_connected(_watch_frame):
+		process_frame.connect(_watch_frame)
 	await process_frame
+	_watch.worst = 0.0
+	_watch.last = Time.get_ticks_usec()
 	var start = Time.get_ticks_usec()
 	await action.call()
 	var cpu = (Time.get_ticks_usec() - start) / 1000.0
-	var worst := 0.0
-	var last = Time.get_ticks_usec()
 	for i in FOLLOW_FRAMES:
 		await process_frame
-		var now = Time.get_ticks_usec()
-		worst = maxf(worst, (now - last) / 1000.0)
-		last = now
-	var total = cpu + worst
+	var worst: float = _watch.worst
 	results.append({"name": name, "cpu": cpu, "frame": worst})
-	var over = budget > 0 and total > budget
+	var over = budget > 0 and worst > budget
 	if over: failed += 1
-	print("PERF: %-44s cpu=%7.2f ms  worst_frame=%7.2f ms%s" % [name, cpu, worst, "  OVER BUDGET" if over else ""])
+	print("PERF: %-44s total=%7.2f ms  worst_frame=%7.2f ms%s" % [name, cpu, worst, "  OVER BUDGET" if over else ""])
 
 func humanoid() -> Node3D:
 	var model = load("res://assets/avatars/placeholder/RobotExpressive.glb").instantiate()
@@ -50,8 +60,13 @@ func run():
 	var warmup = root.get_node_or_null("GuiWarmup")
 	print("Warm-up: %s" % ("running" if warmup != null else "disabled"))
 	if warmup != null and warmup.is_processing():
-		var report = await warmup.finished
+		# Runs in the background at startup; its frames are measured like any action.
+		var holder := {}
+		await measure("startup: GUI warm-up (background)", func(): holder.report = await warmup.finished)
+		var report: Dictionary = holder.report
 		print("Warm-up: %.2f s, %d resources, %d pipelines compiled" % [report.seconds, report.scenes, report.pipelines_compiled])
+		await measure("startup: 2 s after warm-up", func():
+			for i in 120: await process_frame)
 	print("Pipeline compilations before measuring: %d" % load("res://scripts/GUI/gui_warmup.gd").pipeline_compilations())
 	# Lambdas capture locals by value; share nodes through this Dictionary.
 	var ui := {}
@@ -98,6 +113,16 @@ func run():
 		preview.loader = func(_url): return humanoid()
 		preview.set_source("perf-robot")
 		await preview.load_preview())
+	var avatar_path = OS.get_environment("COMUNICARE_PERF_AVATAR")
+	if not avatar_path.is_empty() and FileAccess.file_exists(avatar_path):
+		var bytes = FileAccess.get_file_as_bytes(avatar_path)
+		await measure("preview: load VRM (production importer)", func():
+			preview.loader = func(_url): return await root.get_node("DataLoader")._load_model_from_buffer(bytes)
+			preview.set_source("perf-vrm")
+			await preview.load_preview())
+		await measure("preview: same VRM again", func():
+			preview.set_source("perf-vrm-2")
+			await preview.load_preview())
 	await measure("preview: orbit drag", func(): preview.stage.orbit(Vector2(40, 10)))
 	await measure("preview: idle frames", func(): pass)
 	print("Pipeline compilations after preview: %d" % load("res://scripts/GUI/gui_warmup.gd").pipeline_compilations())
@@ -110,9 +135,9 @@ func run():
 			wheel.queue_redraw())
 	wheel.free()
 	var worst = results.duplicate()
-	worst.sort_custom(func(a, b): return a.cpu + a.frame > b.cpu + b.frame)
-	print("\nSlowest actions:")
+	worst.sort_custom(func(a, b): return a.frame > b.frame)
+	print("\nLongest frames:")
 	for item in worst.slice(0, 6):
-		print("  %-44s %7.2f ms" % [item.name, item.cpu + item.frame])
+		print("  %-44s %7.2f ms" % [item.name, item.frame])
 	print("GUI perf: %d actions, %d over budget" % [results.size(), failed])
 	quit(1 if failed else 0)

@@ -3,13 +3,29 @@ extends Control
 @onready var rows: VBoxContainer = $Layout/Content/ScrollContainer/Rows
 @onready var categories: VBoxContainer = $Layout/Content/Side/CategoryScroll/Categories
 @onready var status: Label = $Layout/Status
-var controls: Dictionary = {}
-var errors: Dictionary = {}
+## Rows are built per category on demand (the shown one first, the others one per
+## frame). Reading controls/errors/resets completes the build first, so callers
+## always see every setting.
+var controls: Dictionary:
+	get:
+		_complete_rows()
+		return _controls
+var errors: Dictionary:
+	get:
+		_complete_rows()
+		return _errors
+var _controls: Dictionary = {}
+var _errors: Dictionary = {}
+var _resets: Dictionary = {}
+var _pending_rows: Dictionary = {}
 var binding_id := ""
 var selected_category := ""
 var category_pages: Dictionary = {}
 var category_buttons: Dictionary = {}
-var resets: Dictionary = {}
+var resets: Dictionary:
+	get:
+		_complete_rows()
+		return _resets
 var searching := false
 @onready var search: LineEdit = %Search
 @onready var no_results: Label = %NoResults
@@ -36,9 +52,10 @@ func _render():
 			continue
 		rows.remove_child(child)
 		child.queue_free()
-	controls.clear()
-	errors.clear()
-	resets.clear()
+	_controls.clear()
+	_errors.clear()
+	_resets.clear()
+	_pending_rows.clear()
 	category_pages.clear()
 	category_buttons.clear()
 	var group = ButtonGroup.new()
@@ -65,8 +82,13 @@ func _render():
 			reset.pressed.connect(_reset_category.bind(category))
 			header.add_child(reset)
 			page.add_child(header)
-		page.add_child(_setting_row(definition))
-		_update_value(definition.id, SaveData.store.get_value(definition.id))
+			# Rows are inserted before this hidden marker, after header/help items.
+			var marker = Control.new()
+			marker.visible = false
+			marker.set_meta("row_marker", true)
+			page.add_child(marker)
+			_pending_rows[category] = []
+		_pending_rows[category].append(definition)
 	if category_pages.has("Assets") and DataLoader.has_method("get_asset_cache"):
 		_add_cache_actions(category_pages.Assets)
 	if category_pages.has("Controls"):
@@ -107,6 +129,32 @@ func _render():
 	if not category_pages.has(selected_category):
 		selected_category = "" if category_pages.is_empty() else str(category_pages.keys()[0])
 	select_category(selected_category)
+	set_process(not _pending_rows.is_empty())
+
+## Builds the rows of one category if they are still pending.
+func _build_rows(category: String):
+	if not _pending_rows.has(category):
+		return
+	var definitions: Array = _pending_rows[category]
+	_pending_rows.erase(category)
+	var page: Control = category_pages[category]
+	var marker: Node = page.get_children().filter(func(child): return child.has_meta("row_marker"))[0]
+	for definition in definitions:
+		var row = _setting_row(definition)
+		page.add_child(row)
+		page.move_child(row, marker.get_index())
+		_update_value(definition.id, SaveData.store.get_value(definition.id))
+
+func _complete_rows():
+	for category in _pending_rows.keys():
+		_build_rows(category)
+
+## One pending category per frame keeps opening Settings smooth.
+func _process(_delta: float):
+	if _pending_rows.is_empty():
+		set_process(false)
+		return
+	_build_rows(_pending_rows.keys()[0])
 
 func _category_button(category: String, group: ButtonGroup) -> Button:
 	var tab = Button.new()
@@ -153,7 +201,7 @@ func _setting_row(definition: Dictionary) -> Control:
 	control.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	control.custom_minimum_size.y = maxf(control.custom_minimum_size.y, 40)
 	line.add_child(control)
-	controls[definition.id] = control
+	_controls[definition.id] = control
 	var reset = Button.new()
 	reset.name = "Reset"
 	reset.theme_type_variation = "IconButton"
@@ -163,24 +211,26 @@ func _setting_row(definition: Dictionary) -> Control:
 	reset.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	reset.pressed.connect(_reset_value.bind(definition.id))
 	line.add_child(reset)
-	resets[definition.id] = reset
+	_resets[definition.id] = reset
 	var error = Label.new()
 	error.name = "Error"
 	error.theme_type_variation = "ErrorLabel"
 	error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	error.visible = false
 	row.add_child(error)
-	errors[definition.id] = error
+	_errors[definition.id] = error
 	return row
 
 func _set_error(id: String, message: String):
-	if errors.has(id):
-		errors[id].text = message
-		errors[id].visible = not message.is_empty()
+	if _errors.has(id):
+		_errors[id].text = message
+		_errors[id].visible = not message.is_empty()
 
 func _search_changed(query: String):
 	var text = query.strip_edges().to_lower()
 	searching = not text.is_empty()
+	if searching:
+		_complete_rows()
 	var any := false
 	for name in category_pages:
 		var page: Control = category_pages[name]
@@ -190,7 +240,7 @@ func _search_changed(query: String):
 				var hit = not searching or str(child.get_meta("search_text")).contains(text)
 				child.visible = hit
 				page_match = page_match or hit
-			elif child.get_index() > 0:
+			elif child.get_index() > 0 and not child.has_meta("row_marker"):
 				child.visible = not searching
 		page.visible = (page_match and searching) or (not searching and name == selected_category)
 		any = any or (page_match and searching)
@@ -225,13 +275,18 @@ func _add_cache_actions(page: VBoxContainer):
 	var clear = Button.new()
 	clear.text = "Clear unused downloads (keep active assets and imports)"
 	page.add_child(clear)
-	var confirm = ConfirmationDialog.new()
-	confirm.dialog_text = "Remove unused cached downloads? Active assets and imported originals will be kept."
-	clear.add_child(confirm)
-	clear.pressed.connect(func(): confirm.popup_centered())
-	confirm.confirmed.connect(func():
-		cache.clear_unused()
-		update.call())
+	# The confirmation dialog is created on first click, not with the page.
+	clear.pressed.connect(func():
+		var confirm: ConfirmationDialog = clear.get_node_or_null("Confirm")
+		if confirm == null:
+			confirm = ConfirmationDialog.new()
+			confirm.name = "Confirm"
+			confirm.dialog_text = "Remove unused cached downloads? Active assets and imported originals will be kept."
+			clear.add_child(confirm)
+			confirm.confirmed.connect(func():
+				cache.clear_unused()
+				update.call())
+		confirm.popup_centered())
 
 const COMFORT_PRESET = [["vr.turn_mode", "snap"], ["vr.snap_angle", 30.0], ["vr.move_speed", 1.5],
 	["vr.comfort_vignette", true], ["vr.snap_blink", true], ["vr.jump_enabled", false]]
@@ -281,6 +336,7 @@ func select_category(category: String):
 		return
 	_cancel_binding()
 	selected_category = category
+	_build_rows(category)
 	if category == "Network":
 		_ensure_relay_panel()
 	if searching:
@@ -351,7 +407,7 @@ func _create_control(definition: Dictionary) -> Control:
 func _commit(value: Variant, id: String):
 	if not SaveData.store.set_value(id, value):
 		_set_error(id, "Invalid value; change was not applied.")
-		_show_error(errors[id].text)
+		_show_error(_errors[id].text)
 	else:
 		_set_error(id, "")
 
@@ -367,12 +423,12 @@ func _reset_category(category: String):
 			_reset_value(definition.id)
 
 func _update_value(id: String, value: Variant):
-	if not controls.has(id):
+	if not _controls.has(id):
 		return
-	var control: Control = controls[id]
-	if id in ["interface.theme_preset", "interface.hover_color"] and controls.has("interface.accent") \
-		and controls["interface.accent"].has_method("set_options"):
-		controls["interface.accent"].set_options(SaveData.registry.get_definition("interface.accent").options, _swatch_colors("interface.accent"))
+	var control: Control = _controls[id]
+	if id in ["interface.theme_preset", "interface.hover_color"] and _controls.has("interface.accent") \
+		and _controls["interface.accent"].has_method("set_options"):
+		_controls["interface.accent"].set_options(SaveData.registry.get_definition("interface.accent").options, _swatch_colors("interface.accent"))
 	if control.has_method("swatch_buttons"):
 		control.value = str(value)
 	elif control is CheckButton:
@@ -388,14 +444,16 @@ func _update_value(id: String, value: Variant):
 	elif control is Button:
 		control.text = OS.get_keycode_string(value)
 	_set_error(id, "")
-	if resets.has(id):
-		resets[id].visible = value != SaveData.registry.get_definition(id).get("default")
+	if _resets.has(id):
+		_resets[id].visible = value != SaveData.registry.get_definition(id).get("default")
 
 func _begin_binding(id: String):
+	if not _controls.has(id):
+		_complete_rows()
 	_cancel_binding()
 	binding_id = id
 	SaveData.voice.input_blocked = true
-	controls[id].text = "Press a key (Esc cancels)"
+	_controls[id].text = "Press a key (Esc cancels)"
 
 func _input(event: InputEvent):
 	if binding_id.is_empty() or not event is InputEventKey or not event.pressed or event.echo:

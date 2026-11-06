@@ -105,3 +105,12 @@ func add_page_button(title: String, action: Callable) -> Button:
 	button.pressed.connect(action)
 	page_box.add_child(button)
 	return button
+
+## "Load more" as the last grid cell, sized like a card.
+func add_more_button(action: Callable) -> Button:
+	var button = Button.new()
+	button.text = "Load more"
+	button.custom_minimum_size = CARD_SIZE
+	button.pressed.connect(action)
+	grid.add_child(button)
+	return button

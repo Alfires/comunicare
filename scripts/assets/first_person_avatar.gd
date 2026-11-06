@@ -25,7 +25,11 @@ static func configure_camera(node: Node):
 	if node is Camera3D and not node.get_meta("first_person_camera", false):
 		node.cull_mask &= ~BODY_LAYER
 
-static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
+## cpu_arrays: optional ArrayMesh → {"arrays": [per surface], "blends": [per surface]}
+## taken from the importer's CPU-side ImporterMesh data. Reading the same data back
+## from an uploaded ArrayMesh (surface_get_arrays) is a GPU readback that stalled
+## the main thread for ~3.5 s on the first import (Forward+).
+static func prepare(avatar: Node3D, annotations: Dictionary = {}, cpu_arrays: Dictionary = {}) -> bool:
 	if avatar.get_meta("first_person_prepared", false): return true
 	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
 	var rig: Skeleton3D = reader._skeleton(avatar)
@@ -66,7 +70,8 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		var split := false
 		var source_surfaces: Array[int] = []
 		for surface in mesh.get_surface_count():
-			var arrays: Array = mesh.surface_get_arrays(surface)
+			var cached: Dictionary = cpu_arrays.get(mesh, {})
+			var arrays: Array = cached.arrays[surface] if cached.has("arrays") else mesh.surface_get_arrays(surface)
 			var head_vertices: Dictionary = {}
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var bones = arrays[Mesh.ARRAY_BONES]
@@ -96,7 +101,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 				var is_head = head_vertices.has(indices[triangle]) or head_vertices.has(indices[triangle + 1]) or head_vertices.has(indices[triangle + 2])
 				var destination = head_indices if is_head else body_indices
 				destination.append_array(indices.slice(triangle, triangle + 3))
-			var blends = mesh.surface_get_blend_shape_arrays(surface) if mesh is ArrayMesh else []
+			var blends = cached.blends[surface] if cached.has("blends") else (mesh.surface_get_blend_shape_arrays(surface) if mesh is ArrayMesh else [])
 			for pair in [[body_mesh, body_indices]]:
 				if pair[1].is_empty(): continue
 				var output = arrays.duplicate()

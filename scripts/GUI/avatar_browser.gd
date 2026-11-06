@@ -153,15 +153,6 @@ func _filters_changed(values: Dictionary):
 	state.tag = values.tag
 	_search(false)
 
-func _button(parent: Node, title: String, action: Callable) -> Button:
-	var button = Button.new()
-	button.text = title
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.custom_minimum_size.y = 48
-	button.pressed.connect(action)
-	parent.add_child(button)
-	return button
-
 func _refresh_sources():
 	var list: Array = []
 	for id in registry.sources: list.append({"id": id, "name": registry.sources[id].name})
@@ -264,7 +255,7 @@ func _update_pagination():
 		pagination_button.queue_free()
 	pagination_button = null
 	if cursors.values().any(func(cursor): return cursor is String and not cursor.is_empty()):
-		pagination_button = _button(results, "Load more", func(): _search(true))
+		pagination_button = results_view.add_more_button(func(): _search(true))
 
 func _search(more: bool):
 	if not is_instance_valid(results): return

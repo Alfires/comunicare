@@ -38,14 +38,7 @@ func _ready():
 	mouse_exited.connect(func():
 		if not get_global_rect().has_point(get_global_mouse_position()): _show_toolbar(false))
 	visibility_changed.connect(_visibility_changed)
-	file_picker = FileDialog.new()
-	file_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
-	file_picker.access = FileDialog.ACCESS_FILESYSTEM
-	file_picker.use_native_dialog = false
-	file_picker.filters = PackedStringArray(["*.vrm ; VRM avatar"])
-	file_picker.file_selected.connect(load_file)
-	add_child(file_picker)
-	$ToolbarAnchor/Toolbar/OpenFile.pressed.connect(func(): file_picker.popup_centered_ratio(0.8))
+	$ToolbarAnchor/Toolbar/OpenFile.pressed.connect(func(): _file_dialog().popup_centered_ratio(0.8))
 	var save = get_node_or_null("/root/SaveData")
 	if save != null and save.get("registry") != null and save.get("store") != null \
 		and not save.registry.get_definition("interface.reduce_motion").is_empty():
@@ -53,6 +46,18 @@ func _ready():
 		save.store.setting_changed.connect(_setting_changed)
 	_show_toolbar(_in_vr())
 	_set_state(state)
+
+## Created on first use: a FileDialog builds a full file browser UI.
+func _file_dialog() -> FileDialog:
+	if not is_instance_valid(file_picker):
+		file_picker = FileDialog.new()
+		file_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+		file_picker.access = FileDialog.ACCESS_FILESYSTEM
+		file_picker.use_native_dialog = false
+		file_picker.filters = PackedStringArray(["*.vrm ; VRM avatar"])
+		file_picker.file_selected.connect(load_file)
+		add_child(file_picker)
+	return file_picker
 
 func _exit_tree():
 	generation += 1

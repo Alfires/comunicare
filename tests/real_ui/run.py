@@ -115,6 +115,9 @@ def main():
             print(output, end="", flush=True)
             if "ERROR:" in output or marker not in output or result.returncode not in (0, 1): return 2
             status = max(status, result.returncode)
+            if suite == "perf":
+                # Benchmarks run often; keep perf.log but drop the ~150 MB project copy.
+                shutil.rmtree(project, ignore_errors=True)
         return status
     except subprocess.TimeoutExpired as error:
         output = (error.stdout or b"").decode() + (error.stderr or b"").decode()

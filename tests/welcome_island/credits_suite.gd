@@ -16,6 +16,12 @@ func run():
 	if menu.category_pages.has("Credits"):
 		menu.select_category("Credits")
 		var page = menu.category_pages.Credits
+		var first_buttons = page.find_children("*", "Button", true, false).size()
+		check(first_buttons > 0 and first_buttons <= 8, "Credits shows its first entries immediately and builds the rest progressively")
+		for i in 30:
+			if not page.is_processing(): break
+			await process_frame
+		check(not page.is_processing(), "progressive Credits build finishes within a few frames")
 		check(page.has_method("load_entries"), "Credits has testable local manifest loader")
 		var expected_ids: Array = []
 		for manifest_path in ["res://assets/credits.json", "res://assets/welcome_island/manifest.json"]:

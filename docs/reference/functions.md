@@ -200,6 +200,9 @@ and notice checks precede rendering; `source_requested` emits only after an expl
 source button activation. Settings owns the resulting OS browser action. Full terms
 expand/collapse inline inside the existing settings scroll area. `_valid_record`
 and `_add_text` validate local notice fields and build wrapping readable labels.
+The page loads when first shown; `entries` is complete at once while the rows are
+built four immediately and three per frame. `finish_build` builds all remaining
+rows synchronously. Full terms use TextBlock and are shaped only when expanded.
 
 <!-- module: scripts/assets/default_robot.gd -->
 ## Bundled default robot
@@ -1979,6 +1982,7 @@ anonymous thumbnail loader.
 | `set_records` | Replaces cards; shows the empty state for an empty list. |
 | `add_record` | Adds one 200×248 card emitting record_selected when pressed. |
 | `add_page_button` | Adds a page-level button above the grid. |
+| `add_more_button` | Adds a card-sized "Load more" button as the last grid cell. |
 
 <!-- module: scripts/GUI/avatar_browser/browser_sidebar.gd -->
 ### [BrowserSidebar](../../scripts/GUI/avatar_browser/browser_sidebar.gd)
@@ -2094,10 +2098,15 @@ exit unsubscribes from old service. Avatar source editing is self-only.
 <!-- module: scripts/GUI/settings_menue.gd -->
 ### [SettingsMenu](../../scripts/GUI/settings_menue.gd)
 
+Rows are built per category: the shown one at once, the others one per frame.
+Reading `controls`, `errors` or `resets`, or searching, completes the build first,
+so callers always see every setting. The relay panel is created when Network is
+first shown and Credits when it is first selected.
+
 | Functions | Contract |
 | --- | --- |
 | `apply_comfort_preset` | Sets snap turning, 30°, 1.5 m/s, vignette and blink on, jump off through the settings store. |
-| `select_category` | Shows one known registry category, cancels active rebind and resets scroll; invalid name ignored. Private renderer/commit/reset functions use typed store; input conflicts reject without losing capture. Cache actions confirm cleanup and await refresh, not account deletion. |
+| `select_category` | Builds the category's rows if still pending, then shows one known registry category, cancels active rebind and resets scroll; invalid name ignored. Private renderer/commit/reset functions use typed store; input conflicts reject without losing capture. Cache actions confirm cleanup and await refresh, not account deletion. |
 
 <!-- module: scripts/GUI/share_session_menue.gd -->
 ### [Active Instance UI](../../scripts/GUI/share_session_menue.gd)

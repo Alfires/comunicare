@@ -1,6 +1,9 @@
 # 09 — House, beds and side spaces
 
 **Status:** Implemented initial furnished structure with manual XR/art gates — 2026-11-05.
+Detail-collision follow-up: visible modest glazing/frame/sill/post/beam meshes now
+have transformed static triangle collision; widened accessible entry remains clear.
+Hidden decorative source doors/steps/foundation are excluded. Human walkthrough remains open.
 Collision follow-up (2026-11-06): side proxies fitted to the aggregate transformed
 architectural shell, fixing invisible barriers inside the wider rendered room.
 Decorative window/trim collision is still proxy-based, not exact per-triangle physics.

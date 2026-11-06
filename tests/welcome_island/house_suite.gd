@@ -39,6 +39,10 @@ func run():
 	check(body.position.z < -17 and body.position.y > -0.1, "physics capsule enters house through accessible flush doorway")
 	check(not safety.clearance(body, house.to_global(Vector3(house.get_node("LeftWall").position.x, 0.05, 0)), 1.9, 0.35), "wall negative control blocks capsule")
 	check(house.find_children("*", "Label3D", true, false).is_empty(), "house contains no tutorial labels")
+	var details = house.get_node_or_null("ArchitecturalDetailCollision")
+	check(details != null, "visible window and porch details have matching static collision")
+	if details != null:
+		check(details.find_children("*", "CollisionShape3D", true, false).size() > 8, "architectural detail collision covers several visible fixtures")
 	# Collision wall planes must remain within 25 cm of the rendered house shell.
 	var shell = house.get_node("AuthoredExterior").find_children("*hollow*", "MeshInstance3D", true, false)
 	check(not shell.is_empty(), "adapted rendered wall shell remains inspectable")

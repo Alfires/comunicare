@@ -1,5 +1,26 @@
 # Welcome island startup contracts
 
+## Root/shore and architectural-detail collision — 2026-11-06
+
+New assertions started red on missing Roots/ShoreDetails and architectural detail
+collision. The scene now has 14 bounded three-segment root branches around the
+floating rim, plus small individual cleared rock/plant placements at the pond.
+The west dock approach is deliberately excluded; root/shore decoration has no
+extra dynamic physics. Tree/rock runtime asset reuse and visibility limits remain.
+
+Visible modest glazing/frame/sill/post/beam meshes now contribute transformed
+static triangle collision (at most 6,000 face vertices per detail); hidden source
+doors/steps/foundation do not. The widened accessible entrance corridor remains
+excluded so decorative source porch geometry cannot become an invisible blocker.
+House/detail tests, pond and full layout routes pass. First integration caught a
+porch intrusion and a local-variable parse error; both fixed before publication.
+
+Rendered overview/underside captures were inspected on Compatibility. This is
+additional landscape detail, not final human art approval. Real stereo XR reach,
+motion comfort and live WAN audible listening cannot be completed without an
+accessible runtime/headset and participants. They remain required release gates,
+not defects that can honestly be cleared by another synthetic test.
+
 ## Underside/rim and house-proxy follow-up — 2026-11-06
 
 Test-first landscape assertions rejected the old primitive cone. The underside is

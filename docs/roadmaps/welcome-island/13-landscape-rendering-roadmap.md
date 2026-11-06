@@ -1,6 +1,9 @@
 # 13 — Original landscape, atmosphere and performance
 
 **Status:** Initial composition implemented; final art/XR/performance acceptance open — 2026-11-05.
+Detail follow-up (2026-11-06): bounded rim roots and individual shoreline rock/plant
+placements are implemented and regression-tested without blocking dock routes.
+These close missing-detail items, not human final-art approval or XR acceptance.
 Geometry follow-up (2026-11-06): primitive underside replaced by an irregular
 multi-ring mesh; rim contour smoothed and routes/pond regression-tested. This
 supersedes the primitive-cone limitation, not final art, vegetation/root detail,

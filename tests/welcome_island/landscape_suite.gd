@@ -17,6 +17,12 @@ func run():
 	check(landscape.get_node("Trees").get_child_count() >= 20, "grove and side destinations have trees")
 	check(landscape.get_node("Rocks").get_child_count() >= 16, "shore and underside have individual authored rocks")
 	check(landscape.get_node("EdgeBorders").get_child_count() >= 12, "perimeter has readable protective borders")
+	check(landscape.get_node_or_null("Roots") != null, "overhanging roots connect trees to floating rock strata")
+	check(landscape.get_node_or_null("ShoreDetails") != null, "pond has composed shoreline detail beyond bare terrain")
+	if landscape.has_node("Roots"):
+		check(landscape.get_node("Roots").get_child_count() >= 12, "root detail has bounded authored branches")
+	if landscape.has_node("ShoreDetails"):
+		check(landscape.get_node("ShoreDetails").get_child_count() >= 12, "shoreline has bounded rock and plant placements")
 	var underside = world.get_node_or_null("Island/RockUnderside")
 	check(underside != null and underside.mesh is ArrayMesh, "island underside is an authored irregular mesh, not a primitive cone")
 	if underside != null:

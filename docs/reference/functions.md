@@ -1,5 +1,11 @@
 # Production function contracts
 
+House exterior integration builds static collision from visible modest glazing,
+frame, sill, porch-post and beam mesh faces, transformed into house coordinates.
+Hidden source geometry, oversized detail meshes and the widened entry corridor
+are excluded. Landscape ready adds bounded root branches and shoreline rock/plant
+placements without dynamic physics or changes to microphone/network state.
+
 Layout `_rim_point` maps only the outer terrain grid to a deterministic radial
 contour, leaving the center and routes unchanged. `_build_land` now constructs
 an irregular six-ring rock underside rather than a CylinderMesh cone. House

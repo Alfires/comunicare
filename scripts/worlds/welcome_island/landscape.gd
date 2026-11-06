@@ -38,3 +38,29 @@ func _ready():
 		var body = StaticBody3D.new(); tree.add_child(body)
 		var collision = CollisionShape3D.new(); var shape = CylinderShape3D.new()
 		shape.radius = 0.06; shape.height = 0.8; collision.shape = shape; collision.position.y = 0.4; body.add_child(collision)
+	var roots = Node3D.new(); roots.name = "Roots"; add_child(roots)
+	var bark = StandardMaterial3D.new()
+	bark.albedo_color = Color(0.22, 0.15, 0.085); bark.roughness = 0.95
+	for index in 14:
+		var angle = index * TAU / 14 + 0.15
+		var start = Vector3(cos(angle)*49, -0.6, sin(angle)*49)
+		for branch in 3:
+			var end = start + Vector3(cos(angle)*(-0.7-branch*0.2), -2.3-branch*0.8, sin(angle)*(-0.6-branch*0.2))
+			var root = MeshInstance3D.new(); roots.add_child(root)
+			var mesh = CylinderMesh.new(); mesh.top_radius = 0.22/(branch+1); mesh.bottom_radius = 0.08/(branch+1); mesh.height = start.distance_to(end); mesh.radial_segments = 7
+			root.mesh = mesh; root.material_override = bark; root.position = (start+end)*0.5
+			root.quaternion = Quaternion(Vector3.UP, (start-end).normalized())
+			root.visibility_range_end = 110
+			start = end
+	var shore = Node3D.new(); shore.name = "ShoreDetails"; add_child(shore)
+	for index in 20:
+		var angle = index * TAU / 20
+		var point = Vector3(23 + cos(angle)*14.8, 0, 23 + sin(angle)*13.2)
+		# Keep west dock approach and broad dry perimeter completely clear.
+		if point.x < 13 and absf(point.z-23) < 5: continue
+		var rock = load("res://assets/welcome_island/models/runtime/boulder_01.scn").instantiate()
+		shore.add_child(rock); rock.position = point + Vector3(0,-0.3,0); rock.scale = Vector3.ONE * (0.45 + (index%3)*0.15); rock.rotation.y = angle
+		for mesh in rock.find_children("*", "MeshInstance3D", true, false): mesh.visibility_range_end = 80
+		if index%2 == 0:
+			var plant = load("res://assets/welcome_island/models/furniture/plantSmall1.glb").instantiate()
+			shore.add_child(plant); plant.position = point + Vector3(0.4,0,0.3); plant.scale = Vector3.ONE * 1.5

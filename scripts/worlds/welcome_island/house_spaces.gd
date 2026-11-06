@@ -172,6 +172,24 @@ func _install_exterior():
 	for node in find_children("Front*", "MeshInstance3D", false, false):
 		var material = StandardMaterial3D.new(); material.albedo_color = Color(0.73, 0.69, 0.59); material.roughness = 0.85
 		node.material_override = material
+	var detail_body = StaticBody3D.new()
+	detail_body.name = "ArchitecturalDetailCollision"; add_child(detail_body)
+	for mesh in exterior.find_children("*", "MeshInstance3D", true, false):
+		var label = str(mesh.name).to_lower()
+		if not mesh.is_visible_in_tree() or not ("glazing" in label or "frame" in label or "sill" in label or "post" in label or "beam" in label): continue
+		# Exact static triangles only for visible, modest architectural details;
+		# never use the whole scene, furnishing or vegetation as physics geometry.
+		var faces = mesh.mesh.get_faces()
+		if faces.is_empty() or faces.size() > 6000: continue
+		var transform = global_transform.affine_inverse() * mesh.global_transform
+		var detail_bounds = transform * mesh.mesh.get_aabb()
+		# The source porch was adapted to a four-metre accessible entry. Details
+		# crossing that reviewed corridor are decoration only, not hidden blockers.
+		if detail_bounds.position.z > 4 and detail_bounds.position.x < 2.2 and detail_bounds.end.x > -2.2: continue
+		for index in faces.size(): faces[index] = transform * faces[index]
+		var shape = ConcavePolygonShape3D.new(); shape.set_faces(faces)
+		var collision = CollisionShape3D.new(); collision.name = "Detail" + str(detail_body.get_child_count()); collision.shape = shape
+		detail_body.add_child(collision)
 
 func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D:
 	var root = MeshInstance3D.new(); root.name = label; root.position = center; add_child(root)

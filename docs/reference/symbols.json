@@ -8652,7 +8652,7 @@
     {
       "kind": "func",
       "name": "_box",
-      "line": 176,
+      "line": 194,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D",
       "visibility": "private"
     }

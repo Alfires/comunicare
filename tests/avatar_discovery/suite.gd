@@ -56,10 +56,10 @@ func run():
 
 func test_home_entry():
 	var text = FileAccess.get_file_as_string("res://home_scene.txt")
-	check('name="AvatarBrowser"' in text and 'text = "Avatar Browser"' in text,
-		"real Home scene contains an Avatar Browser tile")
-	check('name="WorldExplorer"' in text and 'name="ActiveInstance"' in text and 'name="Emotes"' in text,
-		"existing Home navigation remains available")
+	check('"avatars": "res://scenes/GUI/avatar_browser.tscn"' in text and '"label": "Change avatar"' in text,
+		"tablet rail and Quick page both open the Avatar Browser")
+	check('"worlds": "res://scenes/GUI/world_explorer.tscn"' in text and '"instance": "res://scenes/GUI/share_session_menue.tscn"' in text
+		and '"label": "Emotes"' in text, "existing navigation to worlds, instance and emotes remains available")
 
 func test_advanced_filters():
 	var path = BASE + "catalog_filters.gd"

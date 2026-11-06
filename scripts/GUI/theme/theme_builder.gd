@@ -367,6 +367,9 @@ func _variations():
 	_variation("ErrorLabel", "Label")
 	theme.set_font_size("font_size", "ErrorLabel", CAPTION)
 	theme.set_color("font_color", "ErrorLabel", c("danger"))
+	_variation("InsetMargin", "MarginContainer")
+	for side in ["left", "top", "right", "bottom"]:
+		theme.set_constant("margin_" + side, "InsetMargin", 8)
 	_variation("ContentArea", "PanelContainer")
 	theme.set_stylebox("panel", "ContentArea", box(c("background"), 0, 24, 16))
 	_variation("ContentAreaCompact", "PanelContainer")

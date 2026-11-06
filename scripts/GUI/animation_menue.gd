@@ -182,7 +182,7 @@ func apply():
 	if not is_inside_tree(): return
 	busy = false
 	apply_button.disabled = false
-	status.text = "Applied. Basic movement animations are automatic; press B or Home → Emotes for other actions." if saved else configuration.last_error
+	status.text = "Applied. Basic movement animations are automatic; press B or open Quick > Emotes for other actions." if saved else configuration.last_error
 	if saved and not configuration.emotes.is_empty():
 		var organizer = preload("res://scripts/GUI/emote_layout_editor.gd").new()
 		add_child(organizer)

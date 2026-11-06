@@ -524,10 +524,11 @@ func test_layout_and_preview():
 	scene._refresh()
 	check(preview.generation == preview_generation and root.get_node("DataLoader").avatar_requests.size() == avatar_requests,
 		"unchanged profile refresh does not restart an already loaded avatar")
-	check(preview.viewport.transparent_bg and preview.get_theme_stylebox("panel") is StyleBoxEmpty,
-		"avatar preview has transparent viewport and no panel background")
-	check(not preview.get_node("Layout/Load").visible and preview.get_node("Layout/Controls/ZoomIn").visible
-		and not preview.get_node("Layout/Controls/Reset").visible, "preview exposes rotation and zoom without extra menus")
+	check(not preview.viewport.transparent_bg and preview.theme_type_variation == "PreviewStage",
+		"avatar preview draws a themed opaque stage instead of floating over the page")
+	var toolbar = preview.get_node("%Toolbar")
+	check(toolbar.get_children().size() == 4 and toolbar.get_children().all(func(button): return button.text.is_empty() and button.icon != null),
+		"preview offers one compact icon toolbar without extra menus")
 	scene.edit_buttons["profile.description"].pressed.emit()
 	check(scene.editor.controls.keys() == ["profile.description"], "element Edit opens only its own field")
 	scene.editor.controls["profile.description"].text = "Changed description"
@@ -545,11 +546,14 @@ func test_layout_and_preview():
 	await preview.load_preview()
 	check(preview.model != null and preview.viewport.own_world_3d
 		and preview.viewport.world_3d != root.world_3d, "preview loads independent model in own World3D")
-	check(preview.camera.position.is_finite() and preview.camera.position.z > 0, "transformed mesh framing produces finite camera")
-	preview._zoom(0.5)
-	preview.pivot.rotate_y(0.5)
+	var camera: Camera3D = preview.stage.camera
+	check(camera.position.is_finite() and camera.position.z > 0 and is_finite(preview.stage.camera_distance()),
+		"transformed mesh framing produces finite camera")
+	preview.stage.zoom_by(0.5)
+	preview.stage.orbit(Vector2(80, 0))
 	preview.reset_view()
-	check(preview.zoom == 1 and is_equal_approx(absf(preview.pivot.rotation.y), PI), "preview starts/reset faces front toward camera")
+	check(is_equal_approx(preview.stage.zoom, 1.0) and preview.stage.yaw == 0.0 and is_equal_approx(absf(preview.stage.pivot.rotation.y), PI),
+		"preview starts/reset faces front toward camera")
 	var profile_before: Dictionary = service.local.duplicate(true)
 	var bytes_received: Array = []
 	preview.bytes_loader = func(bytes):

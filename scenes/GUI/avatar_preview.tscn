@@ -1,94 +1,97 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/GUI/avatar_preview.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/GUI/avatar_stage.tscn" id="2_stage"]
+[ext_resource type="Texture2D" path="res://themes/icons/folder.svg" id="3_folder"]
+[ext_resource type="Texture2D" path="res://themes/icons/frame.svg" id="4_frame"]
+[ext_resource type="Texture2D" path="res://themes/icons/reset.svg" id="5_reset"]
+[ext_resource type="Texture2D" path="res://themes/icons/emote.svg" id="6_idle"]
 
 [node name="AvatarPreview" type="PanelContainer"]
 custom_minimum_size = Vector2(120, 180)
+theme_type_variation = &"PreviewStage"
 script = ExtResource("1")
 
-[node name="Layout" type="VBoxContainer" parent="."]
+[node name="StageContainer" parent="." instance=ExtResource("2_stage")]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Layout"]
+[node name="Overlay" type="CenterContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="Overlay"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Loading" type="ProgressBar" parent="Overlay/Column"]
+unique_name_in_owner = true
 visible = false
+custom_minimum_size = Vector2(100, 6)
 layout_mode = 2
-text = "Avatar preview"
+mouse_filter = 2
+show_percentage = false
 
-[node name="ViewportContainer" type="SubViewportContainer" parent="Layout"]
-custom_minimum_size = Vector2(0, 140)
+[node name="StatusLabel" type="Label" parent="Overlay/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-size_flags_vertical = 3
-stretch = true
-mouse_filter = 0
-
-[node name="Viewport" type="SubViewport" parent="Layout/ViewportContainer"]
-own_world_3d = true
-transparent_bg = true
-size = Vector2i(256, 256)
-handle_input_locally = false
-render_target_update_mode = 0
-
-[node name="Stage" type="Node3D" parent="Layout/ViewportContainer/Viewport"]
-
-[node name="Pivot" type="Node3D" parent="Layout/ViewportContainer/Viewport/Stage"]
-
-[node name="Camera" type="Camera3D" parent="Layout/ViewportContainer/Viewport/Stage"]
-position = Vector3(0, 0, 3)
-current = true
-
-[node name="Light" type="DirectionalLight3D" parent="Layout/ViewportContainer/Viewport/Stage"]
-rotation_degrees = Vector3(-30, -30, 0)
-light_energy = 1.2
-
-[node name="Fill" type="DirectionalLight3D" parent="Layout/ViewportContainer/Viewport/Stage"]
-rotation_degrees = Vector3(-10, 140, 0)
-light_energy = 0.6
-
-[node name="Status" type="Label" parent="Layout"]
-visible = false
-layout_mode = 2
-text = "Load an independent 3D preview."
+theme_type_variation = &"MutedLabel"
+text = "No avatar set."
+horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Load" type="Button" parent="Layout"]
+[node name="RetryButton" type="Button" parent="Overlay/Column"]
+unique_name_in_owner = true
 visible = false
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Load preview (external request)"
+size_flags_horizontal = 4
+text = "Retry"
 
-[node name="Controls" type="HBoxContainer" parent="Layout"]
+[node name="ToolbarAnchor" type="MarginContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InsetMargin"
+size_flags_horizontal = 8
+size_flags_vertical = 0
+mouse_filter = 2
 
-[node name="OpenFile" type="Button" parent="Layout/Controls"]
+[node name="Toolbar" type="HBoxContainer" parent="ToolbarAnchor"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "…"
-tooltip_text = "Open local VRM file for preview only (not uploaded)"
+theme_type_variation = &"FlushHBox"
 
-[node name="Left" type="Button" parent="Layout/Controls"]
+[node name="OpenFile" type="Button" parent="ToolbarAnchor/Toolbar"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "↶"
-tooltip_text = "Rotate left"
+tooltip_text = "Open a local VRM file. Local preview only; the file is not uploaded."
+theme_type_variation = &"IconButton"
+icon = ExtResource("3_folder")
+icon_alignment = 1
 
-[node name="Right" type="Button" parent="Layout/Controls"]
+[node name="Framing" type="Button" parent="ToolbarAnchor/Toolbar"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "↷"
-tooltip_text = "Rotate right"
+tooltip_text = "Frame: full body"
+theme_type_variation = &"IconButton"
+icon = ExtResource("4_frame")
+icon_alignment = 1
 
-[node name="ZoomIn" type="Button" parent="Layout/Controls"]
+[node name="ResetView" type="Button" parent="ToolbarAnchor/Toolbar"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "+"
-tooltip_text = "Zoom in"
+tooltip_text = "Reset view"
+theme_type_variation = &"IconButton"
+icon = ExtResource("5_reset")
+icon_alignment = 1
 
-[node name="ZoomOut" type="Button" parent="Layout/Controls"]
+[node name="Idle" type="Button" parent="ToolbarAnchor/Toolbar"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "−"
-tooltip_text = "Zoom out"
-
-[node name="Reset" type="Button" parent="Layout/Controls"]
-visible = false
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Reset"
+tooltip_text = "Show relaxed pose"
+theme_type_variation = &"IconButton"
+toggle_mode = true
+icon = ExtResource("6_idle")
+icon_alignment = 1

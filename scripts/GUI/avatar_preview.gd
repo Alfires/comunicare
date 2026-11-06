@@ -1,35 +1,43 @@
 extends PanelContainer
+## Avatar preview: loads a model safely into the reusable avatar stage and shows
+## clear empty/loading/error/ready states (docs/roadmaps/gui-tablet-specification.md §4.5).
 const FirstPerson = preload("res://scripts/assets/first_person_avatar.gd")
+const MAX_LOCAL_BYTES := 256 * 1024 * 1024
+const READY_HINT = "Drag to turn · right-drag to move · scroll to zoom · double-click to reset"
+const LOCAL_HINT = "Local preview only. The file is not uploaded."
+const FRAMING_TITLES = {"full": "Frame: full body", "upper": "Frame: upper body", "face": "Frame: face"}
 
 signal failed(message: String)
-@onready var viewport: SubViewport = $Layout/ViewportContainer/Viewport
-@onready var pivot: Node3D = $Layout/ViewportContainer/Viewport/Stage/Pivot
-@onready var camera: Camera3D = $Layout/ViewportContainer/Viewport/Stage/Camera
+@onready var stage = %StageContainer
+@onready var toolbar: Control = %Toolbar
+@onready var status_label: Label = %StatusLabel
+@onready var loading: Range = %Loading
+@onready var retry_button: Button = %RetryButton
+var viewport: SubViewport:
+	get: return stage.viewport if stage != null else null
 var source := ""
 var generation := 0
 var model: Node3D
 var loader: Callable
-var fitted_distance := 3.0
-var zoom := 1.0
+var state := "empty"
 var file_picker: FileDialog
 var bytes_loader: Callable
+var animator: Node
 
 func _ready():
 	if DataLoader.has_signal("asset_revision_available"):
 		DataLoader.asset_revision_available.connect(_asset_updated)
-	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	$Layout/Load.pressed.connect(load_preview)
-	$Layout/Controls/Left.pressed.connect(func(): pivot.rotate_y(0.3))
-	$Layout/Controls/Right.pressed.connect(func(): pivot.rotate_y(-0.3))
-	$Layout/Controls/ZoomIn.pressed.connect(_zoom.bind(0.85))
-	$Layout/Controls/ZoomOut.pressed.connect(_zoom.bind(1.15))
-	$Layout/Controls/Reset.pressed.connect(reset_view)
-	$Layout/Controls/Left.pressed.connect(_load_if_empty)
-	$Layout/Controls/Right.pressed.connect(_load_if_empty)
-	$Layout/ViewportContainer.gui_input.connect(_preview_input)
+	if "indeterminate" in loading:
+		loading.indeterminate = true
+	retry_button.pressed.connect(load_preview)
+	stage.gui_input.connect(_preview_input)
+	$ToolbarAnchor/Toolbar/Framing.pressed.connect(_cycle_framing)
+	$ToolbarAnchor/Toolbar/ResetView.pressed.connect(reset_view)
+	$ToolbarAnchor/Toolbar/Idle.toggled.connect(func(enabled): set_idle_animation(enabled))
+	mouse_entered.connect(_show_toolbar.bind(true))
+	mouse_exited.connect(func():
+		if not get_global_rect().has_point(get_global_mouse_position()): _show_toolbar(false))
 	visibility_changed.connect(_visibility_changed)
-	$Layout/ViewportContainer.resized.connect(_resize_viewport)
-	_resize_viewport()
 	file_picker = FileDialog.new()
 	file_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	file_picker.access = FileDialog.ACCESS_FILESYSTEM
@@ -37,7 +45,51 @@ func _ready():
 	file_picker.filters = PackedStringArray(["*.vrm ; VRM avatar"])
 	file_picker.file_selected.connect(load_file)
 	add_child(file_picker)
-	$Layout/Controls/OpenFile.pressed.connect(func(): file_picker.popup_centered_ratio(0.8))
+	$ToolbarAnchor/Toolbar/OpenFile.pressed.connect(func(): file_picker.popup_centered_ratio(0.8))
+	var save = get_node_or_null("/root/SaveData")
+	if save != null and save.get("registry") != null and save.get("store") != null \
+		and not save.registry.get_definition("interface.reduce_motion").is_empty():
+		stage.reduce_motion = bool(save.store.get_value("interface.reduce_motion"))
+		save.store.setting_changed.connect(_setting_changed)
+	_show_toolbar(_in_vr())
+	_set_state(state)
+
+func _exit_tree():
+	generation += 1
+	var save = get_node_or_null("/root/SaveData")
+	if save != null and save.get("store") != null and save.store.setting_changed.is_connected(_setting_changed):
+		save.store.setting_changed.disconnect(_setting_changed)
+
+func _setting_changed(id: String, value: Variant):
+	if id == "interface.reduce_motion":
+		stage.reduce_motion = bool(value)
+
+func _in_vr() -> bool:
+	return get_viewport() != null and get_viewport().get_meta("vr_menu", false)
+
+## Desktop shows the toolbar on hover; the VR tablet always shows it.
+func _show_toolbar(shown: bool):
+	toolbar.visible = shown or _in_vr()
+	toolbar.modulate.a = 1.0
+
+func _set_state(next: String, message: String = ""):
+	state = next
+	loading.visible = next == "loading"
+	retry_button.visible = next == "error"
+	status_label.visible = next != "ready"
+	match next:
+		"empty":
+			status_label.text = "No avatar set." if source.is_empty() else "Click to load this avatar."
+		"loading":
+			status_label.text = "Loading avatar…"
+		"error":
+			status_label.text = message if not message.is_empty() else "Could not load this avatar. Check the link and try again."
+	if source == "local-preview":
+		stage.tooltip_text = LOCAL_HINT + "\n" + READY_HINT
+	elif next == "ready":
+		stage.tooltip_text = READY_HINT
+	else:
+		stage.tooltip_text = "" if source.is_empty() else "Click to load this avatar"
 
 func _asset_updated(url: String, _previous: String, _revision: String):
 	if url == source and is_instance_valid(model) and is_visible_in_tree() and not loader.is_valid():
@@ -48,25 +100,24 @@ func load_file(path: String) -> bool:
 		failed.emit("Choose a VRM file for the avatar preview.")
 		return false
 	var file = FileAccess.open(path, FileAccess.READ)
-	if file == null or file.get_length() == 0 or file.get_length() > 256 * 1024 * 1024:
-		failed.emit("VRM file is unreadable, empty or larger than 256 MiB.")
+	if file == null or file.get_length() == 0 or file.get_length() > MAX_LOCAL_BYTES:
+		failed.emit("This VRM file is unreadable, empty or larger than 256 MiB.")
 		return false
 	var bytes = file.get_buffer(file.get_length())
 	file.close()
-	# Loading local data is isolated to this preview; public URLs/profile and the
-	# equipped avatar are untouched. Never send the original path over network.
+	# Local data stays in this preview; public URLs/profile and the equipped
+	# avatar are untouched. Never send the original path over the network.
 	loader = func(_source):
 		if bytes_loader.is_valid():
 			return await bytes_loader.call(bytes)
 		return await DataLoader._load_model_from_buffer(bytes)
 	clear_preview()
 	source = "local-preview"
-	$Layout/ViewportContainer.tooltip_text = "Local file preview only • drag to rotate • scroll to zoom"
 	await load_preview()
 	return is_instance_valid(model)
 
 func _load_if_empty():
-	if not is_instance_valid(model) and not $Layout/Load.disabled:
+	if not is_instance_valid(model) and state != "loading" and not source.is_empty():
 		load_preview()
 
 func set_source(url: String):
@@ -75,48 +126,42 @@ func set_source(url: String):
 	if source == "local-preview":
 		loader = Callable()
 	source = url
-	$Layout/Load.disabled = source.is_empty()
-	$Layout/ViewportContainer.tooltip_text = "Drag to rotate" if source.is_empty() else "Click to load avatar (external request), then drag to rotate"
-	$Layout/Status.text = "Load an independent 3D preview." if not source.is_empty() else "No avatar available."
+	_set_state("empty")
 
 func clear_preview():
 	generation += 1
-	if is_instance_valid(model):
-		pivot.remove_child(model)
+	_stop_animator()
+	if is_node_ready():
+		stage.clear()
+		$ToolbarAnchor/Toolbar/Idle.set_pressed_no_signal(false)
+	elif is_instance_valid(model):
 		model.queue_free()
 	model = null
 	if is_node_ready():
-		viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
-		$Layout/Load.disabled = false
-		$Layout/Status.text = "Load an independent 3D preview."
+		_set_state("empty")
 
 func load_preview():
 	if source.is_empty():
 		return
 	generation += 1
 	var ticket = generation
-	$Layout/Load.disabled = true
-	$Layout/Status.text = "Loading avatar…"
+	_set_state("loading")
 	var result = await _load_model(source)
 	if ticket != generation or not is_visible_in_tree():
 		if is_instance_valid(result):
 			result.queue_free()
 		return
-	$Layout/Load.disabled = false
 	if not result is Node3D or not _safe_preview_tree(result):
 		if is_instance_valid(result):
 			result.queue_free()
-		$Layout/Status.text = "Avatar preview failed. Retry with a trusted VRM URL."
-		failed.emit($Layout/Status.text)
+		_set_state("error")
+		failed.emit(status_label.text)
 		return
-	if is_instance_valid(model):
-		pivot.remove_child(model)
-		model.queue_free()
+	_stop_animator()
 	model = result
-	pivot.add_child(model)
-	_fit_model()
-	$Layout/Status.text = "Drag to rotate • scroll or +/− to zoom"
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	stage.set_model(model)
+	$ToolbarAnchor/Toolbar/Framing.tooltip_text = FRAMING_TITLES.full
+	_set_state("ready")
 
 func _load_model(url: String):
 	if loader.is_valid():
@@ -142,73 +187,66 @@ func _safe_preview_tree(node: Node) -> bool:
 			return false
 	return true
 
-func _bounds(node: Node, parent_transform: Transform3D, result: Array):
-	var transform = parent_transform
-	if node is Node3D:
-		transform = parent_transform * node.transform
-	if node is MeshInstance3D and node.mesh != null:
-		var box: AABB = transform * node.get_aabb()
-		if box.position.is_finite() and box.size.is_finite():
-			if result.is_empty():
-				result.append(box)
-			else:
-				result[0] = result[0].merge(box)
-	for child in node.get_children():
-		_bounds(child, transform, result)
-
-func _fit_model():
-	var boxes: Array = []
-	_bounds(model, Transform3D.IDENTITY, boxes)
-	if not boxes.is_empty():
-		var box: AABB = boxes[0]
-		var extent = maxf(box.size.x, maxf(box.size.y, box.size.z))
-		if is_finite(extent) and extent > 0.00001:
-			# Normalize around origin: stable framing even for tiny/huge models.
-			var scale_factor = 2.0 / extent
-			model.transform = Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * scale_factor),
-				-box.get_center() * scale_factor) * model.transform
-	var aspect = maxf(float(viewport.size.x) / maxf(1, viewport.size.y), 0.1)
-	var half_fov = deg_to_rad(camera.fov * 0.5)
-	fitted_distance = maxf(3.5, 1.3 / (tan(half_fov) * minf(aspect, 1.0)))
-	camera.near = 0.01
-	camera.far = 100
-	reset_view()
-
 func reset_view():
-	# VRM/glTF characters face -Z; camera is on +Z, so turn their front toward it.
-	pivot.rotation = Vector3(0, PI, 0)
-	zoom = 1.0
-	camera.position = Vector3(0, 0, fitted_distance)
+	stage.reset_view()
+	$ToolbarAnchor/Toolbar/Framing.tooltip_text = FRAMING_TITLES.full
 
-func _zoom(factor: float):
-	zoom = clampf(zoom * factor, 0.5, 3.0)
-	camera.position.z = fitted_distance * zoom
+func _cycle_framing():
+	if is_instance_valid(model):
+		$ToolbarAnchor/Toolbar/Framing.tooltip_text = FRAMING_TITLES[stage.next_framing()]
+
+## Shows the relaxed neutral stance (bundled CC0 clip). Returns false without a humanoid rig.
+func set_idle_animation(enabled: bool) -> bool:
+	_stop_animator()
+	var button: Button = $ToolbarAnchor/Toolbar/Idle
+	if not enabled:
+		button.set_pressed_no_signal(false)
+		return true
+	if not is_instance_valid(model) or not model.has_meta("humanoid_bones"):
+		button.set_pressed_no_signal(false)
+		return false
+	animator = load("res://scripts/assets/avatar_animator.gd").new()
+	model.add_child(animator)
+	# The safe preview tree disables imported processing; enable only this layer.
+	animator.process_mode = Node.PROCESS_MODE_ALWAYS
+	animator.attach(model)
+	var played = animator.play_clip(load("res://scripts/assets/default_animations.gd").clip("neutral"), true)
+	if not played:
+		_stop_animator()
+	button.set_pressed_no_signal(played)
+	return played
+
+func _stop_animator():
+	if is_instance_valid(animator):
+		animator.stop()
+		if is_instance_valid(animator.player):
+			animator.player.queue_free()
+		animator.queue_free()
+	animator = null
 
 func _preview_input(event: InputEvent):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_load_if_empty()
-		accept_event()
-	elif event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_zoom(0.85)
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_zoom(1.15)
-		accept_event()
-	if event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_LEFT:
-		pivot.rotate_y(event.relative.x * 0.01)
-		accept_event()
-
-func _resize_viewport():
-	var dimensions: Vector2 = $Layout/ViewportContainer.size
-	# stretch_shrink keeps render resolution bounded without altering layout.
-	$Layout/ViewportContainer.stretch_shrink = maxi(1, ceili(maxf(dimensions.x, dimensions.y) / 768.0))
+	if event is InputEventMouseButton and event.pressed:
+		match event.button_index:
+			MOUSE_BUTTON_LEFT:
+				if event.double_click:
+					reset_view()
+				else:
+					_load_if_empty()
+			MOUSE_BUTTON_WHEEL_UP:
+				stage.zoom_by(0.85)
+			MOUSE_BUTTON_WHEEL_DOWN:
+				stage.zoom_by(1.15)
+		stage.accept_event()
+	elif event is InputEventMouseMotion:
+		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			stage.orbit(event.relative)
+			stage.accept_event()
+		elif event.button_mask & (MOUSE_BUTTON_MASK_RIGHT | MOUSE_BUTTON_MASK_MIDDLE):
+			stage.pan(event.relative)
+			stage.accept_event()
 
 func _visibility_changed():
 	if not is_visible_in_tree():
 		if is_instance_valid(file_picker):
 			file_picker.hide()
 		clear_preview()
-		$Layout/Status.text = "Load an independent 3D preview."
-
-func _exit_tree():
-	generation += 1

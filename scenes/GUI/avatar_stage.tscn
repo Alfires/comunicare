@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/GUI/avatar_stage.gd" id="1_stage"]
+
+[sub_resource type="Environment" id="Environment_stage"]
+background_mode = 1
+ambient_light_source = 2
+ambient_light_energy = 0.4
+tonemap_mode = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_floor"]
+top_radius = 0.7
+bottom_radius = 0.7
+height = 0.01
+radial_segments = 48
+rings = 1
+
+[node name="AvatarStage" type="SubViewportContainer"]
+custom_minimum_size = Vector2(120, 140)
+stretch = true
+mouse_filter = 0
+script = ExtResource("1_stage")
+
+[node name="Viewport" type="SubViewport" parent="."]
+own_world_3d = true
+handle_input_locally = false
+size = Vector2i(256, 256)
+render_target_update_mode = 0
+
+[node name="Stage" type="Node3D" parent="Viewport"]
+
+[node name="Environment" type="WorldEnvironment" parent="Viewport/Stage"]
+environment = SubResource("Environment_stage")
+
+[node name="Pivot" type="Node3D" parent="Viewport/Stage"]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="Floor" type="MeshInstance3D" parent="Viewport/Stage"]
+mesh = SubResource("CylinderMesh_floor")
+
+[node name="Camera" type="Camera3D" parent="Viewport/Stage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+current = true
+fov = 30.0
+near = 0.01
+far = 100.0
+
+[node name="Key" type="DirectionalLight3D" parent="Viewport/Stage"]
+transform = Transform3D(0.866025, -0.286788, 0.409576, 0, 0.819152, 0.573576, -0.5, -0.496732, 0.709406, 0, 0, 0)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_max_distance = 8.0
+
+[node name="Fill" type="DirectionalLight3D" parent="Viewport/Stage"]
+transform = Transform3D(-0.766044, -0.111619, -0.633022, 0, 0.984808, -0.173648, 0.642788, -0.133022, -0.754407, 0, 0, 0)
+light_energy = 0.45
+
+[node name="Rim" type="DirectionalLight3D" parent="Viewport/Stage"]
+transform = Transform3D(-1, -0.0, 8.742278e-08, -2.9893e-08, 0.939693, -0.34202, -8.21505e-08, -0.34202, -0.939693, 0, 0, 0)
+light_energy = 0.8

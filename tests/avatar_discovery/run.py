@@ -101,7 +101,7 @@ def main():
                 (project / "live-opt-in.txt").write_text("explicit external API verification")
             if os.environ.get("KEYRING_TEST") == "1":
                 (project / "keyring-opt-in.txt").write_text("explicit synthetic OS keyring roundtrip")
-            (project / "home_scene.txt").write_text((ROOT / "scenes/GUI/home_menue.tscn").read_text())
+            (project / "home_scene.txt").write_text((ROOT / "scripts/GUI/tablet_shell.gd").read_text() + (ROOT / "scripts/GUI/quick_page.gd").read_text())
             (project / "port.txt").write_text(str(server.server_port))
             (project / "project.godot").write_text(
                 'config_version=5\n[application]\nconfig/name="Avatar discovery RED contracts"\n'

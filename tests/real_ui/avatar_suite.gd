@@ -23,11 +23,49 @@ func run():
 	browser.transport_options = {"allow_loopback_http": true}
 	var record = {"provider": "osa", "id": "fixture", "title": "Fixture avatar", "type": "avatar", "format": "vrm", "license": "CC0-1.0", "redistribution": true,
 		"download_url": OS.get_environment("COMUNICARE_AVATAR_TEST_URL")}
-	browser._details(record)
+	browser._clear()
+	browser._card(record)
+	await process_frame
+	await process_frame
+	var card = browser.card_buttons["osa:fixture"]
+	var point = root.get_final_transform() * card.get_global_rect().get_center()
+	var motion = InputEventMouseMotion.new()
+	motion.position = point
+	Input.parse_input_event(motion)
+	await process_frame
+	for pressed in [true, false]:
+		var click = InputEventMouseButton.new()
+		click.position = point
+		click.global_position = point
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = pressed
+		Input.parse_input_event(click)
+		await process_frame
+	check(browser.selected_record.get("id") == "fixture", "pointer click on result card selects avatar")
+	if browser.selected_record.is_empty(): browser._details(record)
+	await process_frame
+	check(browser.detail.is_visible_in_tree() and browser.detail.use_button.is_visible_in_tree(),
+		"selecting result reveals detail and Use this avatar through hidden scroll parent")
 	await browser._preview_record(record)
 	check(browser.preview != null and is_instance_valid(browser.preview.model), "catalog avatar loads in production browser preview: " + browser.status.text)
 	check(loader.get_avatar_configuration().model.is_empty(), "preview never equips model")
-	await browser._apply_avatar(record)
+	var use = browser.detail.use_button
+	var use_point = root.get_final_transform() * use.get_global_rect().get_center()
+	var use_motion = InputEventMouseMotion.new()
+	use_motion.position = use_point
+	Input.parse_input_event(use_motion)
+	await process_frame
+	for pressed in [true, false]:
+		var click = InputEventMouseButton.new()
+		click.position = use_point
+		click.global_position = use_point
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = pressed
+		Input.parse_input_event(click)
+		await process_frame
+	var deadline = Time.get_ticks_msec() + 30000
+	while (browser.applying_avatar or loader.get_avatar_configuration().model.is_empty()) and Time.get_ticks_msec() < deadline:
+		await create_timer(0.01).timeout
 	check(not loader.get_avatar_configuration().model.is_empty() and browser.loading_bar.value == 100 and not browser.editor_open,
 		"single Apply action validates and equips avatar with completed inline progress, no modal and no editor")
 	check(browser.find_children("*", "AcceptDialog", true, false).all(func(dialog): return not dialog.visible), "Apply never opens a modal dialog")

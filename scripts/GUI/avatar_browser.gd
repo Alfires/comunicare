@@ -110,7 +110,9 @@ func _ready():
 	loading_label = detail.status_label
 	loading_bar = detail.progress
 	detail.preview_failed.connect(func(message): status.text = message)
-	detail.apply_requested.connect(func(record): _apply_avatar(record) if record.get("type") != "animation" else _import_record(record))
+	detail.apply_requested.connect(func(record):
+		if record.get("type") == "animation": await _import_record(record)
+		else: await _apply_avatar(record))
 	detail.preview_requested.connect(_preview_record)
 	detail.animation_preview_requested.connect(_preview_animation)
 	detail.in_place_requested.connect(func(record):

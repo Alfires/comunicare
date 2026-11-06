@@ -24,9 +24,18 @@ func run():
 	root.add_child(local_player)
 	local_player.set_physics_process(false)
 	local_player.set_process(false)
-	var browser = load("res://scenes/GUI/avatar_browser.tscn").instantiate()
-	root.add_child(browser)
+	var vr_player = load("res://scenes/player/player_vr.tscn").instantiate()
+	root.add_child(vr_player)
+	vr_player.set_physics_process(false)
+	vr_player.set_process(false)
 	root.size = Vector2i(1000, 800)
+	var overlay = load("res://scenes/GUI/desktop_overlay.tscn").instantiate()
+	root.add_child(overlay)
+	overlay.open()
+	overlay.shell.open_page("avatars")
+	var browser = overlay.shell.page("avatars")
+	await process_frame
+	await process_frame
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	check(browser.has_node("BrowserLayout") and not browser.advanced_filters.visible, "browser starts with uncluttered named navigation and collapsed advanced filters")
 	browser.search_box.text = "robot"
@@ -52,6 +61,8 @@ func run():
 	await process_frame
 	check(browser.selected_record.id == second.id, "rapid result selections cannot let deferred preview reselect an older avatar")
 	browser._restore_results()
+	await process_frame
+	await process_frame
 	browser._clear()
 	browser._card(record)
 	await process_frame
@@ -84,14 +95,18 @@ func run():
 	while not is_instance_valid(browser.preview.model) and Time.get_ticks_msec() < preview_deadline:
 		await create_timer(0.01).timeout
 	check(is_instance_valid(browser.preview.model), "selecting avatar card automatically loads its independent preview")
-	browser.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	browser.size = Vector2(640, 480)
+	root.size = Vector2i(640, 480)
+	overlay.apply_layout(Vector2(640, 480))
 	browser._layout()
 	await process_frame
 	await process_frame
 	check(browser.detail.get_global_rect().end.x <= browser.get_global_rect().end.x + 1,
 		"compact selection detail fits browser instead of pushing Apply offscreen")
-	await browser._preview_record(record)
+	# A width change may run deferred layout/preview work. Wait for the current
+	# selection rather than launching a competing second preview request.
+	var resized_preview_deadline = Time.get_ticks_msec() + 30000
+	while not is_instance_valid(browser.preview.model) and Time.get_ticks_msec() < resized_preview_deadline:
+		await create_timer(0.01).timeout
 	check(browser.preview != null and is_instance_valid(browser.preview.model), "catalog avatar loads in production browser preview: " + browser.status.text)
 	check(loader.get_avatar_configuration().model.is_empty(), "preview never equips model")
 	var use = browser.detail.use_button
@@ -118,6 +133,10 @@ func run():
 		await create_timer(0.01).timeout
 	check(is_instance_valid(local_player.avatar_model) and local_player.avatar_model.get_meta("asset_revision", "") == loader.get_avatar_configuration().model.get("hash"),
 		"Use button replaces actual production desktop player model, not only saved configuration")
+	var vr_deadline = Time.get_ticks_msec() + 15000
+	while (not is_instance_valid(vr_player.vrm_model) or vr_player.vrm_model.get_meta("asset_revision", "") != loader.get_avatar_configuration().model.get("hash")) and Time.get_ticks_msec() < vr_deadline:
+		await create_timer(0.01).timeout
+	check(is_instance_valid(vr_player.vrm_model) and vr_player.vrm_model.get_meta("asset_revision", "") == loader.get_avatar_configuration().model.get("hash"), "Use button replaces production VR player model without requiring active headset")
 	check(browser.find_children("*", "AcceptDialog", true, false).all(func(dialog): return not dialog.visible), "Apply never opens a modal dialog")
 	await process_frame
 	var wrong = record.duplicate(true)
@@ -158,8 +177,39 @@ func run():
 			configuration.last_error = ""
 			check(not await configuration.apply(previous, [{"hash": "bad"}]) and not configuration.last_error.is_empty(),
 				"invalid animation source returns nonempty Apply error")
+			editor.queue_free()
+			await process_frame
+	var local_editor = load("res://scenes/GUI/animation_menue.tscn").instantiate()
+	browser.add_child(local_editor)
+	local_editor.permission.set_pressed_no_signal(true)
+	local_editor.choose_model_file()
+	local_editor.picker.hide()
+	# Exercise the actual FileDialog signal wiring, not direct import_source.
+	local_editor.picker.file_selected.emit(ProjectSettings.globalize_path("res://browser-avatar.vrm"))
+	var local_deadline = Time.get_ticks_msec() + 30000
+	while local_editor.busy and Time.get_ticks_msec() < local_deadline: await create_timer(0.01).timeout
+	check(not local_editor.draft_model.is_empty(), "real local file-picker signal imports a validated avatar draft: " + local_editor.status.text)
+	await process_frame
+	await process_frame
+	var local_scroll = local_editor.apply_button.get_parent().get_parent() as ScrollContainer
+	local_scroll.ensure_control_visible(local_editor.apply_button)
+	await process_frame
+	var local_point = root.get_final_transform() * local_editor.apply_button.get_global_rect().get_center()
+	for pressed in [true, false]:
+		var click = InputEventMouseButton.new()
+		click.position = local_point
+		click.global_position = local_point
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = pressed
+		Input.parse_input_event(click)
+		await process_frame
+	while local_editor.busy and Time.get_ticks_msec() < local_deadline: await create_timer(0.01).timeout
+	check(local_editor.status.text.begins_with("Applied."), "local editor Apply button equips imported file: " + local_editor.status.text)
+	local_editor.queue_free()
 	browser.queue_free()
+	overlay.queue_free()
 	local_player.queue_free()
+	vr_player.queue_free()
 	await process_frame
 	check(save.use_temporary_identity(), "duplicate-window temporary identity can be configured")
 	var temporary = loader.get_avatar_configuration()

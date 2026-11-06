@@ -2,6 +2,16 @@
 
 ## Avatar preview and Apply integration
 
+The avatar suite hosts the browser inside the production desktop overlay/tablet
+shell rather than mounting it directly at the root. Pointer clicks select the
+result and activate Use at compact window sizes. It verifies the equipped cache
+revision on both production desktop and VR player scenes (XR initialization is
+disabled; this is not a physical headset test). Local import exercises the actual
+FileDialog `file_selected` connection, then scrolls to and pointer-clicks the
+editor's Apply button. File selection itself is injected, not OS-dialog automation.
+Test accounts/settings/cache are disposable; this does not reproduce a user's
+existing corrupt/read-only stores, external provider outages or every avatar.
+
 Selection regression additionally clicks the actual result card without a fallback,
 waits for automatic independent preview, checks the detail fits at 640×480, then
 clicks the real Use button. Rendered runs must pass the whole flow; programmatic

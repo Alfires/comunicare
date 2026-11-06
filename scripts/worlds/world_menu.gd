@@ -40,7 +40,7 @@ func build(owner_runtime: Node, page: Dictionary):
 				control.custom_minimum_size.y = 44
 				control.pressed.connect(func():
 					if not is_instance_valid(runtime) or not runtime.enabled: return
-					runtime.dispatch_ui(definition.entity, definition.get("actions", []))
+					runtime.dispatch_ui(definition.entity, definition.get("actions", []), self)
 					refresh())
 		layout.add_child(control)
 		widgets[definition.id] = {"control": control, "definition": definition}

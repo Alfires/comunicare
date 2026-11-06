@@ -48,6 +48,11 @@ func run():
 	check(runtime.run_state.get("xp") == 10, "safe button dispatch updates scoped run state")
 	runtime.menu.refresh()
 	check(runtime.menu.widgets.xp.control.value == 10, "progress binding reflects state")
+	var old_menu = runtime.menu
+	runtime.close_menu()
+	runtime.open_menu("credits")
+	old_menu.widgets.upgrade.control.pressed.emit()
+	check(runtime.run_state.get("xp") == 10, "retired page cannot dispatch actions into a newly opened menu")
 	runtime.stop_scripts()
 	check(not is_instance_valid(runtime.menu) and get_nodes_in_group("emote_wheel_input").is_empty(), "script stop releases world menu input ownership")
 	check(not pickup.activate_nearest(hand, 0.3), "retired world runtime cannot activate station")

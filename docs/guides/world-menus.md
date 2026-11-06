@@ -1,5 +1,11 @@
 # Safe world menus: initial capability
 
+Lifecycle regression checks reject actions emitted by retired pages after a new
+menu opens. Only the currently owned menu can dispatch its bound actions. VM
+validation also inspects zero-count repeat bodies, so dormant instructions cannot
+hide unsupported capabilities. Local-save write throttling is per file: switching
+to a different account/world namespace resets the previous file's throttle.
+
 Declare `ui.local` in the package manifest. Add `ui/menu.worldui`:
 
 ```json

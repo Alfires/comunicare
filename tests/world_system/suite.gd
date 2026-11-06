@@ -69,6 +69,8 @@ func run():
 		model_world.free()
 	check(not load("res://scripts/worlds/world_builder.gd").new().build_package("res://packages/static_model_bad_index.zip").ok, "invalid downloaded triangle indices rejected before engine mesh construction")
 	var guarded_vm = load("res://scripts/worlds/world_script_vm.gd").new()
+	check(not guarded_vm.run_event([{"op": "repeat", "count": 0, "body": [{"op": "os.execute"}]}], {}).ok,
+		"zero-count repeat cannot hide forbidden instructions during package validation")
 	check(not guarded_vm.run_event([{"op": "if_saved", "key": "level", "equals": 999, "then": [{"op": "unsafe_hidden"}]}], {"capabilities": ["storage.local"]}).ok, "inactive progress branches cannot hide forbidden instructions")
 	check(guarded_vm.run_event([{"op": "checkpoint", "entity": "spawn"}], {"capabilities": ["player.checkpoint"], "entities": ["spawn"]}).ok, "declared checkpoint instruction accepts scoped entity")
 	check(not guarded_vm.run_event([{"op": "checkpoint", "entity": "spawn"}], {"entities": ["spawn"]}).ok, "checkpoint capability fails closed")
@@ -87,6 +89,9 @@ func run():
 	var store = load("res://scripts/worlds/world_local_store.gd").new()
 	check(store.configure("test-owner", "https://example.test/progress", false, "res://local-saves"), "local world storage configures isolated account and URL")
 	check(store.commit({"level": 3, "xp": 120}), "small local progress commits")
+	check(store.configure("test-owner", "https://example.test/second-world", false, "res://local-saves") and store.commit({"level": 1}),
+		"changing local save namespace resets per-file write throttle")
+	store.configure("test-owner", "https://example.test/progress", false, "res://local-saves")
 	var restored = load("res://scripts/worlds/world_local_store.gd").new()
 	check(restored.configure("test-owner", "https://example.test/progress", false, "res://local-saves") and restored.values.level == 3, "world progress survives service restart")
 	check(restored.configure("other-owner", "https://example.test/progress", false, "res://local-saves") and restored.values.is_empty(), "world progress is account isolated")

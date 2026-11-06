@@ -47,8 +47,8 @@ func binding_value(key: String) -> Variant:
 	if key.begins_with("saved."): return local_store.values.get(key.trim_prefix("saved.")) if local_store != null else null
 	return run_state.get(key.trim_prefix("state.")) if key.begins_with("state.") else null
 
-func dispatch_ui(entity: String, actions: Array) -> Dictionary:
-	if not enabled or not is_instance_valid(menu) or not entities.has(entity) or ui_dispatching: return Data.failure("World menu unavailable")
+func dispatch_ui(entity: String, actions: Array, source_menu: Control = null) -> Dictionary:
+	if not enabled or not is_instance_valid(menu) or source_menu != menu or not entities.has(entity) or ui_dispatching: return Data.failure("World menu unavailable")
 	ui_dispatching = true
 	var result = _run(actions)
 	ui_dispatching = false

@@ -10,12 +10,14 @@ var last_error := ""
 var last_write_msec := -1000
 
 func configure(owner: String, world_url: String, temporary: bool = false, directory: String = "user://world_saves") -> bool:
+	var next_path = "" if temporary else directory.path_join(owner.sha256_text()).path_join(world_url.sha256_text() + ".json")
+	if next_path != path or temporary != memory_only: last_write_msec = -1000
 	values = {}
 	writable = false
 	last_error = ""
 	memory_only = temporary
 	if owner.is_empty() or world_url.is_empty(): return false
-	path = "" if temporary else directory.path_join(owner.sha256_text()).path_join(world_url.sha256_text() + ".json")
+	path = next_path
 	if not temporary and FileAccess.file_exists(path):
 		var file = FileAccess.open(path, FileAccess.READ)
 		if file == null or file.get_length() > MAX_BYTES:

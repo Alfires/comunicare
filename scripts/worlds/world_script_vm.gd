@@ -58,6 +58,11 @@ func _execute(operations: Variant, context: Dictionary, state: Dictionary, depth
 				if not error.is_empty(): return error
 			"repeat":
 				if not Data.keys_only(operation, ["op", "count", "body"]) or not Data.integer(operation.get("count"), 0, 2147483647): return "Invalid repeat"
+				if operation.count == 0:
+					var checked = {"fuel": state.fuel, "heap": state.heap, "max_commands": state.max_commands, "commands": []}
+					var error = _execute(operation.get("body"), context, checked, depth + 1)
+					if not error.is_empty(): return error
+					state.fuel = checked.fuel
 				if operation.count > state.fuel: return "Script fuel exhausted"
 				for iteration in int(operation.count):
 					state.fuel -= 1

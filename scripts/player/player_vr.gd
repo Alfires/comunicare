@@ -63,6 +63,16 @@ var tracking_elapsed := 0.0
 var foot_grounding = preload("res://scripts/assets/foot_grounding.gd").new()
 var grounded_body_targets: Dictionary = {}
 var world_grip_pressed := {"left": false, "right": false}
+var tablet_grip := {"left": false, "right": false}
+var touch_pressed := {"left": false, "right": false}
+var menu_held := false
+var menu_hold_time := 0.0
+var menu_close_pending := false
+var menu_summoned := false
+const MENU_SUMMON_SECONDS := 0.6
+const TABLET_GRIP_PRESS := 0.7
+const TABLET_GRIP_RELEASE := 0.4
+const TOUCH_REACH := 0.06
 var sprint = preload("res://scripts/player/sprint_policy.gd").new()
 var air_control = preload("res://scripts/player/air_control.gd").new()
 
@@ -125,8 +135,12 @@ func _process(delta: float):
 	var menu_action = str(SaveData.store.get_value("input.xr_main_menu_action"))
 	if _menu_open() and (not focused or not _head_tracking_active()): _close_main_menu()
 	var suppressed = not focused or SaveData.voice.input_blocked
-	if input_router.menu_toggle(left_controller.is_button_pressed(menu_action), right_controller.is_button_pressed(menu_action), suppressed):
-		_toggle_main_menu()
+	var menu_left = left_controller.is_button_pressed(menu_action)
+	var menu_right = right_controller.is_button_pressed(menu_action)
+	if input_router.menu_toggle(menu_left, menu_right, suppressed):
+		_menu_button_down()
+	_update_menu_button(menu_left or menu_right, delta)
+	_update_tablet(delta)
 	_update_menu_pointer()
 	_update_world_grips()
 	var action = str(SaveData.store.get_value("input.xr_emote_action"))
@@ -164,6 +178,9 @@ func _update_world_grips():
 	for side in ["left", "right"]:
 		var hand: XRController3D = left_controller if side == "left" else right_controller
 		var pressed = not blocked and hand.get_is_active() and hand.get_float("grip") >= 0.6
+		# The tablet's frame and status bar take priority over world pickup.
+		if pressed and is_instance_valid(main_panel) and main_panel.world_grab_blocked(hand.global_position):
+			pressed = false
 		var mirror = NetworkHandler.get_animation_controller().get("local_mirror")
 		if pressed and not world_grip_pressed[side]:
 			if not is_instance_valid(mirror) or not mirror.visible or not mirror.try_grab(hand, side, 0.3):
@@ -268,32 +285,44 @@ func _update_teleport(enabled: bool, stick: Vector2):
 func _menu_open() -> bool:
 	return is_instance_valid(main_panel) and main_panel.visible
 
+## Short press toggles; holding the menu button summons the tablet in front.
+## An open tablet closes on release, so a hold never closes it by accident.
+func _menu_button_down():
+	menu_held = true
+	menu_hold_time = 0.0
+	menu_summoned = false
+	menu_close_pending = _menu_open()
+	if not menu_close_pending:
+		_toggle_main_menu()
+
+func _update_menu_button(pressed: bool, delta: float):
+	if not menu_held:
+		return
+	if pressed:
+		menu_hold_time += delta
+		if menu_hold_time >= MENU_SUMMON_SECONDS and not menu_summoned:
+			menu_summoned = true
+			menu_close_pending = false
+			if not _menu_open():
+				_toggle_main_menu()
+			if _menu_open():
+				main_panel.summon(xr_camera.global_transform)
+				main_panel.remember_placement(global_transform)
+		return
+	if menu_close_pending and _menu_open():
+		_close_main_menu()
+	menu_held = false
+	menu_close_pending = false
+
 func _toggle_main_menu():
 	if not is_instance_valid(main_panel):
-		main_panel = load("res://scenes/GUI/vr_gui.tscn").instantiate()
-		main_panel.size = Vector2(1.2, 0.9)
-		main_panel.pixel_per_unit = 800
+		main_panel = load("res://scenes/GUI/vr_tablet.tscn").instantiate()
 		get_tree().root.add_child(main_panel)
-		main_panel.viewport.set_meta("vr_menu", true)
-		main_ui = load("res://scenes/GUI/menue.tscn").instantiate()
-		main_panel.viewport.add_child(main_ui)
-		var tracking_button = Button.new()
-		tracking_button.text = "VR tracker setup"
-		tracking_button.position = Vector2(12, 45)
-		tracking_button.custom_minimum_size = Vector2(180, 40)
-		main_panel.viewport.add_child(tracking_button)
-		tracking_button.pressed.connect(func():
-			var setup = preload("res://scripts/GUI/vr_tracking_setup.gd").new()
-			main_panel.viewport.add_child(setup)
-			setup.configure(self))
-		var comfort_button = Button.new()
-		comfort_button.text = "Comfort preset"
-		comfort_button.position = Vector2(200, 45)
-		comfort_button.custom_minimum_size = Vector2(160, 40)
-		main_panel.viewport.add_child(comfort_button)
-		comfort_button.pressed.connect(func():
-			for pair in [["vr.turn_mode", "snap"], ["vr.snap_angle", 30.0], ["vr.move_speed", 1.5], ["vr.comfort_vignette", true], ["vr.snap_blink", true], ["vr.jump_enabled", false]]:
-				SaveData.store.set_value(pair[0], pair[1]))
+		main_panel.configure(SaveData.store)
+		main_panel.haptic.connect(_tablet_haptic)
+		main_ui = main_panel.menu
+		main_ui.close_requested.connect(_close_main_menu)
+		main_ui.shell.quick_action.connect(_tablet_quick_action)
 		virtual_keyboard = preload("res://scripts/GUI/vr_keyboard.gd").new()
 		main_panel.viewport.add_child(virtual_keyboard)
 		main_panel.viewport.gui_focus_changed.connect(func(control):
@@ -304,8 +333,9 @@ func _toggle_main_menu():
 	else:
 		var animation = NetworkHandler.get_animation_controller()
 		if is_instance_valid(animation.wheel) and animation.wheel.visible: animation.wheel.dismiss()
-		main_panel.global_position = xr_camera.global_position - xr_camera.global_basis.z * 1.2
-		main_panel.look_at(xr_camera.global_position, Vector3.UP, true)
+		main_ui.reset()
+		if not main_panel.restore_placement(global_transform):
+			main_panel.place_initial(xr_camera.global_transform)
 		main_panel.show()
 		motion_rearm = true
 
@@ -313,10 +343,49 @@ func _close_main_menu():
 	if pointer == null: return
 	pointer.cancel()
 	_flush_pointer_events()
-	if is_instance_valid(main_panel): main_panel.hide()
+	if is_instance_valid(main_panel):
+		for side in tablet_grip:
+			if tablet_grip[side]: main_panel.end_grab(side)
+			tablet_grip[side] = false
+		if main_panel.visible: main_panel.remember_placement(global_transform)
+		main_panel.hide()
 	if is_instance_valid(virtual_keyboard): virtual_keyboard.close()
 	motion_rearm = true
 	trigger_before = {"left": false, "right": false}
+	touch_pressed = {"left": false, "right": false}
+
+func _update_tablet(delta: float):
+	if not _menu_open(): return
+	for side in ["left", "right"]:
+		var hand: XRController3D = left_controller if side == "left" else right_controller
+		var active = focused and hand.get_is_active()
+		var grip = hand.get_float("grip") if active else 0.0
+		if not tablet_grip[side]:
+			if grip >= TABLET_GRIP_PRESS:
+				var laser = main_panel.raycast_to_pixel(hand.global_position, -hand.global_basis.z)
+				if main_panel.begin_grab(side, hand.global_transform, main_panel.is_status_bar_pixel(laser)):
+					tablet_grip[side] = true
+					pointer.hover(side, Vector2(-1, -1), false)
+		elif grip <= TABLET_GRIP_RELEASE or not active:
+			main_panel.end_grab(side)
+			tablet_grip[side] = false
+			main_panel.remember_placement(global_transform)
+		else:
+			main_panel.update_grab(side, hand.global_transform)
+	main_panel.update_follow(xr_camera.global_transform, delta)
+
+func _tablet_haptic(hand: String, amplitude: float, duration: float):
+	var controller: XRController3D = left_controller if hand == "left" else right_controller
+	if is_instance_valid(controller): controller.trigger_haptic_pulse("haptic", 0, amplitude, duration, 0)
+
+func _tablet_quick_action(id: String):
+	match id:
+		"emotes":
+			_close_main_menu()
+			NetworkHandler.get_animation_controller().open_xr_menu(right_controller, xr_camera, false)
+		"respawn":
+			var scene = get_tree().current_scene
+			if scene != null and scene.has_method("return_player_to_spawn"): scene.return_player_to_spawn(self)
 
 func _flush_pointer_events():
 	var events = pointer.drain_events()
@@ -331,17 +400,28 @@ func _update_menu_pointer():
 	if not _menu_open(): return
 	for side in ["left", "right"]:
 		var controller = left_controller if side == "left" else right_controller
-		var valid = focused and controller.get_is_active()
-		var hit = main_panel.raycast_to_viewport_point(controller.global_position, -controller.global_basis.z) if valid else Vector2(-1, -1)
+		var valid = focused and controller.get_is_active() and not tablet_grip[side]
+		var touch: Dictionary = main_panel.touch_pixel(controller.global_position - controller.global_basis.z * TOUCH_REACH) if valid else {}
+		var hit: Vector2
+		var pressed: bool
+		if not touch.is_empty():
+			# The fingertip replaces this hand's laser while it hovers the screen.
+			hit = touch.pixel
+			pressed = touch.pressed
+			if pressed and not touch_pressed[side]: _tablet_haptic(side, 0.2, 0.015)
+			touch_pressed[side] = pressed
+		else:
+			touch_pressed[side] = false
+			hit = main_panel.raycast_to_viewport_point(controller.global_position, -controller.global_basis.z) if valid else Vector2(-1, -1)
+			pressed = valid and controller.is_button_pressed("trigger_click")
 		pointer.hover(side, hit, hit.x >= 0)
-		var pressed = valid and controller.is_button_pressed("trigger_click")
 		if pressed and not trigger_before[side]: pointer.press(side)
 		if not pressed and trigger_before[side]: pointer.release(side)
 		trigger_before[side] = pressed
 		if hit.x >= 0:
 			main_panel.inject_input(InputEventMouseMotion.new(), hit)
 			var scroll = controller.get_vector2("primary").y
-			if absf(scroll) > 0.5 and Time.get_ticks_msec() >= scroll_at[side]:
+			if touch.is_empty() and absf(scroll) > 0.5 and Time.get_ticks_msec() >= scroll_at[side]:
 				scroll_at[side] = Time.get_ticks_msec() + 100
 				var event = InputEventMouseButton.new()
 				event.button_index = MOUSE_BUTTON_WHEEL_DOWN if scroll > 0 else MOUSE_BUTTON_WHEEL_UP

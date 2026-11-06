@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/GUI/vr_tablet.gd" id="1_tablet"]
+[ext_resource type="PackedScene" uid="uid://ddvba2e5x1lxd" path="res://scenes/GUI/menue.tscn" id="2_menu"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+size = Vector3(0.59, 0.4525, 0.012)
+
+[sub_resource type="QuadMesh" id="QuadMesh_screen"]
+size = Vector2(0.55, 0.4125)
+
+[node name="VRTablet" type="Node3D"]
+script = ExtResource("1_tablet")
+
+[node name="Frame" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.008)
+mesh = SubResource("BoxMesh_frame")
+
+[node name="Screen" type="MeshInstance3D" parent="."]
+mesh = SubResource("QuadMesh_screen")
+
+[node name="KeyboardAnchor" type="Node3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, -0.26625, 0.02)
+
+[node name="Viewport" type="SubViewport" parent="."]
+transparent_bg = true
+size = Vector2i(1600, 1200)
+size_2d_override = Vector2i(1000, 750)
+size_2d_override_stretch = true
+render_target_update_mode = 3
+metadata/vr_menu = true
+
+[node name="Menu" parent="Viewport" instance=ExtResource("2_menu")]

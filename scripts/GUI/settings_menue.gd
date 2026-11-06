@@ -119,6 +119,8 @@ func _render():
 				button.text = action[0]; button.custom_minimum_size.y = 44
 				button.pressed.connect(action[1])
 				category_pages.Controls.add_child(button)
+	if category_pages.has("VR Comfort"):
+		_add_vr_actions(category_pages["VR Comfort"])
 	var credits = preload("res://scripts/GUI/credits_page.gd").new()
 	credits.source_requested.connect(func(url): OS.shell_open(url))
 	rows.add_child(credits)
@@ -168,6 +170,39 @@ func _add_cache_actions(page: VBoxContainer):
 	confirm.confirmed.connect(func():
 		cache.clear_unused()
 		update.call())
+
+const COMFORT_PRESET = [["vr.turn_mode", "snap"], ["vr.snap_angle", 30.0], ["vr.move_speed", 1.5],
+	["vr.comfort_vignette", true], ["vr.snap_blink", true], ["vr.jump_enabled", false]]
+
+func _add_vr_actions(page: VBoxContainer):
+	var comfort = Button.new()
+	comfort.name = "ComfortPresetButton"
+	comfort.text = "Apply comfort preset"
+	comfort.tooltip_text = "Snap turning, slower movement, vignette and blink, no jump"
+	comfort.custom_minimum_size.y = 48
+	comfort.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	comfort.pressed.connect(apply_comfort_preset)
+	page.add_child(comfort)
+	var tracker = Button.new()
+	tracker.name = "TrackerSetupButton"
+	tracker.text = "Set up VR trackers…"
+	tracker.custom_minimum_size.y = 48
+	tracker.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	tracker.visible = get_viewport() != null and get_viewport().get_meta("vr_menu", false)
+	tracker.pressed.connect(_open_tracker_setup)
+	page.add_child(tracker)
+
+func apply_comfort_preset():
+	for pair in COMFORT_PRESET:
+		SaveData.store.set_value(pair[0], pair[1])
+
+func _open_tracker_setup():
+	for player in get_tree().get_nodes_in_group("player"):
+		if player.get("tracker_roles") != null:
+			var setup = preload("res://scripts/GUI/vr_tracking_setup.gd").new()
+			get_viewport().add_child(setup)
+			setup.configure(player)
+			return
 
 func select_category(category: String):
 	if not category_pages.has(category):

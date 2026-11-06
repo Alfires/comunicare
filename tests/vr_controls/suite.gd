@@ -160,7 +160,9 @@ func test_main_menu_wiring():
 	check(not 'right_controller.is_button_pressed("ax_button") and is_on_floor()' in source,
 		"right lower face button is not still bound to jump")
 	var scene = FileAccess.get_file_as_string("res://evidence/player_vr.tscn.txt")
-	var wired = scene.contains("res://scenes/GUI/vr_gui.tscn") or scene.contains("res://scenes/GUI/menue.tscn") or source.contains("res://scenes/GUI/vr_gui.tscn") or source.contains("res://scenes/GUI/menue.tscn")
+	var wired = false
+	for path in ["res://scenes/GUI/vr_tablet.tscn", "res://scenes/GUI/vr_gui.tscn", "res://scenes/GUI/menue.tscn"]:
+		wired = wired or scene.contains(path) or source.contains(path)
 	check(wired, "VR player actually loads a shared main-menu viewport, not only the emote wheel")
 	var action_map = FileAccess.get_file_as_string("res://evidence/openxr_action_map.tres.txt")
 	check(action_map.contains('resource_name = "ax_button"') and action_map.contains("/user/hand/left/input/x/click") and action_map.contains("/user/hand/right/input/a/click"), "existing OpenXR map supplies both lower A/X defaults")

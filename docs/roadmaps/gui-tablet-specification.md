@@ -248,7 +248,7 @@ Sizes are **logical pixels** at `interface.ui_scale` 1.0.
 - It eases there with the same smoothing, or instantly with reduce motion.
 
 **Pointer and touch**
-- Lasers use `raycast_to_pixel` in physical viewport pixels. The viewport applies the 1.6× stretch to input. Part 8 must verify that a hit lands on the right control; if Godot does not apply the stretch to pushed input, divide the coordinates by the stretch before injecting.
+- Lasers use `raycast_to_pixel` in physical viewport pixels and inject them unchanged: `SubViewport.push_input` applies the 1.6× `size_2d_override` stretch itself (verified by the `tests/real_ui --suite vr` click test on Godot 4.7.2).
 - Direct touch, when enabled: the poke point is 6 cm along the controller's aim direction.
   - Hover from 3 cm in front of the screen down to 0.
   - Press from 0.8 cm in front to 2 cm behind.

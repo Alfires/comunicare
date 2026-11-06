@@ -68,9 +68,12 @@ func run():
 	player.main_panel.viewport.add_child(target)
 	var clicks: Array = []
 	target.pressed.connect(func(): clicks.append(true))
+	# The tablet lays out at size_2d_override (logical) and renders at viewport.size (physical).
 	var dimensions: Vector2 = player.main_panel.viewport.size
-	var pixels = target.get_rect().get_center()
-	var local_hit = Vector3((pixels.x / dimensions.x - 0.5) * player.main_panel.size.x, (0.5 - pixels.y / dimensions.y) * player.main_panel.size.y, 0)
+	var stretch = dimensions / Vector2(player.main_panel.viewport.size_2d_override)
+	var pixels = target.get_rect().get_center() * stretch
+	var screen: Vector2 = player.main_panel.size_m()
+	var local_hit = Vector3((pixels.x / dimensions.x - 0.5) * screen.x, (0.5 - pixels.y / dimensions.y) * screen.y, 0)
 	var hit = player.main_panel.global_transform * local_hit
 	var origin = hit + player.main_panel.global_basis.z * 0.5
 	var mapped = player.main_panel.raycast_to_viewport_point(origin, -player.main_panel.global_basis.z)
@@ -81,7 +84,7 @@ func run():
 		event.pressed = pressed
 		player.main_panel.inject_input(event, mapped)
 		await process_frame
-	check(clicks.size() == 1, "VR panel input injection hit-tests and activates actual viewport button once")
+	check(clicks.size() == 1, "VR tablet injects physical pixels that hit the logical-layout button exactly once")
 	player._close_main_menu()
 	check(not player._menu_open() and player.motion_rearm, "emulated menu close suppresses immediate accidental locomotion")
 	left.set_input("ax_button", true)

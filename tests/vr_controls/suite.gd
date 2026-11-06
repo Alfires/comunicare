@@ -366,6 +366,16 @@ func test_safety_and_teleport():
 	check(not safety.head_obstructed(body, Vector3(0, 0.8, 0)), "clear head space never requests overlap fade")
 	check(not safety.clearance(body, Vector3.ZERO, 2.0, 0.2), "teleport destination under low ceiling is rejected")
 	check(safety.clearance(body, Vector3(5, 0, 0), 2.0, 0.2), "empty teleport destination passes capsule clearance")
+	body.position.x = 5
+	collider.position.y = 0.25
+	var crouch_feet = collider.position.y - capsule.height * 0.5
+	check(safety.resize_capsule(body, collider, 0.8) and is_equal_approx(collider.position.y - capsule.height * 0.5, crouch_feet),
+		"VR live height update preserves existing capsule feet after avatar resize")
+	check(safety.resize_capsule(body, collider, 4.0) and is_equal_approx(capsule.height, 4.0),
+		"VR height update does not clamp enlarged avatars back to 2.6 metres")
+	safety.clearance(body, Vector3(5, 0, 0), 4.0, 1.2)
+	check(safety.clearance_shape.radius > 1.1, "clearance checks use enlarged avatar radius instead of silently capping it")
+	body.position.x = 0
 	var origin = XROrigin3D.new()
 	body.add_child(origin)
 	var head = Node3D.new()

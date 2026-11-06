@@ -1,5 +1,11 @@
 # RED VR controls acceptance tests
 
+Live VR crouch/height updates also preserve the existing foot plane after a size
+change. Enlarged avatars retain heights above the old 2.6 m cap; clearance uses
+their actual radius rather than the old 0.8 m query cap. Requests remain bounded
+to 8 m height / 3 m radius. Regression checks exercise these follow-on updates,
+not only the initial resize transaction.
+
 Avatar resizing uses a shared capsule transaction for desktop and VR: preserve
 the existing foot plane, set height before radius to avoid implicit clamping, and
 reject final volume overlap before changing model/view scale or movement speed.

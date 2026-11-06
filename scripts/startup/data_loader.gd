@@ -42,7 +42,7 @@ func get_avatar_configuration() -> Node:
 			avatar_configuration.memory_only = temporary
 			avatar_configuration.configure(owner, "" if temporary else "user://avatars/" + owner + ".json", self)
 	return avatar_configuration
-const MAX_AVATAR_BYTES = 64 * 1024 * 1024
+const MAX_AVATAR_BYTES = 256 * 1024 * 1024
 const MAX_AVATAR_WAITERS = 8
 
 func get_asset_cache() -> Node:
@@ -117,7 +117,7 @@ func _read_animation_worker(path: String, bytes: PackedByteArray) -> Dictionary:
 	var data = reader.read_file(path) if not path.is_empty() else reader.read_bytes(bytes)
 	return {"data": data, "error": reader.last_error}
 
-func _validate_avatar(path: String) -> bool:
+func _validate_avatar(path: String, require_humanoid: bool = false) -> bool:
 	# URL VRM assets must be self-contained binary glTF; a local preview's
 	# existing byte import remains independent from this network trust gate.
 	var file = FileAccess.open(path, FileAccess.READ)
@@ -131,6 +131,10 @@ func _validate_avatar(path: String) -> bool:
 	var model = await _load_model_from_file(path)
 	if model == null:
 		return false
+	if require_humanoid:
+		var compatible = reader._skeleton(model) != null and not model.get_meta("humanoid_bones", {}).is_empty()
+		model.free()
+		return compatible
 	model.free()
 	return true
 

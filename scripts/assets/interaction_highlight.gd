@@ -2,6 +2,7 @@ extends Node
 ## Local overlays: never modifies shared mesh/material resources or sends packets.
 var overlays: Dictionary = {}
 var material: StandardMaterial3D
+const COLORS = {"cyan": Color(0.2, 0.8, 1, 0.35), "yellow": Color(1, 0.85, 0.1, 0.35), "green": Color(0.2, 1, 0.3, 0.35), "magenta": Color(1, 0.2, 0.8, 0.35), "white": Color(1, 1, 1, 0.35)}
 
 func _ready():
 	material = StandardMaterial3D.new()
@@ -18,8 +19,8 @@ func _physics_process(_delta):
 		return
 	var save = get_node_or_null("/root/SaveData")
 	if save == null or save.get("store") == null: return
-	var colors = {"cyan": Color(0.2, 0.8, 1, 0.35), "yellow": Color(1, 0.85, 0.1, 0.35), "green": Color(0.2, 1, 0.3, 0.35), "magenta": Color(1, 0.2, 0.8, 0.35), "white": Color(1, 1, 1, 0.35)}
-	material.albedo_color = colors.get(save.store.get_value("interface.hover_color"), colors.cyan)
+	var color: Color = COLORS.get(save.store.get_value("interface.hover_color"), COLORS.cyan)
+	if material.albedo_color != color: material.albedo_color = color
 	var targets: Array = []
 	var loader = get_node_or_null("/root/DataLoader")
 	var network = get_node_or_null("/root/NetworkHandler")
@@ -37,15 +38,17 @@ func _physics_process(_delta):
 			anchors.append([player.world_grip.global_position, 1.5, player.world_grip])
 		for entry in anchors:
 			var grip = "virtual" if not entry[2] is XRController3D else ("left" if entry[2] == player.left_controller else "right")
+			entry.append("") # Reuse this target query for mirror priority below.
 			if pickup.held_by_local(grip): continue
 			var selected: String = pickup.nearest_available(entry[2], entry[1])
+			entry[3] = selected
 			if not selected.is_empty(): targets.append(pickup.items[selected].get_ref())
 		var controller = network.get_animation_controller()
 		var mirror = controller.get("local_mirror") if controller != null else null
 		if is_instance_valid(mirror) and mirror.visible:
 			for entry in anchors:
 				if not entry[2] is XRController3D:
-					if pickup.held_by_local("virtual") or not pickup.nearest_available(entry[2], entry[1]).is_empty(): continue
+					if pickup.held_by_local("virtual") or not str(entry[3]).is_empty(): continue
 					var hit = mirror.desktop_grab_hit(player.camera)
 					if hit != null and _clear_path(player, player.camera.global_position, hit): targets.append(mirror)
 					continue

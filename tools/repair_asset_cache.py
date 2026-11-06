@@ -13,7 +13,7 @@ from pathlib import Path
 import tempfile
 
 
-LIMITS = {"avatar": 64 * 1024**2, "world": 128 * 1024**2, "animation": 16 * 1024**2}
+LIMITS = {"avatar": 256 * 1024**2, "world": 128 * 1024**2, "animation": 16 * 1024**2}
 MAX_INDEX_BYTES = 16 * 1024**2
 
 

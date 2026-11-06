@@ -90,7 +90,7 @@ func handle(server: Node, sender: int, value: Dictionary):
 			if requests.has(key):
 				return
 			requests[key] = {"requester": sender, "owner": int(owner), "hash": value.hash, "kind": kind, "next": 0,
-				"size": states[int(owner)][size_field], "expires": now + 900000, "session_id": value.session_id}
+				"size": states[int(owner)][size_field], "expires": now + AnimationState.transfer_timeout_msec(int(states[int(owner)][size_field])), "session_id": value.session_id}
 			_send(server, int(owner), {"op": "request", "asset_kind": kind, "requester": sender, "hash": value.hash, "session_id": value.session_id})
 		"chunk":
 			var target = value.get("target")

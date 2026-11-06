@@ -64,11 +64,15 @@ removes translation only for this explicit in-place action. The equipped model,
 configuration and instance animation stream are untouched. A compatible local
 avatar must be available. Close Details to dispose the preview.
 
-Import supports self-contained VRM/GLB avatars up to 64 MiB and compatible GLB/VRMA
+Import supports self-contained VRM/GLB avatars up to **256 MiB** and compatible GLB/VRMA
 animations up to 16 MiB. FBX/Unity packages/ZIPs are not supported. Built-in licenses
 were checked as CC0; custom source claims remain your responsibility. Currently
 only CC0 redistribution is accepted by this browser's import action. Downloads
 with no-store policy or digest mismatches are not saved into applied configuration.
+The avatar ceiling also applies to local previews/cache and multiplayer model
+descriptors; standalone animation remains limited to 16 MiB. Large compressed
+models can use substantially more RAM/VRAM after import. Transfers remain bounded
+and request-driven, with a size-aware timeout rather than an unbounded download.
 
 ## Add a custom API
 

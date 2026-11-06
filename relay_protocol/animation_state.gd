@@ -3,6 +3,11 @@ extends RefCounted
 
 const VERSION = 2
 const MAX_BYTES = 16 * 1024 * 1024
+const MAX_AVATAR_BYTES = 256 * 1024 * 1024
+
+static func transfer_timeout_msec(size: int) -> int:
+	# Keep bounded but permit the maximum model at a conservative 64 KiB/s.
+	return maxi(900000, int(clampi(size, 0, MAX_AVATAR_BYTES) / 65536.0 * 1000) + 120000)
 const CHUNK_BYTES = 8192
 const BUILTINS = ["neutral", "walk", "run", "strafe_left", "strafe_right", "jump", "dance", "interact"]
 const LIBRARY = "quaternius.directional.v4"
@@ -29,7 +34,7 @@ static func valid(value: Dictionary) -> bool:
 		or not value.get("loop") is bool or not number(value.get("duration"), 0.001, 600):
 		return false
 	if value.get("model_hash", "") != "" and (not InstanceState.valid_fingerprint(value.model_hash) \
-		or not integer(value.get("model_size"), 20, 64 * 1024 * 1024)):
+		or not integer(value.get("model_size"), 20, MAX_AVATAR_BYTES)):
 		return false
 	if value.get("builtin") in BUILTINS:
 		return value.get("library") == LIBRARY and value.get("hash", "") == ""

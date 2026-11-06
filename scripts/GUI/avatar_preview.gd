@@ -48,8 +48,8 @@ func load_file(path: String) -> bool:
 		failed.emit("Choose a VRM file for the avatar preview.")
 		return false
 	var file = FileAccess.open(path, FileAccess.READ)
-	if file == null or file.get_length() == 0 or file.get_length() > 64 * 1024 * 1024:
-		failed.emit("VRM file is unreadable, empty or larger than 64 MiB.")
+	if file == null or file.get_length() == 0 or file.get_length() > 256 * 1024 * 1024:
+		failed.emit("VRM file is unreadable, empty or larger than 256 MiB.")
 		return false
 	var bytes = file.get_buffer(file.get_length())
 	file.close()

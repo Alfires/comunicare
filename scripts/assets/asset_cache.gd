@@ -6,7 +6,7 @@ signal revision_available(source: String, previous: String, revision: String)
 signal status_changed
 
 const SCHEMA = 1
-const LIMITS = {"avatar": 64 * 1024 * 1024, "world": 128 * 1024 * 1024, "animation": 16 * 1024 * 1024}
+const LIMITS = {"avatar": 256 * 1024 * 1024, "world": 128 * 1024 * 1024, "animation": 16 * 1024 * 1024}
 const MAX_JOBS = 4
 const MAX_WAITERS = 32
 var directory := "user://asset_cache"

@@ -223,7 +223,7 @@ func _choose_file(id: String):
 
 func _file_selected(path: String):
 	var file = FileAccess.open(path, FileAccess.READ)
-	var maximum = 5 * 1024 * 1024 if selected_file_kind == "profile.icon_source" else 64 * 1024 * 1024
+	var maximum = 5 * 1024 * 1024 if selected_file_kind == "profile.icon_source" else 256 * 1024 * 1024
 	if file == null or file.get_length() > maximum:
 		_show_error("Selected file is unreadable or exceeds the size limit.")
 		return

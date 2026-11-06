@@ -502,7 +502,7 @@ func _preview_record(record: Dictionary):
 	service.configure(source)
 	service.options = transport_options.duplicate()
 	status.text = "Downloading model for an independent preview…"
-	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 64 * 1024 * 1024)
+	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 256 * 1024 * 1024)
 	services.erase(service)
 	service.queue_free()
 	if ticket != generation: return
@@ -518,21 +518,13 @@ func _preview_record(record: Dictionary):
 			status.text = "Source digest mismatch; preview rejected."
 			return
 	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
-	if reader.document(bytes, 64 * 1024 * 1024).is_empty():
+	if reader.document(bytes, 256 * 1024 * 1024).is_empty():
 		status.text = "Preview requires a bounded self-contained binary model."
-		return
-	var model = await loader._load_model_from_buffer(bytes)
-	if ticket != generation:
-		if model != null: model.free()
-		return
-	if model == null:
-		status.text = "Model preview import failed."
 		return
 	if is_instance_valid(preview): preview.queue_free()
 	preview = load("res://scenes/GUI/avatar_preview.tscn").instantiate()
 	preview.custom_minimum_size = Vector2(240, 320)
 	results.add_child(preview)
-	model.free()
 	preview.failed.connect(func(message): status.text = message)
 	preview.loader = func(_url): return await loader._load_model_from_buffer(bytes)
 	preview.set_source("browser-preview")
@@ -564,7 +556,7 @@ func _import_record(record: Dictionary, equip: bool = false):
 			if total > 0: _loading_progress(clampf(float(received) / total, 0, 1) * 70, "Downloading avatar…")
 			else: _loading_progress(0, "Downloading avatar… (%d KiB)" % (received / 1024)))
 	status.text = "Downloading and validating; your equipped avatar is unchanged…"
-	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 64 * 1024 * 1024 if record.type == "avatar" else 16 * 1024 * 1024)
+	var response: Dictionary = await service.request_bytes(str(record.get("download_url", "")), 256 * 1024 * 1024 if record.type == "avatar" else 16 * 1024 * 1024)
 	services.erase(service)
 	service.queue_free()
 	if ticket != generation or not is_inside_tree() or save.profile.get_local_fingerprint() != account_owner: return

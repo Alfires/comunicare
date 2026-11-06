@@ -203,21 +203,13 @@ func _validate_animation(path_to_file: String) -> bool:
 	return not parsed.is_empty()
 
 func _validate_model(path_to_file: String) -> bool:
-	if not await loader._validate_avatar(path_to_file):
-		last_error = "Avatar model validation failed: expected a self-contained VRM/GLB up to 64 MiB that the model importer can load."
+	if not await loader._validate_avatar(path_to_file, true):
+		last_error = "Avatar model validation failed: expected a self-contained humanoid VRM/GLB up to 256 MiB with a compatible skeleton and declared mapping."
 		return false
-	var model_tree = await loader._load_model_from_file(path_to_file)
-	if model_tree == null:
-		last_error = "Avatar model scene could not be imported. The file may use unsupported model extensions or invalid mesh/skin data."
-		return false
-	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
-	var compatible = reader._skeleton(model_tree) != null and not model_tree.get_meta("humanoid_bones", {}).is_empty()
-	model_tree.free()
 	# Embedded motion is optional. Model validity must not depend on standalone
 	# animation limits (16 MiB/64 clips/rotation-only); _restore skips unsupported
 	# embedded clips and retains bundled/external movement defaults.
-	if not compatible and last_error.is_empty(): last_error = "Model must contain a compatible skeleton and declared humanoid mapping."
-	return compatible
+	return true
 
 func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
 	last_error = ""
@@ -250,11 +242,6 @@ func apply(candidate_model: Dictionary, candidate_sources: Array) -> bool:
 		if not await _validate_model(handle.path):
 			last_error = "Applied model must contain a compatible humanoid skeleton."
 			return false
-		var preview = await loader._load_model_from_file(handle.path)
-		if preview == null:
-			last_error = "Selected avatar could not be loaded. The current avatar is unchanged."
-			return false
-		preview.free()
 		if ticket != generation: return false
 	if ticket != generation: return false
 	var candidate = {"schema": 1, "owner": account_owner, "revision": revision + 1,

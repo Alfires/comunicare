@@ -50,7 +50,22 @@ func reset_local_item(id: String) -> bool:
 	return true
 
 func activate_nearest(anchor: Node3D, max_distance: float = 0.3) -> bool:
-	if not local_only or not is_instance_valid(anchor) or not anchor.is_inside_tree(): return false
+	if not is_instance_valid(anchor) or not anchor.is_inside_tree(): return false
+	if not get_tree().get_nodes_in_group("emote_wheel_input").is_empty(): return false
+	if coordinator != null and coordinator.get("session_busy") == true: return false
+	var runtime = loader.get("world_runtime") if loader != null else null
+	if is_instance_valid(runtime) and runtime.enabled:
+		var target := ""
+		var nearest = clampf(max_distance, 0.05, 2.0)
+		for id in runtime.bindings:
+			var node = runtime.entities[id].get_ref()
+			if not node is Node3D or not node.is_inside_tree(): continue
+			var separation = node.global_position.distance_to(anchor.global_position)
+			if separation < nearest and _unobstructed(anchor, node):
+				nearest = separation
+				target = id
+		if not target.is_empty(): return runtime.dispatch("use", target).ok
+	if not local_only: return false
 	var selected: Callable
 	var distance = clampf(max_distance, 0.05, 2.0)
 	for entry in local_actions.values():
@@ -148,6 +163,7 @@ func request_grab(id: String, grip: String, anchor: Node3D) -> bool:
 		item.collision_mask = 0
 		item.linear_velocity = Vector3.ZERO
 		item.angular_velocity = Vector3.ZERO
+		_world_event("grab", id)
 		return true
 	anchors[grip] = weakref(anchor)
 	local_sequence += 1
@@ -192,6 +208,7 @@ func release_grip(grip: String) -> bool:
 					item.angular_velocity = Vector3.ZERO
 				states[id] = {"holder": -1, "grip": ""}
 				anchors.erase(grip)
+				_world_event("release", id)
 				return true
 		return false
 	if peer == null: return false
@@ -214,6 +231,7 @@ func receive(value: Dictionary):
 	if value.get("session_id") != session or value.get("revision") != revision: return
 	if not value.get("sequence") is float and not value.get("sequence") is int: return
 	if value.sequence <= received_sequence: return
+	var previous_states = states.duplicate(true)
 	if value.get("op") == "snapshot" and value.get("items") is Dictionary:
 		var checked: Dictionary = {}
 		for id in value.items:
@@ -236,6 +254,15 @@ func receive(value: Dictionary):
 				item.collision_mask = 0
 			else:
 				_restore(id)
+		var old_holder = previous_states.get(id, {}).get("holder", -1)
+		var new_holder = states.get(id, {}).get("holder", -1)
+		if peer != null and old_holder != new_holder:
+			if new_holder == peer.world_peer_id: _world_event("grab", id)
+			elif old_holder == peer.world_peer_id: _world_event("release", id)
+
+func _world_event(event: String, id: String):
+	var runtime = loader.get("world_runtime") if loader != null else null
+	if is_instance_valid(runtime) and runtime.enabled and runtime.bindings.has(id): runtime.dispatch(event, id)
 
 func _valid_state(value: Variant) -> bool:
 	var guard = preload("res://scripts/worlds/world_data.gd")

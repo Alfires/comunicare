@@ -24,6 +24,15 @@ func _execute(operations: Variant, context: Dictionary, state: Dictionary, depth
 		if state.fuel < 0: return "Script fuel exhausted"
 		if not operation is Dictionary: return "Invalid instruction"
 		match operation.get("op", ""):
+			"menu":
+				if not "ui.local" in context.get("capabilities", []) or not Data.keys_only(operation, ["op", "page"]) or not operation.get("page") is String or operation.page.length() > 64: return "Invalid/denied world menu"
+				if state.commands.size() >= state.max_commands: return "Script command budget exhausted"
+				state.commands.append(operation.duplicate(true))
+			"state_set", "state_add":
+				if not "state.local" in context.get("capabilities", []) or not Data.keys_only(operation, ["op", "key", "value"]) or not operation.get("key") is String or operation.key.is_empty() or operation.key.length() > 64: return "Invalid/denied run state"
+				if operation.op == "state_add" and not (operation.get("value") is int or operation.get("value") is float): return "Invalid run counter"
+				if state.commands.size() >= state.max_commands: return "Script command budget exhausted"
+				state.commands.append(operation.duplicate(true))
 			"checkpoint":
 				if not "player.checkpoint" in context.get("capabilities", []) or not Data.keys_only(operation, ["op", "entity"]): return "Denied checkpoint capability"
 				if not operation.get("entity") is String or not operation.entity in context.get("entities", []): return "Invalid checkpoint entity"

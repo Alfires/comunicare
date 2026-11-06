@@ -71,6 +71,14 @@ def write_packages(destination):
     program = {"version": 1, "events": {"start": [{"op": "command", "capability": "entity.visual", "entity": "item", "property": "visible", "value": False}], "use": [{"op": "command", "capability": "entity.visual", "entity": "item", "property": "visible", "value": True}]}}
     script_metadata = {**metadata, "script_capabilities": ["entity.visual"]}
     archive("scripted", {"scenes/world.tscn": binding, "logic/item.worldscript": json.dumps(program)}, manifest=script_metadata)
+    ui_metadata = {**metadata, "script_capabilities": ["ui.local", "state.local"]}
+    ui_program = {"version": 1, "events": {"use": [{"op": "menu", "page": "credits"}]}}
+    ui_document = {"version": 1, "pages": {"credits": {"title": "Credits", "widgets": [
+        {"id": "author", "type": "text", "text": "Integration test author"},
+        {"id": "xp", "type": "progress", "bind": "state.xp", "max": 100},
+        {"id": "upgrade", "type": "button", "text": "Upgrade", "entity": "item", "actions": [{"op": "state_add", "key": "xp", "value": 10}]}]}}}
+    archive("world_ui", {"scenes/world.tscn": binding, "logic/item.worldscript": json.dumps(ui_program), "ui/menu.worldui": json.dumps(ui_document)}, manifest=ui_metadata)
+    archive("world_ui_bad", {"ui/menu.worldui": "[]"}, manifest=ui_metadata)
     bad_program = {"version": 1, "events": {"start": [{"op": "command", "capability": "os.execute", "entity": "item", "property": "visible", "value": False}]}}
     archive("script_forbidden", {"scenes/world.tscn": binding, "logic/item.worldscript": json.dumps(bad_program)}, manifest=script_metadata)
     archive("script_missing", {"scenes/world.tscn": binding}, manifest=script_metadata)
@@ -166,6 +174,7 @@ def main():
             (project / "scripts/multiplayer").mkdir(parents=True)
             shutil.copy2(ROOT / "scripts/multiplayer/relay.gd", project / "scripts/multiplayer/relay.gd")
             shutil.copy2(HERE / "suite.gd", project / "suite.gd")
+            shutil.copy2(HERE / "ui_suite.gd", project / "ui_suite.gd")
             shutil.copy2(HERE / "example_suite.gd", project / "example_suite.gd")
             (project / "scripts/assets").mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / "scripts/assets/interaction_highlight.gd", project / "scripts/assets/interaction_highlight.gd")
@@ -208,6 +217,9 @@ def main():
             revision = write_packages(packages)
             (packages / "expected_revision.txt").write_text(revision)
             package_example(packages / "simple-world.cworld")
+            ui = subprocess.run([godot, "--headless", "--path", directory, "--script", "res://ui_suite.gd"], capture_output=True, text=True, timeout=60, env=isolated_env)
+            print(ui.stdout + ui.stderr, end="")
+            if result_code(ui): return result_code(ui)
             result = subprocess.run([godot, "--headless", "--path", directory, "--script", "res://suite.gd"], capture_output=True, text=True, timeout=60,
                                     env=isolated_env)
             print(result.stdout, end="")

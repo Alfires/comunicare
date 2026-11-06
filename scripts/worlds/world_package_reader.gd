@@ -33,16 +33,21 @@ func inspect_package(path: String, overrides: Dictionary = {}) -> Dictionary:
 		return _failure("Unsupported world/script API")
 	if not manifest.get("script_capabilities", []) is Array: return _failure("Invalid script capabilities")
 	for capability in manifest.get("script_capabilities", []):
-		if not capability in ["entity.read", "entity.visual", "interaction.events", "storage.local", "player.checkpoint"]: return _failure("Forbidden script capability")
+		if not capability in ["entity.read", "entity.visual", "interaction.events", "storage.local", "player.checkpoint", "ui.local", "state.local"]: return _failure("Forbidden script capability")
 	var extensions = Extensions.new().validate_requirements(manifest.get("extensions", []), {}, files.keys())
 	if not extensions.ok: return extensions
-	var document = {"entities": {}, "materials": {}, "scenes": {}, "textures": {}, "meshes": {}, "manifest": manifest, "resources": {}, "programs": {}}
+	var document = {"entities": {}, "materials": {}, "scenes": {}, "textures": {}, "meshes": {}, "manifest": manifest, "resources": {}, "programs": {}, "ui": {}}
 	var mesh_vertices := 0
 	var mesh_indices := 0
 	var decoded_texture_bytes = 0
 	for name in files:
 		var extension: String = name.get_extension().to_lower()
 		match extension:
+			"worldui":
+				if name != "ui/menu.worldui" or not "ui.local" in manifest.get("script_capabilities", []): return _failure("Undeclared UI document")
+				var ui = Text.new().parse_json(files[name].get_string_from_utf8())
+				if not ui.ok or not ui.value is Dictionary: return _failure("Invalid UI JSON")
+				document.ui = ui.value
 			"worldmesh":
 				if files[name].size() > 16 * 1024 * 1024: return _failure("Static mesh file budget exceeded")
 				var mesh_data = Text.new().parse_json(files[name].get_string_from_utf8())
@@ -73,6 +78,9 @@ func inspect_package(path: String, overrides: Dictionary = {}) -> Dictionary:
 			_:
 				return _failure("Unsupported package file: " + name)
 	if not _validate_references(document): return _failure(last_error)
+	if not document.ui.is_empty():
+		var checked_ui = preload("res://scripts/worlds/world_ui_schema.gd").validate(document.ui, document.entities.keys(), manifest.get("script_capabilities", []))
+		if not checked_ui.ok: return checked_ui
 	if document.programs.size() > 64: return _failure("Too many world scripts")
 	for entity in document.entities.values():
 		if not entity.script.is_empty() and not document.programs.has(entity.script): return _failure("Missing bound world script")

@@ -64,6 +64,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 				target.blend_shape_mode = mesh.blend_shape_mode
 				for i in mesh.get_blend_shape_count(): target.add_blend_shape(mesh.get_blend_shape_name(i))
 		var split := false
+		var source_surfaces: Array[int] = []
 		for surface in mesh.get_surface_count():
 			var arrays: Array = mesh.surface_get_arrays(surface)
 			var head_vertices: Dictionary = {}
@@ -101,8 +102,8 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 				var output = arrays.duplicate()
 				output[Mesh.ARRAY_INDEX] = pair[1]
 				pair[0].add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, output, blends)
-				var material = node.get_surface_override_material(surface)
-				pair[0].surface_set_material(pair[0].get_surface_count() - 1, material if material != null else mesh.surface_get_material(surface))
+				pair[0].surface_set_material(pair[0].get_surface_count() - 1, mesh.surface_get_material(surface))
+				source_surfaces.append(surface)
 			if not head_indices.is_empty(): split = true
 		# Keep every original surface, skin, material and expression track intact.
 		# Only the optional local-view derivative uses filtered triangle indices.
@@ -115,6 +116,8 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		duplicate.skin = node.skin
 		duplicate.skeleton = node.skeleton
 		duplicate.material_override = node.material_override
+		for surface in source_surfaces.size():
+			duplicate.set_surface_override_material(surface, node.get_surface_override_material(source_surfaces[surface]))
 		duplicate.custom_aabb = node.custom_aabb
 		duplicate.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		duplicate.layers = BODY_LAYER
@@ -130,6 +133,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 		var sync = BlendShapeSync.new()
 		sync.source = node
 		sync.target = duplicate
+		sync.source_surfaces = source_surfaces
 		node.add_child(sync)
 		changed = true
 	avatar.set_meta("first_person_prepared", true)
@@ -138,6 +142,7 @@ static func prepare(avatar: Node3D, annotations: Dictionary = {}) -> bool:
 class BlendShapeSync extends Node:
 	var source: MeshInstance3D
 	var target: MeshInstance3D
+	var source_surfaces: Array[int] = []
 	func _process(_delta: float):
 		if not is_instance_valid(source) or not is_instance_valid(target): return
 		if not target.get_meta("first_person_active", false): return
@@ -145,6 +150,10 @@ class BlendShapeSync extends Node:
 		if not target.is_visible_in_tree(): return
 		if target.transform != source.transform: target.transform = source.transform
 		if target.material_override != source.material_override: target.material_override = source.material_override
+		for surface in source_surfaces.size():
+			var material = source.get_surface_override_material(source_surfaces[surface])
+			if target.get_surface_override_material(surface) != material:
+				target.set_surface_override_material(surface, material)
 		for index in mini(source.get_blend_shape_count(), target.get_blend_shape_count()):
 			var value = source.get_blend_shape_value(index)
 			if target.get_blend_shape_value(index) != value: target.set_blend_shape_value(index, value)

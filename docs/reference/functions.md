@@ -1120,6 +1120,9 @@ Private BlendShapeSync process copies transform/material override/expression val
 from original to derivative; activated derivatives follow source visibility even
 while hidden. Inactive preview copies stay hidden. Original remains expression
 target and shadow caster. Primitive meshes need no ArrayMesh blend-shape mode.
+Per-surface material overrides are copied and synchronized through surviving
+surface indices, including when head-only surfaces are removed. Clearing an
+override restores the original mesh's base material rather than a baked override.
 
 <!-- module: scripts/assets/avatar_tracking.gd -->
 ### [AvatarTracking](../../scripts/assets/avatar_tracking.gd)

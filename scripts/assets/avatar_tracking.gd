@@ -78,6 +78,9 @@ func _apply_chain(rig: Skeleton3D, role: String, target: Node3D, bones: Array, s
 	var delta = get_process_delta_time()
 	if delta <= 0: delta = 1.0 / 60.0
 	weights[role] = move_toward(previous, 1.0 if active else 0.0, minf(delta, 0.05) / FADE_SECONDS) if solved_poses.has(role) else (1.0 if active else 0.0)
+	# Keep solved history for smooth reacquisition, but do not inspect or rewrite
+	# animation-owned bones once tracking has completely faded out.
+	if not active and weights[role] == 0.0: return
 	var base: Dictionary = {}
 	for bone in bones:
 		var index = rig.find_bone(humanoid.get(bone, ""))

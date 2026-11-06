@@ -24,6 +24,9 @@ func configure(rig: Skeleton3D, mapping: Dictionary):
 
 func solve(targets: Dictionary, delta: float):
 	if not is_instance_valid(skeleton) or not is_finite(delta) or delta <= 0: return
+	if targets.is_empty():
+		planted.clear()
+		return
 	var hips = skeleton.find_bone(humanoid.get("hips", ""))
 	if hips >= 0 and targets.get("hips") is Transform3D and targets.hips.is_finite():
 		var parent = skeleton.get_bone_parent(hips)

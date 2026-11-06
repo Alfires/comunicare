@@ -1136,6 +1136,10 @@ Material overlays are copied and synchronized, including their removal, so local
 body effects remain consistent with the original avatar.
 
 <!-- module: scripts/assets/avatar_tracking.gd -->
+Fully faded inactive chains return before bone lookup, pose allocation and bone
+writes, preserving animation ownership. Solved history remains available for
+smooth reacquisition; active tracking and partially faded chains still solve.
+
 ### [AvatarTracking](../../scripts/assets/avatar_tracking.gd)
 
 | Functions | Contract |
@@ -1186,6 +1190,9 @@ fresh assigned transforms within one second; `clear` drops samples/assignments.
 This adapter does not discover hardware or claim every runtime exposes FBT.
 
 <!-- module: scripts/assets/full_body_solver.gd -->
+An empty target set clears planted-foot history and returns before bone lookups
+or IK work. Reacquired feet start from fresh targets rather than stale plants.
+
 ### [FullBodySolver](../../scripts/assets/full_body_solver.gd)
 
 RefCounted optional pelvis/feet target solver. `configure` binds skeleton/map;

@@ -1,6 +1,10 @@
 # 09 — House, beds and side spaces
 
 **Status:** Implemented initial furnished structure with manual XR/art gates — 2026-11-05.
+Style follow-up (2026-11-06): cleared textured Innerscene bungalow exterior and
+Poly Haven sofa/daybeds/coffee table/picnic table replace the visible box-house
+and mismatched bright low-poly furnishings. Single-level layout/collision retained;
+asset source/modification records and tests added. Final art/XR gates are not waived.
 **Prerequisites:** 02, 04, 06. See [evidence](../../../tests/welcome_island/README.md).
 See the [mandatory test-first workflow](README.md) and [house plan](../offline-welcome-island-roadmap.md#house-chill-spaces-and-kitchen).
 

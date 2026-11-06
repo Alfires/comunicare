@@ -51,6 +51,9 @@ def main():
         for name in ['kitchenware', 'runtime', 'pine_sapling_small', 'boulder_01']:
             source = ROOT / 'assets/welcome_island/models' / name
             if source.exists(): shutil.copytree(source, project / 'assets/welcome_island/models' / name, dirs_exist_ok=True, ignore=shutil.ignore_patterns('*.import', '*.uid'))
+        for name in ['architecture', 'style']:
+            source = ROOT / 'assets/welcome_island/models' / name
+            if source.exists(): shutil.copytree(source, project / 'assets/welcome_island/models' / name, dirs_exist_ok=True, ignore=shutil.ignore_patterns('*.import', '*.uid'))
         shutil.copy2(HERE / ('acceptance_suite.gd' if args.acceptance else 'landscape_suite.gd' if args.landscape else 'kitchen_suite.gd' if args.kitchen else 'lighting_suite.gd' if args.lighting else 'house_suite.gd' if args.house else 'ship_suite.gd' if args.ship else 'pond_suite.gd' if args.pond else 'recovery_suite.gd' if args.recovery else 'layout_suite.gd'), project / 'suite.gd')
         renderer = 'gl_compatibility' if not args.forward_plus else 'forward_plus'
         (project / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="Island layout contracts"\n[rendering]\nrenderer/rendering_method="' + renderer + '"\n')

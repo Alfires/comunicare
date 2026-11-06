@@ -1,5 +1,13 @@
 # Production function contracts
 
+House `_install_exterior` integrates the cleared bungalow visual while preserving
+app-owned circulation/collision. It hides source steps/closed entrance visuals,
+rebuilds only the visible front-shell surface for broad access and applies independent
+roof-finish overrides. Original GLB bytes/material resources are not mutated globally.
+`_furniture` selects named realistic Poly Haven replacements for lounge/daybeds/tables,
+uniformly sizes them and records `style_source`; daybed scale uses footprint rather
+than the old low-poly height. Decorative architecture is not a collision certificate.
+
 <!-- module: scripts/worlds/welcome_island/landscape.gd -->
 ## Initial built-in landscape composition
 

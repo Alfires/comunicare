@@ -8547,14 +8547,21 @@
     {
       "kind": "func",
       "name": "_furniture",
-      "line": 31,
+      "line": 32,
       "signature": "func _furniture(label: String, asset: String, center: Vector3, target: Vector3, solid: bool = true) -> Node3D",
       "visibility": "private"
     },
     {
       "kind": "func",
+      "name": "_install_exterior",
+      "line": 61,
+      "signature": "func _install_exterior()",
+      "visibility": "private"
+    },
+    {
+      "kind": "func",
       "name": "_box",
-      "line": 49,
+      "line": 107,
       "signature": "func _box(label: String, center: Vector3, size: Vector3, solid: bool) -> Node3D",
       "visibility": "private"
     }

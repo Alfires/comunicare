@@ -15,6 +15,14 @@ func run():
 		world.queue_free(); await process_frame; finish(); return
 	for name in ["BedOne", "BedTwo", "Sofa", "LowTable", "KitchenReserve", "Porch", "Roof"]:
 		check(house.get_node_or_null(NodePath(name)) != null, "house contains " + name)
+	var exterior = house.get_node_or_null("AuthoredExterior")
+	check(exterior != null, "house uses a cleared textured architectural asset instead of visible box walls")
+	if exterior != null:
+		check(exterior.find_children("*", "MeshInstance3D", true, false).size() > 20,
+			"architectural asset retains roof/window/porch details")
+	check(house.get_node("Sofa").get_meta("style_source", "") == "polyhaven.sofa_02", "lounge seating matches realistic material style")
+	check(house.get_node("LowTable").get_meta("style_source", "") == "polyhaven.coffee_table_round_01", "table uses compatible realistic asset")
+	check(house.get_node("BedOne").get_meta("style_source", "") == "polyhaven.vintage_day_bed", "resting furniture uses consistent realistic textured source")
 	for name in ["LeftBench", "LeftCushions", "PicnicTable", "ShoreBench", "HerbBedOne", "HerbBedTwo"]:
 		check(world.get_node_or_null("Island/" + name) != null, "side spaces include " + name)
 	var body = CharacterBody3D.new(); root.add_child(body)

@@ -308,4 +308,113 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - Shipped: `assets/welcome_island/models/kitchenware/Textures/colormap.png`; SHA-256 `75baf74d9483a0fc56ac21ceba346fbe16fc24a2a1bf0524c53e6bbe802e1153`
   Original: `Models/GLB format/Textures/colormap.png`; SHA-256 `75baf74d9483a0fc56ac21ceba346fbe16fc24a2a1bf0524c53e6bbe802e1153`; download: https://youraiagent.biz/api/assets/kenney-food-kit/download
 
+### innerscene.bungalow-house — Bungalow house — original architectural model
+
+- Author: Innerscene Corp
+- Source: https://www.innerscene.com/tools/library/3d-parts/bungalow-house-85d40048
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Original GLB preserved. Verified embedded PNG images extracted by Godot and listed separately. Runtime adapts front facade/door/steps for broad accessible entry, retains roof/windows/porch details and uses separate proven collision/interior. Roof finish is subdued by per-instance material overrides. Embedded copyright dedicates model under CC0 1.0.
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house.glb`; SHA-256 `bf194d518767450bdc2bfa4d90948ec274bf07f23f5e3ae767c63e20bfd9e1cb`
+  Original: `bungalow-house.glb`; SHA-256 `bf194d518767450bdc2bfa4d90948ec274bf07f23f5e3ae767c63e20bfd9e1cb`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_black_iron_house_2k.png`; SHA-256 `d318402747c036331d5d2ec3cf0f68db840cb0e918f7630b973b8474761ffde6`
+  Original: `bungalow-house.glb#black_iron_house_2k`; SHA-256 `d318402747c036331d5d2ec3cf0f68db840cb0e918f7630b973b8474761ffde6`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_white_paint_house_2k.png`; SHA-256 `2d6a5a60d241cd8e95f8a5d2e0577c5aba5c72a299d0add462303cb74191dee0`
+  Original: `bungalow-house.glb#white_paint_house_2k`; SHA-256 `2d6a5a60d241cd8e95f8a5d2e0577c5aba5c72a299d0add462303cb74191dee0`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_stone_sandstone_house_2k.png`; SHA-256 `84379fe87bea9e9baf3fcdd3e5e79af6ab98b2f932841abdf8ded8daf4424ddb`
+  Original: `bungalow-house.glb#stone_sandstone_house_2k`; SHA-256 `84379fe87bea9e9baf3fcdd3e5e79af6ab98b2f932841abdf8ded8daf4424ddb`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_oak_house_2k.png`; SHA-256 `786bc83c956e98b793085e4772d78e32b1404abe105b56dbf5dc3cdf8d55c0ad`
+  Original: `bungalow-house.glb#oak_house_2k`; SHA-256 `786bc83c956e98b793085e4772d78e32b1404abe105b56dbf5dc3cdf8d55c0ad`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_brass_house_2k.png`; SHA-256 `a64f20e32da233823aa5841dc73b26bed5210ebe38a50fb034a078a8931b4424`
+  Original: `bungalow-house.glb#brass_house_2k`; SHA-256 `a64f20e32da233823aa5841dc73b26bed5210ebe38a50fb034a078a8931b4424`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_glass_house_2k.png`; SHA-256 `8161cfc07ecff3d81690e0b9290ac3e1e07fe388e33f96c511414119dc77f0cd`
+  Original: `bungalow-house.glb#glass_house_2k`; SHA-256 `8161cfc07ecff3d81690e0b9290ac3e1e07fe388e33f96c511414119dc77f0cd`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_render_cream_house_2k.png`; SHA-256 `95b3e5dd8187709d7e6dda21884e081fa0c63eb06e1f9f0140ace2aff20e5a8d`
+  Original: `bungalow-house.glb#render_cream_house_2k`; SHA-256 `95b3e5dd8187709d7e6dda21884e081fa0c63eb06e1f9f0140ace2aff20e5a8d`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+- Shipped: `assets/welcome_island/models/architecture/bungalow-house_roof_tiles_red_house_2k.png`; SHA-256 `3555216a4ad939bd2d0685563cb863880f04e7a047ced4e8e255d8e90a54a770`
+  Original: `bungalow-house.glb#roof_tiles_red_house_2k`; SHA-256 `3555216a4ad939bd2d0685563cb863880f04e7a047ced4e8e255d8e90a54a770`; download: https://www.innerscene.com/api/library/bungalow-house-85d40048/download
+
+### polyhaven.sofa_02 — Sofa 02
+
+- Author: Kirill Sannikov
+- Source: https://polyhaven.com/a/sofa_02
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K glTF/buffer/PBR maps. Runtime uniformly normalized for consistent home scale; no scene layout imported.
+- Shipped: `assets/welcome_island/models/style/sofa_02/sofa_02_1k.gltf`; SHA-256 `5df114209f9b956ccd4831eaeef469a81339ab371d0056eb6d5d29eee08eb431`
+  Original: `sofa_02_1k.gltf`; SHA-256 `5df114209f9b956ccd4831eaeef469a81339ab371d0056eb6d5d29eee08eb431`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/sofa_02/sofa_02_1k.gltf
+- Shipped: `assets/welcome_island/models/style/sofa_02/textures/sofa_02_diff_1k.jpg`; SHA-256 `4ff65c782578b52eee89cb96cc4e258ce1b6848e1a7655019af1f7207c749840`
+  Original: `textures/sofa_02_diff_1k.jpg`; SHA-256 `4ff65c782578b52eee89cb96cc4e258ce1b6848e1a7655019af1f7207c749840`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/sofa_02/sofa_02_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/style/sofa_02/textures/sofa_02_arm_1k.jpg`; SHA-256 `f2813f32cd9ec42a9080590d0953ac9e272d9baa0b22fdb5910bf325157393c6`
+  Original: `textures/sofa_02_arm_1k.jpg`; SHA-256 `f2813f32cd9ec42a9080590d0953ac9e272d9baa0b22fdb5910bf325157393c6`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/sofa_02/sofa_02_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/style/sofa_02/textures/sofa_02_nor_gl_1k.jpg`; SHA-256 `c97a359703a8ce1cee62cbd9dc4013b611d821afb7769810983b464ebc5d0cfe`
+  Original: `textures/sofa_02_nor_gl_1k.jpg`; SHA-256 `c97a359703a8ce1cee62cbd9dc4013b611d821afb7769810983b464ebc5d0cfe`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/sofa_02/sofa_02_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/style/sofa_02/sofa_02.bin`; SHA-256 `cb337e03211be0309afa1ded2b6cbb2d402c0f794aaf8828fba559d27a42d3f5`
+  Original: `sofa_02.bin`; SHA-256 `cb337e03211be0309afa1ded2b6cbb2d402c0f794aaf8828fba559d27a42d3f5`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/sofa_02/sofa_02.bin
+
+### polyhaven.vintage_day_bed — Vintage Day Bed
+
+- Author: Aron Łyczek
+- Source: https://polyhaven.com/a/vintage_day_bed
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K glTF/buffer/PBR maps. Runtime uniformly normalized for consistent home scale; no scene layout imported.
+- Shipped: `assets/welcome_island/models/style/vintage_day_bed/vintage_day_bed_1k.gltf`; SHA-256 `fb255992b6e651de9709b17c083a14b405e99cbc26774b31bf252e38cf9287fb`
+  Original: `vintage_day_bed_1k.gltf`; SHA-256 `fb255992b6e651de9709b17c083a14b405e99cbc26774b31bf252e38cf9287fb`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/vintage_day_bed/vintage_day_bed_1k.gltf
+- Shipped: `assets/welcome_island/models/style/vintage_day_bed/textures/vintage_day_bed_nor_gl_1k.jpg`; SHA-256 `2902f47f4778fce0667c2a1dbff7e2e861a0aed475668ea3fce8a485487598eb`
+  Original: `textures/vintage_day_bed_nor_gl_1k.jpg`; SHA-256 `2902f47f4778fce0667c2a1dbff7e2e861a0aed475668ea3fce8a485487598eb`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_day_bed/vintage_day_bed_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/style/vintage_day_bed/textures/vintage_day_bed_diff_1k.jpg`; SHA-256 `78b7036a3254c780052b87ac962ac6ba212501821af03c56faa2d7a9ccb955ce`
+  Original: `textures/vintage_day_bed_diff_1k.jpg`; SHA-256 `78b7036a3254c780052b87ac962ac6ba212501821af03c56faa2d7a9ccb955ce`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_day_bed/vintage_day_bed_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/style/vintage_day_bed/textures/vintage_day_bed_arm_1k.jpg`; SHA-256 `b60e71c345fc1d16396a94a133390b4cdde5c05a38ebaadf2f5dc96be2895b11`
+  Original: `textures/vintage_day_bed_arm_1k.jpg`; SHA-256 `b60e71c345fc1d16396a94a133390b4cdde5c05a38ebaadf2f5dc96be2895b11`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_day_bed/vintage_day_bed_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/style/vintage_day_bed/vintage_day_bed.bin`; SHA-256 `08172858c3f9d4225780013e4e9afd01bb9db42e17001fc6c790a183227ecf07`
+  Original: `vintage_day_bed.bin`; SHA-256 `08172858c3f9d4225780013e4e9afd01bb9db42e17001fc6c790a183227ecf07`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/vintage_day_bed/vintage_day_bed.bin
+
+### polyhaven.coffee_table_round_01 — Coffee Table Round 01
+
+- Author: Ulan Cabanilla
+- Source: https://polyhaven.com/a/coffee_table_round_01
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K glTF/buffer/PBR maps. Runtime uniformly normalized for consistent home scale; no scene layout imported.
+- Shipped: `assets/welcome_island/models/style/coffee_table_round_01/coffee_table_round_01_1k.gltf`; SHA-256 `58fe785584f8999f760e590b04ce74f83962d42c9440ab9415910f63a31165dc`
+  Original: `coffee_table_round_01_1k.gltf`; SHA-256 `58fe785584f8999f760e590b04ce74f83962d42c9440ab9415910f63a31165dc`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/coffee_table_round_01/coffee_table_round_01_1k.gltf
+- Shipped: `assets/welcome_island/models/style/coffee_table_round_01/textures/coffee_table_round_01_diff_1k.jpg`; SHA-256 `422b4a24a4459e1fd6d121aae4f1097dd3e467c7a8036bb1d003f955302f1d28`
+  Original: `textures/coffee_table_round_01_diff_1k.jpg`; SHA-256 `422b4a24a4459e1fd6d121aae4f1097dd3e467c7a8036bb1d003f955302f1d28`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/coffee_table_round_01/coffee_table_round_01_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/style/coffee_table_round_01/textures/coffee_table_round_01_arm_1k.jpg`; SHA-256 `7221b03af475555092abd650798facbb945bf4acf02e48f8697f012d8515bf52`
+  Original: `textures/coffee_table_round_01_arm_1k.jpg`; SHA-256 `7221b03af475555092abd650798facbb945bf4acf02e48f8697f012d8515bf52`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/coffee_table_round_01/coffee_table_round_01_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/style/coffee_table_round_01/coffee_table_round_01.bin`; SHA-256 `9605a0c156bff4ec87e8717a79978d85d4e750d21b3193a3d08bed16e8666035`
+  Original: `coffee_table_round_01.bin`; SHA-256 `9605a0c156bff4ec87e8717a79978d85d4e750d21b3193a3d08bed16e8666035`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/coffee_table_round_01/coffee_table_round_01.bin
+- Shipped: `assets/welcome_island/models/style/coffee_table_round_01/textures/coffee_table_round_01_nor_gl_1k.jpg`; SHA-256 `a5912db1918b1ec925efb19179675cafc8832b082f80b2ea35c3a58b45e1aec4`
+  Original: `textures/coffee_table_round_01_nor_gl_1k.jpg`; SHA-256 `a5912db1918b1ec925efb19179675cafc8832b082f80b2ea35c3a58b45e1aec4`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/coffee_table_round_01/coffee_table_round_01_nor_gl_1k.jpg
+
+### polyhaven.wooden_picnic_table — Wooden Picnic Table
+
+- Author: Ulan Cabanilla
+- Source: https://polyhaven.com/a/wooden_picnic_table
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K glTF/buffer/PBR maps. Runtime uniformly normalized for consistent home scale; no scene layout imported.
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/wooden_picnic_table_1k.gltf`; SHA-256 `6b0dd9916fd87dba2e5baad06e20c0badf68bc68a5761a13854fa9a215c6bd50`
+  Original: `wooden_picnic_table_1k.gltf`; SHA-256 `6b0dd9916fd87dba2e5baad06e20c0badf68bc68a5761a13854fa9a215c6bd50`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/wooden_picnic_table/wooden_picnic_table_1k.gltf
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/textures/wooden_picnic_table_top_arm_1k.jpg`; SHA-256 `50d2b7a0b15c56bf82bc0c918e6eaa5f590a6fd61d32311c8da85c414ace297d`
+  Original: `textures/wooden_picnic_table_top_arm_1k.jpg`; SHA-256 `50d2b7a0b15c56bf82bc0c918e6eaa5f590a6fd61d32311c8da85c414ace297d`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_top_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/textures/wooden_picnic_table_top_nor_gl_1k.jpg`; SHA-256 `1e65787457f9edfdd04f1ee3f777ac2d2a9d43bfbbd3cb40c1e086f939bba419`
+  Original: `textures/wooden_picnic_table_top_nor_gl_1k.jpg`; SHA-256 `1e65787457f9edfdd04f1ee3f777ac2d2a9d43bfbbd3cb40c1e086f939bba419`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_top_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/wooden_picnic_table.bin`; SHA-256 `1efd51c292843194fbd709452d56d06c9ddc770f43a013db57ca79bfc2731b01`
+  Original: `wooden_picnic_table.bin`; SHA-256 `1efd51c292843194fbd709452d56d06c9ddc770f43a013db57ca79bfc2731b01`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/wooden_picnic_table/wooden_picnic_table.bin
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/textures/wooden_picnic_table_bottom_arm_1k.jpg`; SHA-256 `555226136c1d754d4aa5da42385a9152a146c5175382c77cced611a6880efd35`
+  Original: `textures/wooden_picnic_table_bottom_arm_1k.jpg`; SHA-256 `555226136c1d754d4aa5da42385a9152a146c5175382c77cced611a6880efd35`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/textures/wooden_picnic_table_top_diff_1k.jpg`; SHA-256 `4aefdef35bf343410dbebd8577dfc968f1d6420ccddc601b19912e84b2accc0a`
+  Original: `textures/wooden_picnic_table_top_diff_1k.jpg`; SHA-256 `4aefdef35bf343410dbebd8577dfc968f1d6420ccddc601b19912e84b2accc0a`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_top_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/textures/wooden_picnic_table_bottom_nor_gl_1k.jpg`; SHA-256 `c5d6eb388eceb6d98e92ff31d3f3346d411b1bbcb15c05dc9da71e4a7e398539`
+  Original: `textures/wooden_picnic_table_bottom_nor_gl_1k.jpg`; SHA-256 `c5d6eb388eceb6d98e92ff31d3f3346d411b1bbcb15c05dc9da71e4a7e398539`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/style/wooden_picnic_table/textures/wooden_picnic_table_bottom_diff_1k.jpg`; SHA-256 `887b9a57213f87196fb090419e14d00095af8fa56c93ca6cd7d0d70ef4e5fd27`
+  Original: `textures/wooden_picnic_table_bottom_diff_1k.jpg`; SHA-256 `887b9a57213f87196fb090419e14d00095af8fa56c93ca6cd7d0d70ef4e5fd27`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_diff_1k.jpg
+
 <!-- welcome-island-assets:end -->

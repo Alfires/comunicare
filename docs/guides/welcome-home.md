@@ -21,6 +21,11 @@ finishing Help, connecting or enabling a microphone.
   and requires neutral controls before resuming. Returning home clears the rider.
 - View local licenses and authors in Settings → Credits without internet.
 
+The house now uses a textured CC0 bungalow exterior adapted around the original
+accessible layout, with realistic Poly Haven lounge/daybed/table assets. Source
+credits and modification notices are bundled. This replaces the first bright
+low-poly lounge/box-wall presentation; the island remains our own composition.
+
 Home objects/lights/appliances/boat are **local-only**, including inside an online
 instance using the same content. They do not claim synchronized ownership. Existing
 online instance admission and downloaded-world script restrictions remain unchanged.

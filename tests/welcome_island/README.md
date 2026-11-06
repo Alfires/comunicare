@@ -1,5 +1,40 @@
 # Welcome island startup contracts
 
+## House/style asset replacement — 2026-11-06
+
+New house/style assertions failed before acquiring replacements. The home now
+integrates Innerscene's original CC0 bungalow GLB with individually downloaded
+Poly Haven CC0 Sofa 02, Vintage Day Bed, Coffee Table Round 01 and Wooden Picnic
+Table. The A-frame candidate was inspected but not bundled: its loft/steps were
+a worse fit for single-level access. No island/environment preset was acquired.
+
+The publisher's bungalow page and embedded GLB copyright explicitly permit use,
+modification and redistribution under CC0. Source geometry stays unchanged;
+runtime adaptation removes closed entrance/stair visuals and opens the front
+facade for the tested broad entry. The original collision shell/interior layout
+remains app-owned. A pitched tile roof, cream render, glazing, gutters and porch
+details replace the visible three-wall blockout. Independent material overrides
+subdue roof color; textured furniture replaces the bright low-poly lounge/beds/table.
+Daybed scale is fitted by sleeping footprint rather than the old low bed height.
+
+Asset checks: **518 passed**, with source counts: bungalow 14,796 triangles, sofa
+2,728, daybed 2,715, round table 4,044, picnic table 10,210. Exact author/file/hash
+and modification records are in the 16-entry island manifest and Credits inventory.
+Godot-extracted embedded PNGs were byte-compared with the GLB buffer views before
+listing them in provenance. Architecture textures are at most 2K; new furniture
+maps use 1K. No source model is assumed safe to use as detailed collision geometry.
+
+House/style checks (32 rendered checks after the final bed-source assertion),
+layout 30, combined home 18, startup and Credits pass. Exported-PCK home/revision
+passes. The earlier standalone template in `/tmp/opencode` was removed by environment
+cleanup; the attempted rerun reports missing template, **not** a new standalone
+pass. Previous standalone evidence is historical, not certification of these assets.
+Screenshots at `/tmp/opencode/island-house-{outside,inside,left}.png` were inspected
+during adaptation. Further final-art work, collision/visual alignment near decorative
+windows, full production UI controls, headset comfort and named GPU/VRAM budgets
+remain release gates. This improves the requested style but does not close all
+remaining work merely by importing a better house.
+
 ### Restart follow-up — 2026-11-06
 
 The second local matrix completed before the server restart: 23 of 24 groups

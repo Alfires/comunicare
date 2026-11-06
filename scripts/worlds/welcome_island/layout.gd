@@ -35,6 +35,21 @@ func _ready():
 			var distance: float = previous.distance_to(endpoint)
 			var path = _box("Path", middle + Vector3(0, 0.015, 0), Vector3(3.6, 0.03, distance + 1), Color(0.64, 0.57, 0.4), false)
 			path.rotation.y = atan2(endpoint.x - previous.x, endpoint.z - previous.z)
+			# Break the ruler-straight graybox strip with low, irregular grass
+			# shoulders. Visual-only edges never introduce a walking obstacle.
+			var shoulder = MeshInstance3D.new()
+			var ribbon = SurfaceTool.new(); ribbon.begin(Mesh.PRIMITIVE_TRIANGLES)
+			var direction: Vector3 = (endpoint - previous).normalized()
+			var side = direction.cross(Vector3.UP)
+			for section in range(ceili(distance / 2)):
+				var a = previous + direction * minf(section * 2, distance)
+				var b = previous + direction * minf((section+1)*2, distance)
+				var width_a = 1.9 + sin(section * 1.7) * 0.22
+				var width_b = 1.9 + sin((section+1)*1.7) * 0.22
+				for sign_value in [-1, 1]:
+					for point in [a+side*sign_value*1.55, a+side*sign_value*width_a, b+side*sign_value*1.55, b+side*sign_value*1.55, a+side*sign_value*width_a, b+side*sign_value*width_b]:
+						ribbon.add_vertex(point + Vector3.UP*0.035)
+			ribbon.generate_normals(); shoulder.mesh = ribbon.commit(); shoulder.material_override = _surface_material("sparse_grass", 2.5); add_child(shoulder)
 			previous = endpoint
 
 func _height(x: float, z: float) -> float:
@@ -145,7 +160,13 @@ func _build_land():
 	var mesh = tool.commit()
 	var instance = MeshInstance3D.new()
 	instance.mesh = mesh
-	instance.material_override = _surface_material("sparse_grass", 2.5)
+	var meadow = ShaderMaterial.new()
+	meadow.shader = load("res://scenes/worlds/welcome_island/meadow.gdshader")
+	var texture_root = "res://assets/welcome_island/textures/sparse_grass/sparse_grass_"
+	meadow.set_shader_parameter("ground_color", load(texture_root + "diff_1k.jpg"))
+	meadow.set_shader_parameter("ground_normal", load(texture_root + "nor_gl_1k.jpg"))
+	meadow.set_shader_parameter("ground_roughness", load(texture_root + "rough_1k.jpg"))
+	instance.material_override = meadow
 	body.add_child(instance)
 	var collision = CollisionShape3D.new()
 	collision.shape = mesh.create_trimesh_shape()

@@ -847,6 +847,195 @@
           "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_diff_1k.jpg"
         }
       ]
+    },
+    {
+      "id": "polyhaven.fir_sapling",
+      "title": "Fir Sapling",
+      "author": "Rob Tuytel; Rico Cilliers",
+      "source": "https://polyhaven.com/a/fir_sapling",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-06",
+      "attribution": "",
+      "modifications": "Publisher 1K glTF/buffer/textures preserved unchanged. Derived runtime scenes split individual variants, select Godot 4.7 meshoptimizer LOD topology up to 7000 triangles per surface, compact unused vertices and regenerate distance LODs. Rebuild: python3 tools/assets/optimize_island.py.",
+      "files": [
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/fir_sapling_1k.gltf",
+          "sha256": "a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186",
+          "original_name": "fir_sapling_1k.gltf",
+          "original_sha256": "a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_twigs_nor_gl_1k.jpg",
+          "sha256": "34928b2a9d1f722d2f64a7da468c790ecaca9b89c00ac0878a9e0bad26748368",
+          "original_name": "textures/fir_sapling_twigs_nor_gl_1k.jpg",
+          "original_sha256": "34928b2a9d1f722d2f64a7da468c790ecaca9b89c00ac0878a9e0bad26748368",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_twigs_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_branches_diff_1k.jpg",
+          "sha256": "46d216526b6203dbd5dc3cfce5e49d7a4cc1770da2420faab45adf33671c7de4",
+          "original_name": "textures/fir_sapling_branches_diff_1k.jpg",
+          "original_sha256": "46d216526b6203dbd5dc3cfce5e49d7a4cc1770da2420faab45adf33671c7de4",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_branches_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_twigs_diff_1k.jpg",
+          "sha256": "a9900fafad850deeb5f79b928fd7590bca9e8ec8734d2368d4c64bba8b0c5b22",
+          "original_name": "textures/fir_sapling_twigs_diff_1k.jpg",
+          "original_sha256": "a9900fafad850deeb5f79b928fd7590bca9e8ec8734d2368d4c64bba8b0c5b22",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_twigs_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_branches_nor_gl_1k.jpg",
+          "sha256": "dbe474f6cd593d51a19fb92a627ad900b9ab47dabd1bf60117a2cf9d110f79ea",
+          "original_name": "textures/fir_sapling_branches_nor_gl_1k.jpg",
+          "original_sha256": "dbe474f6cd593d51a19fb92a627ad900b9ab47dabd1bf60117a2cf9d110f79ea",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_branches_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_twigs_arm_1k.jpg",
+          "sha256": "d1ec27a55bb67bfe5fa2c8a41a545dc71769934b142db56ad7c703d4146e1770",
+          "original_name": "textures/fir_sapling_twigs_arm_1k.jpg",
+          "original_sha256": "d1ec27a55bb67bfe5fa2c8a41a545dc71769934b142db56ad7c703d4146e1770",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_twigs_arm_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_branches_arm_1k.jpg",
+          "sha256": "44c32b056b78c1046aeeb44c973a1d1352ea12d0d7ef2425527555f1256a0964",
+          "original_name": "textures/fir_sapling_branches_arm_1k.jpg",
+          "original_sha256": "44c32b056b78c1046aeeb44c973a1d1352ea12d0d7ef2425527555f1256a0964",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_branches_arm_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fir_sapling/fir_sapling.bin",
+          "sha256": "efdebfae6ee4b3ea20c7a85eb9f798ff4953259a3616bcff0b7e580b00f34f40",
+          "original_name": "fir_sapling.bin",
+          "original_sha256": "efdebfae6ee4b3ea20c7a85eb9f798ff4953259a3616bcff0b7e580b00f34f40",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fir_sapling/fir_sapling.bin"
+        },
+        {
+          "path": "assets/welcome_island/models/runtime/fir_sapling_a.scn",
+          "sha256": "4b28984b540ff51233a6f0739ef2ac3edf728a33d08e72cc8407b2a86216f5db",
+          "original_name": "fir_sapling_1k.gltf",
+          "original_sha256": "a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf"
+        },
+        {
+          "path": "assets/welcome_island/models/runtime/fir_sapling_b.scn",
+          "sha256": "3cce609097e5683ad0d6d6cd5e496883814bd5c21911f4774347fdef3757f8af",
+          "original_name": "fir_sapling_1k.gltf",
+          "original_sha256": "a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf"
+        },
+        {
+          "path": "assets/welcome_island/models/runtime/fir_sapling_c.scn",
+          "sha256": "7a457178a3e5f3d60fe0f8ad43d407eeb945a60bac1bbd73f906906d9fc9206e",
+          "original_name": "fir_sapling_1k.gltf",
+          "original_sha256": "a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf"
+        }
+      ]
+    },
+    {
+      "id": "polyhaven.fern_02",
+      "title": "Fern 02",
+      "author": "Rob Tuytel; Rico Cilliers",
+      "source": "https://polyhaven.com/a/fern_02",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-06",
+      "attribution": "",
+      "modifications": "Unmodified publisher 1K glTF/buffer/PBR files; individually placed in our original island composition. Runtime simplification/LOD uses local Godot authoring tool where recorded.",
+      "files": [
+        {
+          "path": "assets/welcome_island/models/nature/fern_02/fern_02_1k.gltf",
+          "sha256": "33974295ee19670af4877705fc7d91f33f42d6302f0d44a625e072271223031f",
+          "original_name": "fern_02_1k.gltf",
+          "original_sha256": "33974295ee19670af4877705fc7d91f33f42d6302f0d44a625e072271223031f",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fern_02/fern_02_1k.gltf"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fern_02/textures/fern_02_arm_1k.jpg",
+          "sha256": "ebfb5d76ce9cbdaec20bcd22dce9b755f0b1b8650ef29ca13555e3e6961025d7",
+          "original_name": "textures/fern_02_arm_1k.jpg",
+          "original_sha256": "ebfb5d76ce9cbdaec20bcd22dce9b755f0b1b8650ef29ca13555e3e6961025d7",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_arm_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fern_02/textures/fern_02_diff_1k.jpg",
+          "sha256": "a828a6e7b4c01c826911e2eac4b3afc7457dab7b3b392a31c681ed88b7d50029",
+          "original_name": "textures/fern_02_diff_1k.jpg",
+          "original_sha256": "a828a6e7b4c01c826911e2eac4b3afc7457dab7b3b392a31c681ed88b7d50029",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fern_02/textures/fern_02_nor_gl_1k.jpg",
+          "sha256": "45bce132c6e96a0864bc89ab5da51361ab3f4afa83a6669ae499ab5ca811f621",
+          "original_name": "textures/fern_02_nor_gl_1k.jpg",
+          "original_sha256": "45bce132c6e96a0864bc89ab5da51361ab3f4afa83a6669ae499ab5ca811f621",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/fern_02/fern_02.bin",
+          "sha256": "fe1abb762bcbbc7ad9e86925c8080437a62add257d9280e9142fdc85c226e64c",
+          "original_name": "fern_02.bin",
+          "original_sha256": "fe1abb762bcbbc7ad9e86925c8080437a62add257d9280e9142fdc85c226e64c",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fern_02/fern_02.bin"
+        }
+      ]
+    },
+    {
+      "id": "polyhaven.tree_stump_01",
+      "title": "Tree Stump 01",
+      "author": "Rob Tuytel",
+      "source": "https://polyhaven.com/a/tree_stump_01",
+      "license": "CC0-1.0",
+      "license_file": "assets/welcome_island/licenses/CC0-1.0.txt",
+      "license_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "retrieved": "2026-11-06",
+      "attribution": "",
+      "modifications": "Unmodified publisher 1K glTF/buffer/PBR files; individually placed in our original island composition. Runtime simplification/LOD uses local Godot authoring tool where recorded.",
+      "files": [
+        {
+          "path": "assets/welcome_island/models/nature/tree_stump_01/tree_stump_01_1k.gltf",
+          "sha256": "9c66ba87d693f35eb404acaa96e0eeff831c295b61a0a903795584cbcc3527c9",
+          "original_name": "tree_stump_01_1k.gltf",
+          "original_sha256": "9c66ba87d693f35eb404acaa96e0eeff831c295b61a0a903795584cbcc3527c9",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/tree_stump_01/tree_stump_01_1k.gltf"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/tree_stump_01/tree_stump_01.bin",
+          "sha256": "b4d9ca70b3c908c4a638fbd6a23ed96c84055bbbf14cf44b89e31ad59fa21e0a",
+          "original_name": "tree_stump_01.bin",
+          "original_sha256": "b4d9ca70b3c908c4a638fbd6a23ed96c84055bbbf14cf44b89e31ad59fa21e0a",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/tree_stump_01/tree_stump_01.bin"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/tree_stump_01/textures/tree_stump_01_diff_1k.jpg",
+          "sha256": "781ebe420ac4d84f2e44b9e9937a596e3d5d90711d978a1392f8bf3771b5bf31",
+          "original_name": "textures/tree_stump_01_diff_1k.jpg",
+          "original_sha256": "781ebe420ac4d84f2e44b9e9937a596e3d5d90711d978a1392f8bf3771b5bf31",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_diff_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/tree_stump_01/textures/tree_stump_01_nor_gl_1k.jpg",
+          "sha256": "425117514b0386bb6df41cb64a61a624d2596472e05777483d4021b3285e3ceb",
+          "original_name": "textures/tree_stump_01_nor_gl_1k.jpg",
+          "original_sha256": "425117514b0386bb6df41cb64a61a624d2596472e05777483d4021b3285e3ceb",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_nor_gl_1k.jpg"
+        },
+        {
+          "path": "assets/welcome_island/models/nature/tree_stump_01/textures/tree_stump_01_arm_1k.jpg",
+          "sha256": "d845cd6ab45288c546267d059ebe1f8a737e174330fe9375e5f99e753f2f95d8",
+          "original_name": "textures/tree_stump_01_arm_1k.jpg",
+          "original_sha256": "d845cd6ab45288c546267d059ebe1f8a737e174330fe9375e5f99e753f2f95d8",
+          "download": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_arm_1k.jpg"
+        }
+      ]
     }
   ]
 }

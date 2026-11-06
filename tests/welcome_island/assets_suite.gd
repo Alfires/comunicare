@@ -67,7 +67,9 @@ func run():
 						if arrays[Mesh.ARRAY_INDEX] != null: triangles += arrays[Mesh.ARRAY_INDEX].size() / 3
 						var material = node.mesh.surface_get_material(surface)
 						check(material is BaseMaterial3D, entry.id + " has imported PBR material")
-						if material is BaseMaterial3D and material.resource_name.contains("twig"):
+						# Pine uses alpha-card twigs; fir models its needles as actual
+						# opaque geometry. Names alone do not imply transparency.
+						if material is BaseMaterial3D and entry.id == "polyhaven.pine_sapling_small" and material.resource_name.contains("twig"):
 							check(material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR,
 								entry.id + " foliage uses alpha cutout rather than opaque cards")
 							check(material.cull_mode == BaseMaterial3D.CULL_DISABLED, entry.id + " foliage is double-sided")

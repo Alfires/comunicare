@@ -45,7 +45,7 @@ def main():
             if source.exists(): shutil.copytree(source, project / "assets/welcome_island/textures" / id, ignore=shutil.ignore_patterns("*.import"))
         shutil.copytree(ROOT / "assets/welcome_island/models/ship", project / "assets/welcome_island/models/ship", ignore=shutil.ignore_patterns("*.import"))
         shutil.copytree(ROOT / "assets/welcome_island/models/furniture", project / "assets/welcome_island/models/furniture", ignore=shutil.ignore_patterns("*.import"))
-        for name in ("kitchenware", "runtime", "pine_sapling_small", "boulder_01", "architecture", "style"):
+        for name in ("kitchenware", "runtime", "pine_sapling_small", "boulder_01", "architecture", "style", "nature"):
             shutil.copytree(ROOT / "assets/welcome_island/models" / name, project / "assets/welcome_island/models" / name, ignore=shutil.ignore_patterns("*.import", "*.uid"))
         # The legacy world-mounted VRPanel holds a viewport-texture/material cycle
         # on repeated unloading. This startup suite uses player menu probes, not

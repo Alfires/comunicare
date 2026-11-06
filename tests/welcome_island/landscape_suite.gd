@@ -15,6 +15,10 @@ func run():
 	if landscape == null:
 		world.queue_free(); await process_frame; finish(); return
 	check(landscape.get_node("Trees").get_child_count() >= 20, "grove and side destinations have trees")
+	var species := {}
+	for tree in landscape.get_node("Trees").get_children(): species[tree.get_meta("species", "unknown")] = true
+	check(species.has("pine") and species.has("fir"), "landscape mixes distinct realistic pine and fir silhouettes")
+	check(landscape.has_node("Understory") and landscape.get_node("Understory").get_child_count() >= 30, "planted clusters include bounded fern understory and stumps")
 	check(landscape.get_node("Rocks").get_child_count() >= 16, "shore and underside have individual authored rocks")
 	check(landscape.get_node("EdgeBorders").get_child_count() >= 12, "perimeter has readable protective borders")
 	check(landscape.get_node_or_null("Roots") != null, "overhanging roots connect trees to floating rock strata")
@@ -40,7 +44,7 @@ func run():
 	print("LOAD METRIC: ", Time.get_ticks_msec() - start, " ms (includes test frame waits)")
 	if OS.get_environment("ISLAND_LAYOUT_RENDERED") == "1":
 		var camera = Camera3D.new(); world.add_child(camera)
-		var views = {"spawn": [Vector3(0, 1.7, 0), Vector3(-20, 2, -25)], "overview": [Vector3(65, 70, 80), Vector3.ZERO], "grove": [Vector3(-8, 3, -22), Vector3(0, 2, -36)], "underside": [Vector3(65, -20, 70), Vector3(0, -10, 0)]}
+		var views = {"spawn": [Vector3(0, 1.7, 0), Vector3(-20, 2, -25)], "overview": [Vector3(48, 46, 58), Vector3.ZERO], "grove": [Vector3(-8, 3, -22), Vector3(0, 2, -36)], "underside": [Vector3(65, -20, 70), Vector3(0, -10, 0)]}
 		for name in views:
 			camera.look_at_from_position(views[name][0], views[name][1])
 			for frame in 10: await process_frame

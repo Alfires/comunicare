@@ -1,5 +1,11 @@
 # Production function contracts
 
+Landscape vegetation now distinguishes pine/fir species, retains authored fir
+canopies where reduced base topology lost needles, and adds bounded fern/stump
+clusters. Meadow shading applies world-space color variation to the cleared grass
+maps; path shoulders are visual only. These changes do not alter spawn/routes or
+grant runtime download authority; higher source-fir triangle cost needs profiling.
+
 Additional editor/world helpers and their operating limits are covered in the
 [supplemental production contracts](recent-functions.md), which are checked by
 the same coverage tool.

@@ -1,6 +1,10 @@
 # 13 — Original landscape, atmosphere and performance
 
 **Status:** Initial composition implemented; final art/XR/performance acceptance open — 2026-11-05.
+Vegetation pass (2026-11-06): distinct fir/pine canopies, fern/stump understory,
+clustered secondary trees, meadow variation and irregular path shoulders added.
+Source canopy retained where aggressive simplification failed visual comparison;
+new performance measurements required. Final human art/XR acceptance remains open.
 Detail follow-up (2026-11-06): bounded rim roots and individual shoreline rock/plant
 placements are implemented and regression-tested without blocking dock routes.
 These close missing-detail items, not human final-art approval or XR acceptance.

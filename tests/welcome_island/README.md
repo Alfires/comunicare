@@ -1,5 +1,33 @@
 # Welcome island startup contracts
 
+Vegetation-pass performance capture (GTX 1070 Forward Plus): ~191–579 draws and
+2.9–5.4 million reported primitives across the fixed views; ~467 MB video memory.
+Render-loop median ~8.3 ms / p95 ~8.6–8.8 ms is potentially vsync-limited and **not**
+GPU-only or headset performance. Authored canopy retention is a deliberate visual
+quality tradeoff with substantial triangle cost; it is not yet XR-budget approved.
+
+## Vegetation/style pass — 2026-11-06
+
+Added separately cleared Poly Haven Fir Sapling, Fern 02 and Tree Stump 01 (CC0),
+with unchanged source files, authors/licenses/hashes in the 19-entry manifest.
+Test-first distinct-species/understory assertions failed before acquisition.
+The grove now mixes pine/fir silhouettes with secondary clustered trees, ferns
+and stumps. World-space meadow tint variation and grass path shoulders break up
+uniform ground/path strips without changing physics routes or center spawn.
+
+Rendered comparison caught severe canopy loss from aggressive fir base reduction.
+Visible fir placements therefore retain authored geometry with imported distance
+LODs/visibility limits; derived reduced variants are authoring samples, not claimed
+visually equivalent replacements. Pine still uses existing reduced variants.
+Fir needles are opaque modeled geometry, unlike pine alpha cards; import tests
+now distinguish that instead of guessing transparency from the name “twig”.
+
+Only a subset of trees casts shadows; fern shadows are off and visibility is
+bounded. Full authored firs cost more triangles, so desktop/XR budgets must be
+measured again rather than assuming the old performance figures still apply.
+Forward Plus spawn/grove/overview renders inspected. This improves vegetation and
+surface composition but does not claim human art approval or real-headset comfort.
+
 ### Latest matrix completion — 2026-11-06
 
 `/tmp/opencode/welcome-release-results-kpbr2jto` completed 23/24 groups passing.

@@ -7,14 +7,57 @@ func _ready():
 	var positions = [Vector3(-15,0,-30), Vector3(-10,0,-39), Vector3(-5,0,-42), Vector3(5,0,-40), Vector3(13,0,-34), Vector3(-20,0,-35), Vector3(-27,0,-29), Vector3(-35,0,-24), Vector3(-39,0,-18), Vector3(-39,0,-5), Vector3(-40,0,4), Vector3(-35,0,14), Vector3(-33,0,25), Vector3(-26,0,32), Vector3(-16,0,37), Vector3(-6,0,40), Vector3(4,0,38), Vector3(37,0,-17), Vector3(40,0,-9), Vector3(41,0,0), Vector3(40,0,10), Vector3(-15,0,-18), Vector3(-8,0,-26), Vector3(8,0,-32)]
 	for index in positions.size():
 		var variant = ["a", "b", "c"][index % 3]
-		var tree = load("res://assets/welcome_island/models/runtime/pine_sapling_small_" + variant + ".scn").instantiate()
+		var species = "fir" if index % 3 != 0 else "pine"
+		var asset = "fir_sapling_" if species == "fir" else "pine_sapling_small_"
+		var tree: Node3D
+		if species == "fir":
+			# Needle-card topology cannot use the aggressive rock-style base
+			# reduction without losing the canopy. Retain authored close-range
+			# geometry and let the importer's distance LOD handle far views.
+			var source = load("res://assets/welcome_island/models/nature/fir_sapling/fir_sapling_1k.gltf").instantiate()
+			var selected = source.find_child("fir_sapling_" + variant, true, false)
+			tree = selected.duplicate()
+			tree.position = Vector3.ZERO
+			source.free()
+		else:
+			tree = load("res://assets/welcome_island/models/runtime/" + asset + variant + ".scn").instantiate()
+		tree.set_meta("species", species)
 		trees.add_child(tree); tree.position = positions[index]
-		tree.scale = Vector3.ONE * (3.5 + (index % 4) * 0.5)
+		tree.scale = Vector3.ONE * ((7.0 + (index % 4) * 0.7) if species == "fir" else (4.5 + (index % 4) * 0.5))
 		tree.rotation.y = index * 1.7
-		for mesh in tree.find_children("*", "MeshInstance3D", true, false):
+		var tree_meshes = tree.find_children("*", "MeshInstance3D", true, false)
+		if tree is MeshInstance3D: tree_meshes.append(tree)
+		for mesh in tree_meshes:
 			mesh.visibility_range_end = 160
-			mesh.lod_bias = 4
-			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mesh.lod_bias = 8 if species == "fir" else 2
+			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if index % 4 == 0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var understory = Node3D.new(); understory.name = "Understory"; add_child(understory)
+	# Layer secondary trees behind hero silhouettes instead of an even ring of
+	# lone saplings. Keep each destination's center, open spawn and paths clear.
+	var hero_trees = trees.get_children()
+	for index in hero_trees.size():
+		if index % 3 == 0: continue
+		var original = hero_trees[index]
+		var point = original.position + Vector3(-2.5 if index % 2 else 2.5, 0, -2)
+		if point.length() > 47 or absf(point.x) < 4 or (point.x > 15 and point.z > -29 and point.z < -9): continue
+		var secondary = original.duplicate()
+		trees.add_child(secondary); secondary.position = point
+		secondary.scale *= 0.65 + (index % 3) * 0.1
+		secondary.rotation.y += 1.1
+	for index in 160:
+		var cluster: Vector3 = positions[index % positions.size()]
+		var angle = index * 2.39996
+		var offset = Vector3(cos(angle), 0, sin(angle)) * (1.1 + index % 4 * 0.5)
+		var point = cluster + offset
+		# Leave the north/south grove spine and approach corridors unobstructed.
+		if absf(point.x) < 3.2 or point.length() > 48: continue
+		var fern = load("res://assets/welcome_island/models/nature/fern_02/fern_02_1k.gltf").instantiate()
+		understory.add_child(fern); fern.position = point; fern.scale = Vector3.ONE * (0.65 + index % 3 * 0.2); fern.rotation.y = angle
+		for mesh in fern.find_children("*", "MeshInstance3D", true, false):
+			mesh.visibility_range_end = 55; mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for index in 6:
+		var stump = load("res://assets/welcome_island/models/nature/tree_stump_01/tree_stump_01_1k.gltf").instantiate()
+		understory.add_child(stump); stump.position = positions[index * 3] + Vector3(2, 0, 1); stump.scale = Vector3.ONE * 0.65
 	for index in 28:
 		var angle = index * TAU / 28
 		var rock = load("res://assets/welcome_island/models/runtime/boulder_01.scn").instantiate()

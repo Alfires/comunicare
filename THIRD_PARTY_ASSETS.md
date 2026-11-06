@@ -417,4 +417,73 @@ Generated from `assets/welcome_island/manifest.json`; candidates not bundled are
 - Shipped: `assets/welcome_island/models/style/wooden_picnic_table/textures/wooden_picnic_table_bottom_diff_1k.jpg`; SHA-256 `887b9a57213f87196fb090419e14d00095af8fa56c93ca6cd7d0d70ef4e5fd27`
   Original: `textures/wooden_picnic_table_bottom_diff_1k.jpg`; SHA-256 `887b9a57213f87196fb090419e14d00095af8fa56c93ca6cd7d0d70ef4e5fd27`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_diff_1k.jpg
 
+### polyhaven.fir_sapling — Fir Sapling
+
+- Author: Rob Tuytel; Rico Cilliers
+- Source: https://polyhaven.com/a/fir_sapling
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Publisher 1K glTF/buffer/textures preserved unchanged. Derived runtime scenes split individual variants, select Godot 4.7 meshoptimizer LOD topology up to 7000 triangles per surface, compact unused vertices and regenerate distance LODs. Rebuild: python3 tools/assets/optimize_island.py.
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/fir_sapling_1k.gltf`; SHA-256 `a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186`
+  Original: `fir_sapling_1k.gltf`; SHA-256 `a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_twigs_nor_gl_1k.jpg`; SHA-256 `34928b2a9d1f722d2f64a7da468c790ecaca9b89c00ac0878a9e0bad26748368`
+  Original: `textures/fir_sapling_twigs_nor_gl_1k.jpg`; SHA-256 `34928b2a9d1f722d2f64a7da468c790ecaca9b89c00ac0878a9e0bad26748368`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_twigs_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_branches_diff_1k.jpg`; SHA-256 `46d216526b6203dbd5dc3cfce5e49d7a4cc1770da2420faab45adf33671c7de4`
+  Original: `textures/fir_sapling_branches_diff_1k.jpg`; SHA-256 `46d216526b6203dbd5dc3cfce5e49d7a4cc1770da2420faab45adf33671c7de4`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_branches_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_twigs_diff_1k.jpg`; SHA-256 `a9900fafad850deeb5f79b928fd7590bca9e8ec8734d2368d4c64bba8b0c5b22`
+  Original: `textures/fir_sapling_twigs_diff_1k.jpg`; SHA-256 `a9900fafad850deeb5f79b928fd7590bca9e8ec8734d2368d4c64bba8b0c5b22`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_twigs_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_branches_nor_gl_1k.jpg`; SHA-256 `dbe474f6cd593d51a19fb92a627ad900b9ab47dabd1bf60117a2cf9d110f79ea`
+  Original: `textures/fir_sapling_branches_nor_gl_1k.jpg`; SHA-256 `dbe474f6cd593d51a19fb92a627ad900b9ab47dabd1bf60117a2cf9d110f79ea`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_branches_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_twigs_arm_1k.jpg`; SHA-256 `d1ec27a55bb67bfe5fa2c8a41a545dc71769934b142db56ad7c703d4146e1770`
+  Original: `textures/fir_sapling_twigs_arm_1k.jpg`; SHA-256 `d1ec27a55bb67bfe5fa2c8a41a545dc71769934b142db56ad7c703d4146e1770`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_twigs_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/textures/fir_sapling_branches_arm_1k.jpg`; SHA-256 `44c32b056b78c1046aeeb44c973a1d1352ea12d0d7ef2425527555f1256a0964`
+  Original: `textures/fir_sapling_branches_arm_1k.jpg`; SHA-256 `44c32b056b78c1046aeeb44c973a1d1352ea12d0d7ef2425527555f1256a0964`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fir_sapling/fir_sapling_branches_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fir_sapling/fir_sapling.bin`; SHA-256 `efdebfae6ee4b3ea20c7a85eb9f798ff4953259a3616bcff0b7e580b00f34f40`
+  Original: `fir_sapling.bin`; SHA-256 `efdebfae6ee4b3ea20c7a85eb9f798ff4953259a3616bcff0b7e580b00f34f40`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fir_sapling/fir_sapling.bin
+- Shipped: `assets/welcome_island/models/runtime/fir_sapling_a.scn`; SHA-256 `4b28984b540ff51233a6f0739ef2ac3edf728a33d08e72cc8407b2a86216f5db`
+  Original: `fir_sapling_1k.gltf`; SHA-256 `a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf
+- Shipped: `assets/welcome_island/models/runtime/fir_sapling_b.scn`; SHA-256 `3cce609097e5683ad0d6d6cd5e496883814bd5c21911f4774347fdef3757f8af`
+  Original: `fir_sapling_1k.gltf`; SHA-256 `a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf
+- Shipped: `assets/welcome_island/models/runtime/fir_sapling_c.scn`; SHA-256 `7a457178a3e5f3d60fe0f8ad43d407eeb945a60bac1bbd73f906906d9fc9206e`
+  Original: `fir_sapling_1k.gltf`; SHA-256 `a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fir_sapling/fir_sapling_1k.gltf
+
+### polyhaven.fern_02 — Fern 02
+
+- Author: Rob Tuytel; Rico Cilliers
+- Source: https://polyhaven.com/a/fern_02
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K glTF/buffer/PBR files; individually placed in our original island composition. Runtime simplification/LOD uses local Godot authoring tool where recorded.
+- Shipped: `assets/welcome_island/models/nature/fern_02/fern_02_1k.gltf`; SHA-256 `33974295ee19670af4877705fc7d91f33f42d6302f0d44a625e072271223031f`
+  Original: `fern_02_1k.gltf`; SHA-256 `33974295ee19670af4877705fc7d91f33f42d6302f0d44a625e072271223031f`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fern_02/fern_02_1k.gltf
+- Shipped: `assets/welcome_island/models/nature/fern_02/textures/fern_02_arm_1k.jpg`; SHA-256 `ebfb5d76ce9cbdaec20bcd22dce9b755f0b1b8650ef29ca13555e3e6961025d7`
+  Original: `textures/fern_02_arm_1k.jpg`; SHA-256 `ebfb5d76ce9cbdaec20bcd22dce9b755f0b1b8650ef29ca13555e3e6961025d7`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_arm_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fern_02/textures/fern_02_diff_1k.jpg`; SHA-256 `a828a6e7b4c01c826911e2eac4b3afc7457dab7b3b392a31c681ed88b7d50029`
+  Original: `textures/fern_02_diff_1k.jpg`; SHA-256 `a828a6e7b4c01c826911e2eac4b3afc7457dab7b3b392a31c681ed88b7d50029`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fern_02/textures/fern_02_nor_gl_1k.jpg`; SHA-256 `45bce132c6e96a0864bc89ab5da51361ab3f4afa83a6669ae499ab5ca811f621`
+  Original: `textures/fern_02_nor_gl_1k.jpg`; SHA-256 `45bce132c6e96a0864bc89ab5da51361ab3f4afa83a6669ae499ab5ca811f621`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/fern_02/fern_02.bin`; SHA-256 `fe1abb762bcbbc7ad9e86925c8080437a62add257d9280e9142fdc85c226e64c`
+  Original: `fern_02.bin`; SHA-256 `fe1abb762bcbbc7ad9e86925c8080437a62add257d9280e9142fdc85c226e64c`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fern_02/fern_02.bin
+
+### polyhaven.tree_stump_01 — Tree Stump 01
+
+- Author: Rob Tuytel
+- Source: https://polyhaven.com/a/tree_stump_01
+- License: CC0-1.0; terms: `assets/welcome_island/licenses/CC0-1.0.txt`
+- Retrieved: 2026-11-06
+- Attribution: Not required (CC0); voluntary acknowledgement above.
+- Modifications: Unmodified publisher 1K glTF/buffer/PBR files; individually placed in our original island composition. Runtime simplification/LOD uses local Godot authoring tool where recorded.
+- Shipped: `assets/welcome_island/models/nature/tree_stump_01/tree_stump_01_1k.gltf`; SHA-256 `9c66ba87d693f35eb404acaa96e0eeff831c295b61a0a903795584cbcc3527c9`
+  Original: `tree_stump_01_1k.gltf`; SHA-256 `9c66ba87d693f35eb404acaa96e0eeff831c295b61a0a903795584cbcc3527c9`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/tree_stump_01/tree_stump_01_1k.gltf
+- Shipped: `assets/welcome_island/models/nature/tree_stump_01/tree_stump_01.bin`; SHA-256 `b4d9ca70b3c908c4a638fbd6a23ed96c84055bbbf14cf44b89e31ad59fa21e0a`
+  Original: `tree_stump_01.bin`; SHA-256 `b4d9ca70b3c908c4a638fbd6a23ed96c84055bbbf14cf44b89e31ad59fa21e0a`; download: https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/tree_stump_01/tree_stump_01.bin
+- Shipped: `assets/welcome_island/models/nature/tree_stump_01/textures/tree_stump_01_diff_1k.jpg`; SHA-256 `781ebe420ac4d84f2e44b9e9937a596e3d5d90711d978a1392f8bf3771b5bf31`
+  Original: `textures/tree_stump_01_diff_1k.jpg`; SHA-256 `781ebe420ac4d84f2e44b9e9937a596e3d5d90711d978a1392f8bf3771b5bf31`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_diff_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/tree_stump_01/textures/tree_stump_01_nor_gl_1k.jpg`; SHA-256 `425117514b0386bb6df41cb64a61a624d2596472e05777483d4021b3285e3ceb`
+  Original: `textures/tree_stump_01_nor_gl_1k.jpg`; SHA-256 `425117514b0386bb6df41cb64a61a624d2596472e05777483d4021b3285e3ceb`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_nor_gl_1k.jpg
+- Shipped: `assets/welcome_island/models/nature/tree_stump_01/textures/tree_stump_01_arm_1k.jpg`; SHA-256 `d845cd6ab45288c546267d059ebe1f8a737e174330fe9375e5f99e753f2f95d8`
+  Original: `textures/tree_stump_01_arm_1k.jpg`; SHA-256 `d845cd6ab45288c546267d059ebe1f8a737e174330fe9375e5f99e753f2f95d8`; download: https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_arm_1k.jpg
+
 <!-- welcome-island-assets:end -->

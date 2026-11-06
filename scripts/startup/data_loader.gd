@@ -46,7 +46,7 @@ func get_avatar_configuration() -> Node:
 			avatar_configuration.memory_only = temporary
 			avatar_configuration.configure(owner, "" if temporary else "user://avatars/" + owner + ".json", self)
 	return avatar_configuration
-const MAX_AVATAR_BYTES = 256 * 1024 * 1024
+const MAX_AVATAR_BYTES = 1024 * 1024 * 1024
 const MAX_AVATAR_WAITERS = 8
 
 func get_asset_cache() -> Node:
@@ -127,6 +127,10 @@ func _validate_avatar(path: String, require_humanoid: bool = false) -> bool:
 	var file = FileAccess.open(path, FileAccess.READ)
 	if file == null or file.get_length() > MAX_AVATAR_BYTES:
 		return false
+	var policy = preload("res://scripts/assets/avatar_size_policy.gd")
+	var size = file.get_length()
+	var identity = policy.file_identity(path) if policy.classify(size, policy.store_for(self)) == "warn" else ""
+	if not await policy.confirm(self, size, identity): return false
 	var reader = preload("res://scripts/assets/humanoid_animation.gd").new()
 	var bytes = file.get_buffer(file.get_length())
 	file.close()
@@ -190,6 +194,12 @@ func _load_model_from_file(path: String) -> Node3D:
 func _import_avatar(buffer: PackedByteArray, path: String) -> Node3D:
 	if not is_inside_tree() or avatar_import_waiters >= MAX_AVATAR_WAITERS:
 		return null
+	var policy = preload("res://scripts/assets/avatar_size_policy.gd")
+	var size = buffer.size() if path.is_empty() else policy.file_size(path)
+	var identity := ""
+	if policy.classify(size, policy.store_for(self)) == "warn":
+		identity = policy.buffer_identity(buffer) if path.is_empty() else policy.file_identity(path)
+	if not await policy.confirm(self, size, identity): return null
 	avatar_import_waiters += 1
 	while avatar_import_busy:
 		await get_tree().process_frame
@@ -376,25 +386,12 @@ func activate_world(staged: Dictionary) -> bool:
 		return false
 	await get_tree().scene_changed
 	var activating_scene = get_tree().current_scene
-	# Collision is installed with the scene before visual reveal. Bound first
-	# visibility/upload work across frames rather than revealing every mesh at once.
-	var reveal: Array = []
-	if staged.get("document") is Dictionary:
-		for mesh in get_tree().current_scene.find_children("*", "MeshInstance3D", true, false):
-			if mesh.visible:
-				mesh.hide()
-				reveal.append(mesh)
+	if activating_scene is Node3D:
 		var spawn_position = staged.get("spawn_point", [0, 0, 0])
-		var center = Vector3(spawn_position[0], spawn_position[1], spawn_position[2])
-		reveal.sort_custom(func(a, b): return a.global_position.distance_squared_to(center) < b.global_position.distance_squared_to(center))
-		for player in get_tree().get_nodes_in_group("player"):
-			if player.has_method("set_player_pos"): player.set_player_pos(center)
-		for index in reveal.size():
-			if is_instance_valid(reveal[index]): reveal[index].show()
-			if index % 8 == 7:
-				world_loading_progress.emit("Revealing nearby world", 0.8 + 0.2 * float(index + 1) / reveal.size())
-				await get_tree().process_frame
-				if not is_instance_valid(activating_scene) or get_tree().current_scene != activating_scene: return false
+		var reveal = preload("res://scripts/worlds/world_visual_reveal.gd").new()
+		activating_scene.add_child(reveal)
+		reveal.completed.connect(func(): world_loading_progress.emit("Visuals ready", 1.0))
+		reveal.configure(activating_scene, Vector3(spawn_position[0], spawn_position[1], spawn_position[2]))
 	active_world = staged.duplicate()
 	if staged.get("document") is Dictionary:
 		world_runtime = preload("res://scripts/worlds/world_runtime.gd").new()

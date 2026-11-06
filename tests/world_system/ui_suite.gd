@@ -7,6 +7,25 @@ func check(value: bool, title: String):
 	print("PASS: " if value else "FAIL: ", title)
 	if not value: failed += 1
 func run():
+	var streamed = Node3D.new()
+	root.add_child(streamed)
+	var hidden_mesh: MeshInstance3D
+	for index in 25:
+		var mesh = MeshInstance3D.new()
+		mesh.position.x = index
+		mesh.layers = 3
+		streamed.add_child(mesh)
+		if index == 24:
+			mesh.hide()
+			hidden_mesh = mesh
+	var reveal = load("res://scripts/worlds/world_visual_reveal.gd").new()
+	streamed.add_child(reveal)
+	reveal.configure(streamed, Vector3.ZERO)
+	check(reveal.cursor <= 8 and reveal.cursor < 25, "world entry reveals bounded nearby batch without waiting for all visuals")
+	while not reveal.pending.is_empty(): reveal.advance()
+	check(not hidden_mesh.visible and hidden_mesh.layers == 3, "progressive reveal preserves authored visibility and render layers")
+	check(not reveal.is_processing(), "finished visual scheduler stops per-frame work")
+	streamed.free()
 	var built = load("res://scripts/worlds/world_builder.gd").new().build_package("res://packages/world_ui.zip")
 	check(built.ok and built.document.ui.pages.has("credits"), "actual packaged menu passes reader and world builder")
 	check(not load("res://scripts/worlds/world_builder.gd").new().build_package("res://packages/world_ui_bad.zip").ok, "invalid packaged UI root fails closed without runtime error")

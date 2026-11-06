@@ -215,6 +215,12 @@ func release_grip(grip: String) -> bool:
 	for id in states:
 		var state: Dictionary = states[id]
 		if state.holder == peer.world_peer_id and state.grip == grip:
+			var item = items[id].get_ref() if items.has(id) else null
+			if is_instance_valid(item):
+				var q = item.global_basis.orthonormalized().get_rotation_quaternion()
+				local_sequence += 1
+				_send({"op": "pose", "entity": id, "epoch": state.epoch, "sequence": local_sequence,
+					"position": [item.global_position.x, item.global_position.y, item.global_position.z], "rotation": [q.x, q.y, q.z, q.w]})
 			local_sequence += 1
 			return _send({"op": "release", "entity": id, "epoch": state.epoch, "sequence": local_sequence})
 	return false
@@ -324,7 +330,8 @@ func _process(delta: float):
 			var target = Vector3(state.position[0], state.position[1], state.position[2])
 			item.global_position = item.global_position.lerp(target, minf(1.0, delta * 20.0))
 			var q = Quaternion(state.rotation[0], state.rotation[1], state.rotation[2], state.rotation[3])
-			item.global_basis = Basis(item.global_basis.orthonormalized().get_rotation_quaternion().slerp(q, minf(1.0, delta * 20.0)))
+			var item_scale = item.global_basis.get_scale()
+			item.global_basis = Basis(item.global_basis.orthonormalized().get_rotation_quaternion().slerp(q, minf(1.0, delta * 20.0))).scaled_local(item_scale)
 
 func _exit_tree():
 	reset()

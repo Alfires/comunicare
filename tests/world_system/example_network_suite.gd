@@ -92,8 +92,13 @@ func run():
 	check(cube_a.global_position.distance_to(hands[0].global_position) < 0.02, "desktop world cube follows local virtual hand")
 	check(cube_b.global_position.distance_to(hands[0].global_position) < 0.08, "second client's actual cube follows poses received over UDP")
 	check(not adapters[1].request_grab("pickup-cube", "left", hands[1]), "remote VR grip cannot steal the desktop-held object")
+	hands[0].global_position = Vector3(1.3, 1.6, 0.5)
+	adapters[0]._process(0.001)
 	check(adapters[0].release_grip("virtual"), "desktop sends release through real transport")
 	await pump()
+	var relay_item = server.world_items.instances[clients[0].current_session_id].items["pickup-cube"]
+	check(Vector3(relay_item.position[0], relay_item.position[1], relay_item.position[2]).distance_to(hands[0].global_position) < 0.02,
+		"release publishes final held position even between periodic pose updates")
 	check(not cube_a.freeze and not cube_b.freeze, "real release restores physics on both clients")
 	hands[1].global_position = cube_b.global_position + Vector3(0, 0.1, 0)
 	check(adapters[1].request_grab("pickup-cube", "left", hands[1]), "VR-style left grip can acquire released example cube")

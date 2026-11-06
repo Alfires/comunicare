@@ -1142,6 +1142,8 @@ temporary array per triangle. Named and numeric binds retain the same filtering.
 Fully faded inactive chains return before bone lookup, pose allocation and bone
 writes, preserving animation ownership. Solved history remains available for
 smooth reacquisition; active tracking and partially faded chains still solve.
+Fully weighted active chains retain the solver's final pose and record it for
+fade-out without redundantly interpolating and writing that same pose again.
 
 ### [AvatarTracking](../../scripts/assets/avatar_tracking.gd)
 

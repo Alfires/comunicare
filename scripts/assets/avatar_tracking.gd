@@ -82,15 +82,22 @@ func _apply_chain(rig: Skeleton3D, role: String, target: Node3D, bones: Array, s
 	# animation-owned bones once tracking has completely faded out.
 	if not active and weights[role] == 0.0: return
 	var base: Dictionary = {}
-	for bone in bones:
-		var index = rig.find_bone(humanoid.get(bone, ""))
-		if index >= 0: base[index] = rig.get_bone_pose(index)
+	var fully_tracked = active and weights[role] == 1.0
+	if not fully_tracked:
+		for bone in bones:
+			var index = rig.find_bone(humanoid.get(bone, ""))
+			if index >= 0: base[index] = rig.get_bone_pose(index)
 	if active:
 		if not side.is_empty(): _solve_arm(rig, side, target)
 		_set_target(rig, role, target, side.is_empty())
 		var pose: Dictionary = {}
-		for index in base: pose[index] = rig.get_bone_pose(index)
+		for bone in bones:
+			var index = rig.find_bone(humanoid.get(bone, ""))
+			if index >= 0: pose[index] = rig.get_bone_pose(index)
 		solved_poses[role] = pose
+		# The solver already installed the final pose. Blending it back at 100%
+		# only repeats bone reads, quaternion conversions and skeleton writes.
+		if fully_tracked: return
 	for index in base:
 		var desired: Transform3D = solved_poses.get(role, {}).get(index, base[index])
 		var original: Transform3D = base[index]

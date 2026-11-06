@@ -211,6 +211,15 @@ func test_tracking_fades():
 	rig.add_child(tracking)
 	tracking.configure(fixture_map(), null, target, null)
 	tracking._process_modification()
+	var active_started = Time.get_ticks_usec()
+	for i in 2000:
+		rig.reset_bone_poses()
+		tracking._process_modification()
+	print("BENCH: 2000 fully active tracking updates: ", Time.get_ticks_usec() - active_started, " us")
+	var recorded_matches := true
+	for bone in tracking.solved_poses.leftHand:
+		recorded_matches = recorded_matches and rig.get_bone_pose(bone).is_equal_approx(tracking.solved_poses.leftHand[bone])
+	check(recorded_matches, "fully tracked fast path records the exact final pose for later fade-out")
 	tracking.set_tracking_validity({"leftHand": false})
 	rig.reset_bone_poses()
 	tracking._process_modification()

@@ -71,6 +71,7 @@ func _process(delta: float):
 		_update_locomotion()
 	if transport == null or not transport.animation_supported:
 		return
+	_refresh_local_scale()
 	if not local_state.is_empty() and published_sequence != local_state.sequence and local_state.get("share", false):
 		local_state.offset = AnimationState.playhead(local_state, now())
 		local_state.started = now()
@@ -107,6 +108,21 @@ func _process(delta: float):
 
 func now() -> float:
 	return Time.get_ticks_msec() + clock_offset
+
+func _refresh_local_scale():
+	if local_state.is_empty(): return
+	for player in get_tree().get_nodes_in_group("player"):
+		if player.get("avatar_size") == null: continue
+		var size = float(player.avatar_size)
+		if is_equal_approx(size, float(local_state.get("avatar_scale", 1.0))): return
+		# A size change is independent of changing locomotion or ending an emote.
+		# Preserve phase and issue a fresh sequence so the relay accepts it.
+		local_state.offset = AnimationState.playhead(local_state, now())
+		local_state.started = now()
+		sequence += 1
+		local_state.sequence = sequence
+		local_state.avatar_scale = size
+		return
 
 var walk_reference_speed := 3.0
 var locomotion_running := false
@@ -545,9 +561,10 @@ func _apply_remote(id: int):
 		return
 	var value: Dictionary = remote_states[id]
 	var remote = coordinator.get_node_or_null(str(id))
-	if remote == null or not remote.get("avatar") is Node3D:
+	if remote == null:
 		return
 	remote.scale = Vector3.ONE * float(value.get("avatar_scale", 1.0))
+	if not remote.get("avatar") is Node3D: return
 	if not value.get("model_hash", "").is_empty() and remote.avatar.get_meta("asset_revision", "") != value.model_hash:
 		_prepare_remote_model(id, value)
 		return
@@ -643,7 +660,7 @@ func _prepare_remote_model(id: int, state: Dictionary):
 	var handle = loader.get_asset_cache().revision_handle(state.model_hash)
 	if handle.is_empty():
 		if not model_incoming.has(id) and model_incoming.size() < 2:
-			model_incoming[id] = {"hash": state.model_hash, "size": state.model_size, "bytes": PackedByteArray(), "expires": Time.get_ticks_msec() + 900000}
+			model_incoming[id] = {"hash": state.model_hash, "size": state.model_size, "bytes": PackedByteArray(), "expires": Time.get_ticks_msec() + AnimationState.transfer_timeout_msec(int(state.model_size))}
 			_send({"op": "request", "asset_kind": "avatar", "owner": id, "hash": state.model_hash})
 		return
 	model_loading[id] = true

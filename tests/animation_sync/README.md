@@ -1,5 +1,10 @@
 # Animation and revision checks
 
+Scale-sync regressions cover a stationary player's size change producing a new
+animation-state sequence without changing motion, and unchanged size producing no
+extra publication. Remote root scale is applied even before its avatar is loaded,
+so placeholders/replacement models inherit the same instance-scoped scale.
+
 Mirror reach follows avatar size: desktop ray reach is 2 m × size, VR surface
 reach is 0.3 m × size, with the same predicate used for highlighting/grabbing.
 The emote menu provides Reset size (1×) and Default avatar (profile fallback plus

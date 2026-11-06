@@ -15,17 +15,22 @@ class Remote extends Node3D:
 	var avatar: Node3D
 
 class LocalPlayer extends CharacterBody3D:
+	var avatar_size := 1.0
 	var avatar_model: Node3D
 
 class ModelValidationLoader extends Node:
 	var animation_calls := 0
+	var model_calls := 0
 	var avatar_valid := true
 	var model_loads := true
 	var animation_import_error := "Animation file has no clips or exceeds the 64-clip limit."
 	var cache
 	func get_asset_cache(): return cache
-	func _validate_avatar(_path): return avatar_valid
+	func _validate_avatar(_path, require_humanoid: bool = false):
+		if require_humanoid: model_calls += 1
+		return avatar_valid and (model_loads or not require_humanoid)
 	func _load_model_from_file(_path):
+		model_calls += 1
 		if not model_loads: return null
 		var model = Node3D.new()
 		model.add_child(Skeleton3D.new())
@@ -619,6 +624,7 @@ func test_model_validation_separation():
 	doc.json.animations[0].channels[0].target.path = "translation"
 	file.store_buffer(pack(doc.json, doc.binary)); file.close()
 	check(await configuration._validate_model("res://model-with-extra-motion.glb"), "valid avatar is not rejected because optional embedded animation is unsupported")
+	check(loader.model_calls == 1, "model compatibility validation constructs one scene rather than importing twice")
 	check(loader.animation_calls == 0, "model validation never applies standalone animation byte/clip limits")
 	loader.avatar_valid = false
 	loader.cache = ValidationCache.new()
@@ -638,6 +644,10 @@ func test_model_validation_separation():
 		real_configuration.free()
 
 func test_document_structure_regressions():
+	check(load("res://scripts/assets/asset_cache.gd").LIMITS.avatar == 256 * 1024 * 1024, "avatar cache/import ceiling is 256 MiB")
+	check(load("res://relay_protocol/animation_state.gd").get_script_constant_map().get("MAX_AVATAR_BYTES", 0) == 256 * 1024 * 1024, "relay avatar transfer ceiling matches client imports")
+	check(AnimationState.transfer_timeout_msec(256 * 1024 * 1024) >= 4096000, "maximum model has enough bounded transfer time at conservative bandwidth")
+	check(AnimationState.transfer_timeout_msec(1024) == 900000, "small transfer timeout remains compatible")
 	var reader = Reader.new()
 	var doc = reader.document(fixture())
 	var bin = doc.binary.duplicate()
@@ -819,6 +829,18 @@ func test_controller(parsed: Dictionary):
 		"offset": 0.0, "speed": 1.0, "loop": true, "duration": 1.0, "builtin": "neutral", "library": AnimationState.LIBRARY, "hash": "", "started": controller.now()}
 	controller.receive(neutral)
 	var scaled_state = neutral.duplicate(true)
+	var local_size_player = LocalPlayer.new()
+	root.add_child(local_size_player)
+	local_size_player.add_to_group("player")
+	local_size_player.avatar_size = 2.5
+	controller.local_state = neutral.duplicate(true)
+	controller.sequence = 10
+	controller._refresh_local_scale()
+	check(controller.local_state.avatar_scale == 2.5 and controller.local_state.sequence == 11,
+		"stationary avatar scale change republishes fresh state without changing motion")
+	controller._refresh_local_scale()
+	check(controller.local_state.sequence == 11, "unchanged avatar size does not flood relay with states")
+	local_size_player.free()
 	scaled_state.sequence += 1
 	scaled_state.avatar_scale = 2.0
 	controller.receive(scaled_state)
@@ -998,6 +1020,11 @@ func test_network():
 	state.sequence = 3
 	state.model_hash = "d".repeat(64)
 	state.model_size = data.size()
+	var large_model = state.duplicate(true)
+	large_model.model_size = 256 * 1024 * 1024
+	check(AnimationState.valid(large_model), "wire descriptor accepts 256 MiB avatar without allocating model bytes")
+	large_model.model_size += 1
+	check(not AnimationState.valid(large_model), "wire descriptor rejects avatars above new maximum")
 	clients[0].send_animation(state)
 	await pump(server, clients)
 	clients[1].send_animation({"op": "request", "asset_kind": "avatar", "session_id": clients[1].current_session_id, "owner": owner, "hash": state.model_hash})

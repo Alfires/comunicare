@@ -42,6 +42,61 @@ func measure(name: String, action: Callable):
 	if over: failed += 1
 	print("PERF: %-44s total=%7.2f ms  worst_frame=%7.2f ms%s" % [name, cpu, worst, "  OVER BUDGET" if over else ""])
 
+## Stand-in friend service with the methods the Friends page calls; real accounts
+## would need one RSA key per contact. Measures UI cost, not the service.
+class FakeFriends extends RefCounted:
+	signal changed
+	var owner := "perf-owner"
+	var last_error := ""
+	var connected := true
+	var supported := true
+	var state := {"preferred_status": "online"}
+	var people := {}
+	func _init(count: int):
+		var kinds = ["friends", "friends", "friends", "incoming", "outgoing", "contact"]
+		for i in count:
+			var id = "%064x" % (i * 2654435761 + 1)
+			people[id] = {"name": "Player %03d" % i, "kind": kinds[i % kinds.size()], "status": ["online", "offline", "do_not_disturb"][i % 3]}
+	func contacts() -> Dictionary:
+		var result := {}
+		for id in people: result[id] = {"blocked": false}
+		return result
+	func relationship(id: String) -> Dictionary: return {"status": people[id].kind} if people[id].kind != "contact" else {}
+	func status(id: String) -> String: return people[id].status
+	func label(id: String) -> String: return people[id].name
+	func relationship_label(_id: String) -> String: return "Saved contact"
+	func friend_session(id: String) -> Dictionary:
+		return {"session_id": "s-" + id.left(6), "world_url": "default_wold", "name": "Room " + id.left(4)} if people[id].status == "online" else {}
+	func set_status(value: String): state.preferred_status = value
+	func refresh(): pass
+	func act(_id, _kind): return true
+	func block(_id, _value = true): return true
+	func remove_contact(_id): return true
+	func send_request(_id): return true
+	func add_contact(_key, _nick): return false
+
+func measure_friends(save: Node):
+	var real_service = save.friends
+	var fake = FakeFriends.new(120)
+	save.friends = fake
+	var ui := {}
+	await measure("friends: open page with 120 contacts", func():
+		ui.page = load("res://scenes/GUI/friends_menue.tscn").instantiate()
+		root.add_child(ui.page)
+		ui.page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT))
+	var page: Control = ui.page
+	await measure("friends: type in search", func():
+		page.search.text = "Player 07"
+		page.search.text_changed.emit(page.search.text))
+	await measure("friends: clear search", func():
+		page.search.text = ""
+		page.search.text_changed.emit(""))
+	await measure("friends: Online filter", func(): page.filter_buttons.online.pressed.emit())
+	await measure("friends: All filter", func(): page.filter_buttons.all.pressed.emit())
+	await measure("friends: presence update (re-render)", func(): fake.changed.emit())
+	page.free()
+	save.friends = real_service
+
 func humanoid() -> Node3D:
 	var model = load("res://assets/avatars/placeholder/RobotExpressive.glb").instantiate()
 	return model
@@ -103,7 +158,10 @@ func run():
 	await measure("menu: reset (close/reopen)", func(): menu.reset())
 	await measure("theme: switch with open menu", func(): save.store.set_value("interface.theme_preset", "forest"))
 	save.store.reset_value("interface.theme_preset")
+	await measure("theme: switch roundness with open menu", func(): save.store.set_value("interface.roundness", "round"))
+	save.store.reset_value("interface.roundness")
 	menu.free()
+	await measure_friends(save)
 	await measure("preview: create", func():
 		ui.preview = load("res://scenes/GUI/avatar_preview.tscn").instantiate()
 		ui.preview.custom_minimum_size = Vector2(400, 500)

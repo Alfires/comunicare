@@ -14,7 +14,6 @@ HERE = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rendered", action="store_true")
-    parser.add_argument("--help-suite", action="store_true", help="Run opt-in Help contracts instead of Credits")
     args = parser.parse_args()
     godot = shutil.which(os.environ.get("GODOT", "godot"))
     if not godot:
@@ -26,7 +25,6 @@ def main():
         shutil.copytree(ROOT / "scripts/worlds", project / "scripts/worlds")
         shutil.copytree(ROOT / "tests/microphone_settings/fixtures", project / "fixtures")
         for name in ("assets/welcome_island/manifest.json", "assets/welcome_island/licenses/CC0-1.0.txt",
-                     "assets/welcome_island/licenses/Kenney-Watercraft.txt",
                      "assets/animations/CC0-1.0.txt", "assets/animations/Quaternius-License.txt",
                      "themes/fonts/OFL.txt"):
             target = project / name
@@ -34,7 +32,7 @@ def main():
             shutil.copy2(ROOT / name, target)
         bundled = ROOT / "assets/credits.json"
         if bundled.exists(): shutil.copy2(bundled, project / "assets/credits.json")
-        shutil.copy2(HERE / ("help_suite.gd" if args.help_suite else "credits_suite.gd"), project / "suite.gd")
+        shutil.copy2(HERE / "credits_suite.gd", project / "suite.gd")
         (project / "project.godot").write_text('config_version=5\n[application]\nconfig/name="Credits contracts"\n[autoload]\nSaveData="*res://fixtures/save_data.gd"\nNetworkHandler="*res://fixtures/network_handler.gd"\nDataLoader="*res://fixtures/data_loader.gd"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
         env = {**os.environ, "XDG_DATA_HOME": str(project / "data"), "XDG_CONFIG_HOME": str(project / "config"), "XDG_CACHE_HOME": str(project / "cache"), "WELCOME_CREDITS_RENDERED": "1" if args.rendered else "0"}
         try:

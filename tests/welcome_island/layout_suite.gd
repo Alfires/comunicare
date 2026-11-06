@@ -7,8 +7,7 @@ func check(ok: bool, title: String):
 	else: failed += 1; print("FAIL: ", title)
 
 func ground(world: Node3D, point: Vector3) -> Dictionary:
-	# Query below the house ceiling: roof tops are not the indoor walking floor.
-	return world.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(point + Vector3.UP * 2.5, point - Vector3.UP * 8, 1))
+	return world.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(point + Vector3.UP * 8, point - Vector3.UP * 8, 1))
 
 func clear_capsule(world: Node3D, point: Vector3) -> bool:
 	var capsule = CapsuleShape3D.new()
@@ -25,7 +24,6 @@ func run():
 	await process_frame
 	await physics_frame
 	await physics_frame
-	await preload("res://streaming_wait.gd").complete(current_scene)
 	var world = current_scene
 	var layout = world.get_node_or_null("Island")
 	check(layout != null, "built-in world contains authored island layout")

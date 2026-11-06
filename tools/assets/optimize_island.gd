@@ -4,9 +4,8 @@ func _initialize(): call_deferred("run")
 
 func run():
 	DirAccess.make_dir_recursive_absolute("res://assets/welcome_island/models/runtime")
-	for id in ["pine_sapling_small", "boulder_01", "fir_sapling"]:
-		var folder = "nature/" if id == "fir_sapling" else ""
-		var source = load("res://assets/welcome_island/models/" + folder + id + "/" + id + "_1k.gltf").instantiate()
+	for id in ["pine_sapling_small", "boulder_01"]:
+		var source = load("res://assets/welcome_island/models/" + id + "/" + id + "_1k.gltf").instantiate()
 		for node in source.find_children("*", "MeshInstance3D", true, false):
 			var reduced = ArrayMesh.new()
 			for surface in node.mesh.get_surface_count():

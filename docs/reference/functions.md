@@ -2086,10 +2086,13 @@ actions and open read-only cached profiles. Account switch clears drafts/rows an
 the search; exit unsubscribes. Display strings are not target identities.
 The page offers search (name or fingerprint), an All/Online/Requests filter with
 the incoming-request count, sections with counts (empty ones omitted), friends
-sorted online first, and contact cards with a ContactAvatar, one primary action
-(Join friend, Accept/Decline, Cancel request, Send friend request, Unblock) and a
-"more" menu for View profile, Remove friend, Delete contact and Block (destructive
-actions still ask for confirmation).
+sorted online first, and contact cards with a ContactAvatar, primary actions
+(Invite/Join friend, Accept/Decline, Cancel request, Unblock) and one shared
+"more" popup for View profile, Remove friend and Block (destructive actions still
+ask for confirmation). Contact-only records stay in the service but are not shown.
+Cards are kept per fingerprint and rebuilt only when their shown content changes;
+search and filters only toggle visibility; service changes render once per frame;
+long lists build 12 new cards per frame.
 
 <!-- module: scripts/GUI/contact_avatar.gd -->
 ### [ContactAvatar](../../scripts/GUI/contact_avatar.gd)

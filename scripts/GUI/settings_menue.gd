@@ -92,19 +92,10 @@ func _render():
 	if category_pages.has("Assets") and DataLoader.has_method("get_asset_cache"):
 		_add_cache_actions(category_pages.Assets)
 	if category_pages.has("Controls"):
-		var help = preload("res://scripts/GUI/home_help.gd").new()
-		category_pages.Controls.add_child(help)
-		category_pages.Controls.move_child(help, 1)
 		var local_notice = Label.new()
 		local_notice.text = "Home objects are local to this client; changes are not synchronized with other players."
 		local_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		category_pages.Controls.add_child(local_notice)
-		for lighting in get_tree().get_nodes_in_group("home_lighting"):
-			category_pages.Controls.add_child(lighting.make_controls())
-		for house in get_tree().get_nodes_in_group("home_resting"):
-			category_pages.Controls.add_child(house.make_rest_controls())
-		for kitchen in get_tree().get_nodes_in_group("home_kitchen"):
-			category_pages.Controls.add_child(kitchen.make_controls())
 		for ship in get_tree().get_nodes_in_group("home_ship"):
 			var board = Button.new()
 			board.text = "Board pond boat (near dock)…"

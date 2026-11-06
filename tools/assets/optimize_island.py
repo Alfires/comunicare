@@ -33,7 +33,7 @@ def main():
         manifest = ROOT / "assets/welcome_island/manifest.json"
         data = json.loads(manifest.read_text())
         for entry in data["assets"]:
-            if entry["id"] not in ("polyhaven.pine_sapling_small", "polyhaven.boulder_01", "polyhaven.fir_sapling"): continue
+            if entry["id"] not in ("polyhaven.pine_sapling_small", "polyhaven.boulder_01"): continue
             original = next(item for item in entry["files"] if item["path"].endswith(".gltf"))
             entry["files"] = [item for item in entry["files"] if "/runtime/" not in item["path"]]
             prefix = entry["id"].split(".", 1)[1]

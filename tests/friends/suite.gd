@@ -296,6 +296,26 @@ func test_join_ui(scene):
 	for node in scene.find_children("*", "Button", true, false):
 		if node.text == "Join friend": join = node
 	check(join != null and not join.disabled, "actual Friends UI offers enabled Join friend for fresh public location")
+	var cards_before: Array = scene.list.get_children().filter(func(node): return node.has_meta("fingerprint"))
+	scene._render()
+	var cards_after: Array = scene.list.get_children().filter(func(node): return node.has_meta("fingerprint"))
+	check(not cards_before.is_empty() and cards_after == cards_before and cards_after.all(func(node): return node.visible),
+		"re-render without changes keeps existing cards instead of rebuilding the list")
+	scene.search.text = "zz-no-such-contact"
+	scene.search.text_changed.emit(scene.search.text)
+	check(cards_after.all(func(node): return not node.visible) and scene.no_match.visible and "zz-no-such-contact" in scene.no_match.text,
+		"search hides non-matching cards and explains the empty result")
+	scene.search.text = ""
+	scene.search.text_changed.emit("")
+	check(cards_after.all(func(node): return node.visible) and not scene.no_match.visible, "clearing search shows the same cards again")
+	var more: Button
+	for node in scene.find_children("*", "Button", true, false):
+		if node.tooltip_text == "More actions": more = node
+	if more != null:
+		more.pressed.emit()
+	var items: Array = range(scene.more_popup.item_count).map(func(index): return scene.more_popup.get_item_text(index))
+	check(items == ["View profile", "Remove friend…", "Block…"], "friend's more menu offers View profile, Remove friend and Block")
+	scene.more_popup.hide()
 	if join != null:
 		join.pressed.emit()
 		check(network.join_calls.size() == 1 and network.join_calls[0].session_id == location.session_id and network.join_calls[0].world_url == "default_wold", "Join friend button routes exact identity/content into coordinator")
@@ -370,11 +390,11 @@ func test_ui():
 	check(scene.find_children("*", "Button", true, false).any(func(node): return node.text == "Invite"), "Friends exposes Invite action")
 	scene.search.text = "zz-no-such-contact"
 	scene.search.text_changed.emit(scene.search.text)
-	check(scene.list.get_children().all(func(node): return not node.has_meta("fingerprint")), "search hides contacts that do not match")
+	check(scene.list.get_children().all(func(node): return not node.has_meta("fingerprint") or not node.visible), "search hides contacts that do not match")
 	scene.search.text = ""
 	scene.search.text_changed.emit("")
 	scene.filter_buttons.requests.pressed.emit()
-	var request_states: Array = scene.list.get_children().filter(func(node): return node.has_meta("fingerprint")).map(
+	var request_states: Array = scene.list.get_children().filter(func(node): return node.has_meta("fingerprint") and node.visible).map(
 		func(node): return services[0].relationship(node.get_meta("fingerprint")).get("status", "contact"))
 	check(scene.filter == "requests" and request_states.all(func(state): return state in ["incoming", "outgoing", "accepting"]),
 		"Requests filter shows only open requests")
